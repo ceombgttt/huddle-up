@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X } from 'lucide-react';
 import { api } from './api.js';
 
@@ -98,6 +98,30 @@ const VENUE_PRICING = {
   chain: { name: "Multi-Location (2-5)", featured: 499 },
   chainPlus: { name: "Regional Chain (6-20)", featured: 999 },
   enterprise: { name: "Enterprise (20+)", featured: "Custom" }
+};
+
+const DebouncedInput = ({ value, onChange, delay = 300, ...props }) => {
+  const [localValue, setLocalValue] = useState(value);
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  const handleChange = (e) => {
+    const newVal = e.target.value;
+    setLocalValue(newVal);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      onChange(newVal);
+    }, delay);
+  };
+
+  useEffect(() => {
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, []);
+
+  return <input {...props} value={localValue} onChange={handleChange} />;
 };
 
 const HuddleUpApp = () => {
@@ -838,10 +862,11 @@ const HuddleUpApp = () => {
           {/* LOCATION SEARCH */}
           <div className="relative mb-3">
             <Navigation className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-cyan-600" />
-            <input
+            <DebouncedInput
               type="text"
               value={currentCity}
-              onChange={(e) => setCurrentCity(e.target.value)}
+              onChange={(val) => setCurrentCity(val)}
+              delay={400}
               placeholder="Enter city (e.g., Dallas, TX)"
               className="w-full pl-10 pr-4 py-3 bg-cyan-100 border-2 border-cyan-300 rounded-xl text-black placeholder-cyan-600/50 focus:outline-none focus:ring-2 focus:ring-cyan-500 font-semibold"
             />
@@ -849,10 +874,11 @@ const HuddleUpApp = () => {
 
           <div className="relative mb-4">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
+            <DebouncedInput
               type="text"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(val) => setSearchTerm(val)}
+              delay={300}
               placeholder="Search teams..."
               className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
             />
