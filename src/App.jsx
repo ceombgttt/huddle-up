@@ -835,22 +835,16 @@ const HuddleUpApp = () => {
             </div>
           </div>
 
-          {/* LOCATION SEARCH - NEW */}
+          {/* LOCATION SEARCH */}
           <div className="relative mb-3">
-            <Navigation className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-cyan-400" />
+            <Navigation className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-cyan-600" />
             <input
               type="text"
               value={currentCity}
               onChange={(e) => setCurrentCity(e.target.value)}
               placeholder="Enter city (e.g., Dallas, TX)"
-              className="w-full pl-10 pr-4 py-3 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border-2 border-cyan-500/30 rounded-xl text-white placeholder-cyan-300/60 focus:outline-none focus:ring-2 focus:ring-cyan-500 font-semibold"
+              className="w-full pl-10 pr-4 py-3 bg-cyan-100 border-2 border-cyan-300 rounded-xl text-black placeholder-cyan-600/50 focus:outline-none focus:ring-2 focus:ring-cyan-500 font-semibold"
             />
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-              <div className="flex items-center gap-2 text-xs">
-                <MapPin className="w-3 h-3 text-cyan-400" />
-                <span className="text-cyan-300 font-bold">{currentCity}</span>
-              </div>
-            </div>
           </div>
 
           <div className="relative mb-4">
