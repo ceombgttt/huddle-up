@@ -1690,14 +1690,14 @@ const HuddleUpApp = () => {
               <select
                 value={venueType}
                 onChange={(e) => setVenueType(e.target.value)}
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                className="w-full px-4 py-3 bg-slate-700 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
               >
-                <option value="">Select type...</option>
-                <option value="Sports Bar">Sports Bar</option>
-                <option value="Restaurant & Bar">Restaurant & Bar</option>
-                <option value="Brewery/Taproom">Brewery/Taproom</option>
-                <option value="Entertainment Venue">Entertainment Venue</option>
-                <option value="Other">Other</option>
+                <option value="" className="bg-slate-700 text-white">Select type...</option>
+                <option value="Sports Bar" className="bg-slate-700 text-white">Sports Bar</option>
+                <option value="Restaurant & Bar" className="bg-slate-700 text-white">Restaurant & Bar</option>
+                <option value="Brewery/Taproom" className="bg-slate-700 text-white">Brewery/Taproom</option>
+                <option value="Entertainment Venue" className="bg-slate-700 text-white">Entertainment Venue</option>
+                <option value="Other" className="bg-slate-700 text-white">Other</option>
               </select>
             </div>
 
