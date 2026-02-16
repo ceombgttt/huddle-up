@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map } from 'lucide-react';
+import { api } from './api.js';
 
 // Sample games data for different sports
 const SAMPLE_GAMES = [
@@ -118,137 +119,26 @@ const HuddleUpApp = () => {
   const [loadingGames, setLoadingGames] = useState(false);
   
   // Admin credentials (in production, this would be secure authentication)
-  const isAdmin = user?.email === 'admin@huddleup.com';
+  const isAdmin = user?.isAdmin || user?.email === 'admin@huddleup.com';
   
   // Check if user owns a venue
   const userVenue = user ? venues.find(v => v.claimedBy === user.email) : null;
 
-  // Load user and parties from storage on mount
   useEffect(() => {
     loadUserData();
     loadParties();
     loadVenues();
-    loadVenueClaims();
-    loadGamesData();
-  }, []);
-
-  const loadGamesData = async () => {
-    try {
-      const result = await window.storage.get('cached-games', true);
-      if (result) {
-        const cachedData = JSON.parse(result.value);
-        // Check if cache is less than 6 hours old
-        const cacheAge = Date.now() - new Date(cachedData.timestamp).getTime();
-        if (cacheAge < 6 * 60 * 60 * 1000) {
-          setGames(cachedData.games);
-          return;
-        }
-      }
-    } catch (error) {
-      console.log('No cached games, will use sample data');
-    }
-    // Use sample games as fallback
     setGames(SAMPLE_GAMES);
-  };
-
-  const fetchLiveGames = async () => {
-    setLoadingGames(true);
-    try {
-      // Fetch upcoming games for each sport
-      const sports = [
-        { league: 'nfl', sport: 'NFL' },
-        { league: 'nba', sport: 'NBA' },
-        { league: 'mlb', sport: 'MLB' },
-        { league: 'nhl', sport: 'NHL' },
-        { league: 'ncaafb', sport: 'College Football' },
-        { league: 'ncaamb', sport: 'College Basketball' },
-        { league: 'epl', sport: 'Premier League' },
-        { league: 'mls', sport: 'MLS' },
-        { league: 'mma', sport: 'UFC' },
-        { league: 'boxing', sport: 'Boxing' }
-      ];
-
-      const allGames = [];
-
-      for (const { league, sport } of sports) {
-        try {
-          const response = await fetch(`https://api.anthropic.com/v1/messages`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: 'claude-sonnet-4-20250514',
-              max_tokens: 1000,
-              messages: [{
-                role: 'user',
-                content: (sport === 'UFC' || sport === 'Boxing')
-                  ? `Get the upcoming ${sport} events for the next 30 days. Return ONLY a JSON array with this exact format (no other text):
-[{"homeTeam": "Event Name/Number", "awayTeam": "Main Card or Featured Fight", "startTime": "2026-02-16T22:00:00", "venue": "Arena, City"}]
-
-Return 2-4 upcoming ${sport} events.`
-                  : `Get the upcoming ${sport} games for the next 7 days. Return ONLY a JSON array with this exact format (no other text):
-[{"homeTeam": "Team Name", "awayTeam": "Team Name", "startTime": "2026-02-16T18:00:00", "venue": "Stadium Name"}]
-
-Return 3-5 upcoming games.`
-              }],
-              tools: [{
-                type: "web_search_20250305",
-                name: "web_search"
-              }]
-            })
-          });
-
-          const data = await response.json();
-          
-          // Extract text from response
-          const textContent = data.content
-            .filter(item => item.type === 'text')
-            .map(item => item.text)
-            .join('\n');
-
-          // Try to parse JSON from the response
-          const jsonMatch = textContent.match(/\[[\s\S]*\]/);
-          if (jsonMatch) {
-            const gamesData = JSON.parse(jsonMatch[0]);
-            const formattedGames = gamesData.map((game, idx) => ({
-              id: `${league}-live-${idx}`,
-              sport: sport,
-              ...game
-            }));
-            allGames.push(...formattedGames);
-          }
-        } catch (error) {
-          console.error(`Error fetching ${sport} games:`, error);
-        }
-      }
-
-      if (allGames.length > 0) {
-        setGames(allGames);
-        // Cache the results
-        await window.storage.set('cached-games', JSON.stringify({
-          games: allGames,
-          timestamp: new Date().toISOString()
-        }), true);
-      } else {
-        // Fallback to sample data
-        setGames(SAMPLE_GAMES);
-      }
-    } catch (error) {
-      console.error('Error fetching games:', error);
-      setGames(SAMPLE_GAMES);
-    }
-    setLoadingGames(false);
-  };
+  }, []);
 
   const loadUserData = async () => {
     try {
-      const result = await window.storage.get('current-user', false);
-      if (result) {
-        const userData = JSON.parse(result.value);
+      const userData = await api.auth.me();
+      if (userData) {
         setUser(userData);
         setCurrentScreen('games');
-        loadUserParties(userData.email);
+        loadUserParties();
+        loadVenueClaims();
       }
     } catch (error) {
       console.log('No saved user');
@@ -257,10 +147,8 @@ Return 3-5 upcoming games.`
 
   const loadParties = async () => {
     try {
-      const result = await window.storage.get('all-parties', true);
-      if (result) {
-        setParties(JSON.parse(result.value));
-      }
+      const data = await api.parties.list();
+      setParties(data);
     } catch (error) {
       console.log('No parties yet');
       setParties([]);
@@ -269,14 +157,8 @@ Return 3-5 upcoming games.`
 
   const loadVenues = async () => {
     try {
-      const result = await window.storage.get('all-venues', true);
-      if (result) {
-        setVenues(JSON.parse(result.value));
-      } else {
-        // Initialize with sample venues
-        await window.storage.set('all-venues', JSON.stringify(SAMPLE_VENUES), true);
-        setVenues(SAMPLE_VENUES);
-      }
+      const data = await api.venues.list();
+      setVenues(data);
     } catch (error) {
       console.log('Initializing venues');
       setVenues(SAMPLE_VENUES);
@@ -285,101 +167,72 @@ Return 3-5 upcoming games.`
 
   const loadVenueClaims = async () => {
     try {
-      const result = await window.storage.get('venue-claims', true);
-      if (result) {
-        setVenueClaims(JSON.parse(result.value));
-      }
+      const data = await api.venues.claims();
+      setVenueClaims(data);
     } catch (error) {
-      console.log('No venue claims yet');
       setVenueClaims([]);
     }
   };
 
-  const loadUserParties = async (userEmail) => {
+  const loadUserParties = async () => {
     try {
-      const result = await window.storage.get(`user-parties-${userEmail}`, false);
-      if (result) {
-        setUserParties(JSON.parse(result.value));
-      }
+      const data = await api.parties.mine();
+      setUserParties(data);
     } catch (error) {
-      console.log('No user parties yet');
       setUserParties([]);
     }
   };
 
-  const saveParties = async (updatedParties) => {
-    try {
-      await window.storage.set('all-parties', JSON.stringify(updatedParties), true);
-      setParties(updatedParties);
-    } catch (error) {
-      console.error('Failed to save parties:', error);
-    }
-  };
-
-  const saveUserParties = async (userEmail, updatedUserParties) => {
-    try {
-      await window.storage.set(`user-parties-${userEmail}`, JSON.stringify(updatedUserParties), false);
-      setUserParties(updatedUserParties);
-    } catch (error) {
-      console.error('Failed to save user parties:', error);
-    }
-  };
-
   const handleSignUp = async (email, password, name, gender) => {
-    const newUser = { 
-      email, 
-      name, 
-      gender, 
-      favoriteTeams: {}, // Will store: { 'NFL': 'Green Bay Packers', 'NHL': 'Florida Panthers', ... }
-      joinedDate: new Date().toISOString() 
-    };
-    setUser(newUser);
-    await window.storage.set('current-user', JSON.stringify(newUser), false);
-    
-    // Check if first time user - show onboarding
-    const hasSeenOnboarding = await window.storage.get('seen-onboarding-' + email, false);
-    if (!hasSeenOnboarding) {
+    try {
+      const userData = await api.auth.signup(email, password, name, gender);
+      setUser(userData);
       setShowOnboarding(true);
       setOnboardingStep(0);
+      setCurrentScreen('games');
+      loadParties();
+      loadVenues();
+      loadVenueClaims();
+    } catch (error) {
+      alert(error.message);
     }
-    
-    setCurrentScreen('games');
   };
 
   const handleLogin = async (email, password) => {
-    const newUser = { email, name: email.split('@')[0], gender: 'prefer-not-to-say', joinedDate: new Date().toISOString() };
-    setUser(newUser);
-    await window.storage.set('current-user', JSON.stringify(newUser), false);
-    loadUserParties(email);
-    setCurrentScreen('games');
+    try {
+      const userData = await api.auth.login(email, password);
+      setUser(userData);
+      loadUserParties();
+      loadParties();
+      loadVenues();
+      loadVenueClaims();
+      setCurrentScreen('games');
+    } catch (error) {
+      alert(error.message);
+    }
   };
 
   const updateFavoriteTeams = async (sport, team) => {
-    const updatedUser = {
-      ...user,
-      favoriteTeams: {
-        ...user.favoriteTeams,
-        [sport]: team
-      }
-    };
-    setUser(updatedUser);
-    await window.storage.set('current-user', JSON.stringify(updatedUser), false);
+    try {
+      const result = await api.users.updateFavorite(sport, team);
+      setUser(prev => ({ ...prev, favoriteTeams: result.favoriteTeams }));
+    } catch (error) {
+      console.error('Failed to update favorites:', error);
+    }
   };
 
   const removeFavoriteTeam = async (sport) => {
-    const updatedTeams = { ...user.favoriteTeams };
-    delete updatedTeams[sport];
-    const updatedUser = {
-      ...user,
-      favoriteTeams: updatedTeams
-    };
-    setUser(updatedUser);
-    await window.storage.set('current-user', JSON.stringify(updatedUser), false);
+    try {
+      const result = await api.users.removeFavorite(sport);
+      setUser(prev => ({ ...prev, favoriteTeams: result.favoriteTeams }));
+    } catch (error) {
+      console.error('Failed to remove favorite:', error);
+    }
   };
 
   const handleLogout = async () => {
     try {
-      await window.storage.delete('current-user', false);
+      await api.auth.logout();
     } catch (error) {
       console.log('Error logging out');
     }
@@ -389,137 +242,63 @@ Return 3-5 upcoming games.`
   };
 
   const handleCreateParty = async (partyData) => {
-    const newParty = {
-      id: `party-${Date.now()}`,
-      ...partyData,
-      hostEmail: user.email,
-      hostName: user.name,
-      attendees: [user.email],
-      attendeeDetails: [{
-        email: user.email,
-        name: user.name,
-        gender: user.gender
-      }],
-      createdAt: new Date().toISOString()
-    };
-
-    const updatedParties = [...parties, newParty];
-    await saveParties(updatedParties);
-
-    const updatedUserParties = [...userParties, newParty.id];
-    await saveUserParties(user.email, updatedUserParties);
-
-    setCurrentScreen('gameDetail');
+    try {
+      await api.parties.create(partyData);
+      await loadParties();
+      await loadUserParties();
+      setCurrentScreen('gameDetail');
+    } catch (error) {
+      alert(error.message);
+    }
   };
 
   const handleJoinParty = async (partyId) => {
-    const updatedParties = parties.map(party => {
-      if (party.id === partyId && !party.attendees.includes(user.email)) {
-        return {
-          ...party,
-          attendees: [...party.attendees, user.email],
-          attendeeDetails: [
-            ...(party.attendeeDetails || []),
-            {
-              email: user.email,
-              name: user.name,
-              gender: user.gender
-            }
-          ]
-        };
-      }
-      return party;
-    });
-
-    await saveParties(updatedParties);
-
-    if (!userParties.includes(partyId)) {
-      const updatedUserParties = [...userParties, partyId];
-      await saveUserParties(user.email, updatedUserParties);
+    try {
+      await api.parties.join(partyId);
+      await loadParties();
+      await loadUserParties();
+    } catch (error) {
+      alert(error.message);
     }
   };
 
   const handleLeaveParty = async (partyId) => {
-    const updatedParties = parties.map(party => {
-      if (party.id === partyId) {
-        return {
-          ...party,
-          attendees: party.attendees.filter(email => email !== user.email),
-          attendeeDetails: (party.attendeeDetails || []).filter(att => att.email !== user.email)
-        };
-      }
-      return party;
-    }).filter(party => party.attendees.length > 0);
-
-    await saveParties(updatedParties);
-
-    const updatedUserParties = userParties.filter(id => id !== partyId);
-    await saveUserParties(user.email, updatedUserParties);
+    try {
+      await api.parties.leave(partyId);
+      await loadParties();
+      await loadUserParties();
+    } catch (error) {
+      alert(error.message);
+    }
   };
 
   const handleVenueClaim = async (claimData) => {
-    const newClaim = {
-      id: `claim-${Date.now()}`,
-      ...claimData,
-      submittedBy: user.email,
-      submittedByName: user.name,
-      status: 'pending',
-      submittedAt: new Date().toISOString()
-    };
-
-    const updatedClaims = [...venueClaims, newClaim];
     try {
-      await window.storage.set('venue-claims', JSON.stringify(updatedClaims), true);
-      setVenueClaims(updatedClaims);
+      await api.venues.submitClaim(claimData);
+      await loadVenueClaims();
       alert('Venue claim submitted! We\'ll review it within 24-48 hours.');
       setCurrentScreen('games');
     } catch (error) {
-      console.error('Failed to submit claim:', error);
+      alert(error.message);
     }
   };
 
   const handleApproveVenueClaim = async (claimId) => {
-    const claim = venueClaims.find(c => c.id === claimId);
-    if (!claim) return;
-
-    // Create new verified venue
-    const newVenue = {
-      id: `venue-${Date.now()}`,
-      name: claim.venueName,
-      address: claim.address,
-      type: claim.venueType,
-      verified: true,
-      featured: false,
-      claimedBy: claim.submittedBy,
-      phone: claim.phone,
-      website: claim.website
-    };
-
-    const updatedVenues = [...venues, newVenue];
-    const updatedClaims = venueClaims.map(c => 
-      c.id === claimId ? { ...c, status: 'approved' } : c
-    );
-
     try {
-      await window.storage.set('all-venues', JSON.stringify(updatedVenues), true);
-      await window.storage.set('venue-claims', JSON.stringify(updatedClaims), true);
-      setVenues(updatedVenues);
-      setVenueClaims(updatedClaims);
+      await api.venues.approveClaim(claimId);
+      await loadVenues();
+      await loadVenueClaims();
     } catch (error) {
-      console.error('Failed to approve claim:', error);
+      alert(error.message);
     }
   };
 
   const handleRejectVenueClaim = async (claimId) => {
-    const updatedClaims = venueClaims.map(c => 
-      c.id === claimId ? { ...c, status: 'rejected' } : c
-    );
-
     try {
-      await window.storage.set('venue-claims', JSON.stringify(updatedClaims), true);
-      setVenueClaims(updatedClaims);
+      await api.venues.rejectClaim(claimId);
+      await loadVenueClaims();
     } catch (error) {
-      console.error('Failed to reject claim:', error);
+      alert(error.message);
     }
   };
 
@@ -568,17 +347,15 @@ Return 3-5 upcoming games.`
     const currentStep = steps[onboardingStep];
     const isLastStep = onboardingStep === steps.length - 1;
     
-    const handleNext = async () => {
+    const handleNext = () => {
       if (isLastStep) {
-        await window.storage.set('seen-onboarding-' + user.email, 'true', false);
         setShowOnboarding(false);
       } else {
         setOnboardingStep(onboardingStep + 1);
       }
     };
     
-    const handleSkip = async () => {
-      await window.storage.set('seen-onboarding-' + user.email, 'true', false);
+    const handleSkip = () => {
       setShowOnboarding(false);
     };
     
@@ -998,7 +775,7 @@ Return 3-5 upcoming games.`
           </div>
 
           <button
-            onClick={fetchLiveGames}
+            onClick={() => setGames(SAMPLE_GAMES)}
             disabled={loadingGames}
             className="w-full py-2 bg-white/5 hover:bg-white/10 rounded-xl text-sm text-gray-400 hover:text-white transition-all border border-white/10 flex items-center justify-center gap-2"
           >
@@ -1534,7 +1311,10 @@ Return 3-5 upcoming games.`
     const projectedAnnualRevenue = monthlyRecurringRevenue * 12;
     
     // Activity Metrics
-    const totalUsers = 1; // In production, count all registered users
+    const [totalUsers, setTotalUsersCount] = useState(0);
+    useEffect(() => {
+      api.users.stats().then(s => setTotalUsersCount(s.totalUsers)).catch(() => {});
+    }, []);
     const activeParties = parties.filter(p => {
       const game = games.find(g => g.id === p.gameId);
       return game && new Date(game.startTime) > new Date();
