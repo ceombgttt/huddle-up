@@ -42,9 +42,9 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - `POST /api/auth/signup` - Register (email, password, name, gender)
 - `POST /api/auth/login` - Login
 - `POST /api/auth/logout` - Logout
-- `GET /api/auth/me` - Current user session
+- `GET /api/auth/me` - Current user session (includes notificationsEnabled)
 - `GET /api/parties` - List parties (optional ?gameId, ?city filters)
-- `POST /api/parties` - Create party
+- `POST /api/parties` - Create party (auto-notifies fellow fans with same team)
 - `POST /api/parties/:id/join` - Join party
 - `POST /api/parties/:id/leave` - Leave party
 - `GET /api/venues` - List venues
@@ -59,12 +59,17 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - `GET /api/fans/invitations` - List incoming party invitations
 - `POST /api/fans/invitations/:id/accept` - Accept an invitation (auto-joins party)
 - `POST /api/fans/invitations/:id/decline` - Decline an invitation
+- `GET /api/notifications` - List user notifications (up to 50)
+- `POST /api/notifications/read/:id` - Mark a notification as read
+- `POST /api/notifications/read-all` - Mark all notifications as read
+- `PUT /api/notifications/settings` - Toggle notification preference
 
 ## Database Tables
-- `users` - User accounts with bcrypt password hashes
+- `users` - User accounts with bcrypt password hashes + notifications_enabled flag
 - `parties` - Watch party events with venue/game info
 - `party_attendees` - Many-to-many party membership
 - `party_invitations` - Party invitation tracking (pending/accepted/declined)
+- `notifications` - In-app notifications (fan_party type, tracks read/unread)
 - `venues` - Bar/restaurant venues
 - `venue_claims` - Venue ownership claims for approval
 - `user_favorite_teams` - User sport/team preferences
@@ -80,6 +85,7 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - Production: `NODE_ENV=production node server/index.js`
 
 ## Recent Changes
+- 2026-02-16: Added notification system - auto-alerts fellow fans when parties created for their team, toggle on/off in profile, bell badge shows combined invitations + unread notifications
 - 2026-02-16: Added Fan Finder feature - search for fans by team, invite them to parties, accept/decline invitations
 - 2026-02-16: Combined Express + Vite into single server process (eliminates race conditions)
 - 2026-02-16: Full backend with PostgreSQL, authentication, all CRUD routes
