@@ -61,6 +61,9 @@ export const api = {
     updateSettings: (enabled) =>
       request('/notifications/settings', { method: 'PUT', body: JSON.stringify({ enabled }) }),
   },
+  games: {
+    list: () => request('/games'),
+  },
   fans: {
     byTeam: (sport, team) => {
       const params = new URLSearchParams({ sport, team });

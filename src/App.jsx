@@ -62,7 +62,7 @@ const SAMPLE_GAMES = [
   { id: 'wcw1', sport: 'FIFA World Cup', homeTeam: "USA Women's", awayTeam: "Canada Women's", startTime: '2027-07-10T19:00:00', venue: 'Rose Bowl, Pasadena' },
 ];
 
-const SPORTS = ['All', 'NFL', 'NBA', 'MLB', 'NHL', 'College Football', 'College Basketball', 'Premier League', 'La Liga MX', 'MLS', 'UFC', 'Boxing', 'FIFA World Cup'];
+const SPORTS = ['All', 'NFL', 'NBA', 'MLB', 'NHL', 'College Football', 'College Basketball', 'Premier League', 'La Liga MX', 'MLS'];
 
 // Teams database for favorite team selection
 const TEAMS_BY_SPORT = {
@@ -231,11 +231,28 @@ const HuddleUpApp = () => {
   const unreadNotifications = notifications.filter(n => !n.isRead);
   const totalAlerts = pendingInvitations.length + unreadNotifications.length;
 
+  const loadGames = async () => {
+    try {
+      const liveGames = await api.games.list();
+      if (liveGames && liveGames.length > 0) {
+        setGames(liveGames);
+      } else {
+        setGames(SAMPLE_GAMES);
+      }
+    } catch (error) {
+      console.log('Failed to fetch live games, using sample data');
+      setGames(SAMPLE_GAMES);
+    }
+  };
+
   useEffect(() => {
     loadUserData();
     loadParties();
     loadVenues();
-    setGames(SAMPLE_GAMES);
+    loadGames();
+
+    const gamesInterval = setInterval(loadGames, 60000);
+    return () => clearInterval(gamesInterval);
   }, []);
 
   const loadUserData = async () => {
@@ -1177,23 +1194,13 @@ const HuddleUpApp = () => {
           </div>
 
           <button
-            onClick={() => setGames(SAMPLE_GAMES)}
-            disabled={loadingGames}
+            onClick={loadGames}
             className="w-full py-2 bg-white/5 hover:bg-white/10 rounded-xl text-sm text-gray-400 hover:text-white transition-all border border-white/10 flex items-center justify-center gap-2"
           >
-            {loadingGames ? (
-              <>
-                <div className="w-4 h-4 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
-                Loading live games...
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                Refresh with live game schedules
-              </>
-            )}
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Refresh scores
           </button>
         </div>
       </div>
@@ -1244,14 +1251,42 @@ const HuddleUpApp = () => {
               </div>
               
               <div className="text-center mb-4">
-                <div className="text-2xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
-                  {game.homeTeam} <span className="text-cyan-400">VS</span> {game.awayTeam}
-                </div>
+                {game.gameStatus === 'live' || game.gameStatus === 'final' ? (
+                  <div className="mb-2">
+                    <div className="flex items-center justify-center gap-4 mb-2">
+                      <div className="flex-1 text-right">
+                        {game.homeLogo && <img src={game.homeLogo} alt="" className="w-8 h-8 inline-block mr-2" />}
+                        <span className="text-lg font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.homeTeam}</span>
+                      </div>
+                      <div className="text-3xl font-black px-4" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                        <span className={game.homeScore > game.awayScore ? 'text-emerald-400' : 'text-white'}>{game.homeScore}</span>
+                        <span className="text-gray-500 mx-2">-</span>
+                        <span className={game.awayScore > game.homeScore ? 'text-emerald-400' : 'text-white'}>{game.awayScore}</span>
+                      </div>
+                      <div className="flex-1 text-left">
+                        <span className="text-lg font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.awayTeam}</span>
+                        {game.awayLogo && <img src={game.awayLogo} alt="" className="w-8 h-8 inline-block ml-2" />}
+                      </div>
+                    </div>
+                    <span className={`px-3 py-1 text-xs font-bold rounded-full ${game.gameStatus === 'live' ? 'bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse' : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'}`}>
+                      {game.statusDetail}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="text-2xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                    {game.homeLogo && <img src={game.homeLogo} alt="" className="w-8 h-8 inline-block mr-2" />}
+                    {game.homeTeam} <span className="text-cyan-400">VS</span> {game.awayTeam}
+                    {game.awayLogo && <img src={game.awayLogo} alt="" className="w-8 h-8 inline-block ml-2" />}
+                  </div>
+                )}
                 <div className="flex items-center justify-center gap-4 text-gray-400 text-sm">
                   <div className="flex items-center gap-1">
                     <Calendar className="w-4 h-4" />
                     {formatDateTime(game.startTime)}
                   </div>
+                  {game.broadcast && (
+                    <span className="text-cyan-400 text-xs">{game.broadcast}</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -1285,14 +1320,43 @@ const HuddleUpApp = () => {
             </span>
             
             <div className="text-center mb-6">
-              <div className="text-4xl font-black text-white mb-4" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
-                {selectedGame.homeTeam}
-                <br />
-                <span className="text-cyan-400">VS</span>
-                <br />
-                {selectedGame.awayTeam}
-              </div>
-              <div className="flex items-center justify-center gap-1 text-gray-400 mb-2">
+              {selectedGame.gameStatus === 'live' || selectedGame.gameStatus === 'final' ? (
+                <>
+                  <div className="flex items-center justify-center gap-6 mb-4">
+                    <div className="text-center">
+                      {selectedGame.homeLogo && <img src={selectedGame.homeLogo} alt="" className="w-12 h-12 mx-auto mb-2" />}
+                      <div className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{selectedGame.homeTeam}</div>
+                      {selectedGame.homeRecord && <div className="text-xs text-gray-500">{selectedGame.homeRecord}</div>}
+                    </div>
+                    <div className="text-5xl font-black" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                      <span className={selectedGame.homeScore > selectedGame.awayScore ? 'text-emerald-400' : 'text-white'}>{selectedGame.homeScore}</span>
+                      <span className="text-gray-500 mx-3">-</span>
+                      <span className={selectedGame.awayScore > selectedGame.homeScore ? 'text-emerald-400' : 'text-white'}>{selectedGame.awayScore}</span>
+                    </div>
+                    <div className="text-center">
+                      {selectedGame.awayLogo && <img src={selectedGame.awayLogo} alt="" className="w-12 h-12 mx-auto mb-2" />}
+                      <div className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{selectedGame.awayTeam}</div>
+                      {selectedGame.awayRecord && <div className="text-xs text-gray-500">{selectedGame.awayRecord}</div>}
+                    </div>
+                  </div>
+                  <span className={`px-4 py-1.5 text-sm font-bold rounded-full ${selectedGame.gameStatus === 'live' ? 'bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse' : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'}`}>
+                    {selectedGame.statusDetail}
+                  </span>
+                </>
+              ) : (
+                <div className="text-4xl font-black text-white mb-4" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                  <div className="flex items-center justify-center gap-3">
+                    {selectedGame.homeLogo && <img src={selectedGame.homeLogo} alt="" className="w-10 h-10" />}
+                    {selectedGame.homeTeam}
+                  </div>
+                  <span className="text-cyan-400">VS</span>
+                  <div className="flex items-center justify-center gap-3">
+                    {selectedGame.awayTeam}
+                    {selectedGame.awayLogo && <img src={selectedGame.awayLogo} alt="" className="w-10 h-10" />}
+                  </div>
+                </div>
+              )}
+              <div className="flex items-center justify-center gap-1 text-gray-400 mb-2 mt-4">
                 <Calendar className="w-4 h-4" />
                 <span>{formatDateTime(selectedGame.startTime)}</span>
               </div>
