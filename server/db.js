@@ -78,6 +78,17 @@ export async function initDB() {
         joined_at TIMESTAMPTZ DEFAULT NOW(),
         UNIQUE(party_id, user_id)
       );
+
+      CREATE TABLE IF NOT EXISTS party_invitations (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        party_id UUID REFERENCES parties(id) ON DELETE CASCADE,
+        from_user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        to_user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'declined')),
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        responded_at TIMESTAMPTZ,
+        UNIQUE(party_id, to_user_id)
+      );
     `);
 
     const adminCheck = await client.query("SELECT id FROM users WHERE email = 'admin@huddleup.com'");

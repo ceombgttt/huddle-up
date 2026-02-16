@@ -54,11 +54,17 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - `POST /api/venues/claims/:id/reject` - Reject claim (admin)
 - `PUT /api/users/me/favorites` - Update favorite team
 - `DELETE /api/users/me/favorites/:sport` - Remove favorite team
+- `GET /api/fans/by-team?sport=X&team=Y` - Find fans by favorite team
+- `POST /api/fans/invite` - Invite a fan to a party
+- `GET /api/fans/invitations` - List incoming party invitations
+- `POST /api/fans/invitations/:id/accept` - Accept an invitation (auto-joins party)
+- `POST /api/fans/invitations/:id/decline` - Decline an invitation
 
 ## Database Tables
 - `users` - User accounts with bcrypt password hashes
 - `parties` - Watch party events with venue/game info
-- `party_members` - Many-to-many party membership
+- `party_attendees` - Many-to-many party membership
+- `party_invitations` - Party invitation tracking (pending/accepted/declined)
 - `venues` - Bar/restaurant venues
 - `venue_claims` - Venue ownership claims for approval
 - `user_favorite_teams` - User sport/team preferences
@@ -74,6 +80,7 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - Production: `NODE_ENV=production node server/index.js`
 
 ## Recent Changes
+- 2026-02-16: Added Fan Finder feature - search for fans by team, invite them to parties, accept/decline invitations
 - 2026-02-16: Combined Express + Vite into single server process (eliminates race conditions)
 - 2026-02-16: Full backend with PostgreSQL, authentication, all CRUD routes
 - 2026-02-16: Migrated frontend from localStorage to real API calls

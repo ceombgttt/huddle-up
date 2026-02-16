@@ -49,4 +49,15 @@ export const api = {
       request(`/users/me/favorites/${encodeURIComponent(sport)}`, { method: 'DELETE' }),
     stats: () => request('/users/stats'),
   },
+  fans: {
+    byTeam: (sport, team) => {
+      const params = new URLSearchParams({ sport, team });
+      return request(`/fans/by-team?${params}`);
+    },
+    invite: (partyId, toUserId) =>
+      request('/fans/invite', { method: 'POST', body: JSON.stringify({ partyId, toUserId }) }),
+    invitations: () => request('/fans/invitations'),
+    acceptInvitation: (id) => request(`/fans/invitations/${id}/accept`, { method: 'POST' }),
+    declineInvitation: (id) => request(`/fans/invitations/${id}/decline`, { method: 'POST' }),
+  },
 };

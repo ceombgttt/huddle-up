@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X } from 'lucide-react';
 import { api } from './api.js';
 
 // Sample games data for different sports
@@ -118,11 +118,17 @@ const HuddleUpApp = () => {
   const [games, setGames] = useState(SAMPLE_GAMES);
   const [loadingGames, setLoadingGames] = useState(false);
   
-  // Admin credentials (in production, this would be secure authentication)
+  const [invitations, setInvitations] = useState([]);
+  const [fanSearchSport, setFanSearchSport] = useState('');
+  const [fanSearchTeam, setFanSearchTeam] = useState('');
+  const [fanResults, setFanResults] = useState([]);
+  const [fanSearchLoading, setFanSearchLoading] = useState(false);
+  const [invitePartyId, setInvitePartyId] = useState(null);
+  const [inviteSending, setInviteSending] = useState({});
+
   const isAdmin = user?.isAdmin || user?.email === 'admin@huddleup.com';
-  
-  // Check if user owns a venue
   const userVenue = user ? venues.find(v => v.claimedBy === user.email) : null;
+  const pendingInvitations = invitations.filter(i => i.status === 'pending');
 
   useEffect(() => {
     loadUserData();
@@ -139,6 +145,7 @@ const HuddleUpApp = () => {
         setCurrentScreen('games');
         loadUserParties();
         loadVenueClaims();
+        loadInvitations();
       }
     } catch (error) {
       console.log('No saved user');
@@ -193,6 +200,7 @@ const HuddleUpApp = () => {
       loadParties();
       loadVenues();
       loadVenueClaims();
+      loadInvitations();
     } catch (error) {
       alert(error.message);
     }
@@ -206,6 +214,7 @@ const HuddleUpApp = () => {
       loadParties();
       loadVenues();
       loadVenueClaims();
+      loadInvitations();
       setCurrentScreen('games');
     } catch (error) {
       alert(error.message);
@@ -227,6 +236,60 @@ const HuddleUpApp = () => {
       setUser(prev => ({ ...prev, favoriteTeams: result.favoriteTeams }));
     } catch (error) {
       console.error('Failed to remove favorite:', error);
+    }
+  };
+
+  const loadInvitations = async () => {
+    try {
+      const data = await api.fans.invitations();
+      setInvitations(data);
+    } catch (error) {
+      setInvitations([]);
+    }
+  };
+
+  const searchFans = async () => {
+    if (!fanSearchSport || !fanSearchTeam) return;
+    setFanSearchLoading(true);
+    try {
+      const data = await api.fans.byTeam(fanSearchSport, fanSearchTeam);
+      setFanResults(data);
+    } catch (error) {
+      console.error('Fan search error:', error);
+      setFanResults([]);
+    } finally {
+      setFanSearchLoading(false);
+    }
+  };
+
+  const handleInviteFan = async (toUserId, partyId) => {
+    setInviteSending(prev => ({ ...prev, [`${toUserId}-${partyId}`]: true }));
+    try {
+      await api.fans.invite(partyId, toUserId);
+      setInviteSending(prev => ({ ...prev, [`${toUserId}-${partyId}`]: 'sent' }));
+    } catch (error) {
+      alert(error.message);
+      setInviteSending(prev => ({ ...prev, [`${toUserId}-${partyId}`]: false }));
+    }
+  };
+
+  const handleAcceptInvitation = async (invitationId) => {
+    try {
+      await api.fans.acceptInvitation(invitationId);
+      await loadInvitations();
+      await loadParties();
+      await loadUserParties();
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const handleDeclineInvitation = async (invitationId) => {
+    try {
+      await api.fans.declineInvitation(invitationId);
+      await loadInvitations();
+    } catch (error) {
+      alert(error.message);
     }
   };
 
@@ -694,6 +757,25 @@ const HuddleUpApp = () => {
                   <Settings className="w-5 h-5 text-purple-300" />
                 </button>
               )}
+              <button
+                onClick={() => setCurrentScreen('fanFinder')}
+                className="p-2 bg-cyan-500/20 rounded-xl hover:bg-cyan-500/30 transition-colors border border-cyan-500/30"
+                title="Find Fans"
+              >
+                <UserPlus className="w-5 h-5 text-cyan-300" />
+              </button>
+              <button
+                onClick={() => setCurrentScreen('invitations')}
+                className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-colors relative"
+                title="Invitations"
+              >
+                <Bell className="w-5 h-5 text-white" />
+                {pendingInvitations.length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-bold">
+                    {pendingInvitations.length}
+                  </span>
+                )}
+              </button>
               <button
                 onClick={() => setCurrentScreen('profile')}
                 className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-colors"
@@ -2312,6 +2394,250 @@ const HuddleUpApp = () => {
     );
   };
 
+  const FanFinderScreen = () => {
+    const myParties = parties.filter(p =>
+      userParties.includes(p.id) || p.hostId === user?.id
+    );
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+          <div className="max-w-4xl mx-auto px-4 py-4">
+            <div className="flex items-center gap-3">
+              <button onClick={() => setCurrentScreen('games')} className="p-2 bg-white/10 rounded-xl hover:bg-white/20">
+                <ArrowLeft className="w-5 h-5 text-white" />
+              </button>
+              <h1 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                <UserPlus className="inline w-6 h-6 mr-2 text-cyan-400" />
+                FIND FANS
+              </h1>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+          <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 rounded-2xl p-6">
+            <h2 className="text-lg font-bold text-white mb-4">Search by Team</h2>
+            <div className="space-y-3">
+              <select
+                value={fanSearchSport}
+                onChange={(e) => { setFanSearchSport(e.target.value); setFanSearchTeam(''); setFanResults([]); }}
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+              >
+                <option value="" className="bg-slate-800">Select a sport...</option>
+                {Object.keys(TEAMS_BY_SPORT).map(sport => (
+                  <option key={sport} value={sport} className="bg-slate-800">{sport}</option>
+                ))}
+              </select>
+
+              {fanSearchSport && TEAMS_BY_SPORT[fanSearchSport] && (
+                <select
+                  value={fanSearchTeam}
+                  onChange={(e) => setFanSearchTeam(e.target.value)}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                >
+                  <option value="" className="bg-slate-800">Select a team...</option>
+                  {TEAMS_BY_SPORT[fanSearchSport].map(team => (
+                    <option key={team} value={team} className="bg-slate-800">{team}</option>
+                  ))}
+                </select>
+              )}
+
+              <button
+                onClick={searchFans}
+                disabled={!fanSearchSport || !fanSearchTeam || fanSearchLoading}
+                className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-cyan-500/50 transition-all disabled:opacity-50"
+              >
+                {fanSearchLoading ? 'Searching...' : 'Find Fans'}
+              </button>
+            </div>
+          </div>
+
+          {fanResults.length > 0 && (
+            <div className="space-y-3">
+              <h2 className="text-lg font-bold text-white">
+                {fanResults.length} fan{fanResults.length !== 1 ? 's' : ''} found for {fanSearchTeam}
+              </h2>
+
+              {myParties.length > 0 && (
+                <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+                  <label className="text-sm text-gray-400 mb-2 block">Select a party to invite fans to:</label>
+                  <select
+                    value={invitePartyId || ''}
+                    onChange={(e) => setInvitePartyId(e.target.value || null)}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  >
+                    <option value="" className="bg-slate-800">Choose a party...</option>
+                    {myParties.map(p => (
+                      <option key={p.id} value={p.id} className="bg-slate-800">
+                        {p.title || `${p.homeTeam} vs ${p.awayTeam}`} - {p.venueName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {fanResults.map(fan => (
+                <div key={fan.id} className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                      {fan.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <div className="text-white font-semibold">{fan.name}</div>
+                      <div className="text-gray-400 text-sm flex flex-wrap gap-1 mt-1">
+                        {fan.favoriteTeams.map((ft, i) => (
+                          <span key={i} className="px-2 py-0.5 bg-purple-500/20 text-purple-300 rounded-full text-xs">
+                            {ft.team}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {invitePartyId && (
+                    <button
+                      onClick={() => handleInviteFan(fan.id, invitePartyId)}
+                      disabled={inviteSending[`${fan.id}-${invitePartyId}`] === true || inviteSending[`${fan.id}-${invitePartyId}`] === 'sent'}
+                      className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 ${
+                        inviteSending[`${fan.id}-${invitePartyId}`] === 'sent'
+                          ? 'bg-green-500/20 text-green-300 border border-green-500/30'
+                          : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:shadow-lg hover:shadow-cyan-500/50'
+                      } disabled:opacity-60`}
+                    >
+                      {inviteSending[`${fan.id}-${invitePartyId}`] === 'sent' ? (
+                        <><CheckCircle className="w-4 h-4" /> Invited</>
+                      ) : inviteSending[`${fan.id}-${invitePartyId}`] === true ? (
+                        'Sending...'
+                      ) : (
+                        <><Send className="w-4 h-4" /> Invite</>
+                      )}
+                    </button>
+                  )}
+                </div>
+              ))}
+
+              {myParties.length === 0 && (
+                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 text-center">
+                  <p className="text-yellow-200 text-sm">
+                    Join or create a party first to invite fans.
+                  </p>
+                  <button
+                    onClick={() => setCurrentScreen('games')}
+                    className="mt-2 px-4 py-2 bg-yellow-500/20 text-yellow-200 rounded-xl text-sm font-semibold hover:bg-yellow-500/30"
+                  >
+                    Browse Games
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {fanResults.length === 0 && fanSearchTeam && !fanSearchLoading && (
+            <div className="text-center py-8">
+              <div className="text-4xl mb-3">🔍</div>
+              <p className="text-gray-400">No fans found for {fanSearchTeam} yet. Be the first to set them as your favorite!</p>
+            </div>
+          )}
+
+          {!fanSearchTeam && (
+            <div className="text-center py-8">
+              <div className="text-4xl mb-3">👥</div>
+              <p className="text-gray-400">Select a sport and team above to find other fans and invite them to your watch parties.</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const InvitationsScreen = () => (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setCurrentScreen('games')} className="p-2 bg-white/10 rounded-xl hover:bg-white/20">
+              <ArrowLeft className="w-5 h-5 text-white" />
+            </button>
+            <h1 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+              <Bell className="inline w-6 h-6 mr-2 text-cyan-400" />
+              PARTY INVITATIONS
+            </h1>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
+        {invitations.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-4xl mb-3">📬</div>
+            <p className="text-gray-400">No invitations yet. When someone invites you to a watch party, it will show up here.</p>
+          </div>
+        ) : (
+          invitations.map(inv => (
+            <div key={inv.id} className={`border rounded-2xl p-5 ${
+              inv.status === 'pending'
+                ? 'bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border-cyan-500/30'
+                : inv.status === 'accepted'
+                  ? 'bg-green-500/5 border-green-500/20'
+                  : 'bg-white/5 border-white/10 opacity-60'
+            }`}>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs px-2 py-1 rounded-full font-semibold bg-purple-500/20 text-purple-300">
+                      {inv.sport}
+                    </span>
+                    <span className={`text-xs px-2 py-1 rounded-full font-semibold ${
+                      inv.status === 'pending' ? 'bg-yellow-500/20 text-yellow-300' :
+                      inv.status === 'accepted' ? 'bg-green-500/20 text-green-300' :
+                      'bg-red-500/20 text-red-300'
+                    }`}>
+                      {inv.status.charAt(0).toUpperCase() + inv.status.slice(1)}
+                    </span>
+                  </div>
+                  <h3 className="text-white font-bold text-lg">
+                    {inv.partyTitle || `${inv.homeTeam} vs ${inv.awayTeam}`}
+                  </h3>
+                  <p className="text-gray-400 text-sm mt-1">
+                    <span className="text-cyan-300">{inv.fromName}</span> invited you
+                  </p>
+                  {inv.venueName && (
+                    <p className="text-gray-400 text-sm mt-1">
+                      <MapPin className="inline w-3 h-3 mr-1" />{inv.venueName}{inv.city ? `, ${inv.city}` : ''}
+                    </p>
+                  )}
+                  {inv.gameTime && (
+                    <p className="text-gray-400 text-sm mt-1">
+                      <Calendar className="inline w-3 h-3 mr-1" />{formatDateTime(inv.gameTime)}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {inv.status === 'pending' && (
+                <div className="flex gap-3 mt-4">
+                  <button
+                    onClick={() => handleAcceptInvitation(inv.id)}
+                    className="flex-1 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-green-500/50 transition-all flex items-center justify-center gap-2"
+                  >
+                    <CheckCircle className="w-4 h-4" /> Accept
+                  </button>
+                  <button
+                    onClick={() => handleDeclineInvitation(inv.id)}
+                    className="flex-1 py-3 bg-white/10 text-gray-300 font-bold rounded-xl hover:bg-white/20 transition-all flex items-center justify-center gap-2"
+                  >
+                    <X className="w-4 h-4" /> Decline
+                  </button>
+                </div>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className="font-sans">
       <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -2351,6 +2677,8 @@ const HuddleUpApp = () => {
       {currentScreen === 'admin' && <AdminPanelScreen />}
       {currentScreen === 'venueDashboard' && <VenueAnalyticsDashboard />}
       {currentScreen === 'profile' && <ProfileScreen />}
+      {currentScreen === 'fanFinder' && <FanFinderScreen />}
+      {currentScreen === 'invitations' && <InvitationsScreen />}
     </div>
   );
 };
