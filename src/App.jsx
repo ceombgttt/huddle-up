@@ -157,29 +157,31 @@ const VenueBadgeDisplay = ({ totalParties, totalFans }) => {
   );
 };
 
-const DebouncedInput = ({ value, onChange, delay = 300, ...props }) => {
+const DebouncedInput = React.memo(({ value, onChange, delay = 300, ...props }) => {
   const [localValue, setLocalValue] = useState(value);
   const timerRef = useRef(null);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
 
   useEffect(() => {
     setLocalValue(value);
   }, [value]);
 
-  const handleChange = (e) => {
+  const handleChange = useCallback((e) => {
     const newVal = e.target.value;
     setLocalValue(newVal);
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
-      onChange(newVal);
+      onChangeRef.current(newVal);
     }, delay);
-  };
+  }, [delay]);
 
   useEffect(() => {
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
   }, []);
 
   return <input {...props} value={localValue} onChange={handleChange} />;
-};
+});
 
 const HuddleUpApp = () => {
   const [currentScreen, setCurrentScreen] = useState('welcome');
@@ -542,14 +544,17 @@ const HuddleUpApp = () => {
 
   const filteredGames = games.filter(game => {
     const matchesSport = selectedSport === 'All' || game.sport === selectedSport;
-    const matchesSearch = searchTerm === '' || 
-      game.homeTeam.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      game.awayTeam.toLowerCase().includes(searchTerm.toLowerCase());
+    const term = searchTerm.toLowerCase().trim();
+    const matchesSearch = term === '' || 
+      game.homeTeam.toLowerCase().includes(term) ||
+      game.awayTeam.toLowerCase().includes(term) ||
+      game.sport.toLowerCase().includes(term) ||
+      (game.venue && game.venue.toLowerCase().includes(term));
     
-    // Filter by favorite teams if enabled
     const matchesMyTeams = !myTeamsOnly || !user?.favoriteTeams || 
       Object.values(user.favoriteTeams).some(team => 
-        game.homeTeam.includes(team) || game.awayTeam.includes(team)
+        game.homeTeam.toLowerCase().includes(team.toLowerCase()) || 
+        game.awayTeam.toLowerCase().includes(team.toLowerCase())
       );
     
     return matchesSport && matchesSearch && matchesMyTeams;
