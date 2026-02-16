@@ -3211,18 +3211,36 @@ const HuddleUpApp = () => {
       {showSignupShare && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl border border-white/10 p-8 max-w-md w-full text-center space-y-5 animate-fade-in">
-            <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full flex items-center justify-center mx-auto">
-              <Share2 className="w-8 h-8 text-white" />
+            <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-orange-500/30">
+              <Trophy className="w-10 h-10 text-white" />
             </div>
             <h2 className="text-3xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
               WELCOME TO HUDDLE UP!
             </h2>
-            <p className="text-gray-300">
-              Watch parties are better with friends! Share the app so your crew can join you.
+            <p className="text-gray-300 text-lg">
+              Watch parties are better with friends!
             </p>
+            <div className="bg-gradient-to-r from-purple-500/20 to-cyan-500/20 border border-purple-500/30 rounded-2xl p-4 space-y-3">
+              <p className="text-white font-bold text-sm">Earn badge points and level up!</p>
+              <div className="flex justify-around text-center">
+                <div>
+                  <div className="text-2xl">🎉</div>
+                  <div className="text-xs text-gray-300 mt-1">Join parties</div>
+                </div>
+                <div>
+                  <div className="text-2xl">📣</div>
+                  <div className="text-xs text-gray-300 mt-1">Host parties</div>
+                </div>
+                <div>
+                  <div className="text-2xl">👥</div>
+                  <div className="text-xs text-gray-300 mt-1">Invite friends</div>
+                </div>
+              </div>
+              <p className="text-cyan-300 text-xs">New Fan → Rookie → Starter → All-Star → MVP → Legend</p>
+            </div>
             <button
               onClick={() => { shareApp(); setShowSignupShare(false); }}
-              className="w-full py-3 bg-gradient-to-r from-emerald-500 to-green-500 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-emerald-500/50 transition-all flex items-center justify-center gap-2"
+              className="w-full py-4 bg-gradient-to-r from-emerald-500 to-green-500 text-white font-bold text-lg rounded-xl hover:shadow-lg hover:shadow-emerald-500/50 transition-all flex items-center justify-center gap-2"
             >
               <Share2 className="w-5 h-5" /> Share with Friends
             </button>
