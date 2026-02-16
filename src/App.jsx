@@ -751,11 +751,172 @@ const HuddleUpApp = () => {
             </button>
 
             <button
+              onClick={() => setCurrentScreen('forgotPassword')}
+              className="w-full py-2 text-cyan-400 hover:text-cyan-300 text-sm font-medium transition-colors"
+            >
+              Forgot your password?
+            </button>
+
+            <button
               onClick={() => setCurrentScreen('welcome')}
               className="w-full py-3 text-gray-400 hover:text-white transition-colors"
             >
               ← Back
             </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const ForgotPasswordScreen = () => {
+    const [step, setStep] = useState(1);
+    const [email, setEmail] = useState('');
+    const [code, setCode] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const handleVerifyEmail = async () => {
+      setError('');
+      if (!email) { setError('Please enter your email'); return; }
+      setLoading(true);
+      try {
+        await api.auth.verifyEmail(email);
+        setStep(2);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const handleReset = async () => {
+      setError('');
+      if (!code || code.length !== 6) { setError('Please enter the 6-digit code'); return; }
+      if (!newPassword || newPassword.length < 6) { setError('Password must be at least 6 characters'); return; }
+      if (newPassword !== confirmPassword) { setError('Passwords do not match'); return; }
+      setLoading(true);
+      try {
+        await api.auth.resetPassword(email, code, newPassword);
+        setStep(3);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
+        <div className="max-w-md w-full space-y-8">
+          <div className="text-center">
+            <h2 className="text-4xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+              {step === 3 ? 'PASSWORD RESET' : 'RESET PASSWORD'}
+            </h2>
+            <p className="text-gray-400">
+              {step === 1 && 'Enter your email to get started'}
+              {step === 2 && 'Enter the code and set your new password'}
+              {step === 3 && 'Your password has been updated!'}
+            </p>
+          </div>
+
+          <div className="bg-white/5 backdrop-blur-lg p-8 rounded-3xl space-y-6 border border-white/10">
+            {step === 1 && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    placeholder="your@email.com"
+                  />
+                </div>
+                <button
+                  onClick={handleVerifyEmail}
+                  disabled={loading}
+                  className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-cyan-500/50 transform hover:scale-105 transition-all duration-200 disabled:opacity-50"
+                >
+                  {loading ? 'VERIFYING...' : 'CONTINUE'}
+                </button>
+              </>
+            )}
+
+            {step === 2 && (
+              <>
+                <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-xl p-3 text-center">
+                  <span className="text-cyan-300 text-sm">Resetting password for {email}</span>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Verification Code</label>
+                  <input
+                    type="text"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-center text-2xl tracking-widest"
+                    placeholder="000000"
+                    maxLength={6}
+                  />
+                  <p className="text-gray-500 text-xs mt-1 text-center">Check the server console for your verification code</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">New Password</label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    placeholder="At least 6 characters"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Confirm Password</label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    placeholder="Re-enter your password"
+                  />
+                </div>
+                <button
+                  onClick={handleReset}
+                  disabled={loading}
+                  className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-cyan-500/50 transform hover:scale-105 transition-all duration-200 disabled:opacity-50"
+                >
+                  {loading ? 'RESETTING...' : 'RESET PASSWORD'}
+                </button>
+              </>
+            )}
+
+            {step === 3 && (
+              <div className="text-center space-y-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full flex items-center justify-center mx-auto">
+                  <CheckCircle className="w-8 h-8 text-white" />
+                </div>
+                <p className="text-gray-300">You can now log in with your new password.</p>
+                <button
+                  onClick={() => setCurrentScreen('login')}
+                  className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-cyan-500/50 transform hover:scale-105 transition-all duration-200"
+                >
+                  GO TO LOGIN
+                </button>
+              </div>
+            )}
+
+            {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+
+            {step !== 3 && (
+              <button
+                onClick={() => step === 1 ? setCurrentScreen('login') : setStep(1)}
+                className="w-full py-3 text-gray-400 hover:text-white transition-colors"
+              >
+                ← Back
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -2963,6 +3124,7 @@ const HuddleUpApp = () => {
       {currentScreen === 'welcome' && <WelcomeScreen />}
       {currentScreen === 'login' && <LoginScreen />}
       {currentScreen === 'signup' && <SignUpScreen />}
+      {currentScreen === 'forgotPassword' && <ForgotPasswordScreen />}
       {currentScreen === 'games' && <GamesScreen />}
       {currentScreen === 'gameDetail' && <GameDetailScreen />}
       {currentScreen === 'createParty' && <CreatePartyScreen />}

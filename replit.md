@@ -43,6 +43,8 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - `POST /api/auth/login` - Login
 - `POST /api/auth/logout` - Logout
 - `GET /api/auth/me` - Current user session (includes notificationsEnabled)
+- `POST /api/auth/verify-email` - Verify email exists for password reset (rate limited)
+- `POST /api/auth/reset-password` - Reset password with verification code
 - `GET /api/parties` - List parties (optional ?gameId, ?city filters)
 - `POST /api/parties` - Create party (auto-notifies fellow fans with same team)
 - `POST /api/parties/:id/join` - Join party
@@ -85,6 +87,7 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - Production: `NODE_ENV=production node server/index.js`
 
 ## Recent Changes
+- 2026-02-16: Added password reset flow - "Forgot Password" link on login, two-step reset (email verification → code + new password), rate-limited, codes expire in 10 minutes
 - 2026-02-16: Added share/invite feature - share button in header, invite friends card on profile, welcome share modal after signup; uses Web Share API with clipboard fallback
 - 2026-02-16: Added badge/ranking system for fans (6 tiers: New Fan→Rookie→Starter→All-Star→MVP→Legend) and venues, with badges shown on profile, fan finder results, and venue leaderboard; profile shows progress bar to next rank
 - 2026-02-16: Added notification system - auto-alerts fellow fans when parties created for their team, toggle on/off in profile, bell badge shows combined invitations + unread notifications

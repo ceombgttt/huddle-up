@@ -83,6 +83,73 @@ router.post('/login', async (req, res) => {
   }
 });
 
+const resetAttempts = new Map();
+
+router.post('/verify-email', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const ip = req.ip || 'unknown';
+    const now = Date.now();
+    const attempts = resetAttempts.get(ip) || [];
+    const recentAttempts = attempts.filter(t => now - t < 60000);
+    if (recentAttempts.length >= 5) {
+      return res.status(429).json({ error: 'Too many attempts. Please try again in a minute.' });
+    }
+    recentAttempts.push(now);
+    resetAttempts.set(ip, recentAttempts);
+
+    const result = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'No account found with that email address' });
+    }
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + 10 * 60 * 1000;
+    resetAttempts.set(`code:${email}`, { code, expiresAt });
+
+    console.log(`[Password Reset] Code for ${email}: ${code}`);
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Verify email error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { email, code, newPassword } = req.body;
+    if (!email || !code || !newPassword) {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+
+    const stored = resetAttempts.get(`code:${email}`);
+    if (!stored || stored.code !== code || Date.now() > stored.expiresAt) {
+      return res.status(400).json({ error: 'Invalid or expired verification code' });
+    }
+
+    const result = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Account not found' });
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await pool.query('UPDATE users SET password_hash = $1 WHERE email = $2', [passwordHash, email]);
+    resetAttempts.delete(`code:${email}`);
+
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 router.post('/logout', (req, res) => {
   req.session.destroy(() => {
     res.clearCookie('sid');

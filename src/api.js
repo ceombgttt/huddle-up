@@ -21,6 +21,10 @@ export const api = {
     login: (email, password) =>
       request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
     logout: () => request('/auth/logout', { method: 'POST' }),
+    verifyEmail: (email) =>
+      request('/auth/verify-email', { method: 'POST', body: JSON.stringify({ email }) }),
+    resetPassword: (email, code, newPassword) =>
+      request('/auth/reset-password', { method: 'POST', body: JSON.stringify({ email, code, newPassword }) }),
   },
   parties: {
     list: (gameId, city) => {
