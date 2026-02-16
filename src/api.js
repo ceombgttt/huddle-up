@@ -48,6 +48,7 @@ export const api = {
     removeFavorite: (sport) =>
       request(`/users/me/favorites/${encodeURIComponent(sport)}`, { method: 'DELETE' }),
     stats: () => request('/users/stats'),
+    badge: () => request('/users/me/badge'),
   },
   notifications: {
     list: () => request('/notifications'),

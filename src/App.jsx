@@ -100,6 +100,63 @@ const VENUE_PRICING = {
   enterprise: { name: "Enterprise (20+)", featured: "Custom" }
 };
 
+const getFanBadge = (attended, hosted) => {
+  const total = attended + hosted;
+  if (total >= 50) return { tier: 'Legend', emoji: '🏆', color: 'from-yellow-400 to-amber-500', textColor: 'text-yellow-300', bg: 'bg-yellow-500/20' };
+  if (total >= 25) return { tier: 'MVP', emoji: '🥇', color: 'from-purple-400 to-pink-500', textColor: 'text-purple-300', bg: 'bg-purple-500/20' };
+  if (total >= 10) return { tier: 'All-Star', emoji: '⭐', color: 'from-cyan-400 to-blue-500', textColor: 'text-cyan-300', bg: 'bg-cyan-500/20' };
+  if (total >= 5) return { tier: 'Starter', emoji: '🔥', color: 'from-orange-400 to-red-500', textColor: 'text-orange-300', bg: 'bg-orange-500/20' };
+  if (total >= 1) return { tier: 'Rookie', emoji: '🎽', color: 'from-green-400 to-emerald-500', textColor: 'text-green-300', bg: 'bg-green-500/20' };
+  return { tier: 'New Fan', emoji: '👋', color: 'from-gray-400 to-gray-500', textColor: 'text-gray-300', bg: 'bg-gray-500/20' };
+};
+
+const getVenueBadge = (totalParties, totalFans) => {
+  if (totalParties >= 50) return { tier: 'Hall of Fame', emoji: '🏟️', color: 'from-yellow-400 to-amber-500', textColor: 'text-yellow-300' };
+  if (totalParties >= 25) return { tier: 'Championship', emoji: '🏆', color: 'from-purple-400 to-pink-500', textColor: 'text-purple-300' };
+  if (totalParties >= 10) return { tier: 'All-Star Venue', emoji: '⭐', color: 'from-cyan-400 to-blue-500', textColor: 'text-cyan-300' };
+  if (totalParties >= 5) return { tier: 'Rising Spot', emoji: '📈', color: 'from-orange-400 to-red-500', textColor: 'text-orange-300' };
+  if (totalParties >= 1) return { tier: 'Game Day Ready', emoji: '🍺', color: 'from-green-400 to-emerald-500', textColor: 'text-green-300' };
+  return { tier: 'New Venue', emoji: '🏠', color: 'from-gray-400 to-gray-500', textColor: 'text-gray-300' };
+};
+
+const BadgeDisplay = ({ attended, hosted, size = 'sm' }) => {
+  const badge = getFanBadge(attended, hosted);
+  if (size === 'lg') {
+    return (
+      <div className="flex flex-col items-center gap-2">
+        <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${badge.color} flex items-center justify-center text-3xl shadow-lg`}>
+          {badge.emoji}
+        </div>
+        <div className="text-center">
+          <div className={`font-black text-lg ${badge.textColor}`}>{badge.tier}</div>
+          <div className="text-gray-400 text-xs mt-1">
+            {attended} attended &middot; {hosted} hosted
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${badge.bg} ${badge.textColor}`}>
+      {badge.emoji} {badge.tier}
+    </span>
+  );
+};
+
+const VenueBadgeDisplay = ({ totalParties, totalFans }) => {
+  const badge = getVenueBadge(totalParties, totalFans);
+  return (
+    <div className="flex items-center gap-2">
+      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-gradient-to-r ${badge.color} text-white`}>
+        {badge.emoji} {badge.tier}
+      </span>
+      {totalParties > 0 && (
+        <span className="text-gray-400 text-xs">{totalParties} parties &middot; {totalFans} fans</span>
+      )}
+    </div>
+  );
+};
+
 const DebouncedInput = ({ value, onChange, delay = 300, ...props }) => {
   const [localValue, setLocalValue] = useState(value);
   const timerRef = useRef(null);
@@ -150,6 +207,7 @@ const HuddleUpApp = () => {
   const [fanSearchLoading, setFanSearchLoading] = useState(false);
   const [invitePartyId, setInvitePartyId] = useState(null);
   const [inviteSending, setInviteSending] = useState({});
+  const [badgeStats, setBadgeStats] = useState({ partiesHosted: 0, partiesAttended: 0 });
 
   const isAdmin = user?.isAdmin || user?.email === 'admin@huddleup.com';
   const userVenue = user ? venues.find(v => v.claimedBy === user.email) : null;
@@ -174,6 +232,7 @@ const HuddleUpApp = () => {
         loadVenueClaims();
         loadInvitations();
         loadNotifications();
+        loadBadgeStats();
       }
     } catch (error) {
       console.log('No saved user');
@@ -230,6 +289,7 @@ const HuddleUpApp = () => {
       loadVenueClaims();
       loadInvitations();
       loadNotifications();
+      loadBadgeStats();
     } catch (error) {
       alert(error.message);
     }
@@ -245,6 +305,7 @@ const HuddleUpApp = () => {
       loadVenueClaims();
       loadInvitations();
       loadNotifications();
+      loadBadgeStats();
       setCurrentScreen('games');
     } catch (error) {
       alert(error.message);
@@ -284,6 +345,15 @@ const HuddleUpApp = () => {
       setNotifications(data);
     } catch (error) {
       setNotifications([]);
+    }
+  };
+
+  const loadBadgeStats = async () => {
+    try {
+      const data = await api.users.badge();
+      setBadgeStats(data);
+    } catch (error) {
+      setBadgeStats({ partiesHosted: 0, partiesAttended: 0 });
     }
   };
 
@@ -377,6 +447,7 @@ const HuddleUpApp = () => {
       await loadParties();
       await loadUserParties();
       loadNotifications();
+      loadBadgeStats();
       setCurrentScreen('gameDetail');
     } catch (error) {
       alert(error.message);
@@ -388,6 +459,7 @@ const HuddleUpApp = () => {
       await api.parties.join(partyId);
       await loadParties();
       await loadUserParties();
+      loadBadgeStats();
     } catch (error) {
       alert(error.message);
     }
@@ -398,6 +470,7 @@ const HuddleUpApp = () => {
       await api.parties.leave(partyId);
       await loadParties();
       await loadUserParties();
+      loadBadgeStats();
     } catch (error) {
       alert(error.message);
     }
@@ -1669,6 +1742,7 @@ const HuddleUpApp = () => {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="font-bold text-white">{venue.name}</h3>
+                          <VenueBadgeDisplay totalParties={venue.partiesHosted || 0} totalFans={venue.totalAttendees || 0} />
                           {venue.featured && (
                             <span className="px-2 py-1 bg-purple-500/20 text-purple-300 text-xs font-bold rounded-full">
                               ⭐ FEATURED
@@ -2314,13 +2388,52 @@ const HuddleUpApp = () => {
 
         <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
           <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-2xl border border-white/10 shadow-xl text-center">
-            <div className="w-20 h-20 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <User className="w-10 h-10 text-white" />
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-20 h-20 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center">
+                <User className="w-10 h-10 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-black text-white mb-1" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                  {user.name}
+                </h1>
+                <p className="text-gray-400 text-sm">{user.email}</p>
+              </div>
+              <BadgeDisplay attended={badgeStats.partiesAttended} hosted={badgeStats.partiesHosted} size="lg" />
+              <div className="flex gap-6 mt-2">
+                <div className="text-center">
+                  <div className="text-2xl font-black text-white">{badgeStats.partiesAttended}</div>
+                  <div className="text-gray-400 text-xs">Attended</div>
+                </div>
+                <div className="w-px bg-white/20" />
+                <div className="text-center">
+                  <div className="text-2xl font-black text-white">{badgeStats.partiesHosted}</div>
+                  <div className="text-gray-400 text-xs">Hosted</div>
+                </div>
+                <div className="w-px bg-white/20" />
+                <div className="text-center">
+                  <div className="text-2xl font-black text-white">{badgeStats.partiesAttended + badgeStats.partiesHosted}</div>
+                  <div className="text-gray-400 text-xs">Total</div>
+                </div>
+              </div>
+              {(() => {
+                const badge = getFanBadge(badgeStats.partiesAttended, badgeStats.partiesHosted);
+                const total = badgeStats.partiesAttended + badgeStats.partiesHosted;
+                const nextTier = total < 1 ? 1 : total < 5 ? 5 : total < 10 ? 10 : total < 25 ? 25 : total < 50 ? 50 : null;
+                if (!nextTier) return null;
+                const progress = Math.round((total / nextTier) * 100);
+                return (
+                  <div className="w-full mt-2">
+                    <div className="flex justify-between text-xs text-gray-400 mb-1">
+                      <span>{badge.tier}</span>
+                      <span>{total}/{nextTier} to next rank</span>
+                    </div>
+                    <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div className={`h-full bg-gradient-to-r ${badge.color} rounded-full transition-all`} style={{ width: `${progress}%` }} />
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
-            <h1 className="text-3xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
-              {user.name}
-            </h1>
-            <p className="text-gray-400">{user.email}</p>
           </div>
 
           <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-white/10 shadow-xl">
@@ -2572,7 +2685,10 @@ const HuddleUpApp = () => {
                       {fan.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <div className="text-white font-semibold">{fan.name}</div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-white font-semibold">{fan.name}</span>
+                        <BadgeDisplay attended={fan.partiesAttended || 0} hosted={fan.partiesHosted || 0} size="sm" />
+                      </div>
                       <div className="text-gray-400 text-sm flex flex-wrap gap-1 mt-1">
                         {fan.favoriteTeams.map((ft, i) => (
                           <span key={i} className="px-2 py-0.5 bg-purple-500/20 text-purple-300 rounded-full text-xs">

@@ -13,7 +13,9 @@ router.get('/by-team', requireAuth, async (req, res) => {
 
     const result = await pool.query(
       `SELECT u.id, u.name, u.gender, u.joined_at,
-        json_agg(json_build_object('sport', ft.sport, 'team', ft.team)) as favorite_teams
+        json_agg(DISTINCT jsonb_build_object('sport', ft.sport, 'team', ft.team)) as favorite_teams,
+        (SELECT COUNT(*) FROM parties WHERE host_id = u.id) as parties_hosted,
+        (SELECT COUNT(*) FROM party_attendees WHERE user_id = u.id) as parties_attended
        FROM users u
        JOIN user_favorite_teams ft ON ft.user_id = u.id
        WHERE u.id IN (
@@ -30,7 +32,9 @@ router.get('/by-team', requireAuth, async (req, res) => {
       name: r.name,
       gender: r.gender,
       joinedAt: r.joined_at,
-      favoriteTeams: r.favorite_teams
+      favoriteTeams: r.favorite_teams,
+      partiesHosted: parseInt(r.parties_hosted),
+      partiesAttended: parseInt(r.parties_attended)
     })));
   } catch (error) {
     console.error('Fan search error:', error);

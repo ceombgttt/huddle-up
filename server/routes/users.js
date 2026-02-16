@@ -42,6 +42,25 @@ router.delete('/me/favorites/:sport', requireAuth, async (req, res) => {
   }
 });
 
+router.get('/me/badge', requireAuth, async (req, res) => {
+  try {
+    const hosted = await pool.query(
+      'SELECT COUNT(*) FROM parties WHERE host_id = $1',
+      [req.session.userId]
+    );
+    const attended = await pool.query(
+      'SELECT COUNT(*) FROM party_attendees WHERE user_id = $1',
+      [req.session.userId]
+    );
+    const partiesHosted = parseInt(hosted.rows[0].count);
+    const partiesAttended = parseInt(attended.rows[0].count);
+    res.json({ partiesHosted, partiesAttended });
+  } catch (error) {
+    console.error('Badge stats error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 router.get('/stats', async (req, res) => {
   try {
     const userCount = await pool.query('SELECT COUNT(*) FROM users');

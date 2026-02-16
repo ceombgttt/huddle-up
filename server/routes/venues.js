@@ -7,7 +7,9 @@ const router = Router();
 router.get('/', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT v.*, u.email as claimed_by_email
+      SELECT v.*, u.email as claimed_by_email,
+        (SELECT COUNT(*) FROM parties WHERE venue_name = v.name) as total_parties,
+        (SELECT COUNT(DISTINCT pa.user_id) FROM party_attendees pa JOIN parties p ON pa.party_id = p.id WHERE p.venue_name = v.name) as total_fans
       FROM venues v
       LEFT JOIN users u ON v.claimed_by = u.id
       ORDER BY v.featured DESC, v.name
@@ -22,7 +24,9 @@ router.get('/', async (req, res) => {
       featured: v.featured,
       claimedBy: v.claimed_by_email,
       phone: v.phone,
-      website: v.website
+      website: v.website,
+      totalParties: parseInt(v.total_parties),
+      totalFans: parseInt(v.total_fans)
     }));
 
     res.json(venues);
