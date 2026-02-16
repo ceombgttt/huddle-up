@@ -580,8 +580,10 @@ const HuddleUpApp = () => {
   const OnboardingOverlay = () => {
     const steps = [
       { title: "Welcome to Huddle Up! 🎉", description: "Find watch parties for any game, in any city. Let's show you how it works!", icon: "👋" },
-      { title: "Search Any City 📍", description: "Traveling? Type any city in the search bar to find parties near you. Dallas, Miami, NYC - we've got you covered!", icon: "🌎" },
-      { title: "Join or Create Parties 🎊", description: "See a game you want to watch? Join an existing party or be the hero and create the first one!", icon: "🏈" },
+      { title: "Tap a Game to Start 🏈", description: "Browse the schedule and tap any game you want to watch. From there, you can create a watch party or join one that already exists!", icon: "📅" },
+      { title: "Search Any City 📍", description: "Traveling? Type any city in the location bar to find parties near you. Dallas, Miami, NYC - we've got you covered!", icon: "🌎" },
+      { title: "Use the Menu Icons 🧭", description: "Share the app, find fans of your team, check your alerts and invitations, or view your profile and badges - it's all at the top!", icon: "📱" },
+      { title: "Level Up Your Badge! 🏆", description: "Every party you join or host earns you badge points. Climb from New Fan all the way to Legend status!", icon: "⭐" },
       { title: "Show Up & Have Fun! 🍻", description: "That's it! Meet new people, watch the game, and enjoy. Ready to find your first party?", icon: "🎯" }
     ];
     
@@ -1077,45 +1079,45 @@ const HuddleUpApp = () => {
               <Trophy className="inline w-8 h-8 mr-2 text-cyan-400" />
               GAMES
             </h1>
-            <div className="flex gap-2">
+            <div className="flex gap-1.5">
               {userVenue && (
                 <button
                   onClick={() => setCurrentScreen('venueDashboard')}
-                  className="p-2 bg-green-500/20 rounded-xl hover:bg-green-500/30 transition-colors border border-green-500/30"
-                  title="Venue Dashboard"
+                  className="flex flex-col items-center px-2 py-1.5 bg-green-500/20 rounded-xl hover:bg-green-500/30 transition-colors border border-green-500/30"
                 >
                   <Building2 className="w-5 h-5 text-green-300" />
+                  <span className="text-[9px] text-green-300 mt-0.5 leading-none">Venue</span>
                 </button>
               )}
               {isAdmin && (
                 <button
                   onClick={() => setCurrentScreen('admin')}
-                  className="p-2 bg-purple-500/20 rounded-xl hover:bg-purple-500/30 transition-colors border border-purple-500/30"
-                  title="Admin Panel"
+                  className="flex flex-col items-center px-2 py-1.5 bg-purple-500/20 rounded-xl hover:bg-purple-500/30 transition-colors border border-purple-500/30"
                 >
                   <Settings className="w-5 h-5 text-purple-300" />
+                  <span className="text-[9px] text-purple-300 mt-0.5 leading-none">Admin</span>
                 </button>
               )}
               <button
                 onClick={shareApp}
-                className="p-2 bg-emerald-500/20 rounded-xl hover:bg-emerald-500/30 transition-colors border border-emerald-500/30"
-                title="Share App"
+                className="flex flex-col items-center px-2 py-1.5 bg-emerald-500/20 rounded-xl hover:bg-emerald-500/30 transition-colors border border-emerald-500/30"
               >
                 <Share2 className="w-5 h-5 text-emerald-300" />
+                <span className="text-[9px] text-emerald-300 mt-0.5 leading-none">Share</span>
               </button>
               <button
                 onClick={() => setCurrentScreen('fanFinder')}
-                className="p-2 bg-cyan-500/20 rounded-xl hover:bg-cyan-500/30 transition-colors border border-cyan-500/30"
-                title="Find Fans"
+                className="flex flex-col items-center px-2 py-1.5 bg-cyan-500/20 rounded-xl hover:bg-cyan-500/30 transition-colors border border-cyan-500/30"
               >
                 <UserPlus className="w-5 h-5 text-cyan-300" />
+                <span className="text-[9px] text-cyan-300 mt-0.5 leading-none">Fans</span>
               </button>
               <button
                 onClick={() => setCurrentScreen('invitations')}
-                className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-colors relative"
-                title="Invitations"
+                className="flex flex-col items-center px-2 py-1.5 bg-white/10 rounded-xl hover:bg-white/20 transition-colors relative"
               >
                 <Bell className="w-5 h-5 text-white" />
+                <span className="text-[9px] text-gray-300 mt-0.5 leading-none">Alerts</span>
                 {totalAlerts > 0 && (
                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-bold">
                     {totalAlerts}
@@ -1124,15 +1126,17 @@ const HuddleUpApp = () => {
               </button>
               <button
                 onClick={() => setCurrentScreen('profile')}
-                className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-colors"
+                className="flex flex-col items-center px-2 py-1.5 bg-white/10 rounded-xl hover:bg-white/20 transition-colors"
               >
                 <User className="w-5 h-5 text-white" />
+                <span className="text-[9px] text-gray-300 mt-0.5 leading-none">Profile</span>
               </button>
               <button
                 onClick={handleLogout}
-                className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-colors"
+                className="flex flex-col items-center px-2 py-1.5 bg-white/10 rounded-xl hover:bg-white/20 transition-colors"
               >
                 <LogOut className="w-5 h-5 text-white" />
+                <span className="text-[9px] text-gray-300 mt-0.5 leading-none">Logout</span>
               </button>
             </div>
           </div>
@@ -1207,6 +1211,15 @@ const HuddleUpApp = () => {
             </svg>
             Refresh scores
           </button>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 pt-3">
+        <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 rounded-xl px-4 py-2.5 flex items-center gap-3">
+          <div className="w-8 h-8 bg-cyan-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+            <span className="text-lg">👆</span>
+          </div>
+          <p className="text-cyan-300 text-sm font-medium">Tap any game below to create or join a watch party!</p>
         </div>
       </div>
 
