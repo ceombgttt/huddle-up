@@ -119,6 +119,7 @@ const HuddleUpApp = () => {
   const [loadingGames, setLoadingGames] = useState(false);
   
   const [invitations, setInvitations] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const [fanSearchSport, setFanSearchSport] = useState('');
   const [fanSearchTeam, setFanSearchTeam] = useState('');
   const [fanResults, setFanResults] = useState([]);
@@ -129,6 +130,8 @@ const HuddleUpApp = () => {
   const isAdmin = user?.isAdmin || user?.email === 'admin@huddleup.com';
   const userVenue = user ? venues.find(v => v.claimedBy === user.email) : null;
   const pendingInvitations = invitations.filter(i => i.status === 'pending');
+  const unreadNotifications = notifications.filter(n => !n.isRead);
+  const totalAlerts = pendingInvitations.length + unreadNotifications.length;
 
   useEffect(() => {
     loadUserData();
@@ -146,6 +149,7 @@ const HuddleUpApp = () => {
         loadUserParties();
         loadVenueClaims();
         loadInvitations();
+        loadNotifications();
       }
     } catch (error) {
       console.log('No saved user');
@@ -201,6 +205,7 @@ const HuddleUpApp = () => {
       loadVenues();
       loadVenueClaims();
       loadInvitations();
+      loadNotifications();
     } catch (error) {
       alert(error.message);
     }
@@ -215,6 +220,7 @@ const HuddleUpApp = () => {
       loadVenues();
       loadVenueClaims();
       loadInvitations();
+      loadNotifications();
       setCurrentScreen('games');
     } catch (error) {
       alert(error.message);
@@ -245,6 +251,43 @@ const HuddleUpApp = () => {
       setInvitations(data);
     } catch (error) {
       setInvitations([]);
+    }
+  };
+
+  const loadNotifications = async () => {
+    try {
+      const data = await api.notifications.list();
+      setNotifications(data);
+    } catch (error) {
+      setNotifications([]);
+    }
+  };
+
+  const toggleNotifications = async () => {
+    const newVal = !user.notificationsEnabled;
+    try {
+      await api.notifications.updateSettings(newVal);
+      setUser(prev => ({ ...prev, notificationsEnabled: newVal }));
+    } catch (error) {
+      console.error('Failed to toggle notifications:', error);
+    }
+  };
+
+  const markNotificationRead = async (id) => {
+    try {
+      await api.notifications.markRead(id);
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+    } catch (error) {
+      console.error('Failed to mark notification read:', error);
+    }
+  };
+
+  const markAllNotificationsRead = async () => {
+    try {
+      await api.notifications.markAllRead();
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    } catch (error) {
+      console.error('Failed to mark all read:', error);
     }
   };
 
@@ -309,6 +352,7 @@ const HuddleUpApp = () => {
       await api.parties.create(partyData);
       await loadParties();
       await loadUserParties();
+      loadNotifications();
       setCurrentScreen('gameDetail');
     } catch (error) {
       alert(error.message);
@@ -770,9 +814,9 @@ const HuddleUpApp = () => {
                 title="Invitations"
               >
                 <Bell className="w-5 h-5 text-white" />
-                {pendingInvitations.length > 0 && (
+                {totalAlerts > 0 && (
                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-bold">
-                    {pendingInvitations.length}
+                    {totalAlerts}
                   </span>
                 )}
               </button>
@@ -2259,10 +2303,34 @@ const HuddleUpApp = () => {
             <p className="text-gray-400">{user.email}</p>
           </div>
 
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-white/10 shadow-xl">
+            <h2 className="text-2xl font-black text-white mb-4" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+              NOTIFICATIONS
+            </h2>
+            <div className="flex items-center justify-between bg-white/5 p-4 rounded-xl">
+              <div>
+                <div className="text-white font-semibold">Fan Party Alerts</div>
+                <div className="text-gray-400 text-sm mt-1">
+                  Get notified when a fellow fan of your favorite team creates a new watch party
+                </div>
+              </div>
+              <button
+                onClick={toggleNotifications}
+                className={`relative w-14 h-7 rounded-full transition-colors ${
+                  user.notificationsEnabled ? 'bg-cyan-500' : 'bg-gray-600'
+                }`}
+              >
+                <div className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${
+                  user.notificationsEnabled ? 'translate-x-7' : 'translate-x-0.5'
+                }`} />
+              </button>
+            </div>
+          </div>
+
           {/* MY FAVORITE TEAMS SECTION */}
           <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-white/10 shadow-xl">
             <h2 className="text-2xl font-black text-white mb-4" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
-              ⭐ MY FAVORITE TEAMS
+              MY FAVORITE TEAMS
             </h2>
             <p className="text-gray-400 text-sm mb-4">
               Select your favorite teams so you can find fellow fans anywhere!
@@ -2551,7 +2619,9 @@ const HuddleUpApp = () => {
     );
   };
 
-  const InvitationsScreen = () => (
+  const InvitationsScreen = () => {
+    const unreadNotifications = notifications.filter(n => !n.isRead);
+    return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
         <div className="max-w-4xl mx-auto px-4 py-4">
@@ -2561,82 +2631,131 @@ const HuddleUpApp = () => {
             </button>
             <h1 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
               <Bell className="inline w-6 h-6 mr-2 text-cyan-400" />
-              PARTY INVITATIONS
+              NOTIFICATIONS
             </h1>
           </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
-        {invitations.length === 0 ? (
+      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+        {unreadNotifications.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-bold text-white">Fan Alerts</h2>
+              <button
+                onClick={markAllNotificationsRead}
+                className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
+              >
+                Mark all read
+              </button>
+            </div>
+            <div className="space-y-3">
+              {unreadNotifications.map(notif => (
+                <div key={`notif-${notif.id}`} className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/30 rounded-2xl p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-amber-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Bell className="w-4 h-4 text-amber-400" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-white text-sm">{notif.message}</p>
+                      <p className="text-gray-500 text-xs mt-1">
+                        {new Date(notif.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => markNotificationRead(notif.id)}
+                      className="text-xs text-gray-400 hover:text-white transition-colors"
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div>
+          <h2 className="text-lg font-bold text-white mb-3">Party Invitations</h2>
+          {invitations.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-400">No invitations yet.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+            {invitations.map(inv => (
+              <div key={inv.id} className={`border rounded-2xl p-5 ${
+                inv.status === 'pending'
+                  ? 'bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border-cyan-500/30'
+                  : inv.status === 'accepted'
+                    ? 'bg-green-500/5 border-green-500/20'
+                    : 'bg-white/5 border-white/10 opacity-60'
+              }`}>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-xs px-2 py-1 rounded-full font-semibold bg-purple-500/20 text-purple-300">
+                        {inv.sport}
+                      </span>
+                      <span className={`text-xs px-2 py-1 rounded-full font-semibold ${
+                        inv.status === 'pending' ? 'bg-yellow-500/20 text-yellow-300' :
+                        inv.status === 'accepted' ? 'bg-green-500/20 text-green-300' :
+                        'bg-red-500/20 text-red-300'
+                      }`}>
+                        {inv.status.charAt(0).toUpperCase() + inv.status.slice(1)}
+                      </span>
+                    </div>
+                    <h3 className="text-white font-bold text-lg">
+                      {inv.partyTitle || `${inv.homeTeam} vs ${inv.awayTeam}`}
+                    </h3>
+                    <p className="text-gray-400 text-sm mt-1">
+                      <span className="text-cyan-300">{inv.fromName}</span> invited you
+                    </p>
+                    {inv.venueName && (
+                      <p className="text-gray-400 text-sm mt-1">
+                        <MapPin className="inline w-3 h-3 mr-1" />{inv.venueName}{inv.city ? `, ${inv.city}` : ''}
+                      </p>
+                    )}
+                    {inv.gameTime && (
+                      <p className="text-gray-400 text-sm mt-1">
+                        <Calendar className="inline w-3 h-3 mr-1" />{formatDateTime(inv.gameTime)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {inv.status === 'pending' && (
+                  <div className="flex gap-3 mt-4">
+                    <button
+                      onClick={() => handleAcceptInvitation(inv.id)}
+                      className="flex-1 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-green-500/50 transition-all flex items-center justify-center gap-2"
+                    >
+                      <CheckCircle className="w-4 h-4" /> Accept
+                    </button>
+                    <button
+                      onClick={() => handleDeclineInvitation(inv.id)}
+                      className="flex-1 py-3 bg-white/10 text-gray-300 font-bold rounded-xl hover:bg-white/20 transition-all flex items-center justify-center gap-2"
+                    >
+                      <X className="w-4 h-4" /> Decline
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+            </div>
+          )}
+        </div>
+
+        {unreadNotifications.length === 0 && invitations.length === 0 && (
           <div className="text-center py-12">
             <div className="text-4xl mb-3">📬</div>
-            <p className="text-gray-400">No invitations yet. When someone invites you to a watch party, it will show up here.</p>
+            <p className="text-gray-400">No notifications yet. When someone invites you or a fellow fan creates a party, it will show up here.</p>
           </div>
-        ) : (
-          invitations.map(inv => (
-            <div key={inv.id} className={`border rounded-2xl p-5 ${
-              inv.status === 'pending'
-                ? 'bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border-cyan-500/30'
-                : inv.status === 'accepted'
-                  ? 'bg-green-500/5 border-green-500/20'
-                  : 'bg-white/5 border-white/10 opacity-60'
-            }`}>
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs px-2 py-1 rounded-full font-semibold bg-purple-500/20 text-purple-300">
-                      {inv.sport}
-                    </span>
-                    <span className={`text-xs px-2 py-1 rounded-full font-semibold ${
-                      inv.status === 'pending' ? 'bg-yellow-500/20 text-yellow-300' :
-                      inv.status === 'accepted' ? 'bg-green-500/20 text-green-300' :
-                      'bg-red-500/20 text-red-300'
-                    }`}>
-                      {inv.status.charAt(0).toUpperCase() + inv.status.slice(1)}
-                    </span>
-                  </div>
-                  <h3 className="text-white font-bold text-lg">
-                    {inv.partyTitle || `${inv.homeTeam} vs ${inv.awayTeam}`}
-                  </h3>
-                  <p className="text-gray-400 text-sm mt-1">
-                    <span className="text-cyan-300">{inv.fromName}</span> invited you
-                  </p>
-                  {inv.venueName && (
-                    <p className="text-gray-400 text-sm mt-1">
-                      <MapPin className="inline w-3 h-3 mr-1" />{inv.venueName}{inv.city ? `, ${inv.city}` : ''}
-                    </p>
-                  )}
-                  {inv.gameTime && (
-                    <p className="text-gray-400 text-sm mt-1">
-                      <Calendar className="inline w-3 h-3 mr-1" />{formatDateTime(inv.gameTime)}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {inv.status === 'pending' && (
-                <div className="flex gap-3 mt-4">
-                  <button
-                    onClick={() => handleAcceptInvitation(inv.id)}
-                    className="flex-1 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-green-500/50 transition-all flex items-center justify-center gap-2"
-                  >
-                    <CheckCircle className="w-4 h-4" /> Accept
-                  </button>
-                  <button
-                    onClick={() => handleDeclineInvitation(inv.id)}
-                    className="flex-1 py-3 bg-white/10 text-gray-300 font-bold rounded-xl hover:bg-white/20 transition-all flex items-center justify-center gap-2"
-                  >
-                    <X className="w-4 h-4" /> Decline
-                  </button>
-                </div>
-              )}
-            </div>
-          ))
         )}
       </div>
     </div>
-  );
+    );
+  };
 
   return (
     <div className="font-sans">

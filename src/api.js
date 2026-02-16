@@ -49,6 +49,13 @@ export const api = {
       request(`/users/me/favorites/${encodeURIComponent(sport)}`, { method: 'DELETE' }),
     stats: () => request('/users/stats'),
   },
+  notifications: {
+    list: () => request('/notifications'),
+    markRead: (id) => request(`/notifications/read/${id}`, { method: 'POST' }),
+    markAllRead: () => request('/notifications/read-all', { method: 'POST' }),
+    updateSettings: (enabled) =>
+      request('/notifications/settings', { method: 'PUT', body: JSON.stringify({ enabled }) }),
+  },
   fans: {
     byTeam: (sport, team) => {
       const params = new URLSearchParams({ sport, team });

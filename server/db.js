@@ -89,6 +89,19 @@ export async function initDB() {
         responded_at TIMESTAMPTZ,
         UNIQUE(party_id, to_user_id)
       );
+
+      CREATE TABLE IF NOT EXISTS notifications (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        type TEXT NOT NULL,
+        title TEXT NOT NULL,
+        message TEXT NOT NULL,
+        party_id UUID REFERENCES parties(id) ON DELETE CASCADE,
+        is_read BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS notifications_enabled BOOLEAN DEFAULT TRUE;
     `);
 
     const adminCheck = await client.query("SELECT id FROM users WHERE email = 'admin@huddleup.com'");

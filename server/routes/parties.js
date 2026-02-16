@@ -89,12 +89,50 @@ router.post('/', requireAuth, async (req, res) => {
       [gameId, sport, homeTeam, awayTeam, gameTime, venueName, venueAddress, city, title, notes, maxSize || 20, req.session.userId]
     );
 
+    const partyId = result.rows[0].id;
+
     await pool.query(
       'INSERT INTO party_attendees (party_id, user_id) VALUES ($1, $2)',
-      [result.rows[0].id, req.session.userId]
+      [partyId, req.session.userId]
     );
 
-    res.json({ id: result.rows[0].id });
+    const hostResult = await pool.query('SELECT name FROM users WHERE id = $1', [req.session.userId]);
+    const hostName = hostResult.rows[0]?.name || 'Someone';
+
+    const teams = [homeTeam, awayTeam].filter(Boolean);
+    if (teams.length > 0 && sport) {
+      const fellowFans = await pool.query(
+        `SELECT DISTINCT u.id FROM users u
+         JOIN user_favorite_teams ft ON ft.user_id = u.id
+         WHERE ft.sport = $1
+         AND ft.team = ANY($2::text[])
+         AND u.id != $3
+         AND u.notifications_enabled = TRUE`,
+        [sport, teams, req.session.userId]
+      );
+
+      if (fellowFans.rows.length > 0) {
+        const partyLabel = title || `${homeTeam} vs ${awayTeam}`;
+        const cityLabel = city ? ` in ${city}` : '';
+        const values = fellowFans.rows.map((fan, i) => {
+          const offset = i * 5;
+          return `($${offset+1}, $${offset+2}, $${offset+3}, $${offset+4}, $${offset+5})`;
+        }).join(', ');
+        const params = fellowFans.rows.flatMap(fan => [
+          fan.id,
+          'fan_party',
+          `New ${sport} Party!`,
+          `${hostName} created "${partyLabel}"${cityLabel}. Join your fellow fans!`,
+          partyId
+        ]);
+        await pool.query(
+          `INSERT INTO notifications (user_id, type, title, message, party_id) VALUES ${values}`,
+          params
+        );
+      }
+    }
+
+    res.json({ id: partyId });
   } catch (error) {
     console.error('Create party error:', error);
     res.status(500).json({ error: 'Server error' });
