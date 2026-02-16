@@ -227,7 +227,7 @@ const HuddleUpApp = () => {
     }
   };
 
-  const isAdmin = user?.isAdmin || user?.email === 'admin@huddleup.com';
+  const isAdmin = user?.isAdmin || user?.email === 'admin@huddleupusa.com';
   const userVenue = user ? venues.find(v => v.claimedBy === user.email) : null;
   const pendingInvitations = invitations.filter(i => i.status === 'pending');
   const unreadNotifications = notifications.filter(n => !n.isRead);

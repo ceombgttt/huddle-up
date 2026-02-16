@@ -104,12 +104,12 @@ export async function initDB() {
       ALTER TABLE users ADD COLUMN IF NOT EXISTS notifications_enabled BOOLEAN DEFAULT TRUE;
     `);
 
-    const adminCheck = await client.query("SELECT id FROM users WHERE email = 'admin@huddleup.com'");
+    const adminCheck = await client.query("SELECT id FROM users WHERE email = 'admin@huddleupusa.com'");
     if (adminCheck.rows.length === 0) {
       const bcrypt = await import('bcryptjs');
       const hash = await bcrypt.hash('admin123', 10);
       await client.query(
-        "INSERT INTO users (email, password_hash, name, gender, is_admin) VALUES ('admin@huddleup.com', $1, 'Admin', 'prefer-not-to-say', TRUE)",
+        "INSERT INTO users (email, password_hash, name, gender, is_admin) VALUES ('admin@huddleupusa.com', $1, 'Admin', 'prefer-not-to-say', TRUE)",
         [hash]
       );
     }

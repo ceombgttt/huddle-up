@@ -79,7 +79,7 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - `user_sessions` - Server-side session storage (connect-pg-simple)
 
 ## Admin Account
-- Email: admin@huddleup.com / Password: admin123
+- Email: admin@huddleupusa.com / Password: admin123
 - Can approve/reject venue claims
 
 ## Running
