@@ -631,62 +631,8 @@ const HuddleUpApp = () => {
   const WelcomeScreen = () => (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
       <div className="max-w-md w-full text-center space-y-8 animate-fade-in">
-        <div className="space-y-4">
-          <div className="inline-block">
-            <svg width="160" height="160" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-2xl">
-              <defs>
-                <radialGradient id="bgSimple" cx="50%" cy="50%" r="60%">
-                  <stop offset="0%" style={{stopColor:'#4F46E5',stopOpacity:0.2}} />
-                  <stop offset="100%" style={{stopColor:'#0F172A',stopOpacity:1}} />
-                </radialGradient>
-                <linearGradient id="pinClean" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" style={{stopColor:'#6EE7B7',stopOpacity:1}} />
-                  <stop offset="100%" style={{stopColor:'#34D399',stopOpacity:1}} />
-                </linearGradient>
-                <filter id="softGlow">
-                  <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
-                  <feMerge>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="SourceGraphic"/>
-                  </feMerge>
-                </filter>
-              </defs>
-              <rect width="400" height="400" rx="90" fill="#0F172A" />
-              <rect width="400" height="400" rx="90" fill="url(#bgSimple)" />
-              <circle cx="200" cy="190" r="140" fill="#34D399" opacity="0.15" />
-              <g transform="translate(200, 190)" filter="url(#softGlow)">
-                <path d="M 0 -110 C -65 -110 -110 -65 -110 0 C -110 75 0 145 0 145 C 0 145 110 75 110 0 C 110 -65 65 -110 0 -110 Z" fill="url(#pinClean)" />
-                <path d="M 0 -110 C -65 -110 -110 -65 -110 0 C -110 75 0 145 0 145 C 0 145 110 75 110 0 C 110 -65 65 -110 0 -110 Z" fill="none" stroke="#6EE7B7" strokeWidth="5" opacity="0.9" />
-                <circle cx="0" cy="0" r="80" fill="#1E293B" />
-                <circle cx="0" cy="0" r="80" fill="none" stroke="#34D399" strokeWidth="3" opacity="0.5" />
-              </g>
-              <g transform="translate(200, 190)">
-                <g transform="translate(-40, 0)">
-                  <ellipse cx="0" cy="0" rx="24" ry="30" fill="#92400E" />
-                  <line x1="0" y1="-18" x2="0" y2="18" stroke="#FFFFFF" strokeWidth="3" />
-                  <line x1="-8" y1="-9" x2="8" y2="-9" stroke="#FFFFFF" strokeWidth="2" />
-                  <line x1="-8" y1="0" x2="8" y2="0" stroke="#FFFFFF" strokeWidth="2" />
-                  <line x1="-8" y1="9" x2="8" y2="9" stroke="#FFFFFF" strokeWidth="2" />
-                </g>
-                <g transform="translate(40, 0)">
-                  <circle cx="0" cy="0" r="26" fill="#FFFFFF" />
-                  <polygon points="0,-10 9,-4 6,8 -6,8 -9,-4" fill="#1E293B" />
-                </g>
-                <g transform="translate(0, 40)">
-                  <circle cx="0" cy="0" r="24" fill="#EA580C" />
-                  <path d="M -24 0 Q 0 -12 24 0" fill="none" stroke="#1E293B" strokeWidth="2" />
-                  <path d="M -24 0 Q 0 12 24 0" fill="none" stroke="#1E293B" strokeWidth="2" />
-                  <line x1="0" y1="-24" x2="0" y2="24" stroke="#1E293B" strokeWidth="2" />
-                </g>
-              </g>
-            </svg>
-          </div>
-          <h1 className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
-            HUDDLE UP
-          </h1>
-          <p className="text-xl text-gray-300" style={{ fontFamily: "'Inter', sans-serif" }}>
-            Find your crew. Watch the game.
-          </p>
+        <div className="space-y-6">
+          <img src="/logo.png" alt="Huddle Up - Find Your Fans" className="w-72 mx-auto drop-shadow-2xl" />
         </div>
         <div className="space-y-4">
           <button
