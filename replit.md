@@ -85,6 +85,7 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - Production: `NODE_ENV=production node server/index.js`
 
 ## Recent Changes
+- 2026-02-16: Added share/invite feature - share button in header, invite friends card on profile, welcome share modal after signup; uses Web Share API with clipboard fallback
 - 2026-02-16: Added badge/ranking system for fans (6 tiers: New Fan→Rookie→Starter→All-Star→MVP→Legend) and venues, with badges shown on profile, fan finder results, and venue leaderboard; profile shows progress bar to next rank
 - 2026-02-16: Added notification system - auto-alerts fellow fans when parties created for their team, toggle on/off in profile, bell badge shows combined invitations + unread notifications
 - 2026-02-16: Added Fan Finder feature - search for fans by team, invite them to parties, accept/decline invitations

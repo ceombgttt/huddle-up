@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check } from 'lucide-react';
 import { api } from './api.js';
 
 // Sample games data for different sports
@@ -208,6 +208,22 @@ const HuddleUpApp = () => {
   const [invitePartyId, setInvitePartyId] = useState(null);
   const [inviteSending, setInviteSending] = useState({});
   const [badgeStats, setBadgeStats] = useState({ partiesHosted: 0, partiesAttended: 0 });
+  const [showShareToast, setShowShareToast] = useState(false);
+  const [showSignupShare, setShowSignupShare] = useState(false);
+
+  const shareApp = async () => {
+    const shareUrl = window.location.origin;
+    const shareData = { title: 'Huddle Up', text: 'Find your crew. Watch the game. Join me on Huddle Up!', url: shareUrl };
+    if (navigator.share) {
+      try { await navigator.share(shareData); } catch (e) {}
+    } else {
+      try {
+        await navigator.clipboard.writeText(`${shareData.text} ${shareUrl}`);
+        setShowShareToast(true);
+        setTimeout(() => setShowShareToast(false), 2000);
+      } catch (e) {}
+    }
+  };
 
   const isAdmin = user?.isAdmin || user?.email === 'admin@huddleup.com';
   const userVenue = user ? venues.find(v => v.claimedBy === user.email) : null;
@@ -283,6 +299,7 @@ const HuddleUpApp = () => {
       setUser(userData);
       setShowOnboarding(true);
       setOnboardingStep(0);
+      setShowSignupShare(true);
       setCurrentScreen('games');
       loadParties();
       loadVenues();
@@ -898,6 +915,13 @@ const HuddleUpApp = () => {
                   <Settings className="w-5 h-5 text-purple-300" />
                 </button>
               )}
+              <button
+                onClick={shareApp}
+                className="p-2 bg-emerald-500/20 rounded-xl hover:bg-emerald-500/30 transition-colors border border-emerald-500/30"
+                title="Share App"
+              >
+                <Share2 className="w-5 h-5 text-emerald-300" />
+              </button>
               <button
                 onClick={() => setCurrentScreen('fanFinder')}
                 className="p-2 bg-cyan-500/20 rounded-xl hover:bg-cyan-500/30 transition-colors border border-cyan-500/30"
@@ -2436,6 +2460,20 @@ const HuddleUpApp = () => {
             </div>
           </div>
 
+          <div className="bg-gradient-to-br from-emerald-900/40 to-slate-900 p-6 rounded-2xl border border-emerald-500/20 shadow-xl">
+            <h2 className="text-2xl font-black text-white mb-3" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+              <Share2 className="inline w-6 h-6 mr-2 text-emerald-400" />
+              INVITE FRIENDS
+            </h2>
+            <p className="text-gray-400 text-sm mb-4">Share Huddle Up with your friends so they can join your watch parties!</p>
+            <button
+              onClick={shareApp}
+              className="w-full py-3 bg-gradient-to-r from-emerald-500 to-green-500 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-emerald-500/50 transition-all flex items-center justify-center gap-2"
+            >
+              <Share2 className="w-5 h-5" /> Share Huddle Up
+            </button>
+          </div>
+
           <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-white/10 shadow-xl">
             <h2 className="text-2xl font-black text-white mb-4" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
               NOTIFICATIONS
@@ -2934,6 +2972,40 @@ const HuddleUpApp = () => {
       {currentScreen === 'profile' && <ProfileScreen />}
       {currentScreen === 'fanFinder' && <FanFinderScreen />}
       {currentScreen === 'invitations' && <InvitationsScreen />}
+
+      {showShareToast && (
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 bg-emerald-500 text-white px-6 py-3 rounded-2xl shadow-lg flex items-center gap-2 animate-fade-in">
+          <Check className="w-5 h-5" /> Link copied to clipboard!
+        </div>
+      )}
+
+      {showSignupShare && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl border border-white/10 p-8 max-w-md w-full text-center space-y-5 animate-fade-in">
+            <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full flex items-center justify-center mx-auto">
+              <Share2 className="w-8 h-8 text-white" />
+            </div>
+            <h2 className="text-3xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+              WELCOME TO HUDDLE UP!
+            </h2>
+            <p className="text-gray-300">
+              Watch parties are better with friends! Share the app so your crew can join you.
+            </p>
+            <button
+              onClick={() => { shareApp(); setShowSignupShare(false); }}
+              className="w-full py-3 bg-gradient-to-r from-emerald-500 to-green-500 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-emerald-500/50 transition-all flex items-center justify-center gap-2"
+            >
+              <Share2 className="w-5 h-5" /> Share with Friends
+            </button>
+            <button
+              onClick={() => setShowSignupShare(false)}
+              className="w-full py-3 bg-white/10 text-gray-300 font-semibold rounded-xl hover:bg-white/20 transition-all"
+            >
+              Maybe Later
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
