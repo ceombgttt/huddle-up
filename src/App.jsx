@@ -1215,11 +1215,14 @@ const HuddleUpApp = () => {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 pt-3">
-        <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 rounded-xl px-4 py-2.5 flex items-center gap-3">
-          <div className="w-8 h-8 bg-cyan-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-            <span className="text-lg">👇</span>
+        <div className="bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-purple-500/20 border-2 border-cyan-400/40 rounded-2xl px-5 py-4 flex items-center gap-4 shadow-lg shadow-cyan-500/10 animate-pulse-slow">
+          <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-cyan-500/30">
+            <span className="text-2xl">👇</span>
           </div>
-          <p className="text-cyan-300 text-sm font-medium">Tap any game below to create or join a watch party!</p>
+          <div>
+            <p className="text-white font-bold text-base">Tap any game to start a watch party!</p>
+            <p className="text-cyan-300/80 text-xs mt-0.5">Pick a game, choose a venue, and invite your crew</p>
+          </div>
         </div>
       </div>
 
