@@ -3310,6 +3310,90 @@ const HuddleUpApp = () => {
             </div>
           </div>
 
+          <div>
+            <h2 className="text-2xl font-black text-white mb-4" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+              My Watch Parties
+            </h2>
+
+            {myParties.length === 0 ? (
+              <div className="bg-white/5 backdrop-blur-lg p-8 rounded-2xl border border-white/10 text-center">
+                <Users className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                <p className="text-gray-400 mb-4">You haven't joined any watch parties yet</p>
+                <button
+                  onClick={() => setCurrentScreen('games')}
+                  className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-xl"
+                >
+                  Browse Games
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {hostedParties.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-300 mb-3">Hosting ({hostedParties.length})</h3>
+                    <div className="space-y-3">
+                      {hostedParties.map(party => {
+                        const game = SAMPLE_GAMES.find(g => g.gameId === party.gameId);
+                        return (
+                          <div
+                            key={party.id}
+                            className="bg-gradient-to-br from-slate-800 to-slate-900 p-5 rounded-xl border border-white/10"
+                          >
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="px-2 py-1 bg-yellow-500/20 text-yellow-300 text-xs font-bold rounded-full border border-yellow-500/30">
+                                HOST
+                              </span>
+                            </div>
+                            <div className="text-white font-bold mb-1">
+                              {party.homeTeam || SAMPLE_GAMES.find(g => g.id === party.gameId)?.homeTeam} vs{' '}
+                              {party.awayTeam || SAMPLE_GAMES.find(g => g.id === party.gameId)?.awayTeam}
+                            </div>
+                            <div className="text-sm text-gray-400 space-y-1">
+                              <div className="flex items-center gap-2">
+                                <MapPin className="w-3 h-3" />
+                                {party.venueName || party.location}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Users className="w-3 h-3" />
+                                {party.attendees.length} people joined
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {joinedParties.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-300 mb-3">Joined ({joinedParties.length})</h3>
+                    <div className="space-y-3">
+                      {joinedParties.map(party => (
+                        <div
+                          key={party.id}
+                          className="bg-gradient-to-br from-slate-800 to-slate-900 p-5 rounded-xl border border-white/10"
+                        >
+                          <div className="text-white font-bold mb-1">
+                            {party.homeTeam || SAMPLE_GAMES.find(g => g.id === party.gameId)?.homeTeam} vs{' '}
+                            {party.awayTeam || SAMPLE_GAMES.find(g => g.id === party.gameId)?.awayTeam}
+                          </div>
+                          <div className="text-sm text-gray-400 space-y-1">
+                            <div>Hosted by {party.hostName}</div>
+                            <div className="flex items-center gap-2">
+                              <MapPin className="w-3 h-3" />
+                              {party.venueName || party.location}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="bg-gradient-to-br from-emerald-900/40 to-slate-900 p-6 rounded-2xl border border-emerald-500/20 shadow-xl">
             <h2 className="text-2xl font-black text-white mb-3" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
               <Share2 className="inline w-6 h-6 mr-2 text-emerald-400" />
@@ -3445,89 +3529,6 @@ const HuddleUpApp = () => {
             </div>
           </div>
 
-          <div>
-            <h2 className="text-2xl font-black text-white mb-4" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
-              My Watch Parties
-            </h2>
-
-            {myParties.length === 0 ? (
-              <div className="bg-white/5 backdrop-blur-lg p-8 rounded-2xl border border-white/10 text-center">
-                <Users className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                <p className="text-gray-400 mb-4">You haven't joined any watch parties yet</p>
-                <button
-                  onClick={() => setCurrentScreen('games')}
-                  className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-xl"
-                >
-                  Browse Games
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {hostedParties.length > 0 && (
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-300 mb-3">Hosting ({hostedParties.length})</h3>
-                    <div className="space-y-3">
-                      {hostedParties.map(party => {
-                        const game = SAMPLE_GAMES.find(g => g.gameId === party.gameId);
-                        return (
-                          <div
-                            key={party.id}
-                            className="bg-gradient-to-br from-slate-800 to-slate-900 p-5 rounded-xl border border-white/10"
-                          >
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="px-2 py-1 bg-yellow-500/20 text-yellow-300 text-xs font-bold rounded-full border border-yellow-500/30">
-                                HOST
-                              </span>
-                            </div>
-                            <div className="text-white font-bold mb-1">
-                              {SAMPLE_GAMES.find(g => g.id === party.gameId)?.homeTeam} vs{' '}
-                              {SAMPLE_GAMES.find(g => g.id === party.gameId)?.awayTeam}
-                            </div>
-                            <div className="text-sm text-gray-400 space-y-1">
-                              <div className="flex items-center gap-2">
-                                <MapPin className="w-3 h-3" />
-                                {party.location}
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Users className="w-3 h-3" />
-                                {party.attendees.length} people joined
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {joinedParties.length > 0 && (
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-300 mb-3">Joined ({joinedParties.length})</h3>
-                    <div className="space-y-3">
-                      {joinedParties.map(party => (
-                        <div
-                          key={party.id}
-                          className="bg-gradient-to-br from-slate-800 to-slate-900 p-5 rounded-xl border border-white/10"
-                        >
-                          <div className="text-white font-bold mb-1">
-                            {SAMPLE_GAMES.find(g => g.id === party.gameId)?.homeTeam} vs{' '}
-                            {SAMPLE_GAMES.find(g => g.id === party.gameId)?.awayTeam}
-                          </div>
-                          <div className="text-sm text-gray-400 space-y-1">
-                            <div>Hosted by {party.hostName}</div>
-                            <div className="flex items-center gap-2">
-                              <MapPin className="w-3 h-3" />
-                              {party.location}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
         </div>
       </div>
     );
