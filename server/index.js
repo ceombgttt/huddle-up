@@ -12,6 +12,7 @@ import userRoutes from './routes/users.js';
 import fanRoutes from './routes/fans.js';
 import notificationRoutes from './routes/notifications.js';
 import gameRoutes from './routes/games.js';
+import uploadRoutes from './routes/uploads.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const isProduction = process.env.NODE_ENV === 'production';
@@ -46,6 +47,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/fans', fanRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/games', gameRoutes);
+app.use('/api/uploads', uploadRoutes);
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 

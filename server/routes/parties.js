@@ -34,7 +34,7 @@ router.get('/', async (req, res) => {
 
     const parties = await Promise.all(result.rows.map(async (party) => {
       const attendees = await pool.query(
-        'SELECT u.id, u.email, u.name, u.gender FROM party_attendees pa JOIN users u ON pa.user_id = u.id WHERE pa.party_id = $1',
+        'SELECT u.id, u.email, u.name, u.gender, u.profile_picture FROM party_attendees pa JOIN users u ON pa.user_id = u.id WHERE pa.party_id = $1',
         [party.id]
       );
       return {
@@ -54,7 +54,7 @@ router.get('/', async (req, res) => {
         hostName: party.host_name,
         hostId: party.host_id,
         attendees: attendees.rows.map(a => a.email),
-        attendeeDetails: attendees.rows.map(a => ({ email: a.email, name: a.name, gender: a.gender })),
+        attendeeDetails: attendees.rows.map(a => ({ email: a.email, name: a.name, gender: a.gender, profilePicture: a.profile_picture })),
         createdAt: party.created_at
       };
     }));

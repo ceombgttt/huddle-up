@@ -16,6 +16,7 @@ export async function initDB() {
         name TEXT NOT NULL,
         gender TEXT NOT NULL DEFAULT 'prefer-not-to-say',
         country TEXT,
+        profile_picture TEXT,
         is_admin BOOLEAN DEFAULT FALSE,
         joined_at TIMESTAMPTZ DEFAULT NOW()
       );
