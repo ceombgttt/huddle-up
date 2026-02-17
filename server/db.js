@@ -108,7 +108,6 @@ export async function initDB() {
 
       CREATE TABLE IF NOT EXISTS sponsors (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        venue_id UUID REFERENCES venues(id) ON DELETE CASCADE,
         name TEXT NOT NULL,
         contact_name TEXT,
         contact_email TEXT,
@@ -123,6 +122,7 @@ export async function initDB() {
         status TEXT DEFAULT 'active' CHECK (status IN ('active', 'paused', 'ended')),
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
+      ALTER TABLE sponsors DROP COLUMN IF EXISTS venue_id;
 
       ALTER TABLE users ADD COLUMN IF NOT EXISTS notifications_enabled BOOLEAN DEFAULT TRUE;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS date_of_birth DATE;
