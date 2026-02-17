@@ -96,8 +96,8 @@ router.post('/profile-picture/request-url', requireAuth, async (req, res) => {
 router.post('/profile-picture/save', requireAuth, async (req, res) => {
   try {
     const { objectPath } = req.body;
-    if (!objectPath) {
-      return res.status(400).json({ error: 'Missing objectPath' });
+    if (!objectPath || !objectPath.startsWith('/objects/profile-pictures/')) {
+      return res.status(400).json({ error: 'Invalid object path' });
     }
 
     await pool.query(
@@ -128,6 +128,9 @@ router.delete('/profile-picture', requireAuth, async (req, res) => {
 router.get('/serve/*', async (req, res) => {
   try {
     const objectSubPath = req.params[0];
+    if (!objectSubPath.startsWith('profile-pictures/')) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
     const privateDir = getPrivateObjectDir();
     const fullPath = `${privateDir}/${objectSubPath}`;
     const { bucketName, objectName } = parseObjectPath(fullPath);

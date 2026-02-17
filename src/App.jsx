@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2 } from 'lucide-react';
 import { api } from './api.js';
 
 // Sample games data for different sports
@@ -175,6 +175,40 @@ const VENUE_PRICING = {
   chain: { name: "Multi-Location (2-5)", featured: 499 },
   chainPlus: { name: "Regional Chain (6-20)", featured: 999 },
   enterprise: { name: "Enterprise (20+)", featured: "Custom" }
+};
+
+const getProfilePicUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith('/objects/')) {
+    return `/api/uploads/serve/${path.replace('/objects/', '')}`;
+  }
+  return path;
+};
+
+const ProfileAvatar = ({ src, name, size = 'md', className = '' }) => {
+  const sizeClasses = {
+    xs: 'w-6 h-6 text-xs',
+    sm: 'w-8 h-8 text-sm',
+    md: 'w-12 h-12 text-lg',
+    lg: 'w-20 h-20 text-2xl',
+    xl: 'w-28 h-28 text-4xl',
+  };
+  const picUrl = getProfilePicUrl(src);
+  if (picUrl) {
+    return (
+      <img
+        src={picUrl}
+        alt={name || ''}
+        className={`${sizeClasses[size]} rounded-full object-cover border-2 border-white/20 ${className}`}
+      />
+    );
+  }
+  const initial = (name || '?')[0].toUpperCase();
+  return (
+    <div className={`${sizeClasses[size]} rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white font-bold border-2 border-white/20 ${className}`}>
+      {initial}
+    </div>
+  );
 };
 
 const getFanBadge = (attended, hosted) => {
@@ -1249,7 +1283,11 @@ const HuddleUpApp = () => {
                 onClick={() => setCurrentScreen('profile')}
                 className="flex flex-col items-center px-2 py-1.5 bg-white/10 rounded-xl hover:bg-white/20 transition-colors"
               >
-                <User className="w-5 h-5 text-white" />
+                {user.profilePicture ? (
+                  <ProfileAvatar src={user.profilePicture} name={user.name} size="xs" className="border border-cyan-400/50" />
+                ) : (
+                  <User className="w-5 h-5 text-white" />
+                )}
                 <span className="text-[9px] text-gray-300 mt-0.5 leading-none">Profile</span>
               </button>
               <button
@@ -1667,8 +1705,9 @@ const HuddleUpApp = () => {
                                   return (
                                     <div
                                       key={idx}
-                                      className="flex items-center gap-1 px-3 py-1 bg-white/10 rounded-full border border-white/20"
+                                      className="flex items-center gap-1.5 px-3 py-1 bg-white/10 rounded-full border border-white/20"
                                     >
+                                      <ProfileAvatar src={attendee.profilePicture} name={attendee.name} size="xs" />
                                       <span className="text-white text-sm">{attendee.name}</span>
                                       {genderIcon && (
                                         <span className={`${genderColor} font-bold`}>{genderIcon}</span>
@@ -3257,8 +3296,46 @@ const HuddleUpApp = () => {
         <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
           <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-2xl border border-white/10 shadow-xl text-center">
             <div className="flex flex-col items-center gap-4">
-              <div className="w-20 h-20 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center">
-                <User className="w-10 h-10 text-white" />
+              <div className="relative group">
+                <ProfileAvatar src={user.profilePicture} name={user.name} size="xl" className="border-4 border-cyan-500/30" />
+                <label className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
+                  <Camera className="w-8 h-8 text-white" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      if (file.size > 5 * 1024 * 1024) {
+                        alert('Image must be under 5MB');
+                        return;
+                      }
+                      if (!file.type.startsWith('image/')) {
+                        alert('Please select an image file');
+                        return;
+                      }
+                      try {
+                        const { uploadURL, objectPath } = await api.users.requestProfilePictureUrl(file.type);
+                        const uploadRes = await fetch(uploadURL, {
+                          method: 'PUT',
+                          body: file,
+                          headers: { 'Content-Type': file.type },
+                        });
+                        if (!uploadRes.ok) throw new Error('Upload failed');
+                        await api.users.saveProfilePicture(objectPath);
+                        setUser({ ...user, profilePicture: objectPath });
+                      } catch (err) {
+                        alert('Failed to upload photo: ' + err.message);
+                      }
+                    }}
+                  />
+                </label>
+                {!user.profilePicture && (
+                  <div className="absolute -bottom-1 -right-1 bg-cyan-500 rounded-full p-1.5 border-2 border-slate-800">
+                    <Camera className="w-3 h-3 text-white" />
+                  </div>
+                )}
               </div>
               <div>
                 <h1 className="text-3xl font-black text-white mb-1" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
@@ -3270,6 +3347,28 @@ const HuddleUpApp = () => {
                     <span className="text-lg mr-1">{COUNTRY_FLAGS[user.country] || '🌍'}</span>
                     <span className="text-cyan-300 font-semibold">{user.country}</span>
                   </p>
+                )}
+                {!user.profilePicture && (
+                  <p className="text-amber-400 text-xs mt-2 flex items-center gap-1">
+                    <Camera className="w-3 h-3" /> Add a profile photo for trust & transparency
+                  </p>
+                )}
+                {user.profilePicture && (
+                  <button
+                    onClick={async () => {
+                      if (confirm('Remove your profile picture?')) {
+                        try {
+                          await api.users.removeProfilePicture();
+                          setUser({ ...user, profilePicture: null });
+                        } catch (err) {
+                          alert(err.message);
+                        }
+                      }
+                    }}
+                    className="text-xs text-red-400 hover:text-red-300 mt-2"
+                  >
+                    Remove photo
+                  </button>
                 )}
               </div>
               <BadgeDisplay attended={badgeStats.partiesAttended} hosted={badgeStats.partiesHosted} size="lg" />
@@ -3620,9 +3719,7 @@ const HuddleUpApp = () => {
               {fanResults.map(fan => (
                 <div key={fan.id} className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                      {fan.name.charAt(0).toUpperCase()}
-                    </div>
+                    <ProfileAvatar src={fan.profilePicture} name={fan.name} size="md" />
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="text-white font-semibold">{fan.name}</span>

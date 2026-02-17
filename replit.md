@@ -25,7 +25,8 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 │       ├── auth.js          # Signup, login, logout, session check
 │       ├── parties.js       # CRUD for watch parties + join/leave
 │       ├── venues.js        # Venue listing, claiming, admin approval
-│       └── users.js         # User profile, favorite teams, stats
+│       ├── users.js         # User profile, favorite teams, stats
+│       └── uploads.js       # Profile picture upload (presigned URLs + serve)
 ├── src/
 │   ├── App.jsx              # Main application component (all views)
 │   ├── api.js               # Frontend API client module
@@ -66,6 +67,10 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - `POST /api/notifications/read-all` - Mark all notifications as read
 - `PUT /api/notifications/settings` - Toggle notification preference
 - `PUT /api/venues/:id` - Admin edit any venue (name, address, city, type, phone, website, capacity, description, featured)
+- `POST /api/uploads/profile-picture/request-url` - Get presigned URL for profile picture upload
+- `POST /api/uploads/profile-picture/save` - Save profile picture path after upload
+- `DELETE /api/uploads/profile-picture` - Remove profile picture
+- `GET /api/uploads/serve/profile-pictures/:id` - Serve profile picture images
 - `GET /api/games` - Fetch live games/scores from ESPN API (9 leagues, 60s cache)
 
 ## Database Tables
@@ -88,7 +93,13 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - Build: `npm run build`
 - Production: `NODE_ENV=production node server/index.js`
 
+## Storage
+- **Object Storage**: Replit built-in (GCS-backed) for profile picture uploads
+- Profile pictures stored at `/objects/profile-pictures/<uuid>` paths
+- Presigned URL upload flow: request URL → PUT to GCS → save path in DB
+
 ## Recent Changes
+- 2026-02-17: Added profile picture upload feature - users can upload face photos for transparency, displayed on profile, nav bar, fan finder, and party attendee lists; uses Replit object storage with presigned URLs; restricted to profile-pictures path for security
 - 2026-02-16: Added live game scores from ESPN API - auto-refreshes every 60 seconds, shows scores/logos/records/broadcast info for NFL, NBA, MLB, NHL, College Football, College Basketball, Premier League, La Liga MX, MLS
 - 2026-02-16: Added password reset flow - "Forgot Password" link on login, two-step reset (email verification → code + new password), rate-limited, codes expire in 10 minutes
 - 2026-02-16: Added share/invite feature - share button in header, invite friends card on profile, welcome share modal after signup; uses Web Share API with clipboard fallback

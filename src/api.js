@@ -53,6 +53,12 @@ export const api = {
       request('/users/me/favorites', { method: 'PUT', body: JSON.stringify({ sport, team }) }),
     updateCountry: (country) =>
       request('/users/me/country', { method: 'PUT', body: JSON.stringify({ country }) }),
+    requestProfilePictureUrl: (contentType) =>
+      request('/uploads/profile-picture/request-url', { method: 'POST', body: JSON.stringify({ contentType }) }),
+    saveProfilePicture: (objectPath) =>
+      request('/uploads/profile-picture/save', { method: 'POST', body: JSON.stringify({ objectPath }) }),
+    removeProfilePicture: () =>
+      request('/uploads/profile-picture', { method: 'DELETE' }),
     removeFavorite: (sport) =>
       request(`/users/me/favorites/${encodeURIComponent(sport)}`, { method: 'DELETE' }),
     stats: () => request('/users/stats'),
