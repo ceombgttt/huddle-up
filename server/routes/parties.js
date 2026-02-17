@@ -35,7 +35,9 @@ router.get('/', async (req, res) => {
 
     const parties = await Promise.all(result.rows.map(async (party) => {
       const attendees = await pool.query(
-        'SELECT u.id, u.email, u.name, u.gender, u.profile_picture FROM party_attendees pa JOIN users u ON pa.user_id = u.id WHERE pa.party_id = $1',
+        `SELECT u.id, u.email, u.name, u.gender, u.profile_picture,
+         (SELECT json_object_agg(ft.sport, ft.team) FROM user_favorite_teams ft WHERE ft.user_id = u.id) as favorite_teams
+         FROM party_attendees pa JOIN users u ON pa.user_id = u.id WHERE pa.party_id = $1`,
         [party.id]
       );
       return {
@@ -55,7 +57,7 @@ router.get('/', async (req, res) => {
         hostName: party.host_name,
         hostId: party.host_id,
         attendees: attendees.rows.map(a => a.email),
-        attendeeDetails: attendees.rows.map(a => ({ email: a.email, name: a.name, gender: a.gender, profilePicture: a.profile_picture })),
+        attendeeDetails: attendees.rows.map(a => ({ email: a.email, name: a.name, gender: a.gender, profilePicture: a.profile_picture, favoriteTeams: a.favorite_teams || {} })),
         createdAt: party.created_at
       };
     }));

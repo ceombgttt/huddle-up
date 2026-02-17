@@ -2019,6 +2019,7 @@ const HuddleUpApp = () => {
                                 {party.attendeeDetails.map((attendee, idx) => {
                                   const genderIcon = attendee.gender === 'male' ? '♂' : attendee.gender === 'female' ? '♀' : '';
                                   const genderColor = attendee.gender === 'male' ? 'text-blue-400' : attendee.gender === 'female' ? 'text-pink-400' : 'text-gray-400';
+                                  const attendeeTeamLogos = attendee.favoriteTeams ? Object.entries(attendee.favoriteTeams).map(([sport, team]) => getTeamLogoUrl(sport, team)).filter(Boolean) : [];
                                   return (
                                     <div
                                       key={idx}
@@ -2028,6 +2029,13 @@ const HuddleUpApp = () => {
                                       <span className="text-white text-sm">{attendee.name}</span>
                                       {genderIcon && (
                                         <span className={`${genderColor} font-bold`}>{genderIcon}</span>
+                                      )}
+                                      {attendeeTeamLogos.length > 0 && (
+                                        <div className="flex items-center gap-0.5 ml-0.5">
+                                          {attendeeTeamLogos.slice(0, 3).map((logo, i) => (
+                                            <img key={i} src={logo} alt="" className="w-4 h-4 object-contain" />
+                                          ))}
+                                        </div>
                                       )}
                                     </div>
                                   );
