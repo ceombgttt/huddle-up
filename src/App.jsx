@@ -988,13 +988,7 @@ const HuddleUpApp = () => {
   const [loginShowPassword, setLoginShowPassword] = useState(false);
   const [loginRememberMe, setLoginRememberMe] = useState(true);
 
-  const LoginScreen = () => {
-    const email = loginEmail, setEmail = setLoginEmail;
-    const password = loginPassword, setPassword = setLoginPassword;
-    const showPassword = loginShowPassword, setShowPassword = setLoginShowPassword;
-    const rememberMe = loginRememberMe, setRememberMe = setLoginRememberMe;
-
-    return (
+  const loginScreenJSX = (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
@@ -1009,8 +1003,8 @@ const HuddleUpApp = () => {
               <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
               <input
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
                 className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 placeholder="your@email.com"
               />
@@ -1020,18 +1014,18 @@ const HuddleUpApp = () => {
               <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
               <div className="relative">
                 <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  type={loginShowPassword ? 'text' : 'password'}
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
                   className="w-full px-4 py-3 pr-12 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => setLoginShowPassword(!loginShowPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {loginShowPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
             </div>
@@ -1039,15 +1033,15 @@ const HuddleUpApp = () => {
             <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
+                checked={loginRememberMe}
+                onChange={(e) => setLoginRememberMe(e.target.checked)}
                 className="w-4 h-4 rounded border-gray-600 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-0 bg-white/10"
               />
               <span className="text-sm text-gray-300">Remember me</span>
             </label>
 
             <button
-              onClick={() => handleLogin(email, password, rememberMe)}
+              onClick={() => handleLogin(loginEmail, loginPassword, loginRememberMe)}
               className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-cyan-500/50 transform hover:scale-105 transition-all duration-200"
             >
               LOG IN
@@ -1069,8 +1063,7 @@ const HuddleUpApp = () => {
           </div>
         </div>
       </div>
-    );
-  };
+  );
 
   const [fpStep, setFpStep] = useState(1);
   const [fpEmail, setFpEmail] = useState('');
@@ -1080,93 +1073,84 @@ const HuddleUpApp = () => {
   const [fpError, setFpError] = useState('');
   const [fpLoading, setFpLoading] = useState(false);
 
-  const ForgotPasswordScreen = () => {
-    const step = fpStep, setStep = setFpStep;
-    const email = fpEmail, setEmail = setFpEmail;
-    const code = fpCode, setCode = setFpCode;
-    const newPassword = fpNewPassword, setNewPassword = setFpNewPassword;
-    const confirmPassword = fpConfirmPassword, setConfirmPassword = setFpConfirmPassword;
-    const error = fpError, setError = setFpError;
-    const loading = fpLoading, setLoading = setFpLoading;
+  const handleFpVerifyEmail = async () => {
+    setFpError('');
+    if (!fpEmail) { setFpError('Please enter your email'); return; }
+    setFpLoading(true);
+    try {
+      await api.auth.verifyEmail(fpEmail);
+      setFpStep(2);
+    } catch (err) {
+      setFpError(err.message);
+    } finally {
+      setFpLoading(false);
+    }
+  };
 
-    const handleVerifyEmail = async () => {
-      setError('');
-      if (!email) { setError('Please enter your email'); return; }
-      setLoading(true);
-      try {
-        await api.auth.verifyEmail(email);
-        setStep(2);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const handleFpReset = async () => {
+    setFpError('');
+    if (!fpCode || fpCode.length !== 6) { setFpError('Please enter the 6-digit code'); return; }
+    if (!fpNewPassword || fpNewPassword.length < 6) { setFpError('Password must be at least 6 characters'); return; }
+    if (fpNewPassword !== fpConfirmPassword) { setFpError('Passwords do not match'); return; }
+    setFpLoading(true);
+    try {
+      await api.auth.resetPassword(fpEmail, fpCode, fpNewPassword);
+      setFpStep(3);
+    } catch (err) {
+      setFpError(err.message);
+    } finally {
+      setFpLoading(false);
+    }
+  };
 
-    const handleReset = async () => {
-      setError('');
-      if (!code || code.length !== 6) { setError('Please enter the 6-digit code'); return; }
-      if (!newPassword || newPassword.length < 6) { setError('Password must be at least 6 characters'); return; }
-      if (newPassword !== confirmPassword) { setError('Passwords do not match'); return; }
-      setLoading(true);
-      try {
-        await api.auth.resetPassword(email, code, newPassword);
-        setStep(3);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    return (
+  const forgotPasswordScreenJSX = (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
             <h2 className="text-4xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
-              {step === 3 ? 'PASSWORD RESET' : 'RESET PASSWORD'}
+              {fpStep === 3 ? 'PASSWORD RESET' : 'RESET PASSWORD'}
             </h2>
             <p className="text-gray-400">
-              {step === 1 && 'Enter your email to get started'}
-              {step === 2 && 'Enter the code and set your new password'}
-              {step === 3 && 'Your password has been updated!'}
+              {fpStep === 1 && 'Enter your email to get started'}
+              {fpStep === 2 && 'Enter the code and set your new password'}
+              {fpStep === 3 && 'Your password has been updated!'}
             </p>
           </div>
 
           <div className="bg-white/5 backdrop-blur-lg p-8 rounded-3xl space-y-6 border border-white/10">
-            {step === 1 && (
+            {fpStep === 1 && (
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
                   <input
                     type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={fpEmail}
+                    onChange={(e) => setFpEmail(e.target.value)}
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     placeholder="your@email.com"
                   />
                 </div>
                 <button
-                  onClick={handleVerifyEmail}
-                  disabled={loading}
+                  onClick={handleFpVerifyEmail}
+                  disabled={fpLoading}
                   className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-cyan-500/50 transform hover:scale-105 transition-all duration-200 disabled:opacity-50"
                 >
-                  {loading ? 'VERIFYING...' : 'CONTINUE'}
+                  {fpLoading ? 'VERIFYING...' : 'CONTINUE'}
                 </button>
               </>
             )}
 
-            {step === 2 && (
+            {fpStep === 2 && (
               <>
                 <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-xl p-3 text-center">
-                  <span className="text-cyan-300 text-sm">Resetting password for {email}</span>
+                  <span className="text-cyan-300 text-sm">Resetting password for {fpEmail}</span>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Verification Code</label>
                   <input
                     type="text"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    value={fpCode}
+                    onChange={(e) => setFpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-center text-2xl tracking-widest"
                     placeholder="000000"
                     maxLength={6}
@@ -1177,8 +1161,8 @@ const HuddleUpApp = () => {
                   <label className="block text-sm font-medium text-gray-300 mb-2">New Password</label>
                   <input
                     type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
+                    value={fpNewPassword}
+                    onChange={(e) => setFpNewPassword(e.target.value)}
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     placeholder="At least 6 characters"
                   />
@@ -1187,23 +1171,23 @@ const HuddleUpApp = () => {
                   <label className="block text-sm font-medium text-gray-300 mb-2">Confirm Password</label>
                   <input
                     type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    value={fpConfirmPassword}
+                    onChange={(e) => setFpConfirmPassword(e.target.value)}
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     placeholder="Re-enter your password"
                   />
                 </div>
                 <button
-                  onClick={handleReset}
-                  disabled={loading}
+                  onClick={handleFpReset}
+                  disabled={fpLoading}
                   className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-cyan-500/50 transform hover:scale-105 transition-all duration-200 disabled:opacity-50"
                 >
-                  {loading ? 'RESETTING...' : 'RESET PASSWORD'}
+                  {fpLoading ? 'RESETTING...' : 'RESET PASSWORD'}
                 </button>
               </>
             )}
 
-            {step === 3 && (
+            {fpStep === 3 && (
               <div className="text-center space-y-4">
                 <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full flex items-center justify-center mx-auto">
                   <CheckCircle className="w-8 h-8 text-white" />
@@ -1218,11 +1202,11 @@ const HuddleUpApp = () => {
               </div>
             )}
 
-            {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+            {fpError && <p className="text-red-400 text-sm text-center">{fpError}</p>}
 
-            {step !== 3 && (
+            {fpStep !== 3 && (
               <button
-                onClick={() => step === 1 ? setCurrentScreen('login') : setStep(1)}
+                onClick={() => fpStep === 1 ? setCurrentScreen('login') : setFpStep(1)}
                 className="w-full py-3 text-gray-400 hover:text-white transition-colors"
               >
                 ← Back
@@ -1231,8 +1215,7 @@ const HuddleUpApp = () => {
           </div>
         </div>
       </div>
-    );
-  };
+  );
 
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
@@ -1244,43 +1227,32 @@ const HuddleUpApp = () => {
   const [signupAgeConfirmed, setSignupAgeConfirmed] = useState(false);
   const [signupRememberMe, setSignupRememberMe] = useState(true);
 
-  const SignUpScreen = () => {
-    const email = signupEmail, setEmail = setSignupEmail;
-    const password = signupPassword, setPassword = setSignupPassword;
-    const showPassword = signupShowPassword, setShowPassword = setSignupShowPassword;
-    const name = signupName, setName = setSignupName;
-    const gender = signupGender, setGender = setSignupGender;
-    const dateOfBirth = signupDateOfBirth, setDateOfBirth = setSignupDateOfBirth;
-    const acceptedTerms = signupAcceptedTerms, setAcceptedTerms = setSignupAcceptedTerms;
-    const ageConfirmed = signupAgeConfirmed, setAgeConfirmed = setSignupAgeConfirmed;
-    const rememberMe = signupRememberMe, setRememberMe = setSignupRememberMe;
+  const handleSignupSubmit = () => {
+    if (!signupAcceptedTerms) {
+      alert('You must accept the Terms of Service and Privacy Policy to sign up.');
+      return;
+    }
+    if (!signupAgeConfirmed) {
+      alert('You must confirm you are 21 years of age or older.');
+      return;
+    }
+    if (!signupEmail || !signupPassword || !signupName || !signupGender || !signupDateOfBirth) {
+      alert('Please fill in all fields.');
+      return;
+    }
+    const dob = new Date(signupDateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+    if (age < 21) {
+      alert('You must be 21 or older to join Huddle Up.');
+      return;
+    }
+    handleSignUp(signupEmail, signupPassword, signupName, signupGender, signupDateOfBirth, signupRememberMe);
+  };
 
-    const handleSubmit = () => {
-      if (!acceptedTerms) {
-        alert('You must accept the Terms of Service and Privacy Policy to sign up.');
-        return;
-      }
-      if (!ageConfirmed) {
-        alert('You must confirm you are 21 years of age or older.');
-        return;
-      }
-      if (!email || !password || !name || !gender || !dateOfBirth) {
-        alert('Please fill in all fields.');
-        return;
-      }
-      const dob = new Date(dateOfBirth);
-      const today = new Date();
-      let age = today.getFullYear() - dob.getFullYear();
-      const m = today.getMonth() - dob.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
-      if (age < 21) {
-        alert('You must be 21 or older to join Huddle Up.');
-        return;
-      }
-      handleSignUp(email, password, name, gender, dateOfBirth, rememberMe);
-    };
-
-    return (
+  const signUpScreenJSX = (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
@@ -1296,8 +1268,8 @@ const HuddleUpApp = () => {
               <label className="block text-sm font-medium text-gray-300 mb-2">Name</label>
               <input
                 type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                value={signupName}
+                onChange={(e) => setSignupName(e.target.value)}
                 className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 placeholder="Your name"
               />
@@ -1306,8 +1278,8 @@ const HuddleUpApp = () => {
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">Gender (shown to other attendees)</label>
               <select
-                value={gender}
-                onChange={(e) => setGender(e.target.value)}
+                value={signupGender}
+                onChange={(e) => setSignupGender(e.target.value)}
                 className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
               >
                 <option value="">Select gender...</option>
@@ -1321,8 +1293,8 @@ const HuddleUpApp = () => {
               <label className="block text-sm font-medium text-gray-300 mb-2">Date of Birth</label>
               <input
                 type="date"
-                value={dateOfBirth}
-                onChange={(e) => setDateOfBirth(e.target.value)}
+                value={signupDateOfBirth}
+                onChange={(e) => setSignupDateOfBirth(e.target.value)}
                 max={new Date(new Date().setFullYear(new Date().getFullYear() - 21)).toISOString().split('T')[0]}
                 className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
               />
@@ -1333,8 +1305,8 @@ const HuddleUpApp = () => {
               <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
               <input
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={signupEmail}
+                onChange={(e) => setSignupEmail(e.target.value)}
                 className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 placeholder="your@email.com"
               />
@@ -1344,18 +1316,18 @@ const HuddleUpApp = () => {
               <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
               <div className="relative">
                 <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  type={signupShowPassword ? 'text' : 'password'}
+                  value={signupPassword}
+                  onChange={(e) => setSignupPassword(e.target.value)}
                   className="w-full px-4 py-3 pr-12 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => setSignupShowPassword(!signupShowPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {signupShowPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
             </div>
@@ -1363,8 +1335,8 @@ const HuddleUpApp = () => {
             <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
+                checked={signupRememberMe}
+                onChange={(e) => setSignupRememberMe(e.target.checked)}
                 className="w-4 h-4 rounded border-gray-600 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-0 bg-white/10"
               />
               <span className="text-sm text-gray-300">Remember me</span>
@@ -1374,8 +1346,8 @@ const HuddleUpApp = () => {
               <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={acceptedTerms}
-                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  checked={signupAcceptedTerms}
+                  onChange={(e) => setSignupAcceptedTerms(e.target.checked)}
                   className="mt-1 w-4 h-4 rounded border-gray-600 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-0 bg-white/10"
                 />
                 <span className="text-sm text-gray-300">
@@ -1396,8 +1368,8 @@ const HuddleUpApp = () => {
               <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={ageConfirmed}
-                  onChange={(e) => setAgeConfirmed(e.target.checked)}
+                  checked={signupAgeConfirmed}
+                  onChange={(e) => setSignupAgeConfirmed(e.target.checked)}
                   className="mt-1 w-4 h-4 rounded border-gray-600 text-amber-500 focus:ring-amber-500 focus:ring-offset-0 bg-white/10 accent-amber-500"
                 />
                 <div>
@@ -1410,10 +1382,10 @@ const HuddleUpApp = () => {
             </div>
 
             <button
-              onClick={handleSubmit}
-              disabled={!acceptedTerms || !ageConfirmed}
+              onClick={handleSignupSubmit}
+              disabled={!signupAcceptedTerms || !signupAgeConfirmed}
               className={`w-full py-4 text-white font-bold text-lg rounded-2xl shadow-lg transform transition-all duration-200 ${
-                acceptedTerms && ageConfirmed
+                signupAcceptedTerms && signupAgeConfirmed
                   ? 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:shadow-cyan-500/50 hover:scale-105'
                   : 'bg-gray-500 cursor-not-allowed opacity-50'
               }`}
@@ -1430,8 +1402,7 @@ const HuddleUpApp = () => {
           </div>
         </div>
       </div>
-    );
-  };
+  );
 
   const GamesScreen = () => (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -2060,37 +2031,26 @@ const HuddleUpApp = () => {
   const [claimProofDocument, setClaimProofDocument] = useState('');
   const [claimAcceptedTerms, setClaimAcceptedTerms] = useState(false);
 
-  const ClaimVenueScreen = () => {
-    const venueName = claimVenueName, setVenueName = setClaimVenueName;
-    const address = claimAddress, setAddress = setClaimAddress;
-    const venueType = claimVenueType, setVenueType = setClaimVenueType;
-    const phone = claimPhone, setPhone = setClaimPhone;
-    const website = claimWebsite, setWebsite = setClaimWebsite;
-    const proofDocument = claimProofDocument, setProofDocument = setClaimProofDocument;
-    const acceptedTerms = claimAcceptedTerms, setAcceptedTerms = setClaimAcceptedTerms;
+  const handleClaimSubmit = () => {
+    if (!claimVenueName || !claimAddress || !claimVenueType) {
+      alert('Please fill in all required fields');
+      return;
+    }
+    if (!claimAcceptedTerms) {
+      alert('You must accept the Venue Terms and Conditions to claim a venue.');
+      return;
+    }
+    handleVenueClaim({
+      venueName: claimVenueName,
+      address: claimAddress,
+      venueType: claimVenueType,
+      phone: claimPhone,
+      website: claimWebsite,
+      proofDocument: claimProofDocument
+    });
+  };
 
-    const handleSubmit = () => {
-      if (!venueName || !address || !venueType) {
-        alert('Please fill in all required fields');
-        return;
-      }
-
-      if (!acceptedTerms) {
-        alert('You must accept the Venue Terms and Conditions to claim a venue.');
-        return;
-      }
-
-      handleVenueClaim({
-        venueName,
-        address,
-        venueType,
-        phone,
-        website,
-        proofDocument
-      });
-    };
-
-    return (
+  const claimVenueScreenJSX = (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 py-4">
@@ -2113,7 +2073,6 @@ const HuddleUpApp = () => {
               <p className="text-gray-400">Submit your business for verification to get featured on Huddle Up</p>
             </div>
 
-            {/* FEATURE 2: FREE TRIAL Banner */}
             <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-2 border-green-500/40 rounded-xl p-5 shadow-lg">
               <div className="flex items-center gap-3 mb-3">
                 <span className="text-4xl">🎁</span>
@@ -2149,8 +2108,8 @@ const HuddleUpApp = () => {
               </label>
               <input
                 type="text"
-                value={venueName}
-                onChange={(e) => setVenueName(e.target.value)}
+                value={claimVenueName}
+                onChange={(e) => setClaimVenueName(e.target.value)}
                 className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 placeholder="e.g., Buffalo Wild Wings Downtown"
               />
@@ -2162,8 +2121,8 @@ const HuddleUpApp = () => {
               </label>
               <input
                 type="text"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
+                value={claimAddress}
+                onChange={(e) => setClaimAddress(e.target.value)}
                 className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 placeholder="123 Main St, Fort Lauderdale, FL 33301"
               />
@@ -2174,8 +2133,8 @@ const HuddleUpApp = () => {
                 Business Type *
               </label>
               <select
-                value={venueType}
-                onChange={(e) => setVenueType(e.target.value)}
+                value={claimVenueType}
+                onChange={(e) => setClaimVenueType(e.target.value)}
                 className="w-full px-4 py-3 bg-slate-700 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
               >
                 <option value="" className="bg-slate-700 text-white">Select type...</option>
@@ -2193,8 +2152,8 @@ const HuddleUpApp = () => {
               </label>
               <input
                 type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                value={claimPhone}
+                onChange={(e) => setClaimPhone(e.target.value)}
                 className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 placeholder="(555) 123-4567"
               />
@@ -2206,8 +2165,8 @@ const HuddleUpApp = () => {
               </label>
               <input
                 type="url"
-                value={website}
-                onChange={(e) => setWebsite(e.target.value)}
+                value={claimWebsite}
+                onChange={(e) => setClaimWebsite(e.target.value)}
                 className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 placeholder="https://yourwebsite.com"
               />
@@ -2218,8 +2177,8 @@ const HuddleUpApp = () => {
                 Proof of Ownership (optional)
               </label>
               <textarea
-                value={proofDocument}
-                onChange={(e) => setProofDocument(e.target.value)}
+                value={claimProofDocument}
+                onChange={(e) => setClaimProofDocument(e.target.value)}
                 rows={2}
                 className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 placeholder="Business license number, tax ID, or link to proof..."
@@ -2231,8 +2190,8 @@ const HuddleUpApp = () => {
               <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={acceptedTerms}
-                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  checked={claimAcceptedTerms}
+                  onChange={(e) => setClaimAcceptedTerms(e.target.checked)}
                   className="mt-1 w-4 h-4 rounded border-gray-600 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-0 bg-white/10"
                 />
                 <span className="text-sm text-gray-300">
@@ -2252,10 +2211,10 @@ const HuddleUpApp = () => {
             </div>
 
             <button
-              onClick={handleSubmit}
-              disabled={!acceptedTerms}
+              onClick={handleClaimSubmit}
+              disabled={!claimAcceptedTerms}
               className={`w-full py-4 text-white font-bold text-lg rounded-2xl shadow-lg transform transition-all duration-200 ${
-                acceptedTerms
+                claimAcceptedTerms
                   ? 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:shadow-cyan-500/50 hover:scale-105'
                   : 'bg-gray-500 cursor-not-allowed opacity-50'
               }`}
@@ -2264,13 +2223,12 @@ const HuddleUpApp = () => {
             </button>
 
             <p className="text-xs text-gray-500 text-center">
-              We typically review claims within 24-48 hours. You'll be notified at {user.email}
+              We typically review claims within 24-48 hours. You'll be notified at {user?.email}
             </p>
           </div>
         </div>
       </div>
-    );
-  };
+  );
 
   const AdminPanelScreen = () => {
     const [adminEditVenue, setAdminEditVenue] = useState(null);
@@ -2836,51 +2794,43 @@ const HuddleUpApp = () => {
   const [cpCapacity, setCpCapacity] = useState('');
   const [cpNotes, setCpNotes] = useState('');
 
-  const CreatePartyScreen = () => {
-    const useVerifiedVenue = cpUseVerifiedVenue, setUseVerifiedVenue = setCpUseVerifiedVenue;
-    const selectedVenueId = cpSelectedVenueId, setSelectedVenueId = setCpSelectedVenueId;
-    const customLocation = cpCustomLocation, setCustomLocation = setCpCustomLocation;
-    const customTime = cpCustomTime, setCustomTime = setCpCustomTime;
-    const capacity = cpCapacity, setCapacity = setCpCapacity;
-    const notes = cpNotes, setNotes = setCpNotes;
-
-    const handleSubmit = () => {
-      let location = '';
-      let venueId = null;
-      
-      if (useVerifiedVenue) {
-        if (!selectedVenueId) {
-          alert('Please select a venue');
-          return;
-        }
-        const venue = venues.find(v => v.id === selectedVenueId);
-        location = `${venue.name} - ${venue.address}`;
-        venueId = selectedVenueId;
-      } else {
-        if (!customLocation) {
-          alert('Please enter a location');
-          return;
-        }
-        location = customLocation;
+  const handleCpSubmit = () => {
+    let location = '';
+    let venueId = null;
+    
+    if (cpUseVerifiedVenue) {
+      if (!cpSelectedVenueId) {
+        alert('Please select a venue');
+        return;
       }
+      const venue = venues.find(v => v.id === cpSelectedVenueId);
+      location = `${venue.name} - ${venue.address}`;
+      venueId = cpSelectedVenueId;
+    } else {
+      if (!cpCustomLocation) {
+        alert('Please enter a location');
+        return;
+      }
+      location = cpCustomLocation;
+    }
 
-      const venue = useVerifiedVenue ? venues.find(v => v.id === selectedVenueId) : null;
-      handleCreateParty({
-        gameId: selectedGame.id,
-        sport: selectedGame.sport,
-        homeTeam: selectedGame.homeTeam,
-        awayTeam: selectedGame.awayTeam,
-        gameTime: customTime || selectedGame.gameTime || selectedGame.startTime,
-        venueName: venue ? venue.name : customLocation,
-        venueAddress: venue ? venue.address : '',
-        city: venue ? (venue.city || '') : '',
-        title: `${selectedGame.awayTeam} @ ${selectedGame.homeTeam}`,
-        notes,
-        maxSize: capacity ? parseInt(capacity) : null
-      });
-    };
+    const venue = cpUseVerifiedVenue ? venues.find(v => v.id === cpSelectedVenueId) : null;
+    handleCreateParty({
+      gameId: selectedGame.id,
+      sport: selectedGame.sport,
+      homeTeam: selectedGame.homeTeam,
+      awayTeam: selectedGame.awayTeam,
+      gameTime: cpCustomTime || selectedGame.gameTime || selectedGame.startTime,
+      venueName: venue ? venue.name : cpCustomLocation,
+      venueAddress: venue ? venue.address : '',
+      city: venue ? (venue.city || '') : '',
+      title: `${selectedGame.awayTeam} @ ${selectedGame.homeTeam}`,
+      notes: cpNotes,
+      maxSize: cpCapacity ? parseInt(cpCapacity) : null
+    });
+  };
 
-    return (
+  const createPartyScreenJSX = selectedGame ? (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 py-4">
@@ -2916,9 +2866,9 @@ const HuddleUpApp = () => {
               </label>
               <div className="flex gap-3">
                 <button
-                  onClick={() => setUseVerifiedVenue(true)}
+                  onClick={() => setCpUseVerifiedVenue(true)}
                   className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all ${
-                    useVerifiedVenue
+                    cpUseVerifiedVenue
                       ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg'
                       : 'bg-white/10 text-gray-300 hover:bg-white/20'
                   }`}
@@ -2927,9 +2877,9 @@ const HuddleUpApp = () => {
                   Verified Venue
                 </button>
                 <button
-                  onClick={() => setUseVerifiedVenue(false)}
+                  onClick={() => setCpUseVerifiedVenue(false)}
                   className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all ${
-                    !useVerifiedVenue
+                    !cpUseVerifiedVenue
                       ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg'
                       : 'bg-white/10 text-gray-300 hover:bg-white/20'
                   }`}
@@ -2940,14 +2890,14 @@ const HuddleUpApp = () => {
               </div>
             </div>
 
-            {useVerifiedVenue ? (
+            {cpUseVerifiedVenue ? (
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Select Verified Venue *
                 </label>
                 <select
-                  value={selectedVenueId}
-                  onChange={(e) => setSelectedVenueId(e.target.value)}
+                  value={cpSelectedVenueId}
+                  onChange={(e) => setCpSelectedVenueId(e.target.value)}
                   className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 >
                   <option value="">Choose a venue...</option>
@@ -2974,8 +2924,8 @@ const HuddleUpApp = () => {
                 </label>
                 <input
                   type="text"
-                  value={customLocation}
-                  onChange={(e) => setCustomLocation(e.target.value)}
+                  value={cpCustomLocation}
+                  onChange={(e) => setCpCustomLocation(e.target.value)}
                   className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   placeholder="e.g., My house, Dave's apartment, etc."
                 />
@@ -2989,8 +2939,8 @@ const HuddleUpApp = () => {
               </label>
               <input
                 type="text"
-                value={customTime}
-                onChange={(e) => setCustomTime(e.target.value)}
+                value={cpCustomTime}
+                onChange={(e) => setCpCustomTime(e.target.value)}
                 className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 placeholder="e.g., Meet at 5:30 PM (game starts at 6 PM)"
               />
@@ -3003,8 +2953,8 @@ const HuddleUpApp = () => {
               </label>
               <input
                 type="number"
-                value={capacity}
-                onChange={(e) => setCapacity(e.target.value)}
+                value={cpCapacity}
+                onChange={(e) => setCpCapacity(e.target.value)}
                 className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 placeholder="Max number of people"
               />
@@ -3015,8 +2965,8 @@ const HuddleUpApp = () => {
                 Notes / Description (optional)
               </label>
               <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
+                value={cpNotes}
+                onChange={(e) => setCpNotes(e.target.value)}
                 rows={3}
                 className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 placeholder="Any additional details about your watch party..."
@@ -3024,7 +2974,7 @@ const HuddleUpApp = () => {
             </div>
 
             <button
-              onClick={handleSubmit}
+              onClick={handleCpSubmit}
               className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-cyan-500/50 transform hover:scale-105 transition-all duration-200"
             >
               CREATE PARTY
@@ -3032,8 +2982,7 @@ const HuddleUpApp = () => {
           </div>
         </div>
       </div>
-    );
-  };
+  ) : null;
 
   const VenueAnalyticsDashboard = () => {
     const [editingVenue, setEditingVenue] = useState(false);
@@ -4344,13 +4293,13 @@ const HuddleUpApp = () => {
       {showOnboarding && <OnboardingOverlay />}
 
       {currentScreen === 'welcome' && <WelcomeScreen />}
-      {currentScreen === 'login' && <LoginScreen />}
-      {currentScreen === 'signup' && <SignUpScreen />}
-      {currentScreen === 'forgotPassword' && <ForgotPasswordScreen />}
+      {currentScreen === 'login' && loginScreenJSX}
+      {currentScreen === 'signup' && signUpScreenJSX}
+      {currentScreen === 'forgotPassword' && forgotPasswordScreenJSX}
       {currentScreen === 'games' && <GamesScreen />}
       {currentScreen === 'gameDetail' && <GameDetailScreen />}
-      {currentScreen === 'createParty' && <CreatePartyScreen />}
-      {currentScreen === 'claimVenue' && <ClaimVenueScreen />}
+      {currentScreen === 'createParty' && createPartyScreenJSX}
+      {currentScreen === 'claimVenue' && claimVenueScreenJSX}
       {currentScreen === 'admin' && <AdminPanelScreen />}
       {currentScreen === 'venueDashboard' && <VenueAnalyticsDashboard />}
       {currentScreen === 'profile' && <ProfileScreen />}
