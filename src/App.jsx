@@ -1404,7 +1404,7 @@ const HuddleUpApp = () => {
       </div>
   );
 
-  const GamesScreen = () => (
+  const gamesScreenJSX = () => (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
         <div className="max-w-4xl mx-auto px-4 py-4">
@@ -2050,7 +2050,7 @@ const HuddleUpApp = () => {
     });
   };
 
-  const claimVenueScreenJSX = (
+  const claimVenueScreenJSX = () => (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 py-4">
@@ -2830,7 +2830,7 @@ const HuddleUpApp = () => {
     });
   };
 
-  const createPartyScreenJSX = selectedGame ? (
+  const createPartyScreenJSX = () => selectedGame ? (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 py-4">
@@ -4296,10 +4296,10 @@ const HuddleUpApp = () => {
       {currentScreen === 'login' && loginScreenJSX}
       {currentScreen === 'signup' && signUpScreenJSX}
       {currentScreen === 'forgotPassword' && forgotPasswordScreenJSX}
-      {currentScreen === 'games' && <GamesScreen />}
+      {currentScreen === 'games' && gamesScreenJSX()}
       {currentScreen === 'gameDetail' && <GameDetailScreen />}
-      {currentScreen === 'createParty' && createPartyScreenJSX}
-      {currentScreen === 'claimVenue' && claimVenueScreenJSX}
+      {currentScreen === 'createParty' && createPartyScreenJSX()}
+      {currentScreen === 'claimVenue' && claimVenueScreenJSX()}
       {currentScreen === 'admin' && <AdminPanelScreen />}
       {currentScreen === 'venueDashboard' && <VenueAnalyticsDashboard />}
       {currentScreen === 'profile' && <ProfileScreen />}
