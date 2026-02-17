@@ -131,7 +131,8 @@ const TEAMS_BY_SPORT = {
   'Formula 1': ['Red Bull Racing', 'Ferrari', 'Mercedes', 'McLaren', 'Aston Martin', 'Alpine', 'Williams', 'RB', 'Kick Sauber', 'Haas'],
   'Tennis': ['Novak Djokovic', 'Carlos Alcaraz', 'Jannik Sinner', 'Daniil Medvedev', 'Alexander Zverev', 'Stefanos Tsitsipas', 'Holger Rune', 'Andrey Rublev', 'Iga Swiatek', 'Aryna Sabalenka', 'Coco Gauff', 'Elena Rybakina'],
   'Rugby': ['New Zealand All Blacks', 'South Africa Springboks', 'England', 'Ireland', 'France', 'Australia Wallabies', 'Wales', 'Scotland', 'Argentina Pumas', 'Japan'],
-  'Cricket': ['India', 'Australia', 'England', 'South Africa', 'New Zealand', 'Pakistan', 'West Indies', 'Sri Lanka', 'Bangladesh', 'Mumbai Indians', 'Chennai Super Kings', 'Royal Challengers Bangalore']
+  'Cricket': ['India', 'Australia', 'England', 'South Africa', 'New Zealand', 'Pakistan', 'West Indies', 'Sri Lanka', 'Bangladesh', 'Mumbai Indians', 'Chennai Super Kings', 'Royal Challengers Bangalore'],
+  'FIFA World Cup': ['USA', 'Mexico', 'Canada', 'Brazil', 'Argentina', 'England', 'France', 'Germany', 'Spain', 'Portugal', 'Netherlands', 'Italy', 'Japan', 'South Korea', 'Australia']
 };
 
 // Sample verified venues (in production, this comes from database)
@@ -1341,6 +1342,51 @@ const HuddleUpApp = () => {
             Refresh scores
           </button>
         </div>
+      </div>
+
+      {/* FEATURED: FIFA WORLD CUP 2026 BANNER */}
+      <div className="max-w-4xl mx-auto px-4 pt-3">
+        <button
+          onClick={() => setSelectedSport('FIFA World Cup')}
+          className="w-full animate-wc-glow rounded-2xl overflow-hidden"
+        >
+          <div className="relative bg-gradient-to-r from-amber-900/80 via-yellow-700/60 to-amber-900/80 border-2 border-yellow-500/50 rounded-2xl p-4 sm:p-5 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-400/10 to-transparent animate-wc-shimmer pointer-events-none" />
+            <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+
+            <div className="relative flex items-center gap-4">
+              <div className="flex-shrink-0">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-yellow-400 via-amber-500 to-yellow-600 flex items-center justify-center shadow-lg shadow-yellow-500/40 animate-flag-wave">
+                  <span className="text-3xl sm:text-4xl">🏆</span>
+                </div>
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="px-2 py-0.5 bg-red-500/80 text-white text-[10px] font-black uppercase rounded tracking-wider">Featured Event</span>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-black text-white leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                  FIFA WORLD CUP 2026
+                </h3>
+                <p className="text-yellow-200/80 text-xs sm:text-sm mt-0.5">
+                  USA, Mexico & Canada · June 2026
+                </p>
+                <div className="flex items-center gap-3 mt-2">
+                  <span className="text-lg">🇺🇸</span>
+                  <span className="text-lg">🇲🇽</span>
+                  <span className="text-lg">🇨🇦</span>
+                  <span className="text-lg">🇧🇷</span>
+                  <span className="text-lg">🇩🇪</span>
+                  <span className="text-lg">🏴󠁧󠁢󠁥󠁮󠁧󠁿</span>
+                  <span className="text-lg">🇦🇷</span>
+                  <span className="text-lg">🇫🇷</span>
+                  <span className="text-yellow-300 text-xs font-bold ml-auto">Tap to view →</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </button>
       </div>
 
       <div className="max-w-4xl mx-auto px-4 pt-3">
@@ -3281,7 +3327,7 @@ const HuddleUpApp = () => {
             </p>
 
             <div className="space-y-4">
-              {['NFL', 'NBA', 'MLB', 'NHL', 'College Football', 'College Basketball', 'Premier League', 'La Liga', 'Liga MX', 'MLS', 'Champions League', 'Formula 1', 'Tennis', 'Rugby', 'Cricket'].map(sport => {
+              {['NFL', 'NBA', 'MLB', 'NHL', 'College Football', 'College Basketball', 'Premier League', 'La Liga', 'Liga MX', 'MLS', 'Champions League', 'Formula 1', 'Tennis', 'Rugby', 'Cricket', 'FIFA World Cup'].map(sport => {
                 const currentTeam = user.favoriteTeams?.[sport];
                 return (
                   <div key={sport} className="bg-white/5 p-4 rounded-xl">
