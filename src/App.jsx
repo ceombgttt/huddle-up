@@ -783,7 +783,7 @@ const HuddleUpApp = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
       <div className="max-w-md w-full text-center space-y-8 animate-fade-in">
         <div className="space-y-4">
-          <img src="/huddle-up-logo.png" alt="Huddle Up - Find Your Crew. Watch The Game!" className="w-full max-w-lg mx-auto drop-shadow-2xl" style={{ background: 'transparent' }} />
+          <img src="/huddle-up-logo.png" alt="Huddle Up - Find Your Crew. Watch The Game!" className="w-64 mx-auto animate-logo-pop" />
         </div>
         <div className="space-y-4">
           <button
