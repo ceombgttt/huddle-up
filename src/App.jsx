@@ -520,17 +520,24 @@ const HuddleUpApp = () => {
     }
   };
 
+  const formScreens = ['welcome', 'login', 'signup', 'forgotPassword', 'claimVenue', 'createParty'];
+  const isFormScreen = formScreens.includes(currentScreen);
+
   useEffect(() => {
     loadUserData();
     loadParties();
     loadVenues();
     loadGames();
-
-    const gamesInterval = setInterval(loadGames, 60000);
-    return () => clearInterval(gamesInterval);
   }, []);
 
   useEffect(() => {
+    if (isFormScreen) return;
+    const gamesInterval = setInterval(loadGames, 60000);
+    return () => clearInterval(gamesInterval);
+  }, [isFormScreen]);
+
+  useEffect(() => {
+    if (isFormScreen) return;
     const sponsors = SPORT_SPONSORS[selectedSport] || SPORT_SPONSORS['All'];
     if (sponsors.length > 1) {
       setSponsorIndex(0);
@@ -541,7 +548,7 @@ const HuddleUpApp = () => {
     } else {
       setSponsorIndex(0);
     }
-  }, [selectedSport]);
+  }, [selectedSport, isFormScreen]);
 
   const loadUserData = async () => {
     try {
