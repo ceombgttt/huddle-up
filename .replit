@@ -48,3 +48,10 @@ deploymentTarget = "autoscale"
 build = ["npm", "run", "build"]
 publicDir = "dist"
 run = ["node", "server/index.js"]
+
+[userenv]
+
+[userenv.shared]
+VAPID_PUBLIC_KEY = "BPPxS9jO6rrbHHa7fHlzQDsKVw4x3t0lsFTMdb3D2N2oitMQguhM7CK2VFsjRIuJupNfQeG-WxwybSywtNqaGF0"
+VAPID_PRIVATE_KEY = "BcO1O-IVo0s3cF-epodSToqhsR2Pda3TBU5ZY6_0Xtc"
+VAPID_SUBJECT = "mailto:admin@huddleupusa.com"
