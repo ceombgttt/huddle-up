@@ -84,6 +84,26 @@ const SAMPLE_GAMES = [
 
 const SPORTS = ['All', 'NFL', 'NBA', 'MLB', 'NHL', 'College Football', 'College Basketball', 'Premier League', 'La Liga MX', 'MLS', 'Formula 1', 'Tennis', 'Rugby', 'Cricket'];
 
+const SPORT_ICONS = {
+  'All': '🏟️',
+  'NFL': '🏈',
+  'NBA': '🏀',
+  'MLB': '⚾',
+  'NHL': '🏒',
+  'College Football': '🎓🏈',
+  'College Basketball': '🎓🏀',
+  'Premier League': '⚽',
+  'La Liga MX': '⚽',
+  'MLS': '⚽',
+  'Formula 1': '🏎️',
+  'Tennis': '🎾',
+  'Rugby': '🏉',
+  'Cricket': '🏏',
+  'UFC': '🥊',
+  'Boxing': '🥊',
+  'FIFA World Cup': '🏆⚽',
+};
+
 // Teams database for favorite team selection
 const TEAMS_BY_SPORT = {
   'NFL': ['Arizona Cardinals', 'Atlanta Falcons', 'Baltimore Ravens', 'Buffalo Bills', 'Carolina Panthers', 'Chicago Bears', 'Cincinnati Bengals', 'Cleveland Browns', 'Dallas Cowboys', 'Denver Broncos', 'Detroit Lions', 'Green Bay Packers', 'Houston Texans', 'Indianapolis Colts', 'Jacksonville Jaguars', 'Kansas City Chiefs', 'Las Vegas Raiders', 'LA Chargers', 'LA Rams', 'Miami Dolphins', 'Minnesota Vikings', 'New England Patriots', 'New Orleans Saints', 'NY Giants', 'NY Jets', 'Philadelphia Eagles', 'Pittsburgh Steelers', 'San Francisco 49ers', 'Seattle Seahawks', 'Tampa Bay Buccaneers', 'Tennessee Titans', 'Washington Commanders'],
@@ -211,6 +231,8 @@ const HuddleUpApp = () => {
   const [currentScreen, setCurrentScreen] = useState('welcome');
   const [user, setUser] = useState(null);
   const [selectedSport, setSelectedSport] = useState('All');
+  const [showSportsScrollArrow, setShowSportsScrollArrow] = useState(true);
+  const sportsScrollRef = useRef(null);
   const [selectedGame, setSelectedGame] = useState(null);
   const [parties, setParties] = useState([]);
   const [userParties, setUserParties] = useState([]);
@@ -1252,20 +1274,48 @@ const HuddleUpApp = () => {
             </button>
           )}
 
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            {SPORTS.map(sport => (
+          <div className="relative">
+            <div
+              ref={sportsScrollRef}
+              onScroll={() => {
+                if (sportsScrollRef.current) {
+                  const el = sportsScrollRef.current;
+                  setShowSportsScrollArrow(el.scrollLeft + el.clientWidth < el.scrollWidth - 10);
+                }
+              }}
+              className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide"
+            >
+              {SPORTS.map(sport => (
+                <button
+                  key={sport}
+                  onClick={() => setSelectedSport(sport)}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold whitespace-nowrap transition-all ${
+                    selectedSport === sport
+                      ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg'
+                      : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                  }`}
+                >
+                  <span className="text-base">{SPORT_ICONS[sport] || '🏅'}</span>
+                  {sport}
+                </button>
+              ))}
+            </div>
+            {showSportsScrollArrow && (
               <button
-                key={sport}
-                onClick={() => setSelectedSport(sport)}
-                className={`px-4 py-2 rounded-xl font-bold whitespace-nowrap transition-all ${
-                  selectedSport === sport
-                    ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg'
-                    : 'bg-white/10 text-gray-300 hover:bg-white/20'
-                }`}
+                onClick={() => {
+                  if (sportsScrollRef.current) {
+                    sportsScrollRef.current.scrollBy({ left: 200, behavior: 'smooth' });
+                  }
+                }}
+                className="absolute right-0 top-0 bottom-2 w-12 flex items-center justify-end bg-gradient-to-l from-slate-900 via-slate-900/90 to-transparent pr-1"
               >
-                {sport}
+                <span className="w-8 h-8 rounded-full bg-cyan-500/30 border border-cyan-400/60 flex items-center justify-center animate-scroll-glow">
+                  <svg className="w-4 h-4 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                  </svg>
+                </span>
               </button>
-            ))}
+            )}
           </div>
 
           <button

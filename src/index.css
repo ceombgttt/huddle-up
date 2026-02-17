@@ -43,3 +43,18 @@ body {
 .animate-pulse-slow {
   animation: pulse-slow 3s ease-in-out infinite;
 }
+
+@keyframes scroll-glow {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(34, 211, 238, 0.4), 0 0 16px rgba(34, 211, 238, 0.2);
+    transform: translateX(0);
+  }
+  50% {
+    box-shadow: 0 0 14px rgba(34, 211, 238, 0.7), 0 0 28px rgba(34, 211, 238, 0.4);
+    transform: translateX(3px);
+  }
+}
+
+.animate-scroll-glow {
+  animation: scroll-glow 1.5s ease-in-out infinite;
+}
