@@ -56,6 +56,7 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - `POST /api/venues/claims/:id/approve` - Approve claim (admin)
 - `POST /api/venues/claims/:id/reject` - Reject claim (admin)
 - `PUT /api/users/me/profile` - Update profile (dateOfBirth, ageConfirmed)
+- `PUT /api/users/me/sms-settings` - Update SMS settings (phoneNumber, userCity, smsNotifications)
 - `PUT /api/users/me/favorites` - Update favorite team
 - `DELETE /api/users/me/favorites/:sport` - Remove favorite team
 - `GET /api/fans/by-team?sport=X&team=Y` - Find fans by favorite team
@@ -107,6 +108,9 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - Presigned URL upload flow: request URL → PUT to GCS → save path in DB
 
 ## Recent Changes
+- 2026-02-17: Added UFC sport with ESPN API integration and fighter roster
+- 2026-02-17: Added SMS text notifications via Twilio - users can opt-in with phone number and city, get "HUDDLE UP" texts when watch parties created for their team in their city; logs to console when Twilio not configured
+- 2026-02-17: Moved sponsor management from venue owner dashboard to admin panel exclusively
 - 2026-02-17: Added sponsor management to venue owner dashboard - add/edit/delete sponsors with logo upload, contact details, revenue tracking (amount, frequency), date ranges, status (active/paused/ended), revenue summary cards
 - 2026-02-17: Updated logo to new shield/fist design (huddle-up-logo-2.png) across welcome, signup, and dashboard header
 - 2026-02-17: Added glowing scroll-down arrow with bounce animation to guide users to game cards below banners
