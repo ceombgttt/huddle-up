@@ -168,6 +168,62 @@ const COUNTRY_FLAGS = {
   'Trinidad & Tobago': '🇹🇹', 'El Salvador': '🇸🇻', 'Guatemala': '🇬🇹', 'Dominican Republic': '🇩🇴',
 };
 
+const SPORT_SPONSORS = {
+  'All': [
+    { name: 'Your Brand Here', tagline: 'Reach sports fans nationwide', icon: '📢', color: 'from-cyan-600/40 to-blue-600/40', borderColor: 'border-cyan-500/30', url: null },
+    { name: 'Advertise With Us', tagline: 'Premium sponsor placement available', icon: '🎯', color: 'from-purple-600/40 to-pink-600/40', borderColor: 'border-purple-500/30', url: null },
+    { name: 'Sponsor Huddle Up', tagline: 'Connect with passionate fans', icon: '🤝', color: 'from-amber-600/40 to-orange-600/40', borderColor: 'border-amber-500/30', url: null },
+  ],
+  'NFL': [
+    { name: 'NFL Sponsor Spot', tagline: 'Reach football fans on game day', icon: '🏈', color: 'from-green-700/40 to-emerald-600/40', borderColor: 'border-green-500/30', url: null },
+  ],
+  'NBA': [
+    { name: 'NBA Sponsor Spot', tagline: 'Connect with basketball enthusiasts', icon: '🏀', color: 'from-orange-600/40 to-red-600/40', borderColor: 'border-orange-500/30', url: null },
+  ],
+  'MLB': [
+    { name: 'MLB Sponsor Spot', tagline: 'Advertise to baseball fans', icon: '⚾', color: 'from-red-700/40 to-blue-700/40', borderColor: 'border-red-500/30', url: null },
+  ],
+  'NHL': [
+    { name: 'NHL Sponsor Spot', tagline: 'Reach hockey fans everywhere', icon: '🏒', color: 'from-blue-800/40 to-slate-600/40', borderColor: 'border-blue-500/30', url: null },
+  ],
+  'College Football': [
+    { name: 'College Football Sponsor', tagline: 'Reach the college football crowd', icon: '🎓🏈', color: 'from-yellow-700/40 to-red-700/40', borderColor: 'border-yellow-500/30', url: null },
+  ],
+  'College Basketball': [
+    { name: 'College Basketball Sponsor', tagline: 'March Madness & beyond', icon: '🎓🏀', color: 'from-blue-600/40 to-orange-600/40', borderColor: 'border-blue-400/30', url: null },
+  ],
+  'Premier League': [
+    { name: 'Premier League Sponsor', tagline: 'The beautiful game, premium reach', icon: '⚽', color: 'from-purple-800/40 to-purple-500/40', borderColor: 'border-purple-400/30', url: null },
+  ],
+  'La Liga': [
+    { name: 'La Liga Sponsor', tagline: 'Reach Spanish football fans', icon: '⚽', color: 'from-orange-700/40 to-yellow-600/40', borderColor: 'border-orange-400/30', url: null },
+  ],
+  'Liga MX': [
+    { name: 'Liga MX Sponsor', tagline: 'Connect with Liga MX followers', icon: '⚽', color: 'from-green-700/40 to-red-600/40', borderColor: 'border-green-400/30', url: null },
+  ],
+  'MLS': [
+    { name: 'MLS Sponsor Spot', tagline: 'Growing the game in America', icon: '⚽', color: 'from-blue-600/40 to-red-500/40', borderColor: 'border-blue-400/30', url: null },
+  ],
+  'Champions League': [
+    { name: 'Champions League Sponsor', tagline: 'Elite football, elite audience', icon: '⚽', color: 'from-blue-900/40 to-indigo-600/40', borderColor: 'border-indigo-400/30', url: null },
+  ],
+  'Formula 1': [
+    { name: 'F1 Sponsor Spot', tagline: 'Speed meets premium branding', icon: '🏎️', color: 'from-red-700/40 to-black/40', borderColor: 'border-red-500/30', url: null },
+  ],
+  'Tennis': [
+    { name: 'Tennis Sponsor Spot', tagline: 'Serve your brand to tennis fans', icon: '🎾', color: 'from-green-600/40 to-lime-500/40', borderColor: 'border-green-400/30', url: null },
+  ],
+  'Rugby': [
+    { name: 'Rugby Sponsor Spot', tagline: 'Tough sport, loyal fans', icon: '🏉', color: 'from-emerald-700/40 to-teal-600/40', borderColor: 'border-emerald-400/30', url: null },
+  ],
+  'Cricket': [
+    { name: 'Cricket Sponsor Spot', tagline: 'Reach cricket fans worldwide', icon: '🏏', color: 'from-sky-700/40 to-blue-500/40', borderColor: 'border-sky-400/30', url: null },
+  ],
+  'FIFA World Cup': [
+    { name: 'World Cup Sponsor', tagline: 'The biggest stage in sports', icon: '🏆', color: 'from-amber-600/40 to-yellow-500/40', borderColor: 'border-amber-400/30', url: null },
+  ],
+};
+
 const COUNTRIES_LIST = Object.keys(COUNTRY_FLAGS).sort();
 
 // Sample verified venues (in production, this comes from database)
@@ -423,6 +479,7 @@ const HuddleUpApp = () => {
   const [games, setGames] = useState(SAMPLE_GAMES);
   const [loadingGames, setLoadingGames] = useState(false);
   
+  const [sponsorIndex, setSponsorIndex] = useState(0);
   const [invitations, setInvitations] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [fanSearchSport, setFanSearchSport] = useState('');
@@ -479,6 +536,19 @@ const HuddleUpApp = () => {
     const gamesInterval = setInterval(loadGames, 60000);
     return () => clearInterval(gamesInterval);
   }, []);
+
+  useEffect(() => {
+    const sponsors = SPORT_SPONSORS[selectedSport] || SPORT_SPONSORS['All'];
+    if (sponsors.length > 1) {
+      setSponsorIndex(0);
+      const interval = setInterval(() => {
+        setSponsorIndex(prev => (prev + 1) % sponsors.length);
+      }, 5000);
+      return () => clearInterval(interval);
+    } else {
+      setSponsorIndex(0);
+    }
+  }, [selectedSport]);
 
   const loadUserData = async () => {
     try {
@@ -1514,6 +1584,51 @@ const HuddleUpApp = () => {
           </button>
         </div>
       </div>
+
+      {/* SPONSOR BANNER - Dynamic based on selected sport */}
+      {(() => {
+        const sponsors = SPORT_SPONSORS[selectedSport] || SPORT_SPONSORS['All'];
+        const sponsor = sponsors[sponsorIndex % sponsors.length];
+        return (
+          <div className="max-w-4xl mx-auto px-4 pt-3">
+            <div
+              onClick={() => sponsor.url && window.open(sponsor.url, '_blank')}
+              className={`relative overflow-hidden rounded-2xl border ${sponsor.borderColor} bg-gradient-to-r ${sponsor.color} ${sponsor.url ? 'cursor-pointer' : ''} transition-all duration-500 hover:scale-[1.01]`}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-sponsor-shimmer pointer-events-none" />
+              <div className="relative flex items-center gap-4 p-4">
+                <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center">
+                  <span className="text-2xl">{sponsor.icon}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="px-2 py-0.5 bg-white/10 text-gray-300 text-[10px] font-bold uppercase rounded tracking-wider">Sponsor</span>
+                    {selectedSport !== 'All' && (
+                      <span className="px-2 py-0.5 bg-white/10 text-gray-300 text-[10px] font-bold uppercase rounded tracking-wider">{selectedSport}</span>
+                    )}
+                  </div>
+                  <h3 className="text-white font-bold text-lg truncate">{sponsor.name}</h3>
+                  <p className="text-gray-300 text-sm truncate">{sponsor.tagline}</p>
+                </div>
+                <div className="flex-shrink-0 hidden sm:flex items-center gap-2">
+                  {sponsors.length > 1 && (
+                    <div className="flex gap-1.5 mr-2">
+                      {sponsors.map((_, i) => (
+                        <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all ${i === sponsorIndex % sponsors.length ? 'bg-white w-4' : 'bg-white/30'}`} />
+                      ))}
+                    </div>
+                  )}
+                  <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* FEATURED: FIFA WORLD CUP 2026 BANNER */}
       <div className="max-w-4xl mx-auto px-4 pt-3">

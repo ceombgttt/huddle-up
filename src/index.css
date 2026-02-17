@@ -69,6 +69,15 @@ body {
   animation: wc-shimmer 3s linear infinite;
 }
 
+@keyframes sponsor-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-sponsor-shimmer {
+  animation: sponsor-shimmer 4s ease-in-out infinite;
+}
+
 @keyframes wc-glow {
   0%, 100% {
     box-shadow: 0 0 15px rgba(234, 179, 8, 0.3), 0 0 30px rgba(234, 179, 8, 0.1), inset 0 0 15px rgba(234, 179, 8, 0.05);
