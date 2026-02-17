@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, Megaphone } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, Megaphone, MessageCircle } from 'lucide-react';
 import { api } from './api.js';
 
 // Sample games data for different sports
@@ -555,6 +555,13 @@ const HuddleUpApp = () => {
   const [pushEnabled, setPushEnabled] = useState(false);
   const [watchedGames, setWatchedGames] = useState([]);
   const [pushSubscription, setPushSubscription] = useState(null);
+  const [openChatPartyId, setOpenChatPartyId] = useState(null);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const [chatSending, setChatSending] = useState(false);
+  const chatEndRef = useRef(null);
+  const chatPollRef = useRef(null);
 
   const shareApp = async () => {
     const shareUrl = window.location.origin;
@@ -1126,6 +1133,53 @@ const HuddleUpApp = () => {
     }
   };
 
+  const openPartyChat = async (partyId) => {
+    if (openChatPartyId === partyId) {
+      setOpenChatPartyId(null);
+      setChatMessages([]);
+      if (chatPollRef.current) clearInterval(chatPollRef.current);
+      return;
+    }
+    setOpenChatPartyId(partyId);
+    setChatInput('');
+    setChatLoading(true);
+    try {
+      const msgs = await api.chat.getMessages(partyId);
+      setChatMessages(msgs);
+      setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+    } catch (e) {
+      console.error('Load chat error:', e);
+    } finally {
+      setChatLoading(false);
+    }
+    if (chatPollRef.current) clearInterval(chatPollRef.current);
+    chatPollRef.current = setInterval(async () => {
+      try {
+        const msgs = await api.chat.getMessages(partyId);
+        setChatMessages(msgs);
+      } catch (e) {}
+    }, 5000);
+  };
+
+  const sendChatMessage = async (partyId) => {
+    if (!chatInput.trim() || chatSending) return;
+    setChatSending(true);
+    try {
+      const msg = await api.chat.sendMessage(partyId, chatInput.trim());
+      setChatMessages(prev => [...prev, msg]);
+      setChatInput('');
+      setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      setChatSending(false);
+    }
+  };
+
+  useEffect(() => {
+    return () => { if (chatPollRef.current) clearInterval(chatPollRef.current); };
+  }, []);
+
   const handleVenueClaim = async (claimData) => {
     try {
       await api.venues.submitClaim(claimData);
@@ -1342,9 +1396,20 @@ const HuddleUpApp = () => {
   );
 
   // Screen Components
+  const CopyrightFooter = ({ light }) => (
+    <div className={`text-center py-4 ${light ? 'text-gray-500' : 'text-gray-500/70'} text-xs`}>
+      <p>&copy; {new Date().getFullYear()} Huddle Up USA. All rights reserved.</p>
+      <p className="mt-1">
+        <a href="/terms" target="_blank" className="hover:text-gray-300 underline">Terms of Service</a>
+        {' | '}
+        <a href="/privacy" target="_blank" className="hover:text-gray-300 underline">Privacy Policy</a>
+      </p>
+    </div>
+  );
+
   const WelcomeScreen = () => (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-      <div className="max-w-md w-full text-center space-y-8 animate-fade-in">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col items-center justify-center p-4">
+      <div className="max-w-md w-full text-center space-y-8 animate-fade-in flex-1 flex flex-col justify-center">
         <div className="space-y-4">
           <img src="/huddle-up-logo-3-transparent.png" alt="Huddle Up - Find Your Crew. Watch The Game!" className="mx-auto animate-logo-pop" style={{ width: '358px' }} />
         </div>
@@ -1363,6 +1428,7 @@ const HuddleUpApp = () => {
           </button>
         </div>
       </div>
+      <CopyrightFooter />
     </div>
   );
 
@@ -1372,8 +1438,8 @@ const HuddleUpApp = () => {
   const [loginRememberMe, setLoginRememberMe] = useState(true);
 
   const loginScreenJSX = (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-        <div className="max-w-md w-full space-y-8">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col items-center justify-center p-4">
+        <div className="max-w-md w-full space-y-8 flex-1 flex flex-col justify-center">
           <div className="text-center">
             <h2 className="text-4xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
               WELCOME BACK
@@ -1445,6 +1511,7 @@ const HuddleUpApp = () => {
             </button>
           </div>
         </div>
+        <CopyrightFooter />
       </div>
   );
 
@@ -1636,8 +1703,8 @@ const HuddleUpApp = () => {
   };
 
   const signUpScreenJSX = (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-        <div className="max-w-md w-full space-y-8">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col items-center justify-center p-4">
+        <div className="max-w-md w-full space-y-8 flex-1 flex flex-col justify-center">
           <div className="text-center">
             <img src="/huddle-up-logo-3-transparent.png" alt="Huddle Up" className="h-16 mx-auto mb-4 drop-shadow-lg" />
             <h2 className="text-4xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
@@ -1784,6 +1851,7 @@ const HuddleUpApp = () => {
             </button>
           </div>
         </div>
+        <CopyrightFooter />
       </div>
   );
 
@@ -2187,6 +2255,7 @@ const HuddleUpApp = () => {
           );
         })}
       </div>
+      <CopyrightFooter />
     </div>
   );
 
@@ -2496,6 +2565,89 @@ const HuddleUpApp = () => {
                         >
                           {isAttending ? 'LEAVE PARTY' : isFull ? 'PARTY FULL' : 'JOIN PARTY'}
                         </button>
+                      )}
+
+                      {(isAttending || party.hostEmail === user.email) && (
+                        <>
+                          <button
+                            onClick={() => openPartyChat(party.id)}
+                            className={`w-full mt-2 py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
+                              openChatPartyId === party.id
+                                ? 'bg-purple-500/30 text-purple-300 border-2 border-purple-500/40'
+                                : 'bg-white/10 text-gray-300 border-2 border-white/20 hover:bg-white/20'
+                            }`}
+                          >
+                            <MessageCircle className="w-4 h-4" />
+                            {openChatPartyId === party.id ? 'Close Chat' : 'Party Chat'}
+                          </button>
+
+                          {openChatPartyId === party.id && (
+                            <div className="mt-3 bg-slate-800/80 rounded-xl border border-white/10 overflow-hidden">
+                              <div className="p-3 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-b border-white/10">
+                                <h4 className="text-white font-bold text-sm flex items-center gap-2">
+                                  <MessageCircle className="w-4 h-4 text-purple-400" />
+                                  Party Chat
+                                </h4>
+                              </div>
+                              <div className="h-64 overflow-y-auto p-3 space-y-3">
+                                {chatLoading ? (
+                                  <div className="flex items-center justify-center h-full">
+                                    <Loader2 className="w-6 h-6 text-purple-400 animate-spin" />
+                                  </div>
+                                ) : chatMessages.length === 0 ? (
+                                  <div className="flex items-center justify-center h-full text-gray-500 text-sm">
+                                    No messages yet. Start the conversation!
+                                  </div>
+                                ) : (
+                                  chatMessages.map((msg) => {
+                                    const isMe = msg.user_id === user.id;
+                                    return (
+                                      <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                                        <div className={`max-w-[80%] ${isMe ? 'order-2' : ''}`}>
+                                          {!isMe && (
+                                            <div className="flex items-center gap-1.5 mb-1">
+                                              <ProfileAvatar src={msg.profile_picture} name={msg.user_name} size="xs" />
+                                              <span className="text-xs text-gray-400 font-medium">{msg.user_name}</span>
+                                            </div>
+                                          )}
+                                          <div className={`px-3 py-2 rounded-2xl text-sm ${
+                                            isMe
+                                              ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-br-md'
+                                              : 'bg-white/10 text-gray-200 rounded-bl-md'
+                                          }`}>
+                                            {msg.message}
+                                          </div>
+                                          <div className={`text-[10px] text-gray-500 mt-0.5 ${isMe ? 'text-right' : ''}`}>
+                                            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })
+                                )}
+                                <div ref={chatEndRef} />
+                              </div>
+                              <div className="p-3 border-t border-white/10 flex gap-2">
+                                <input
+                                  type="text"
+                                  value={chatInput}
+                                  onChange={(e) => setChatInput(e.target.value)}
+                                  onKeyDown={(e) => e.key === 'Enter' && sendChatMessage(party.id)}
+                                  placeholder="Type a message..."
+                                  maxLength={500}
+                                  className="flex-1 bg-white/10 border border-white/20 rounded-full px-4 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-purple-500/50"
+                                />
+                                <button
+                                  onClick={() => sendChatMessage(party.id)}
+                                  disabled={!chatInput.trim() || chatSending}
+                                  className="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-2 rounded-full hover:opacity-90 transition-all disabled:opacity-50"
+                                >
+                                  <Send className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </>
                       )}
                       </div>
                     </div>

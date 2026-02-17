@@ -116,4 +116,12 @@ export const api = {
     remove: (friendId) => request(`/friends/${friendId}`, { method: 'DELETE' }),
     status: (userId) => request(`/friends/status/${userId}`),
   },
+  chat: {
+    getMessages: (partyId, before) => {
+      const params = before ? `?before=${encodeURIComponent(before)}` : '';
+      return request(`/chat/parties/${partyId}/messages${params}`);
+    },
+    sendMessage: (partyId, message) =>
+      request(`/chat/parties/${partyId}/messages`, { method: 'POST', body: JSON.stringify({ message }) }),
+  },
 };

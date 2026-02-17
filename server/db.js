@@ -148,6 +148,14 @@ export async function initDB() {
 
       ALTER TABLE parties ADD COLUMN IF NOT EXISTS supported_team TEXT;
 
+      CREATE TABLE IF NOT EXISTS party_messages (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        party_id UUID REFERENCES parties(id) ON DELETE CASCADE,
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        message TEXT NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
       CREATE TABLE IF NOT EXISTS friendships (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         user_id UUID REFERENCES users(id) ON DELETE CASCADE,

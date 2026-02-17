@@ -74,6 +74,8 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - `DELETE /api/uploads/profile-picture` - Remove profile picture
 - `GET /api/uploads/serve/profile-pictures/:id` - Serve profile picture images
 - `GET /api/games` - Fetch live games/scores from ESPN API (9 leagues, 60s cache)
+- `GET /api/chat/parties/:partyId/messages` - Get party chat messages (requires membership)
+- `POST /api/chat/parties/:partyId/messages` - Send party chat message (requires membership, 500 char limit)
 - `GET /api/sponsors` - List sponsors for venue owner's venue
 - `POST /api/sponsors` - Add a new sponsor (venue owner only)
 - `PUT /api/sponsors/:id` - Update a sponsor (venue owner only)
@@ -90,6 +92,7 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - `user_favorite_teams` - User sport/team preferences
 - `sponsors` - Venue sponsor tracking (name, contact, logo, revenue, frequency, dates, status)
 - `friendships` - Friend/crew relationships (user_id, friend_id, status: pending/accepted/declined)
+- `party_messages` - Party chat messages (party_id, user_id, message, created_at)
 - `user_sessions` - Server-side session storage (connect-pg-simple)
 
 ## Admin Account
@@ -109,6 +112,7 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - Presigned URL upload flow: request URL → PUT to GCS → save path in DB
 
 ## Recent Changes
+- 2026-02-17: Added party chat system - real-time messaging within party cards for attendees/hosts, auto-polls every 5s, message bubbles with profile pics and timestamps, 500 char limit, membership-verified access
 - 2026-02-17: Added "My Crew" friend/community system - send/accept/decline friend requests from Fan Finder, "My Crew" nav button with pending request badge, crew list with invite-to-party and remove friend, friend request notifications, "In Your Crew" badge on Fan Finder results
 - 2026-02-17: Added browser geolocation to auto-detect user's city - auto-populates city filter, sorts parties by proximity, "NEAR YOU" badge on matching party cards, location detect button in city input
 - 2026-02-17: Added persistent main sponsor bar at top of all authenticated pages (orange gradient, "Advertise" CTA)
