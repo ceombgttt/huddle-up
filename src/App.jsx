@@ -60,9 +60,29 @@ const SAMPLE_GAMES = [
   { id: 'wc2', sport: 'FIFA World Cup', homeTeam: 'Brazil', awayTeam: 'Argentina', startTime: '2026-06-25T17:00:00', venue: 'AT&T Stadium, Dallas' },
   { id: 'wc3', sport: 'FIFA World Cup', homeTeam: 'England', awayTeam: 'Germany', startTime: '2026-06-28T12:00:00', venue: 'SoFi Stadium, Los Angeles' },
   { id: 'wcw1', sport: 'FIFA World Cup', homeTeam: "USA Women's", awayTeam: "Canada Women's", startTime: '2027-07-10T19:00:00', venue: 'Rose Bowl, Pasadena' },
+
+  // Formula 1
+  { id: 'f1_1', sport: 'Formula 1', homeTeam: 'Bahrain Grand Prix', awayTeam: 'Race Weekend', startTime: '2026-03-08T15:00:00', venue: 'Bahrain International Circuit' },
+  { id: 'f1_2', sport: 'Formula 1', homeTeam: 'Miami Grand Prix', awayTeam: 'Race Weekend', startTime: '2026-05-03T15:30:00', venue: 'Miami International Autodrome' },
+  { id: 'f1_3', sport: 'Formula 1', homeTeam: 'Monaco Grand Prix', awayTeam: 'Race Weekend', startTime: '2026-05-24T09:00:00', venue: 'Circuit de Monaco' },
+
+  // Tennis
+  { id: 'ten1', sport: 'Tennis', homeTeam: 'Australian Open', awayTeam: 'Grand Slam', startTime: '2026-01-19T04:00:00', venue: 'Melbourne Park, Australia' },
+  { id: 'ten2', sport: 'Tennis', homeTeam: 'French Open', awayTeam: 'Grand Slam', startTime: '2026-05-25T11:00:00', venue: 'Roland Garros, Paris' },
+  { id: 'ten3', sport: 'Tennis', homeTeam: 'Wimbledon', awayTeam: 'Grand Slam', startTime: '2026-06-29T07:00:00', venue: 'All England Club, London' },
+
+  // Rugby
+  { id: 'rug1', sport: 'Rugby', homeTeam: 'New Zealand All Blacks', awayTeam: 'South Africa Springboks', startTime: '2026-07-11T08:00:00', venue: 'Eden Park, Auckland' },
+  { id: 'rug2', sport: 'Rugby', homeTeam: 'England', awayTeam: 'Ireland', startTime: '2026-02-21T10:00:00', venue: 'Twickenham Stadium, London' },
+  { id: 'rug3', sport: 'Rugby', homeTeam: 'France', awayTeam: 'Wales', startTime: '2026-03-14T09:00:00', venue: 'Stade de France, Paris' },
+
+  // Cricket
+  { id: 'cri1', sport: 'Cricket', homeTeam: 'India', awayTeam: 'Australia', startTime: '2026-02-20T04:30:00', venue: 'Wankhede Stadium, Mumbai' },
+  { id: 'cri2', sport: 'Cricket', homeTeam: 'England', awayTeam: 'West Indies', startTime: '2026-06-10T06:00:00', venue: "Lord's Cricket Ground, London" },
+  { id: 'cri3', sport: 'Cricket', homeTeam: 'IPL Final', awayTeam: 'Championship Match', startTime: '2026-05-30T10:00:00', venue: 'Narendra Modi Stadium, Ahmedabad' },
 ];
 
-const SPORTS = ['All', 'NFL', 'NBA', 'MLB', 'NHL', 'College Football', 'College Basketball', 'Premier League', 'La Liga MX', 'MLS'];
+const SPORTS = ['All', 'NFL', 'NBA', 'MLB', 'NHL', 'College Football', 'College Basketball', 'Premier League', 'La Liga MX', 'MLS', 'Formula 1', 'Tennis', 'Rugby', 'Cricket'];
 
 // Teams database for favorite team selection
 const TEAMS_BY_SPORT = {
@@ -74,7 +94,11 @@ const TEAMS_BY_SPORT = {
   'College Basketball': ['Duke', 'North Carolina', 'Kansas', 'Kentucky', 'UCLA', 'Villanova', 'Michigan State', 'UConn', 'Arizona', 'Gonzaga', 'Louisville', 'Syracuse', 'Indiana', 'Michigan', 'Virginia', 'Texas'],
   'Premier League': ['Arsenal', 'Chelsea', 'Liverpool', 'Manchester City', 'Manchester United', 'Tottenham', 'Newcastle', 'Aston Villa', 'Brighton', 'West Ham', 'Everton', 'Leicester City', 'Wolves'],
   'La Liga MX': ['Club América', 'Chivas Guadalajara', 'Cruz Azul', 'Pumas UNAM', 'Tigres UANL', 'Monterrey', 'Atlas', 'Santos Laguna', 'León', 'Pachuca'],
-  'MLS': ['LA Galaxy', 'LAFC', 'Seattle Sounders', 'Portland Timbers', 'Atlanta United', 'Inter Miami', 'NY Red Bulls', 'NYCFC', 'Toronto FC', 'Vancouver Whitecaps', 'Austin FC', 'Chicago Fire']
+  'MLS': ['LA Galaxy', 'LAFC', 'Seattle Sounders', 'Portland Timbers', 'Atlanta United', 'Inter Miami', 'NY Red Bulls', 'NYCFC', 'Toronto FC', 'Vancouver Whitecaps', 'Austin FC', 'Chicago Fire'],
+  'Formula 1': ['Red Bull Racing', 'Ferrari', 'Mercedes', 'McLaren', 'Aston Martin', 'Alpine', 'Williams', 'RB', 'Kick Sauber', 'Haas'],
+  'Tennis': ['Novak Djokovic', 'Carlos Alcaraz', 'Jannik Sinner', 'Daniil Medvedev', 'Alexander Zverev', 'Stefanos Tsitsipas', 'Holger Rune', 'Andrey Rublev', 'Iga Swiatek', 'Aryna Sabalenka', 'Coco Gauff', 'Elena Rybakina'],
+  'Rugby': ['New Zealand All Blacks', 'South Africa Springboks', 'England', 'Ireland', 'France', 'Australia Wallabies', 'Wales', 'Scotland', 'Argentina Pumas', 'Japan'],
+  'Cricket': ['India', 'Australia', 'England', 'South Africa', 'New Zealand', 'Pakistan', 'West Indies', 'Sri Lanka', 'Bangladesh', 'Mumbai Indians', 'Chennai Super Kings', 'Royal Challengers Bangalore']
 };
 
 // Sample verified venues (in production, this comes from database)
@@ -3194,7 +3218,7 @@ const HuddleUpApp = () => {
             </p>
 
             <div className="space-y-4">
-              {['NFL', 'NBA', 'MLB', 'NHL', 'College Football', 'College Basketball', 'Premier League', 'La Liga MX', 'MLS'].map(sport => {
+              {['NFL', 'NBA', 'MLB', 'NHL', 'College Football', 'College Basketball', 'Premier League', 'La Liga MX', 'MLS', 'Formula 1', 'Tennis', 'Rugby', 'Cricket'].map(sport => {
                 const currentTeam = user.favoriteTeams?.[sport];
                 return (
                   <div key={sport} className="bg-white/5 p-4 rounded-xl">

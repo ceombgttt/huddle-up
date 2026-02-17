@@ -12,6 +12,10 @@ const ESPN_ENDPOINTS = {
   'MLS': 'https://site.api.espn.com/apis/site/v2/sports/soccer/usa.1/scoreboard',
   'Premier League': 'https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard',
   'La Liga MX': 'https://site.api.espn.com/apis/site/v2/sports/soccer/mex.1/scoreboard',
+  'Formula 1': 'https://site.api.espn.com/apis/site/v2/sports/racing/f1/scoreboard',
+  'Tennis': 'https://site.api.espn.com/apis/site/v2/sports/tennis/atp/scoreboard',
+  'Rugby': 'https://site.api.espn.com/apis/site/v2/sports/rugby/rugby-union/scoreboard',
+  'Cricket': 'https://site.api.espn.com/apis/site/v2/sports/cricket/icc/scoreboard',
 };
 
 let gamesCache = { data: null, timestamp: 0 };
