@@ -4589,7 +4589,7 @@ const HuddleUpApp = () => {
       {currentScreen === 'gameDetail' && <GameDetailScreen />}
       {currentScreen === 'createParty' && createPartyScreenJSX()}
       {currentScreen === 'claimVenue' && claimVenueScreenJSX()}
-      {currentScreen === 'admin' && <AdminPanelScreen />}
+      {currentScreen === 'admin' && AdminPanelScreen()}
       {currentScreen === 'venueDashboard' && <VenueAnalyticsDashboard />}
       {currentScreen === 'profile' && <ProfileScreen />}
       {currentScreen === 'fanFinder' && <FanFinderScreen />}
