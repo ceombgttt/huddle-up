@@ -2557,13 +2557,19 @@ const HuddleUpApp = () => {
         location = customLocation;
       }
 
+      const venue = useVerifiedVenue ? venues.find(v => v.id === selectedVenueId) : null;
       handleCreateParty({
         gameId: selectedGame.id,
-        location,
-        venueId,
-        customTime,
-        capacity: capacity ? parseInt(capacity) : null,
-        notes
+        sport: selectedGame.sport,
+        homeTeam: selectedGame.homeTeam,
+        awayTeam: selectedGame.awayTeam,
+        gameTime: customTime || selectedGame.gameTime || selectedGame.startTime,
+        venueName: venue ? venue.name : customLocation,
+        venueAddress: venue ? venue.address : '',
+        city: venue ? (venue.city || '') : '',
+        title: `${selectedGame.awayTeam} @ ${selectedGame.homeTeam}`,
+        notes,
+        maxSize: capacity ? parseInt(capacity) : null
       });
     };
 
