@@ -1152,7 +1152,7 @@ const HuddleUpApp = () => {
                 className="flex flex-col items-center px-2 py-1.5 bg-cyan-500/20 rounded-xl hover:bg-cyan-500/30 transition-colors border border-cyan-500/30"
               >
                 <UserPlus className="w-5 h-5 text-cyan-300" />
-                <span className="text-[9px] text-cyan-300 mt-0.5 leading-none">Fans</span>
+                <span className="text-[9px] text-cyan-300 mt-0.5 leading-none">Find Fans</span>
               </button>
               <button
                 onClick={() => setCurrentScreen('invitations')}
