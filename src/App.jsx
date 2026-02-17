@@ -956,7 +956,7 @@ const HuddleUpApp = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
       <div className="max-w-md w-full text-center space-y-8 animate-fade-in">
         <div className="space-y-4">
-          <img src="/huddle-up-logo-2.png" alt="Huddle Up - Find Your Crew. Watch The Game!" className="w-64 mx-auto animate-logo-pop" />
+          <img src="/huddle-up-logo-2-transparent.png" alt="Huddle Up - Find Your Crew. Watch The Game!" className="w-64 mx-auto animate-logo-pop" />
         </div>
         <div className="space-y-4">
           <button
@@ -1254,7 +1254,7 @@ const HuddleUpApp = () => {
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
-            <img src="/huddle-up-logo-2.png" alt="Huddle Up" className="h-16 mx-auto mb-4 drop-shadow-lg" />
+            <img src="/huddle-up-logo-2-transparent.png" alt="Huddle Up" className="h-16 mx-auto mb-4 drop-shadow-lg" />
             <h2 className="text-4xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
               JOIN THE CREW
             </h2>
@@ -1409,7 +1409,7 @@ const HuddleUpApp = () => {
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <img src="/huddle-up-logo-2.png" alt="Huddle Up" className="h-12 drop-shadow-lg" />
+              <img src="/huddle-up-logo-2-transparent.png" alt="Huddle Up" className="h-12 drop-shadow-lg" />
             </div>
             <div className="flex gap-1.5">
               {userVenue && (
