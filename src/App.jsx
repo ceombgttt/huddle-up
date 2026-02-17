@@ -502,7 +502,10 @@ const HuddleUpApp = () => {
   const [parties, setParties] = useState([]);
   const [userParties, setUserParties] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentCity, setCurrentCity] = useState('Fort Lauderdale, FL');
+  const [currentCity, setCurrentCity] = useState('');
+  const [userCoords, setUserCoords] = useState(null);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [locationDetected, setLocationDetected] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false); // Onboarding tutorial
   const [onboardingStep, setOnboardingStep] = useState(0);
   const [myTeamsOnly, setMyTeamsOnly] = useState(false); // Filter by favorite teams
@@ -742,11 +745,51 @@ const HuddleUpApp = () => {
   const formScreens = ['welcome', 'login', 'signup', 'forgotPassword', 'claimVenue', 'createParty'];
   const isFormScreen = formScreens.includes(currentScreen);
 
+  const detectUserLocation = useCallback(() => {
+    if (!navigator.geolocation) {
+      console.log('Geolocation not supported');
+      return;
+    }
+    setLocationLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        setUserCoords({ lat: latitude, lng: longitude });
+        try {
+          const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&addressdetails=1`, {
+            headers: { 'User-Agent': 'HuddleUp/1.0' }
+          });
+          if (!resp.ok) throw new Error('Geocoding failed');
+          const data = await resp.json();
+          const addr = data.address || {};
+          const city = addr.city || addr.town || addr.village || addr.county || '';
+          const state = addr.state || '';
+          const US_STATE_ABBR = { 'Alabama':'AL','Alaska':'AK','Arizona':'AZ','Arkansas':'AR','California':'CA','Colorado':'CO','Connecticut':'CT','Delaware':'DE','Florida':'FL','Georgia':'GA','Hawaii':'HI','Idaho':'ID','Illinois':'IL','Indiana':'IN','Iowa':'IA','Kansas':'KS','Kentucky':'KY','Louisiana':'LA','Maine':'ME','Maryland':'MD','Massachusetts':'MA','Michigan':'MI','Minnesota':'MN','Mississippi':'MS','Missouri':'MO','Montana':'MT','Nebraska':'NE','Nevada':'NV','New Hampshire':'NH','New Jersey':'NJ','New Mexico':'NM','New York':'NY','North Carolina':'NC','North Dakota':'ND','Ohio':'OH','Oklahoma':'OK','Oregon':'OR','Pennsylvania':'PA','Rhode Island':'RI','South Carolina':'SC','South Dakota':'SD','Tennessee':'TN','Texas':'TX','Utah':'UT','Vermont':'VT','Virginia':'VA','Washington':'WA','West Virginia':'WV','Wisconsin':'WI','Wyoming':'WY' };
+          const stateAbbr = US_STATE_ABBR[state] || (state.length <= 2 ? state : '');
+          if (city) {
+            const cityStr = stateAbbr ? `${city}, ${stateAbbr}` : city;
+            setCurrentCity(cityStr);
+            setLocationDetected(true);
+          }
+        } catch (e) {
+          console.log('Reverse geocoding failed:', e);
+        }
+        setLocationLoading(false);
+      },
+      (err) => {
+        console.log('Geolocation denied or unavailable:', err.message);
+        setLocationLoading(false);
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
+    );
+  }, []);
+
   useEffect(() => {
     loadUserData();
     loadParties();
     loadVenues();
     loadGames();
+    detectUserLocation();
   }, []);
 
   useEffect(() => {
@@ -1074,8 +1117,27 @@ const HuddleUpApp = () => {
     return matchesSport && matchesSearch && matchesMyTeams;
   });
 
+  const isCityMatch = (partyCity) => {
+    if (!currentCity || !partyCity) return false;
+    const normalize = (s) => s.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
+    const userCityName = normalize(currentCity.split(',')[0]);
+    const partyCityName = normalize(partyCity.split(',')[0]);
+    if (!userCityName || !partyCityName) return false;
+    if (userCityName === partyCityName) return true;
+    if (userCityName.length >= 4 && partyCityName.length >= 4) {
+      if (partyCityName.startsWith(userCityName) || userCityName.startsWith(partyCityName)) return true;
+    }
+    return false;
+  };
+
   const getPartiesForGame = (gameId) => {
-    return parties.filter(party => party.gameId === gameId);
+    const gameParties = parties.filter(party => party.gameId === gameId);
+    if (!currentCity) return gameParties;
+    return gameParties.sort((a, b) => {
+      const aMatch = isCityMatch(a.city) ? 1 : 0;
+      const bMatch = isCityMatch(b.city) ? 1 : 0;
+      return bMatch - aMatch;
+    });
   };
 
   const getMapsUrl = (address) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
@@ -1748,12 +1810,30 @@ const HuddleUpApp = () => {
             <DebouncedInput
               type="text"
               value={currentCity}
-              onChange={(val) => setCurrentCity(val)}
+              onChange={(val) => { setCurrentCity(val); setLocationDetected(false); }}
               delay={400}
-              placeholder="Enter city (e.g., Dallas, TX)"
-              className="w-full pl-10 pr-4 py-3 bg-cyan-100 border-2 border-cyan-300 rounded-xl text-black placeholder-cyan-600/50 focus:outline-none focus:ring-2 focus:ring-cyan-500 font-semibold"
+              placeholder={locationLoading ? "Detecting your location..." : "Enter city (e.g., Dallas, TX)"}
+              className="w-full pl-10 pr-12 py-3 bg-cyan-100 border-2 border-cyan-300 rounded-xl text-black placeholder-cyan-600/50 focus:outline-none focus:ring-2 focus:ring-cyan-500 font-semibold"
             />
+            <button
+              onClick={detectUserLocation}
+              disabled={locationLoading}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-lg hover:bg-cyan-200 transition-colors"
+              title="Use my location"
+            >
+              {locationLoading ? (
+                <Loader2 className="w-4 h-4 text-cyan-600 animate-spin" />
+              ) : (
+                <MapPin className="w-4 h-4 text-cyan-600" />
+              )}
+            </button>
           </div>
+          {locationDetected && currentCity && (
+            <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-emerald-500/20 border border-emerald-500/30 rounded-xl">
+              <MapPin className="w-4 h-4 text-emerald-400" />
+              <span className="text-emerald-300 text-sm font-semibold">Showing parties near {currentCity}</span>
+            </div>
+          )}
 
           <div className="relative mb-4">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -2207,6 +2287,12 @@ const HuddleUpApp = () => {
                             {venue?.featured && (
                               <span className="px-2 py-1 bg-purple-500/20 text-purple-300 text-xs font-bold rounded-full border border-purple-500/30">
                                 ⭐ FEATURED
+                              </span>
+                            )}
+                            {currentCity && isCityMatch(party.city) && (
+                              <span className="px-2 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-bold rounded-full border border-emerald-500/30 flex items-center gap-1">
+                                <MapPin className="w-3 h-3" />
+                                NEAR YOU
                               </span>
                             )}
                           </div>

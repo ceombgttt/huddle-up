@@ -108,6 +108,7 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - Presigned URL upload flow: request URL → PUT to GCS → save path in DB
 
 ## Recent Changes
+- 2026-02-17: Added browser geolocation to auto-detect user's city - auto-populates city filter, sorts parties by proximity, "NEAR YOU" badge on matching party cards, location detect button in city input
 - 2026-02-17: Added persistent main sponsor bar at top of all authenticated pages (orange gradient, "Advertise" CTA)
 - 2026-02-17: Added interactive venue map to party cards - expandable Google Maps embed with "Get Directions" button
 - 2026-02-17: Added team affiliation to parties - hosts select supported team during creation, party cards display team logo with team-colored gradient backgrounds (50+ team color schemes mapped)
