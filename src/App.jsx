@@ -976,11 +976,16 @@ const HuddleUpApp = () => {
     </div>
   );
 
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginShowPassword, setLoginShowPassword] = useState(false);
+  const [loginRememberMe, setLoginRememberMe] = useState(true);
+
   const LoginScreen = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
-    const [rememberMe, setRememberMe] = useState(true);
+    const email = loginEmail, setEmail = setLoginEmail;
+    const password = loginPassword, setPassword = setLoginPassword;
+    const showPassword = loginShowPassword, setShowPassword = setLoginShowPassword;
+    const rememberMe = loginRememberMe, setRememberMe = setLoginRememberMe;
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
@@ -1060,14 +1065,22 @@ const HuddleUpApp = () => {
     );
   };
 
+  const [fpStep, setFpStep] = useState(1);
+  const [fpEmail, setFpEmail] = useState('');
+  const [fpCode, setFpCode] = useState('');
+  const [fpNewPassword, setFpNewPassword] = useState('');
+  const [fpConfirmPassword, setFpConfirmPassword] = useState('');
+  const [fpError, setFpError] = useState('');
+  const [fpLoading, setFpLoading] = useState(false);
+
   const ForgotPasswordScreen = () => {
-    const [step, setStep] = useState(1);
-    const [email, setEmail] = useState('');
-    const [code, setCode] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
+    const step = fpStep, setStep = setFpStep;
+    const email = fpEmail, setEmail = setFpEmail;
+    const code = fpCode, setCode = setFpCode;
+    const newPassword = fpNewPassword, setNewPassword = setFpNewPassword;
+    const confirmPassword = fpConfirmPassword, setConfirmPassword = setFpConfirmPassword;
+    const error = fpError, setError = setFpError;
+    const loading = fpLoading, setLoading = setFpLoading;
 
     const handleVerifyEmail = async () => {
       setError('');
@@ -1214,16 +1227,26 @@ const HuddleUpApp = () => {
     );
   };
 
+  const [signupEmail, setSignupEmail] = useState('');
+  const [signupPassword, setSignupPassword] = useState('');
+  const [signupShowPassword, setSignupShowPassword] = useState(false);
+  const [signupName, setSignupName] = useState('');
+  const [signupGender, setSignupGender] = useState('');
+  const [signupDateOfBirth, setSignupDateOfBirth] = useState('');
+  const [signupAcceptedTerms, setSignupAcceptedTerms] = useState(false);
+  const [signupAgeConfirmed, setSignupAgeConfirmed] = useState(false);
+  const [signupRememberMe, setSignupRememberMe] = useState(true);
+
   const SignUpScreen = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
-    const [name, setName] = useState('');
-    const [gender, setGender] = useState('');
-    const [dateOfBirth, setDateOfBirth] = useState('');
-    const [acceptedTerms, setAcceptedTerms] = useState(false);
-    const [ageConfirmed, setAgeConfirmed] = useState(false);
-    const [rememberMe, setRememberMe] = useState(true);
+    const email = signupEmail, setEmail = setSignupEmail;
+    const password = signupPassword, setPassword = setSignupPassword;
+    const showPassword = signupShowPassword, setShowPassword = setSignupShowPassword;
+    const name = signupName, setName = setSignupName;
+    const gender = signupGender, setGender = setSignupGender;
+    const dateOfBirth = signupDateOfBirth, setDateOfBirth = setSignupDateOfBirth;
+    const acceptedTerms = signupAcceptedTerms, setAcceptedTerms = setSignupAcceptedTerms;
+    const ageConfirmed = signupAgeConfirmed, setAgeConfirmed = setSignupAgeConfirmed;
+    const rememberMe = signupRememberMe, setRememberMe = setSignupRememberMe;
 
     const handleSubmit = () => {
       if (!acceptedTerms) {
@@ -2022,14 +2045,22 @@ const HuddleUpApp = () => {
     );
   };
 
+  const [claimVenueName, setClaimVenueName] = useState('');
+  const [claimAddress, setClaimAddress] = useState('');
+  const [claimVenueType, setClaimVenueType] = useState('');
+  const [claimPhone, setClaimPhone] = useState('');
+  const [claimWebsite, setClaimWebsite] = useState('');
+  const [claimProofDocument, setClaimProofDocument] = useState('');
+  const [claimAcceptedTerms, setClaimAcceptedTerms] = useState(false);
+
   const ClaimVenueScreen = () => {
-    const [venueName, setVenueName] = useState('');
-    const [address, setAddress] = useState('');
-    const [venueType, setVenueType] = useState('');
-    const [phone, setPhone] = useState('');
-    const [website, setWebsite] = useState('');
-    const [proofDocument, setProofDocument] = useState('');
-    const [acceptedTerms, setAcceptedTerms] = useState(false);
+    const venueName = claimVenueName, setVenueName = setClaimVenueName;
+    const address = claimAddress, setAddress = setClaimAddress;
+    const venueType = claimVenueType, setVenueType = setClaimVenueType;
+    const phone = claimPhone, setPhone = setClaimPhone;
+    const website = claimWebsite, setWebsite = setClaimWebsite;
+    const proofDocument = claimProofDocument, setProofDocument = setClaimProofDocument;
+    const acceptedTerms = claimAcceptedTerms, setAcceptedTerms = setClaimAcceptedTerms;
 
     const handleSubmit = () => {
       if (!venueName || !address || !venueType) {
@@ -2791,13 +2822,20 @@ const HuddleUpApp = () => {
     );
   };
 
+  const [cpUseVerifiedVenue, setCpUseVerifiedVenue] = useState(true);
+  const [cpSelectedVenueId, setCpSelectedVenueId] = useState('');
+  const [cpCustomLocation, setCpCustomLocation] = useState('');
+  const [cpCustomTime, setCpCustomTime] = useState('');
+  const [cpCapacity, setCpCapacity] = useState('');
+  const [cpNotes, setCpNotes] = useState('');
+
   const CreatePartyScreen = () => {
-    const [useVerifiedVenue, setUseVerifiedVenue] = useState(true);
-    const [selectedVenueId, setSelectedVenueId] = useState('');
-    const [customLocation, setCustomLocation] = useState('');
-    const [customTime, setCustomTime] = useState('');
-    const [capacity, setCapacity] = useState('');
-    const [notes, setNotes] = useState('');
+    const useVerifiedVenue = cpUseVerifiedVenue, setUseVerifiedVenue = setCpUseVerifiedVenue;
+    const selectedVenueId = cpSelectedVenueId, setSelectedVenueId = setCpSelectedVenueId;
+    const customLocation = cpCustomLocation, setCustomLocation = setCpCustomLocation;
+    const customTime = cpCustomTime, setCustomTime = setCpCustomTime;
+    const capacity = cpCapacity, setCapacity = setCpCapacity;
+    const notes = cpNotes, setNotes = setCpNotes;
 
     const handleSubmit = () => {
       let location = '';
