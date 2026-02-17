@@ -724,26 +724,33 @@ const HuddleUpApp = () => {
     setEditingSponsor(s.id); setShowSponsorForm(true);
   };
 
-  const handleSponsorLogoUpload = async (file) => {
-    if (!file || !file.type.startsWith('image/')) { alert('Please select an image file'); return; }
-    if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB'); return; }
-    setUploadingSponsorLogo(true);
-    try {
-      const fileBuffer = await file.arrayBuffer();
-      const uploadRes = await fetch('/api/uploads/venue-image/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': file.type, 'x-image-type': 'sponsor-logo' },
-        credentials: 'include',
-        body: fileBuffer,
-      });
-      if (!uploadRes.ok) {
-        const errData = await uploadRes.json().catch(() => ({}));
-        throw new Error(errData.error || 'Upload failed');
-      }
-      const { objectPath } = await uploadRes.json();
-      setSponsorLogo(objectPath);
-    } catch (err) { alert('Failed to upload logo: ' + err.message); }
-    setUploadingSponsorLogo(false);
+  const handleSponsorLogoUpload = async () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (e) => {
+      const file = e.target.files?.[0];
+      if (!file || !file.type.startsWith('image/')) { alert('Please select an image file'); return; }
+      if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB'); return; }
+      setUploadingSponsorLogo(true);
+      try {
+        const fileBuffer = await file.arrayBuffer();
+        const uploadRes = await fetch('/api/uploads/venue-image/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': file.type, 'x-image-type': 'sponsor-logo' },
+          credentials: 'include',
+          body: fileBuffer,
+        });
+        if (!uploadRes.ok) {
+          const errData = await uploadRes.json().catch(() => ({}));
+          throw new Error(errData.error || 'Upload failed');
+        }
+        const { objectPath } = await uploadRes.json();
+        setSponsorLogo(objectPath);
+      } catch (err) { alert('Failed to upload logo: ' + err.message); }
+      setUploadingSponsorLogo(false);
+    };
+    input.click();
   };
 
   const saveSponsor = async () => {
@@ -3443,11 +3450,11 @@ const HuddleUpApp = () => {
                         <Building2 className="w-6 h-6" />
                       </div>
                     )}
-                    <label className={`px-4 py-2 rounded-xl text-sm font-bold cursor-pointer transition-all ${uploadingSponsorLogo ? 'bg-gray-500 text-gray-300' : 'bg-green-500/20 text-green-300 hover:bg-green-500/30 border border-green-500/30'}`}>
+                    <button type="button" disabled={uploadingSponsorLogo}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleSponsorLogoUpload(); }}
+                      className={`px-4 py-2 rounded-xl text-sm font-bold cursor-pointer transition-all ${uploadingSponsorLogo ? 'bg-gray-500 text-gray-300' : 'bg-green-500/20 text-green-300 hover:bg-green-500/30 border border-green-500/30'}`}>
                       {uploadingSponsorLogo ? 'Uploading...' : 'Upload Logo'}
-                      <input type="file" accept="image/*" className="hidden" disabled={uploadingSponsorLogo}
-                        onChange={(e) => handleSponsorLogoUpload(e.target.files?.[0])} />
-                    </label>
+                    </button>
                     {sponsorLogo && (
                       <button onClick={() => setSponsorLogo(null)} className="text-red-400 hover:text-red-300 text-sm">Remove</button>
                     )}
@@ -3887,40 +3894,48 @@ const HuddleUpApp = () => {
       setEditingVenue(true);
     };
 
-    const handleVenueImageUpload = async (file, imageType) => {
-      if (!file || !file.type.startsWith('image/')) {
-        alert('Please select an image file');
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        alert('Image must be under 5MB');
-        return;
-      }
-      const setter = imageType === 'logo' ? setUploadingLogo : setUploadingPicture;
-      setter(true);
-      try {
-        const fileBuffer = await file.arrayBuffer();
-        const uploadRes = await fetch('/api/uploads/venue-image/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': file.type, 'x-image-type': imageType },
-          credentials: 'include',
-          body: fileBuffer,
-        });
-        if (!uploadRes.ok) {
-          const errData = await uploadRes.json().catch(() => ({}));
-          throw new Error(errData.error || 'Upload failed');
+    const handleVenueImageUpload = async (imageType) => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+          alert('Please select an image file');
+          return;
         }
-        const { objectPath } = await uploadRes.json();
-        await api.venues.updateMine({
-          name: userVenue.name,
-          address: userVenue.address,
-          [imageType]: objectPath
-        });
-        await loadVenues();
-      } catch (err) {
-        alert('Failed to upload image: ' + err.message);
-      }
-      setter(false);
+        if (file.size > 5 * 1024 * 1024) {
+          alert('Image must be under 5MB');
+          return;
+        }
+        const setter = imageType === 'logo' ? setUploadingLogo : setUploadingPicture;
+        setter(true);
+        try {
+          const fileBuffer = await file.arrayBuffer();
+          const uploadRes = await fetch('/api/uploads/venue-image/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': file.type, 'x-image-type': imageType },
+            credentials: 'include',
+            body: fileBuffer,
+          });
+          if (!uploadRes.ok) {
+            const errData = await uploadRes.json().catch(() => ({}));
+            throw new Error(errData.error || 'Upload failed');
+          }
+          const { objectPath } = await uploadRes.json();
+          await api.venues.updateMine({
+            name: userVenue.name,
+            address: userVenue.address,
+            [imageType]: objectPath
+          });
+          await loadVenues();
+        } catch (err) {
+          alert('Failed to upload image: ' + err.message);
+        }
+        setter(false);
+      };
+      input.click();
     };
 
     const saveVenueDetails = async () => {
@@ -4152,11 +4167,11 @@ const HuddleUpApp = () => {
                           <Building2 className="w-6 h-6" />
                         </div>
                       )}
-                      <label className={`px-4 py-2 rounded-xl text-sm font-bold cursor-pointer transition-all ${uploadingLogo ? 'bg-gray-500 text-gray-300' : 'bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 border border-cyan-500/30'}`}>
+                      <button type="button" disabled={uploadingLogo}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleVenueImageUpload('logo'); }}
+                        className={`px-4 py-2 rounded-xl text-sm font-bold cursor-pointer transition-all ${uploadingLogo ? 'bg-gray-500 text-gray-300' : 'bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 border border-cyan-500/30'}`}>
                         {uploadingLogo ? 'Uploading...' : 'Upload Logo'}
-                        <input type="file" accept="image/*" className="hidden" disabled={uploadingLogo}
-                          onChange={(e) => handleVenueImageUpload(e.target.files?.[0], 'logo')} />
-                      </label>
+                      </button>
                     </div>
                     <p className="text-xs text-gray-500 mt-1">Square image works best (e.g., 200x200)</p>
                   </div>
@@ -4170,11 +4185,11 @@ const HuddleUpApp = () => {
                           <Camera className="w-6 h-6" />
                         </div>
                       )}
-                      <label className={`px-4 py-2 rounded-xl text-sm font-bold cursor-pointer transition-all ${uploadingPicture ? 'bg-gray-500 text-gray-300' : 'bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 border border-cyan-500/30'}`}>
+                      <button type="button" disabled={uploadingPicture}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleVenueImageUpload('picture'); }}
+                        className={`px-4 py-2 rounded-xl text-sm font-bold cursor-pointer transition-all ${uploadingPicture ? 'bg-gray-500 text-gray-300' : 'bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 border border-cyan-500/30'}`}>
                         {uploadingPicture ? 'Uploading...' : 'Upload Photo'}
-                        <input type="file" accept="image/*" className="hidden" disabled={uploadingPicture}
-                          onChange={(e) => handleVenueImageUpload(e.target.files?.[0], 'picture')} />
-                      </label>
+                      </button>
                     </div>
                     <p className="text-xs text-gray-500 mt-1">Show fans what your venue looks like</p>
                   </div>
@@ -4479,14 +4494,15 @@ const HuddleUpApp = () => {
             <div className="flex flex-col items-center gap-4">
               <div className="relative group">
                 <ProfileAvatar src={user.profilePicture} name={user.name} size="xl" className="border-4 border-cyan-500/30" />
-                <label className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
-                  <Camera className="w-8 h-8 text-white" />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
+                <button type="button" className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity"
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/*';
+                    input.onchange = async (ev) => {
+                      const file = ev.target.files?.[0];
                       if (!file) return;
                       if (file.size > 5 * 1024 * 1024) {
                         alert('Image must be under 5MB');
@@ -4513,9 +4529,11 @@ const HuddleUpApp = () => {
                       } catch (err) {
                         alert('Failed to upload photo: ' + err.message);
                       }
-                    }}
-                  />
-                </label>
+                    };
+                    input.click();
+                  }}>
+                  <Camera className="w-8 h-8 text-white" />
+                </button>
                 {!user.profilePicture && (
                   <div className="absolute -bottom-1 -right-1 bg-cyan-500 rounded-full p-1.5 border-2 border-slate-800">
                     <Camera className="w-3 h-3 text-white" />

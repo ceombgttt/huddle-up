@@ -163,6 +163,8 @@ router.post('/venue-image/upload', requireAuth, async (req, res) => {
     const imageType = req.headers['x-image-type'] || '';
     const contentType = req.headers['x-file-content-type'] || req.headers['content-type'] || 'application/octet-stream';
 
+    console.log('Venue image upload - imageType:', imageType, 'contentType:', contentType, 'bodyType:', typeof req.body, 'bodyLength:', req.body?.length || 0, 'isBuffer:', Buffer.isBuffer(req.body));
+
     if (!['logo', 'picture', 'sponsor-logo'].includes(imageType)) {
       return res.status(400).json({ error: 'Invalid image type. Set x-image-type header.' });
     }
