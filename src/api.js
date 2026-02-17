@@ -107,4 +107,13 @@ export const api = {
     acceptInvitation: (id) => request(`/fans/invitations/${id}/accept`, { method: 'POST' }),
     declineInvitation: (id) => request(`/fans/invitations/${id}/decline`, { method: 'POST' }),
   },
+  friends: {
+    list: () => request('/friends/list'),
+    requests: () => request('/friends/requests'),
+    sendRequest: (friendId) => request('/friends/request', { method: 'POST', body: JSON.stringify({ friendId }) }),
+    accept: (id) => request(`/friends/accept/${id}`, { method: 'POST' }),
+    decline: (id) => request(`/friends/decline/${id}`, { method: 'POST' }),
+    remove: (friendId) => request(`/friends/${friendId}`, { method: 'DELETE' }),
+    status: (userId) => request(`/friends/status/${userId}`),
+  },
 };

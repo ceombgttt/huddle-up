@@ -148,6 +148,16 @@ export async function initDB() {
 
       ALTER TABLE parties ADD COLUMN IF NOT EXISTS supported_team TEXT;
 
+      CREATE TABLE IF NOT EXISTS friendships (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        friend_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'declined')),
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        responded_at TIMESTAMPTZ,
+        UNIQUE(user_id, friend_id)
+      );
+
       ALTER TABLE users ADD COLUMN IF NOT EXISTS notifications_enabled BOOLEAN DEFAULT TRUE;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS date_of_birth DATE;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS phone_number TEXT;

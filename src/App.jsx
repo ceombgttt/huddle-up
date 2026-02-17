@@ -545,6 +545,9 @@ const HuddleUpApp = () => {
   const [fanSearchLoading, setFanSearchLoading] = useState(false);
   const [invitePartyId, setInvitePartyId] = useState(null);
   const [inviteSending, setInviteSending] = useState({});
+  const [friendsList, setFriendsList] = useState([]);
+  const [friendRequests, setFriendRequests] = useState([]);
+  const [friendStatuses, setFriendStatuses] = useState({});
   const [badgeStats, setBadgeStats] = useState({ partiesHosted: 0, partiesAttended: 0 });
   const [showShareToast, setShowShareToast] = useState(false);
   const [showSignupShare, setShowSignupShare] = useState(false);
@@ -789,6 +792,7 @@ const HuddleUpApp = () => {
     loadParties();
     loadVenues();
     loadGames();
+    loadFriends();
     detectUserLocation();
   }, []);
 
@@ -883,6 +887,7 @@ const HuddleUpApp = () => {
       loadInvitations();
       loadNotifications();
       loadBadgeStats();
+      loadFriends();
     } catch (error) {
       alert(error.message);
     }
@@ -899,6 +904,7 @@ const HuddleUpApp = () => {
       loadInvitations();
       loadNotifications();
       loadBadgeStats();
+      loadFriends();
       setCurrentScreen('games');
     } catch (error) {
       alert(error.message);
@@ -975,6 +981,57 @@ const HuddleUpApp = () => {
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
     } catch (error) {
       console.error('Failed to mark all read:', error);
+    }
+  };
+
+  const loadFriends = async () => {
+    try {
+      const [friends, requests] = await Promise.all([
+        api.friends.list(),
+        api.friends.requests()
+      ]);
+      setFriendsList(friends);
+      setFriendRequests(requests);
+    } catch (e) {
+      console.log('Friends load error:', e);
+    }
+  };
+
+  const sendFriendRequest = async (userId) => {
+    try {
+      await api.friends.sendRequest(userId);
+      setFriendStatuses(prev => ({ ...prev, [userId]: 'sent' }));
+      alert('Friend request sent!');
+    } catch (e) {
+      alert(e.message || 'Failed to send request');
+    }
+  };
+
+  const acceptFriendRequest = async (requestId) => {
+    try {
+      await api.friends.accept(requestId);
+      await loadFriends();
+    } catch (e) {
+      alert('Failed to accept');
+    }
+  };
+
+  const declineFriendRequest = async (requestId) => {
+    try {
+      await api.friends.decline(requestId);
+      setFriendRequests(prev => prev.filter(r => r.id !== requestId));
+    } catch (e) {
+      alert('Failed to decline');
+    }
+  };
+
+  const removeFriend = async (friendId) => {
+    if (!confirm('Remove this friend from your crew?')) return;
+    try {
+      await api.friends.remove(friendId);
+      setFriendsList(prev => prev.filter(f => f.id !== friendId));
+    } catch (e) {
+      alert('Failed to remove');
     }
   };
 
@@ -1765,11 +1822,21 @@ const HuddleUpApp = () => {
                 <span className="text-[9px] text-emerald-300 mt-0.5 leading-none">Share</span>
               </button>
               <button
-                onClick={() => setCurrentScreen('fanFinder')}
-                className="flex flex-col items-center px-2 py-1.5 bg-cyan-500/20 rounded-xl hover:bg-cyan-500/30 transition-colors border border-cyan-500/30"
+                onClick={() => setCurrentScreen('myCrew')}
+                className="flex flex-col items-center px-2 py-1.5 bg-cyan-500/20 rounded-xl hover:bg-cyan-500/30 transition-colors border border-cyan-500/30 relative"
               >
-                <UserPlus className="w-5 h-5 text-cyan-300" />
-                <span className="text-[9px] text-cyan-300 mt-0.5 leading-none">Find Fans</span>
+                <Users className="w-5 h-5 text-cyan-300" />
+                <span className="text-[9px] text-cyan-300 mt-0.5 leading-none">My Crew</span>
+                {friendRequests.length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-[8px] flex items-center justify-center font-bold">{friendRequests.length}</span>
+                )}
+              </button>
+              <button
+                onClick={() => setCurrentScreen('fanFinder')}
+                className="flex flex-col items-center px-2 py-1.5 bg-blue-500/20 rounded-xl hover:bg-blue-500/30 transition-colors border border-blue-500/30"
+              >
+                <UserPlus className="w-5 h-5 text-blue-300" />
+                <span className="text-[9px] text-blue-300 mt-0.5 leading-none">Find Fans</span>
               </button>
               <button
                 onClick={() => setCurrentScreen('invitations')}
@@ -4790,14 +4857,22 @@ const HuddleUpApp = () => {
                 </div>
               )}
 
-              {fanResults.map(fan => (
-                <div key={fan.id} className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center justify-between">
+              {fanResults.map(fan => {
+                const isFriend = friendsList.some(f => f.id === fan.id);
+                const requestSent = friendStatuses[fan.id] === 'sent';
+                return (
+                <div key={fan.id} className="bg-white/5 border border-white/10 rounded-xl p-4">
                   <div className="flex items-center gap-3">
                     <ProfileAvatar src={fan.profilePicture} name={fan.name} size="md" />
-                    <div>
-                      <div className="flex items-center gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-white font-semibold">{fan.name}</span>
                         <BadgeDisplay attended={fan.partiesAttended || 0} hosted={fan.partiesHosted || 0} size="sm" />
+                        {isFriend && (
+                          <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 text-xs rounded-full border border-emerald-500/30">
+                            <Users className="w-3 h-3 inline mr-1" />In Your Crew
+                          </span>
+                        )}
                       </div>
                       <div className="text-gray-400 text-sm flex flex-wrap gap-1 mt-1">
                         {fan.favoriteTeams.map((ft, i) => (
@@ -4807,29 +4882,45 @@ const HuddleUpApp = () => {
                         ))}
                       </div>
                     </div>
+                    <div className="flex gap-2 flex-shrink-0">
+                      {!isFriend && !requestSent && (
+                        <button
+                          onClick={() => sendFriendRequest(fan.id)}
+                          className="px-3 py-2 bg-gradient-to-r from-emerald-500 to-green-500 text-white text-xs font-bold rounded-xl hover:shadow-lg transition-all flex items-center gap-1"
+                        >
+                          <Heart className="w-3 h-3" /> Add
+                        </button>
+                      )}
+                      {requestSent && (
+                        <span className="px-3 py-2 bg-white/10 text-gray-400 text-xs font-bold rounded-xl">Sent</span>
+                      )}
+                    </div>
                   </div>
 
                   {invitePartyId && (
-                    <button
-                      onClick={() => handleInviteFan(fan.id, invitePartyId)}
-                      disabled={inviteSending[`${fan.id}-${invitePartyId}`] === true || inviteSending[`${fan.id}-${invitePartyId}`] === 'sent'}
-                      className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 ${
-                        inviteSending[`${fan.id}-${invitePartyId}`] === 'sent'
-                          ? 'bg-green-500/20 text-green-300 border border-green-500/30'
-                          : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:shadow-lg hover:shadow-cyan-500/50'
-                      } disabled:opacity-60`}
-                    >
-                      {inviteSending[`${fan.id}-${invitePartyId}`] === 'sent' ? (
-                        <><CheckCircle className="w-4 h-4" /> Invited</>
-                      ) : inviteSending[`${fan.id}-${invitePartyId}`] === true ? (
-                        'Sending...'
-                      ) : (
-                        <><Send className="w-4 h-4" /> Invite</>
-                      )}
-                    </button>
+                    <div className="mt-3 pl-12">
+                      <button
+                        onClick={() => handleInviteFan(fan.id, invitePartyId)}
+                        disabled={inviteSending[`${fan.id}-${invitePartyId}`] === true || inviteSending[`${fan.id}-${invitePartyId}`] === 'sent'}
+                        className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 ${
+                          inviteSending[`${fan.id}-${invitePartyId}`] === 'sent'
+                            ? 'bg-green-500/20 text-green-300 border border-green-500/30'
+                            : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:shadow-lg hover:shadow-cyan-500/50'
+                        } disabled:opacity-60`}
+                      >
+                        {inviteSending[`${fan.id}-${invitePartyId}`] === 'sent' ? (
+                          <><CheckCircle className="w-4 h-4" /> Invited</>
+                        ) : inviteSending[`${fan.id}-${invitePartyId}`] === true ? (
+                          'Sending...'
+                        ) : (
+                          <><Send className="w-4 h-4" /> Invite to Party</>
+                        )}
+                      </button>
+                    </div>
                   )}
                 </div>
-              ))}
+                );
+              })}
 
               {myParties.length === 0 && (
                 <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 text-center">
@@ -5003,6 +5094,225 @@ const HuddleUpApp = () => {
     );
   };
 
+  const MyCrewScreen = () => {
+    const [crewTab, setCrewTab] = useState('friends');
+    const [crewInvitePartyId, setCrewInvitePartyId] = useState(null);
+
+    useEffect(() => { loadFriends(); }, []);
+
+    const myParties = parties.filter(p => userParties.includes(p.id) || p.hostId === user?.id);
+
+    const getFriendTeamLogos = (friend) => {
+      if (!friend.favoriteTeams) return [];
+      return Object.entries(friend.favoriteTeams).map(([sport, team]) => getTeamLogoUrl(sport, team)).filter(Boolean);
+    };
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+          <div className="max-w-4xl mx-auto px-4 py-4">
+            <div className="flex items-center gap-3">
+              <button onClick={() => setCurrentScreen('games')} className="p-2 bg-white/10 rounded-xl hover:bg-white/20">
+                <ArrowLeft className="w-5 h-5 text-white" />
+              </button>
+              <h1 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                <Users className="inline w-6 h-6 mr-2 text-cyan-400" />
+                MY CREW
+              </h1>
+              <div className="ml-auto">
+                <button
+                  onClick={() => setCurrentScreen('fanFinder')}
+                  className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-bold rounded-xl hover:shadow-lg transition-all flex items-center gap-2"
+                >
+                  <UserPlus className="w-4 h-4" /> Find Fans
+                </button>
+              </div>
+            </div>
+
+            <div className="flex gap-2 mt-3">
+              <button
+                onClick={() => setCrewTab('friends')}
+                className={`flex-1 py-2 rounded-xl font-bold text-sm transition-all ${crewTab === 'friends' ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white' : 'bg-white/10 text-gray-400'}`}
+              >
+                My Crew ({friendsList.length})
+              </button>
+              <button
+                onClick={() => setCrewTab('requests')}
+                className={`flex-1 py-2 rounded-xl font-bold text-sm transition-all relative ${crewTab === 'requests' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'bg-white/10 text-gray-400'}`}
+              >
+                Requests
+                {friendRequests.length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-white text-xs flex items-center justify-center font-bold">{friendRequests.length}</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
+          {crewTab === 'friends' && (
+            <>
+              {friendsList.length === 0 ? (
+                <div className="text-center py-16">
+                  <div className="w-20 h-20 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-cyan-500/30">
+                    <Users className="w-10 h-10 text-cyan-400" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2">Build Your Crew</h3>
+                  <p className="text-gray-400 mb-6 max-w-sm mx-auto">Find fans who love the same teams and add them to your crew. Then invite them to watch parties!</p>
+                  <button
+                    onClick={() => setCurrentScreen('fanFinder')}
+                    className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-cyan-500/50 transition-all"
+                  >
+                    <UserPlus className="w-5 h-5 inline mr-2" /> Find Fellow Fans
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {crewInvitePartyId && (
+                    <div className="bg-purple-500/20 border border-purple-500/30 rounded-xl p-4 mb-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Send className="w-4 h-4 text-purple-400" />
+                          <span className="text-purple-300 text-sm font-bold">Tap a friend to invite them to your party</span>
+                        </div>
+                        <button onClick={() => setCrewInvitePartyId(null)} className="text-gray-400 hover:text-white">
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {!crewInvitePartyId && myParties.length > 0 && (
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+                      <label className="block text-sm font-bold text-gray-300 mb-2">Invite crew to a party:</label>
+                      <select
+                        value={crewInvitePartyId || ''}
+                        onChange={(e) => setCrewInvitePartyId(e.target.value || null)}
+                        className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                      >
+                        <option value="">Select a party...</option>
+                        {myParties.map(p => (
+                          <option key={p.id} value={p.id}>{p.title || `${p.homeTeam} vs ${p.awayTeam}`} - {p.venueName}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {friendsList.map(friend => {
+                    const teamLogos = getFriendTeamLogos(friend);
+                    const badge = getBadge(friend.partiesHosted, friend.partiesAttended);
+                    return (
+                      <div key={friend.id} className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl border border-white/10 p-5 hover:border-cyan-500/30 transition-all">
+                        <div className="flex items-center gap-4">
+                          <ProfileAvatar src={friend.profilePicture} name={friend.name} size="lg" />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-white font-bold text-lg">{friend.name}</span>
+                              {badge && <span className="text-sm">{badge.icon} {badge.name}</span>}
+                            </div>
+                            <div className="flex items-center gap-2 mt-1 flex-wrap">
+                              {teamLogos.length > 0 && (
+                                <div className="flex items-center gap-1">
+                                  {teamLogos.slice(0, 4).map((logo, i) => (
+                                    <img key={i} src={logo} alt="" className="w-5 h-5 object-contain" />
+                                  ))}
+                                </div>
+                              )}
+                              {friend.favoriteTeams && Object.entries(friend.favoriteTeams).length > 0 && (
+                                <span className="text-gray-400 text-xs">
+                                  {Object.values(friend.favoriteTeams).join(', ')}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-gray-500 text-xs mt-1">
+                              {friend.partiesAttended} parties attended · {friend.partiesHosted} hosted
+                            </div>
+                          </div>
+                          <div className="flex gap-2 flex-shrink-0">
+                            {crewInvitePartyId && (
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    await api.fans.invite(crewInvitePartyId, friend.id);
+                                    alert(`Invited ${friend.name}!`);
+                                  } catch (e) {
+                                    alert(e.message || 'Failed to invite');
+                                  }
+                                }}
+                                className="px-3 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded-xl hover:shadow-lg transition-all"
+                              >
+                                <Send className="w-3 h-3 inline mr-1" /> Invite
+                              </button>
+                            )}
+                            <button
+                              onClick={() => removeFriend(friend.id)}
+                              className="p-2 bg-white/5 hover:bg-red-500/20 text-gray-500 hover:text-red-400 rounded-xl transition-all"
+                              title="Remove from crew"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+            </>
+          )}
+
+          {crewTab === 'requests' && (
+            <>
+              {friendRequests.length === 0 ? (
+                <div className="text-center py-16">
+                  <div className="text-4xl mb-3">📬</div>
+                  <p className="text-gray-400">No pending friend requests right now.</p>
+                </div>
+              ) : (
+                friendRequests.map(req => {
+                  const reqTeams = req.favoriteTeams ? Object.entries(req.favoriteTeams).map(([s, t]) => getTeamLogoUrl(s, t)).filter(Boolean) : [];
+                  return (
+                    <div key={req.id} className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl border border-purple-500/20 p-5">
+                      <div className="flex items-center gap-4 mb-4">
+                        <ProfileAvatar src={req.profilePicture} name={req.name} size="lg" />
+                        <div className="flex-1">
+                          <span className="text-white font-bold text-lg">{req.name}</span>
+                          <div className="flex items-center gap-1 mt-1">
+                            {reqTeams.slice(0, 4).map((logo, i) => (
+                              <img key={i} src={logo} alt="" className="w-5 h-5 object-contain" />
+                            ))}
+                            {req.favoriteTeams && Object.values(req.favoriteTeams).length > 0 && (
+                              <span className="text-gray-400 text-xs ml-1">{Object.values(req.favoriteTeams).join(', ')}</span>
+                            )}
+                          </div>
+                          <p className="text-gray-500 text-xs mt-1">Sent {new Date(req.createdAt).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => acceptFriendRequest(req.id)}
+                          className="flex-1 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-green-500/50 transition-all flex items-center justify-center gap-2"
+                        >
+                          <CheckCircle className="w-4 h-4" /> Accept
+                        </button>
+                        <button
+                          onClick={() => declineFriendRequest(req.id)}
+                          className="flex-1 py-3 bg-white/10 text-gray-300 font-bold rounded-xl hover:bg-white/20 transition-all flex items-center justify-center gap-2"
+                        >
+                          <X className="w-4 h-4" /> Decline
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="font-sans">
       <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -5061,6 +5371,7 @@ const HuddleUpApp = () => {
       {currentScreen === 'venueDashboard' && <VenueAnalyticsDashboard />}
       {currentScreen === 'profile' && <ProfileScreen />}
       {currentScreen === 'fanFinder' && <FanFinderScreen />}
+      {currentScreen === 'myCrew' && <MyCrewScreen />}
       {currentScreen === 'invitations' && <InvitationsScreen />}
 
       {showShareToast && (
