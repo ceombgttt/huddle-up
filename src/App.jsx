@@ -2367,6 +2367,50 @@ const HuddleUpApp = () => {
   };
 
   const VenueAnalyticsDashboard = () => {
+    const [editingVenue, setEditingVenue] = useState(false);
+    const [editName, setEditName] = useState('');
+    const [editAddress, setEditAddress] = useState('');
+    const [editCity, setEditCity] = useState('');
+    const [editType, setEditType] = useState('');
+    const [editPhone, setEditPhone] = useState('');
+    const [editWebsite, setEditWebsite] = useState('');
+    const [editCapacity, setEditCapacity] = useState('');
+    const [editDescription, setEditDescription] = useState('');
+    const [savingVenue, setSavingVenue] = useState(false);
+
+    const startEditing = () => {
+      setEditName(userVenue.name || '');
+      setEditAddress(userVenue.address || '');
+      setEditCity(userVenue.city || '');
+      setEditType(userVenue.type || '');
+      setEditPhone(userVenue.phone || '');
+      setEditWebsite(userVenue.website || '');
+      setEditCapacity(userVenue.capacity ? String(userVenue.capacity) : '');
+      setEditDescription(userVenue.description || '');
+      setEditingVenue(true);
+    };
+
+    const saveVenueDetails = async () => {
+      setSavingVenue(true);
+      try {
+        await api.venues.updateMine({
+          name: editName,
+          address: editAddress,
+          city: editCity,
+          type: editType,
+          phone: editPhone,
+          website: editWebsite,
+          capacity: editCapacity ? parseInt(editCapacity) : null,
+          description: editDescription
+        });
+        await loadVenues();
+        setEditingVenue(false);
+      } catch (error) {
+        alert(error.message);
+      }
+      setSavingVenue(false);
+    };
+
     if (!userVenue) {
       return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
@@ -2439,21 +2483,142 @@ const HuddleUpApp = () => {
         <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
           {/* Venue Header */}
           <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-2xl border border-white/10 shadow-xl">
-            <div className="flex items-start justify-between">
-              <div>
-                <h1 className="text-4xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
-                  {userVenue.name}
-                </h1>
-                <p className="text-gray-400 mb-1">{userVenue.address}</p>
-                <p className="text-sm text-gray-500">{userVenue.type}</p>
-              </div>
-              <div className="text-right">
-                <div className="text-sm text-gray-400 mb-1">Your Plan</div>
-                <div className="text-2xl font-black text-cyan-400">
-                  {userVenue.featured ? 'FEATURED' : 'FREE'}
+            {!editingVenue ? (
+              <>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h1 className="text-4xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                      {userVenue.name}
+                    </h1>
+                    <p className="text-gray-400 mb-1">{userVenue.address}</p>
+                    {userVenue.city && <p className="text-gray-400 text-sm mb-1">{userVenue.city}</p>}
+                    <p className="text-sm text-gray-500">{userVenue.type}</p>
+                    <div className="flex flex-wrap gap-3 mt-3 text-sm text-gray-400">
+                      {userVenue.phone && <span>Phone: {userVenue.phone}</span>}
+                      {userVenue.website && <span>Web: {userVenue.website}</span>}
+                      {userVenue.capacity && <span>Seats: {userVenue.capacity}</span>}
+                    </div>
+                    {userVenue.description && (
+                      <p className="text-gray-400 text-sm mt-3 italic">"{userVenue.description}"</p>
+                    )}
+                  </div>
+                  <div className="flex flex-col items-end gap-3">
+                    <div className="text-right">
+                      <div className="text-sm text-gray-400 mb-1">Your Plan</div>
+                      <div className="text-2xl font-black text-cyan-400">
+                        {userVenue.featured ? 'FEATURED' : 'FREE'}
+                      </div>
+                    </div>
+                    <button
+                      onClick={startEditing}
+                      className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white rounded-xl hover:bg-white/20 transition-all text-sm font-bold border border-white/20"
+                    >
+                      <Settings className="w-4 h-4" />
+                      Edit Details
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                    EDIT VENUE DETAILS
+                  </h2>
+                  <button
+                    onClick={() => setEditingVenue(false)}
+                    className="text-gray-400 hover:text-white transition-colors text-sm"
+                  >
+                    Cancel
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Business Name *</label>
+                    <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)}
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Business Type</label>
+                    <select value={editType} onChange={(e) => setEditType(e.target.value)}
+                      className="w-full px-4 py-3 bg-slate-700 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    >
+                      <option value="Sports Bar" className="bg-slate-700 text-white">Sports Bar</option>
+                      <option value="Restaurant & Bar" className="bg-slate-700 text-white">Restaurant & Bar</option>
+                      <option value="Brewery/Taproom" className="bg-slate-700 text-white">Brewery/Taproom</option>
+                      <option value="Entertainment Venue" className="bg-slate-700 text-white">Entertainment Venue</option>
+                      <option value="Other" className="bg-slate-700 text-white">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Full Address *</label>
+                    <input type="text" value={editAddress} onChange={(e) => setEditAddress(e.target.value)}
+                      placeholder="123 Main St, Suite #110"
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">City, State</label>
+                    <input type="text" value={editCity} onChange={(e) => setEditCity(e.target.value)}
+                      placeholder="e.g., Fort Lauderdale, FL"
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Phone Number</label>
+                    <input type="tel" value={editPhone} onChange={(e) => setEditPhone(e.target.value)}
+                      placeholder="(555) 123-4567"
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Website</label>
+                    <input type="text" value={editWebsite} onChange={(e) => setEditWebsite(e.target.value)}
+                      placeholder="yourwebsite.com"
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Seating Capacity</label>
+                    <input type="number" value={editCapacity} onChange={(e) => setEditCapacity(e.target.value)}
+                      placeholder="e.g., 150"
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Venue Description & Special Features</label>
+                  <textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)}
+                    rows={3}
+                    placeholder="Tell fans what makes your venue great! e.g., 20 big screens, outdoor patio, game day drink specials, private party rooms..."
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={saveVenueDetails}
+                    disabled={savingVenue || !editName || !editAddress}
+                    className={`flex-1 py-3 font-bold rounded-xl transition-all ${
+                      savingVenue || !editName || !editAddress
+                        ? 'bg-gray-500 text-gray-300 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:shadow-lg hover:shadow-cyan-500/50'
+                    }`}
+                  >
+                    {savingVenue ? 'Saving...' : 'Save Changes'}
+                  </button>
+                  <button
+                    onClick={() => setEditingVenue(false)}
+                    className="px-6 py-3 bg-white/10 text-gray-300 font-bold rounded-xl hover:bg-white/20 transition-all"
+                  >
+                    Cancel
+                  </button>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Upgrade CTA - only show if not featured */}

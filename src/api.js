@@ -45,6 +45,7 @@ export const api = {
     submitClaim: (data) => request('/venues/claims', { method: 'POST', body: JSON.stringify(data) }),
     approveClaim: (id) => request(`/venues/claims/${id}/approve`, { method: 'POST' }),
     rejectClaim: (id) => request(`/venues/claims/${id}/reject`, { method: 'POST' }),
+    updateMine: (data) => request('/venues/me', { method: 'PUT', body: JSON.stringify(data) }),
   },
   users: {
     updateFavorite: (sport, team) =>

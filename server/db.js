@@ -37,6 +37,9 @@ export async function initDB() {
         claimed_by UUID REFERENCES users(id),
         phone TEXT,
         website TEXT,
+        city TEXT,
+        capacity INTEGER,
+        description TEXT,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
 

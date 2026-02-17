@@ -25,6 +25,9 @@ router.get('/', async (req, res) => {
       claimedBy: v.claimed_by_email,
       phone: v.phone,
       website: v.website,
+      city: v.city,
+      capacity: v.capacity,
+      description: v.description,
       totalParties: parseInt(v.total_parties),
       totalFans: parseInt(v.total_fans)
     }));
@@ -103,6 +106,41 @@ router.post('/claims/:id/approve', requireAdmin, async (req, res) => {
     res.json({ ok: true });
   } catch (error) {
     console.error('Approve claim error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.put('/me', requireAuth, async (req, res) => {
+  try {
+    const venue = await pool.query('SELECT * FROM venues WHERE claimed_by = $1', [req.session.userId]);
+    if (venue.rows.length === 0) return res.status(404).json({ error: 'No venue found for this user' });
+
+    const { name, address, city, type, phone, website, capacity, description } = req.body;
+    const v = venue.rows[0];
+
+    if (!name || !address) return res.status(400).json({ error: 'Business name and address are required' });
+
+    await pool.query(
+      `UPDATE venues SET
+        name = $1, address = $2, city = $3, type = $4,
+        phone = $5, website = $6, capacity = $7, description = $8
+       WHERE id = $9`,
+      [
+        name,
+        address,
+        city !== undefined ? city : v.city,
+        type || v.type,
+        phone !== undefined ? phone : v.phone,
+        website !== undefined ? website : v.website,
+        capacity !== undefined ? capacity : v.capacity,
+        description !== undefined ? description : v.description,
+        v.id
+      ]
+    );
+
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Update venue error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
