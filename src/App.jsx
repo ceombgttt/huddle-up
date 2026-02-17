@@ -510,6 +510,9 @@ const HuddleUpApp = () => {
   const [showShareToast, setShowShareToast] = useState(false);
   const [showSignupShare, setShowSignupShare] = useState(false);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [watchedGames, setWatchedGames] = useState([]);
+  const [pushSubscription, setPushSubscription] = useState(null);
 
   const shareApp = async () => {
     const shareUrl = window.location.origin;
@@ -524,6 +527,85 @@ const HuddleUpApp = () => {
       } catch (e) {}
     }
   };
+
+  const setupPushNotifications = useCallback(async () => {
+    try {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+      const reg = await navigator.serviceWorker.register('/sw.js');
+      const { publicKey } = await api.push.getVapidKey();
+      if (!publicKey) return;
+      const existing = await reg.pushManager.getSubscription();
+      if (existing) {
+        setPushSubscription(existing);
+        setPushEnabled(true);
+        await api.push.subscribe(existing.toJSON());
+        return existing;
+      }
+      return reg;
+    } catch (err) {
+      console.error('Push setup error:', err);
+    }
+  }, []);
+
+  const enablePush = useCallback(async () => {
+    try {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        alert('Push notifications are not supported in this browser');
+        return;
+      }
+      const reg = await navigator.serviceWorker.ready;
+      const { publicKey } = await api.push.getVapidKey();
+      if (!publicKey) { alert('Push notifications not configured'); return; }
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: publicKey
+      });
+      await api.push.subscribe(sub.toJSON());
+      setPushSubscription(sub);
+      setPushEnabled(true);
+    } catch (err) {
+      console.error('Enable push error:', err);
+      if (err.name === 'NotAllowedError') {
+        alert('Please allow notifications in your browser settings');
+      }
+    }
+  }, []);
+
+  const disablePush = useCallback(async () => {
+    try {
+      if (pushSubscription) {
+        await api.push.unsubscribe(pushSubscription.endpoint);
+        await pushSubscription.unsubscribe();
+      }
+      setPushSubscription(null);
+      setPushEnabled(false);
+      setWatchedGames([]);
+    } catch (err) {
+      console.error('Disable push error:', err);
+    }
+  }, [pushSubscription]);
+
+  const toggleWatchGame = useCallback(async (game) => {
+    if (!pushEnabled) {
+      await enablePush();
+    }
+    const gameId = game.id || game.gameId;
+    if (watchedGames.includes(gameId)) {
+      await api.push.unwatchGame(gameId);
+      setWatchedGames(prev => prev.filter(id => id !== gameId));
+    } else {
+      await api.push.watchGame({
+        gameId,
+        sport: game.sport,
+        homeTeam: game.homeTeam,
+        awayTeam: game.awayTeam
+      });
+      setWatchedGames(prev => [...prev, gameId]);
+      if (!pushEnabled) {
+        await enablePush();
+      }
+    }
+  }, [pushEnabled, watchedGames, enablePush]);
 
   const isAdmin = user?.isAdmin || user?.email === 'admin@huddleupusa.com';
   const userVenue = user ? venues.find(v => v.claimedBy === user.email) : null;
@@ -662,6 +744,8 @@ const HuddleUpApp = () => {
         loadInvitations();
         loadNotifications();
         loadBadgeStats();
+        setupPushNotifications();
+        api.push.watchedGames().then(ids => setWatchedGames(ids || [])).catch(() => {});
       }
     } catch (error) {
       console.log('No saved user');
@@ -1810,11 +1894,28 @@ const HuddleUpApp = () => {
                 <span className="px-3 py-1 bg-cyan-500/20 text-cyan-300 text-xs font-bold rounded-full border border-cyan-500/30">
                   {game.sport}
                 </span>
-                {gameParties.length > 0 && (
-                  <span className="px-3 py-1 bg-purple-500/20 text-purple-300 text-xs font-bold rounded-full border border-purple-500/30">
-                    {gameParties.length} {gameParties.length === 1 ? 'Party' : 'Parties'}
-                  </span>
-                )}
+                <div className="flex items-center gap-2">
+                  {gameParties.length > 0 && (
+                    <span className="px-3 py-1 bg-purple-500/20 text-purple-300 text-xs font-bold rounded-full border border-purple-500/30">
+                      {gameParties.length} {gameParties.length === 1 ? 'Party' : 'Parties'}
+                    </span>
+                  )}
+                  {user && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); toggleWatchGame(game); }}
+                      className={`p-1.5 rounded-full transition-all ${
+                        watchedGames.includes(game.id)
+                          ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/40'
+                          : 'bg-white/5 text-gray-500 border border-white/10 hover:text-yellow-400 hover:border-yellow-500/30'
+                      }`}
+                      title={watchedGames.includes(game.id) ? 'Stop score alerts' : 'Get score alerts'}
+                    >
+                      <svg className="w-4 h-4" fill={watchedGames.includes(game.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
               </div>
               
               <div className="text-center mb-4">
@@ -1882,9 +1983,26 @@ const HuddleUpApp = () => {
 
         <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
           <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-2xl border border-white/10 shadow-xl">
-            <span className="px-3 py-1 bg-cyan-500/20 text-cyan-300 text-xs font-bold rounded-full border border-cyan-500/30 mb-4 inline-block">
-              {selectedGame.sport}
-            </span>
+            <div className="flex items-center justify-between mb-4">
+              <span className="px-3 py-1 bg-cyan-500/20 text-cyan-300 text-xs font-bold rounded-full border border-cyan-500/30">
+                {selectedGame.sport}
+              </span>
+              {user && (
+                <button
+                  onClick={() => toggleWatchGame(selectedGame)}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                    watchedGames.includes(selectedGame.id)
+                      ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/40'
+                      : 'bg-white/5 text-gray-400 border border-white/10 hover:text-yellow-400 hover:border-yellow-500/30'
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill={watchedGames.includes(selectedGame.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                  {watchedGames.includes(selectedGame.id) ? 'Watching' : 'Score Alerts'}
+                </button>
+              )}
+            </div>
             
             <div className="text-center mb-6">
               {selectedGame.gameStatus === 'live' || selectedGame.gameStatus === 'final' ? (

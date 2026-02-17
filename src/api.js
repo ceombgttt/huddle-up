@@ -88,6 +88,14 @@ export const api = {
     requestLogoUrl: (contentType) =>
       request('/uploads/venue-image/request-url', { method: 'POST', body: JSON.stringify({ contentType, imageType: 'sponsor-logo' }) }),
   },
+  push: {
+    getVapidKey: () => request('/push/vapid-key'),
+    subscribe: (subscription) => request('/push/subscribe', { method: 'POST', body: JSON.stringify({ subscription }) }),
+    unsubscribe: (endpoint) => request('/push/unsubscribe', { method: 'POST', body: JSON.stringify({ endpoint }) }),
+    watchGame: (data) => request('/push/watch-game', { method: 'POST', body: JSON.stringify(data) }),
+    unwatchGame: (gameId) => request(`/push/watch-game/${encodeURIComponent(gameId)}`, { method: 'DELETE' }),
+    watchedGames: () => request('/push/watched-games'),
+  },
   fans: {
     byTeam: (sport, team) => {
       const params = new URLSearchParams({ sport, team });

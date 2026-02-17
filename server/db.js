@@ -124,6 +124,28 @@ export async function initDB() {
       );
       ALTER TABLE sponsors DROP COLUMN IF EXISTS venue_id;
 
+      CREATE TABLE IF NOT EXISTS push_subscriptions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        endpoint TEXT NOT NULL,
+        p256dh TEXT NOT NULL,
+        auth TEXT NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(endpoint)
+      );
+
+      CREATE TABLE IF NOT EXISTS score_watches (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        game_id TEXT NOT NULL,
+        sport TEXT NOT NULL,
+        home_team TEXT NOT NULL,
+        away_team TEXT NOT NULL,
+        last_notified_score TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(user_id, game_id)
+      );
+
       ALTER TABLE users ADD COLUMN IF NOT EXISTS notifications_enabled BOOLEAN DEFAULT TRUE;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS date_of_birth DATE;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS phone_number TEXT;

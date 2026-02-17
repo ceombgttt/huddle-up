@@ -14,6 +14,8 @@ import notificationRoutes from './routes/notifications.js';
 import gameRoutes from './routes/games.js';
 import uploadRoutes from './routes/uploads.js';
 import sponsorRoutes from './routes/sponsors.js';
+import pushRoutes from './routes/push.js';
+import { startScoreChecker } from './scoreChecker.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const isProduction = process.env.NODE_ENV === 'production';
@@ -50,6 +52,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/games', gameRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/sponsors', sponsorRoutes);
+app.use('/api/push', pushRoutes);
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
@@ -72,6 +75,7 @@ async function start() {
 
   app.listen(5000, '0.0.0.0', () => {
     console.log('Huddle Up running on http://0.0.0.0:5000');
+    startScoreChecker();
   });
 }
 
