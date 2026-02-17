@@ -146,6 +146,8 @@ export async function initDB() {
         UNIQUE(user_id, game_id)
       );
 
+      ALTER TABLE parties ADD COLUMN IF NOT EXISTS supported_team TEXT;
+
       ALTER TABLE users ADD COLUMN IF NOT EXISTS notifications_enabled BOOLEAN DEFAULT TRUE;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS date_of_birth DATE;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS phone_number TEXT;

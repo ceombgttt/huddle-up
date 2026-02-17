@@ -144,6 +144,42 @@ const TEAM_LOGO_MAP = {
   'MLS': { league: 'usa.1', teams: { 'LA Galaxy': 'lag', 'LAFC': 'lafc', 'Seattle Sounders': 'sea', 'Portland Timbers': 'por', 'Atlanta United': 'atl', 'Inter Miami': 'mia', 'NY Red Bulls': 'rbny', 'NYCFC': 'nyc', 'Toronto FC': 'tor', 'Vancouver Whitecaps': 'van', 'Austin FC': 'atx', 'Chicago Fire': 'chi' }},
 };
 
+const TEAM_COLORS = {
+  'Green Bay Packers': ['#203731', '#FFB612'], 'Dallas Cowboys': ['#003594', '#869397'], 'Kansas City Chiefs': ['#E31837', '#FFB81C'],
+  'San Francisco 49ers': ['#AA0000', '#B3995D'], 'Pittsburgh Steelers': ['#101820', '#FFB612'], 'New England Patriots': ['#002244', '#C60C30'],
+  'Chicago Bears': ['#0B162A', '#C83803'], 'Miami Dolphins': ['#008E97', '#FC4C02'], 'Philadelphia Eagles': ['#004C54', '#A5ACAF'],
+  'Buffalo Bills': ['#00338D', '#C60C30'], 'Denver Broncos': ['#FB4F14', '#002244'], 'LA Rams': ['#003594', '#FFD100'],
+  'Minnesota Vikings': ['#4F2683', '#FFC62F'], 'Baltimore Ravens': ['#241773', '#9E7C0C'], 'Tampa Bay Buccaneers': ['#D50A0A', '#34302B'],
+  'Seattle Seahawks': ['#002244', '#69BE28'], 'NY Giants': ['#0B2265', '#A71930'], 'LA Chargers': ['#0080C6', '#FFC20E'],
+  'Cleveland Browns': ['#311D00', '#FF3C00'], 'Detroit Lions': ['#0076B6', '#B0B7BC'], 'Cincinnati Bengals': ['#FB4F14', '#000000'],
+  'New Orleans Saints': ['#101820', '#D3BC8D'], 'Las Vegas Raiders': ['#000000', '#A5ACAF'], 'Atlanta Falcons': ['#A71930', '#000000'],
+  'Arizona Cardinals': ['#97233F', '#000000'], 'Jacksonville Jaguars': ['#006778', '#D7A22A'], 'Tennessee Titans': ['#0C2340', '#4B92DB'],
+  'Houston Texans': ['#03202F', '#A71930'], 'Indianapolis Colts': ['#002C5F', '#A2AAAD'], 'Carolina Panthers': ['#0085CA', '#101820'],
+  'NY Jets': ['#125740', '#000000'], 'Washington Commanders': ['#5A1414', '#FFB612'],
+  'LA Lakers': ['#552583', '#FDB927'], 'Boston Celtics': ['#007A33', '#BA9653'], 'Golden State Warriors': ['#1D428A', '#FFC72C'],
+  'Miami Heat': ['#98002E', '#F9A01B'], 'Chicago Bulls': ['#CE1141', '#000000'], 'Brooklyn Nets': ['#000000', '#FFFFFF'],
+  'Philadelphia 76ers': ['#006BB6', '#ED174C'], 'Dallas Mavericks': ['#00538C', '#002B5E'], 'Milwaukee Bucks': ['#00471B', '#EEE1C6'],
+  'Denver Nuggets': ['#0E2240', '#FEC524'], 'Phoenix Suns': ['#1D1160', '#E56020'], 'Cleveland Cavaliers': ['#860038', '#FDBB30'],
+  'NY Knicks': ['#006BB6', '#F58426'], 'Toronto Raptors': ['#CE1141', '#000000'], 'Atlanta Hawks': ['#E03A3E', '#C1D32F'],
+  'Oklahoma City Thunder': ['#007AC1', '#EF6024'], 'Sacramento Kings': ['#5A2D81', '#63727A'], 'Memphis Grizzlies': ['#5D76A9', '#12173F'],
+  'Indiana Pacers': ['#002D62', '#FDBB30'], 'LA Clippers': ['#C8102E', '#1D428A'], 'Portland Trail Blazers': ['#E03A3E', '#000000'],
+  'Orlando Magic': ['#0077C0', '#C4CED4'], 'Minnesota Timberwolves': ['#0C2340', '#236192'], 'Charlotte Hornets': ['#1D1160', '#00788C'],
+  'San Antonio Spurs': ['#C4CED4', '#000000'], 'Houston Rockets': ['#CE1141', '#000000'], 'Utah Jazz': ['#002B5C', '#00471B'],
+  'New Orleans Pelicans': ['#0C2340', '#C8102E'], 'Detroit Pistons': ['#C8102E', '#1D42BA'], 'Washington Wizards': ['#002B5C', '#E31837'],
+  'NY Yankees': ['#003087', '#E4002B'], 'LA Dodgers': ['#005A9C', '#EF3E42'], 'Boston Red Sox': ['#BD3039', '#0C2340'],
+  'Chicago Cubs': ['#0E3386', '#CC3433'], 'Atlanta Braves': ['#CE1141', '#13274F'], 'Houston Astros': ['#002D62', '#EB6E1F'],
+  'St. Louis Cardinals': ['#C41E3A', '#0C2340'], 'Philadelphia Phillies': ['#E81828', '#002D72'], 'San Diego Padres': ['#2F241D', '#FFC425'],
+  'Toronto Blue Jays': ['#134A8E', '#1D2D5C'], 'NY Mets': ['#002D72', '#FF5910'], 'Seattle Mariners': ['#0C2C56', '#005C5C'],
+  'San Francisco Giants': ['#FD5A1E', '#27251F'], 'Tampa Bay Rays': ['#092C5C', '#8FBCE6'], 'Texas Rangers': ['#003278', '#C0111F'],
+  'Inter Miami': ['#F7B5CD', '#231F20'], 'LA Galaxy': ['#00245D', '#FFD200'], 'LAFC': ['#C39E6D', '#000000'],
+  'Seattle Sounders': ['#005695', '#658D1B'], 'Atlanta United': ['#80000B', '#231F20'], 'NYCFC': ['#6CACE4', '#F15524'],
+};
+
+const getTeamColors = (sport, team) => {
+  if (TEAM_COLORS[team]) return TEAM_COLORS[team];
+  return null;
+};
+
 const getTeamLogoUrl = (sport, team) => {
   const sportData = TEAM_LOGO_MAP[sport];
   if (!sportData) return null;
@@ -2077,14 +2113,39 @@ const HuddleUpApp = () => {
                   const isFull = party.capacity && party.attendees.length >= party.capacity;
                   const venue = party.venueId ? venues.find(v => v.id === party.venueId) : null;
                   
+                  const teamColors = party.supportedTeam ? getTeamColors(party.sport, party.supportedTeam) : null;
+                  const teamLogo = party.supportedTeam ? getTeamLogoUrl(party.sport, party.supportedTeam) : null;
+                  
                   return (
                     <div
                       key={party.id}
-                      className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-white/10 shadow-xl"
+                      className="relative overflow-hidden rounded-2xl border shadow-xl"
+                      style={teamColors ? {
+                        borderColor: `${teamColors[1]}60`,
+                        background: `linear-gradient(135deg, ${teamColors[0]}dd 0%, ${teamColors[0]}99 40%, ${teamColors[1]}44 100%)`
+                      } : {
+                        borderColor: 'rgba(255,255,255,0.1)',
+                        background: 'linear-gradient(135deg, rgb(30,41,59), rgb(15,23,42))'
+                      }}
                     >
+                      {teamLogo && (
+                        <div className="absolute top-4 right-4 opacity-15 pointer-events-none">
+                          <img src={teamLogo} alt="" className="w-32 h-32 object-contain" />
+                        </div>
+                      )}
+                      <div className="relative p-6">
+                      {party.supportedTeam && (
+                        <div className="flex items-center gap-3 mb-4">
+                          {teamLogo && <img src={teamLogo} alt="" className="w-14 h-14 object-contain drop-shadow-lg" />}
+                          <div>
+                            <div className="text-xs font-bold uppercase tracking-wider" style={{ color: teamColors ? teamColors[1] : '#94a3b8' }}>Supporting</div>
+                            <div className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{party.supportedTeam}</div>
+                          </div>
+                        </div>
+                      )}
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
+                          <div className="flex items-center gap-2 mb-2 flex-wrap">
                             {venue?.logo && (
                               <img src={`/api/uploads/serve/${venue.logo.replace('/objects/', '')}`} alt="" className="w-8 h-8 rounded-lg object-cover border border-white/20" />
                             )}
@@ -2239,6 +2300,7 @@ const HuddleUpApp = () => {
                           {isAttending ? 'LEAVE PARTY' : isFull ? 'PARTY FULL' : 'JOIN PARTY'}
                         </button>
                       )}
+                      </div>
                     </div>
                   );
                 })}
@@ -3212,6 +3274,7 @@ const HuddleUpApp = () => {
   const [cpCustomTime, setCpCustomTime] = useState('');
   const [cpCapacity, setCpCapacity] = useState('');
   const [cpNotes, setCpNotes] = useState('');
+  const [cpSupportedTeam, setCpSupportedTeam] = useState('');
 
   const handleCpSubmit = () => {
     let location = '';
@@ -3243,10 +3306,12 @@ const HuddleUpApp = () => {
       venueName: venue ? venue.name : cpCustomLocation,
       venueAddress: venue ? venue.address : '',
       city: venue ? (venue.city || '') : '',
-      title: `${selectedGame.awayTeam} @ ${selectedGame.homeTeam}`,
+      title: cpSupportedTeam ? `Go ${cpSupportedTeam}!` : `${selectedGame.awayTeam} @ ${selectedGame.homeTeam}`,
       notes: cpNotes,
-      maxSize: cpCapacity ? parseInt(cpCapacity) : null
+      maxSize: cpCapacity ? parseInt(cpCapacity) : null,
+      supportedTeam: cpSupportedTeam || null
     });
+    setCpSupportedTeam('');
   };
 
   const createPartyScreenJSX = () => selectedGame ? (
@@ -3277,6 +3342,40 @@ const HuddleUpApp = () => {
               <div className="text-gray-400 text-sm">
                 {formatDateTime(selectedGame.startTime)}
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Which team are you rooting for? *
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                {[selectedGame.homeTeam, selectedGame.awayTeam].filter(Boolean).map(team => {
+                  const logo = getTeamLogoUrl(selectedGame.sport, team);
+                  const colors = getTeamColors(selectedGame.sport, team);
+                  const isSelected = cpSupportedTeam === team;
+                  return (
+                    <button
+                      key={team}
+                      onClick={() => setCpSupportedTeam(isSelected ? '' : team)}
+                      className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
+                        isSelected
+                          ? 'border-yellow-400 shadow-lg shadow-yellow-500/20'
+                          : 'border-white/10 hover:border-white/30'
+                      }`}
+                      style={isSelected && colors ? {
+                        background: `linear-gradient(135deg, ${colors[0]}cc, ${colors[1]}66)`
+                      } : { background: 'rgba(255,255,255,0.05)' }}
+                    >
+                      {logo && <img src={logo} alt="" className="w-10 h-10 object-contain" />}
+                      <span className="text-white font-bold text-sm">{team}</span>
+                      {isSelected && <span className="ml-auto text-yellow-400 text-lg">✓</span>}
+                    </button>
+                  );
+                })}
+              </div>
+              {!cpSupportedTeam && (
+                <p className="text-xs text-gray-500 mt-2">Select the team your watch party will be cheering for</p>
+              )}
             </div>
 
             <div>
