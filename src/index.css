@@ -7,6 +7,11 @@
 body {
   margin: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  overscroll-behavior: contain;
+}
+
+html {
+  overscroll-behavior: contain;
 }
 
 .scrollbar-hide::-webkit-scrollbar {
@@ -16,6 +21,10 @@ body {
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+.overscroll-contain {
+  overscroll-behavior: contain;
 }
 
 @keyframes fade-in {

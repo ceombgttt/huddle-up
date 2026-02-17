@@ -431,8 +431,8 @@ const EditProfileModal = ({ user, onClose, onSave }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-slate-800 rounded-2xl p-6 max-w-md w-full border border-white/20 shadow-2xl" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="bg-slate-800 rounded-2xl p-6 max-w-md w-full border border-white/20 shadow-2xl overscroll-contain" onMouseDown={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
             <Pencil className="inline w-5 h-5 mr-2 text-cyan-400" />
@@ -1258,8 +1258,9 @@ const HuddleUpApp = () => {
       href={getMapsUrl(address)}
       target="_blank"
       rel="noopener noreferrer"
-      className={`hover:text-cyan-300 hover:underline transition-colors ${className}`}
+      className={`hover:text-cyan-300 hover:underline transition-colors inline-block select-all cursor-pointer ${className}`}
       onClick={(e) => e.stopPropagation()}
+      style={{ WebkitUserSelect: 'all', userSelect: 'all', wordBreak: 'keep-all' }}
     >
       {address}
     </a>
@@ -3495,8 +3496,8 @@ const HuddleUpApp = () => {
         </div>
 
         {adminEditVenue && (
-          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setAdminEditVenue(null)}>
-            <div className="bg-slate-800 rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto border border-white/10" onClick={e => e.stopPropagation()}>
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setAdminEditVenue(null); }}>
+            <div className="bg-slate-800 rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto border border-white/10 overscroll-contain" onMouseDown={e => e.stopPropagation()} onTouchStart={e => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>EDIT VENUE</h3>
                 <button onClick={() => setAdminEditVenue(null)} className="text-gray-400 hover:text-white">
