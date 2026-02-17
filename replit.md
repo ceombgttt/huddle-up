@@ -108,6 +108,8 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - Presigned URL upload flow: request URL → PUT to GCS → save path in DB
 
 ## Recent Changes
+- 2026-02-17: Added push notifications for score alerts - users tap bell icon on any game to get browser/phone notifications when scores change, even when app is closed; uses Web Push API with service worker, score checker polls ESPN every 60s
+- 2026-02-17: Added team logos next to attendee names in "Who's Going" party cards (shows favorite teams)
 - 2026-02-17: Added UFC sport with ESPN API integration and fighter roster
 - 2026-02-17: Added SMS text notifications via Twilio - users can opt-in with phone number and city, get "HUDDLE UP" texts when watch parties created for their team in their city; logs to console when Twilio not configured
 - 2026-02-17: Moved sponsor management from venue owner dashboard to admin panel exclusively
