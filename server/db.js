@@ -107,6 +107,9 @@ export async function initDB() {
       );
 
       ALTER TABLE users ADD COLUMN IF NOT EXISTS notifications_enabled BOOLEAN DEFAULT TRUE;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS date_of_birth DATE;
+      ALTER TABLE venues ADD COLUMN IF NOT EXISTS logo TEXT;
+      ALTER TABLE venues ADD COLUMN IF NOT EXISTS picture TEXT;
     `);
 
     const adminCheck = await client.query("SELECT id FROM users WHERE email = 'admin@huddleupusa.com'");

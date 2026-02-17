@@ -125,10 +125,44 @@ router.delete('/profile-picture', requireAuth, async (req, res) => {
   }
 });
 
+router.post('/venue-image/request-url', requireAuth, async (req, res) => {
+  try {
+    const { contentType, imageType } = req.body;
+
+    if (!contentType || !contentType.startsWith('image/')) {
+      return res.status(400).json({ error: 'Only image files are allowed' });
+    }
+    if (!['logo', 'picture'].includes(imageType)) {
+      return res.status(400).json({ error: 'Invalid image type' });
+    }
+
+    const privateDir = getPrivateObjectDir();
+    const objectId = randomUUID();
+    const folder = imageType === 'logo' ? 'venue-logos' : 'venue-pictures';
+    const fullPath = `${privateDir}/${folder}/${objectId}`;
+    const { bucketName, objectName } = parseObjectPath(fullPath);
+
+    const uploadURL = await signObjectURL({
+      bucketName,
+      objectName,
+      method: 'PUT',
+      ttlSec: 900,
+    });
+
+    const objectPath = `/objects/${folder}/${objectId}`;
+
+    res.json({ uploadURL, objectPath });
+  } catch (error) {
+    console.error('Venue image upload URL error:', error);
+    res.status(500).json({ error: 'Failed to generate upload URL' });
+  }
+});
+
 router.get('/serve/*', async (req, res) => {
   try {
     const objectSubPath = req.params[0];
-    if (!objectSubPath.startsWith('profile-pictures/')) {
+    const allowedPrefixes = ['profile-pictures/', 'venue-logos/', 'venue-pictures/'];
+    if (!allowedPrefixes.some(p => objectSubPath.startsWith(p))) {
       return res.status(403).json({ error: 'Access denied' });
     }
     const privateDir = getPrivateObjectDir();

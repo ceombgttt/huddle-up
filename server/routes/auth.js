@@ -6,9 +6,18 @@ const router = Router();
 
 router.post('/signup', async (req, res) => {
   try {
-    const { email, password, name, gender, rememberMe = true } = req.body;
-    if (!email || !password || !name || !gender) {
+    const { email, password, name, gender, dateOfBirth, rememberMe = true } = req.body;
+    if (!email || !password || !name || !gender || !dateOfBirth) {
       return res.status(400).json({ error: 'All fields are required' });
+    }
+
+    const dob = new Date(dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+    if (age < 21) {
+      return res.status(400).json({ error: 'You must be 21 or older to join Huddle Up' });
     }
 
     const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
@@ -18,8 +27,8 @@ router.post('/signup', async (req, res) => {
 
     const passwordHash = await bcrypt.hash(password, 10);
     const result = await pool.query(
-      'INSERT INTO users (email, password_hash, name, gender) VALUES ($1, $2, $3, $4) RETURNING id, email, name, gender, country, profile_picture, is_admin, joined_at, notifications_enabled',
-      [email, passwordHash, name, gender]
+      'INSERT INTO users (email, password_hash, name, gender, date_of_birth) VALUES ($1, $2, $3, $4, $5) RETURNING id, email, name, gender, country, profile_picture, date_of_birth, is_admin, joined_at, notifications_enabled',
+      [email, passwordHash, name, gender, dateOfBirth]
     );
 
     const user = result.rows[0];
@@ -39,6 +48,7 @@ router.post('/signup', async (req, res) => {
       gender: user.gender,
       country: user.country,
       profilePicture: user.profile_picture,
+      dateOfBirth: user.date_of_birth,
       isAdmin: user.is_admin,
       joinedDate: user.joined_at,
       notificationsEnabled: user.notifications_enabled,
@@ -88,6 +98,7 @@ router.post('/login', async (req, res) => {
       gender: user.gender,
       country: user.country,
       profilePicture: user.profile_picture,
+      dateOfBirth: user.date_of_birth,
       isAdmin: user.is_admin,
       joinedDate: user.joined_at,
       notificationsEnabled: user.notifications_enabled,
@@ -178,7 +189,7 @@ router.get('/me', async (req, res) => {
     return res.json(null);
   }
   try {
-    const result = await pool.query('SELECT id, email, name, gender, country, profile_picture, is_admin, joined_at, notifications_enabled FROM users WHERE id = $1', [req.session.userId]);
+    const result = await pool.query('SELECT id, email, name, gender, country, profile_picture, date_of_birth, is_admin, joined_at, notifications_enabled FROM users WHERE id = $1', [req.session.userId]);
     if (result.rows.length === 0) {
       return res.json(null);
     }
@@ -195,6 +206,7 @@ router.get('/me', async (req, res) => {
       gender: user.gender,
       country: user.country,
       profilePicture: user.profile_picture,
+      dateOfBirth: user.date_of_birth,
       isAdmin: user.is_admin,
       joinedDate: user.joined_at,
       notificationsEnabled: user.notifications_enabled,

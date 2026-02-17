@@ -16,8 +16,8 @@ async function request(path, options = {}) {
 export const api = {
   auth: {
     me: () => request('/auth/me'),
-    signup: (email, password, name, gender, rememberMe = true) =>
-      request('/auth/signup', { method: 'POST', body: JSON.stringify({ email, password, name, gender, rememberMe }) }),
+    signup: (email, password, name, gender, dateOfBirth, rememberMe = true) =>
+      request('/auth/signup', { method: 'POST', body: JSON.stringify({ email, password, name, gender, dateOfBirth, rememberMe }) }),
     login: (email, password, rememberMe = true) =>
       request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password, rememberMe }) }),
     logout: () => request('/auth/logout', { method: 'POST' }),
@@ -59,6 +59,8 @@ export const api = {
       request('/uploads/profile-picture/save', { method: 'POST', body: JSON.stringify({ objectPath }) }),
     removeProfilePicture: () =>
       request('/uploads/profile-picture', { method: 'DELETE' }),
+    requestVenueImageUrl: (contentType, imageType) =>
+      request('/uploads/venue-image/request-url', { method: 'POST', body: JSON.stringify({ contentType, imageType }) }),
     removeFavorite: (sport) =>
       request(`/users/me/favorites/${encodeURIComponent(sport)}`, { method: 'DELETE' }),
     stats: () => request('/users/stats'),

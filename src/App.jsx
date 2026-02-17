@@ -425,9 +425,9 @@ const HuddleUpApp = () => {
     }
   };
 
-  const handleSignUp = async (email, password, name, gender, rememberMe = true) => {
+  const handleSignUp = async (email, password, name, gender, dateOfBirth, rememberMe = true) => {
     try {
-      const userData = await api.auth.signup(email, password, name, gender, rememberMe);
+      const userData = await api.auth.signup(email, password, name, gender, dateOfBirth, rememberMe);
       setUser(userData);
       setShowOnboarding(true);
       setOnboardingStep(0);
@@ -677,6 +677,20 @@ const HuddleUpApp = () => {
     return parties.filter(party => party.gameId === gameId);
   };
 
+  const getMapsUrl = (address) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+
+  const AddressLink = ({ address, className = '' }) => (
+    <a
+      href={getMapsUrl(address)}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`hover:text-cyan-300 hover:underline transition-colors ${className}`}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {address}
+    </a>
+  );
+
   const formatDateTime = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleString('en-US', {
@@ -769,61 +783,7 @@ const HuddleUpApp = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
       <div className="max-w-md w-full text-center space-y-8 animate-fade-in">
         <div className="space-y-4">
-          <div className="inline-block">
-            <svg width="160" height="160" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-2xl">
-              <defs>
-                <radialGradient id="bgSimple" cx="50%" cy="50%" r="60%">
-                  <stop offset="0%" style={{stopColor:'#4F46E5',stopOpacity:0.2}} />
-                  <stop offset="100%" style={{stopColor:'#0F172A',stopOpacity:1}} />
-                </radialGradient>
-                <linearGradient id="pinClean" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" style={{stopColor:'#6EE7B7',stopOpacity:1}} />
-                  <stop offset="100%" style={{stopColor:'#34D399',stopOpacity:1}} />
-                </linearGradient>
-                <filter id="softGlow">
-                  <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
-                  <feMerge>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="SourceGraphic"/>
-                  </feMerge>
-                </filter>
-              </defs>
-              <rect width="400" height="400" rx="90" fill="#0F172A" />
-              <rect width="400" height="400" rx="90" fill="url(#bgSimple)" />
-              <circle cx="200" cy="190" r="140" fill="#34D399" opacity="0.15" />
-              <g transform="translate(200, 190)" filter="url(#softGlow)">
-                <path d="M 0 -110 C -65 -110 -110 -65 -110 0 C -110 75 0 145 0 145 C 0 145 110 75 110 0 C 110 -65 65 -110 0 -110 Z" fill="url(#pinClean)" />
-                <path d="M 0 -110 C -65 -110 -110 -65 -110 0 C -110 75 0 145 0 145 C 0 145 110 75 110 0 C 110 -65 65 -110 0 -110 Z" fill="none" stroke="#6EE7B7" strokeWidth="5" opacity="0.9" />
-                <circle cx="0" cy="0" r="80" fill="#1E293B" />
-                <circle cx="0" cy="0" r="80" fill="none" stroke="#34D399" strokeWidth="3" opacity="0.5" />
-              </g>
-              <g transform="translate(200, 190)">
-                <g transform="translate(-40, 0)">
-                  <ellipse cx="0" cy="0" rx="24" ry="30" fill="#92400E" />
-                  <line x1="0" y1="-18" x2="0" y2="18" stroke="#FFFFFF" strokeWidth="3" />
-                  <line x1="-8" y1="-9" x2="8" y2="-9" stroke="#FFFFFF" strokeWidth="2" />
-                  <line x1="-8" y1="0" x2="8" y2="0" stroke="#FFFFFF" strokeWidth="2" />
-                  <line x1="-8" y1="9" x2="8" y2="9" stroke="#FFFFFF" strokeWidth="2" />
-                </g>
-                <g transform="translate(40, 0)">
-                  <circle cx="0" cy="0" r="26" fill="#FFFFFF" />
-                  <polygon points="0,-10 9,-4 6,8 -6,8 -9,-4" fill="#1E293B" />
-                </g>
-                <g transform="translate(0, 40)">
-                  <circle cx="0" cy="0" r="24" fill="#EA580C" />
-                  <path d="M -24 0 Q 0 -12 24 0" fill="none" stroke="#1E293B" strokeWidth="2" />
-                  <path d="M -24 0 Q 0 12 24 0" fill="none" stroke="#1E293B" strokeWidth="2" />
-                  <line x1="0" y1="-24" x2="0" y2="24" stroke="#1E293B" strokeWidth="2" />
-                </g>
-              </g>
-            </svg>
-          </div>
-          <h1 className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
-            HUDDLE UP
-          </h1>
-          <p className="text-xl text-gray-300" style={{ fontFamily: "'Inter', sans-serif" }}>
-            Find your crew. Watch the game.
-          </p>
+          <img src="/huddle-up-logo.png" alt="Huddle Up - Find Your Crew. Watch The Game!" className="w-full max-w-sm mx-auto drop-shadow-2xl" />
         </div>
         <div className="space-y-4">
           <button
@@ -1087,6 +1047,7 @@ const HuddleUpApp = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [name, setName] = useState('');
     const [gender, setGender] = useState('');
+    const [dateOfBirth, setDateOfBirth] = useState('');
     const [acceptedTerms, setAcceptedTerms] = useState(false);
     const [rememberMe, setRememberMe] = useState(true);
 
@@ -1095,17 +1056,27 @@ const HuddleUpApp = () => {
         alert('You must accept the Terms of Service and Privacy Policy to sign up.');
         return;
       }
-      if (!email || !password || !name || !gender) {
+      if (!email || !password || !name || !gender || !dateOfBirth) {
         alert('Please fill in all fields.');
         return;
       }
-      handleSignUp(email, password, name, gender, rememberMe);
+      const dob = new Date(dateOfBirth);
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+      const m = today.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+      if (age < 21) {
+        alert('You must be 21 or older to join Huddle Up.');
+        return;
+      }
+      handleSignUp(email, password, name, gender, dateOfBirth, rememberMe);
     };
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
+            <img src="/huddle-up-logo.png" alt="Huddle Up" className="h-14 mx-auto mb-4 drop-shadow-lg" />
             <h2 className="text-4xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
               JOIN THE CREW
             </h2>
@@ -1136,6 +1107,18 @@ const HuddleUpApp = () => {
                 <option value="female">Female ♀</option>
               </select>
               <p className="text-xs text-gray-500 mt-1">Helps other users see group composition</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Date of Birth</label>
+              <input
+                type="date"
+                value={dateOfBirth}
+                onChange={(e) => setDateOfBirth(e.target.value)}
+                max={new Date(new Date().setFullYear(new Date().getFullYear() - 21)).toISOString().split('T')[0]}
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+              />
+              <p className="text-xs text-amber-400 mt-1 font-semibold">You must be 21 or older to attend watch parties</p>
             </div>
 
             <div>
@@ -1230,10 +1213,9 @@ const HuddleUpApp = () => {
       <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
-              <Trophy className="inline w-8 h-8 mr-2 text-cyan-400" />
-              GAMES
-            </h1>
+            <div className="flex items-center gap-3">
+              <img src="/huddle-up-logo.png" alt="Huddle Up" className="h-10 drop-shadow-lg" />
+            </div>
             <div className="flex gap-1.5">
               {userVenue && (
                 <button
@@ -1653,6 +1635,9 @@ const HuddleUpApp = () => {
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
+                            {venue?.logo && (
+                              <img src={`/api/uploads/serve/${venue.logo.replace('/objects/', '')}`} alt="" className="w-8 h-8 rounded-lg object-cover border border-white/20" />
+                            )}
                             <h3 className="text-xl font-bold text-white">{party.hostName}'s Party</h3>
                             {party.hostEmail === user.email && (
                               <span className="px-2 py-1 bg-yellow-500/20 text-yellow-300 text-xs font-bold rounded-full border border-yellow-500/30">
@@ -1675,7 +1660,7 @@ const HuddleUpApp = () => {
                           <div className="space-y-2 text-sm text-gray-400">
                             <div className="flex items-center gap-2">
                               <MapPin className="w-4 h-4 text-cyan-400" />
-                              <span>{party.location}</span>
+                              <AddressLink address={party.location} />
                             </div>
                             <div className="flex items-center gap-2">
                               <Calendar className="w-4 h-4 text-cyan-400" />
@@ -2276,6 +2261,9 @@ const HuddleUpApp = () => {
                   >
                     <div className="flex items-center gap-4 flex-1">
                       <div className="text-2xl font-black text-gray-600">#{index + 1}</div>
+                      {venue.logo && (
+                        <img src={`/api/uploads/serve/${venue.logo.replace('/objects/', '')}`} alt="" className="w-10 h-10 rounded-lg object-cover border border-white/20" />
+                      )}
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="font-bold text-white">{venue.name}</h3>
@@ -2286,7 +2274,7 @@ const HuddleUpApp = () => {
                             </span>
                           )}
                         </div>
-                        <div className="text-sm text-gray-400">{venue.address}</div>
+                        <div className="text-sm text-gray-400"><AddressLink address={venue.address} /></div>
                       </div>
                     </div>
                     
@@ -2401,22 +2389,27 @@ const HuddleUpApp = () => {
                   key={venue.id}
                   className="bg-white/5 p-4 rounded-xl border border-white/10 flex items-center justify-between"
                 >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-bold text-white">{venue.name}</h3>
-                      {venue.featured && (
-                        <span className="px-2 py-1 bg-purple-500/20 text-purple-300 text-xs font-bold rounded-full">
-                          ⭐ FEATURED ($199/mo)
-                        </span>
-                      )}
-                      {!venue.featured && (
-                        <span className="px-2 py-1 bg-gray-500/20 text-gray-300 text-xs font-bold rounded-full">
-                          FREE TIER
-                        </span>
-                      )}
+                  <div className="flex items-center gap-3 flex-1">
+                    {venue.logo && (
+                      <img src={`/api/uploads/serve/${venue.logo.replace('/objects/', '')}`} alt="" className="w-10 h-10 rounded-lg object-cover border border-white/20" />
+                    )}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-bold text-white">{venue.name}</h3>
+                        {venue.featured && (
+                          <span className="px-2 py-1 bg-purple-500/20 text-purple-300 text-xs font-bold rounded-full">
+                            ⭐ FEATURED ($199/mo)
+                          </span>
+                        )}
+                        {!venue.featured && (
+                          <span className="px-2 py-1 bg-gray-500/20 text-gray-300 text-xs font-bold rounded-full">
+                            FREE TIER
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-sm text-gray-400"><AddressLink address={venue.address} /></div>
+                      <div className="text-xs text-gray-500">{venue.type}</div>
                     </div>
-                    <div className="text-sm text-gray-400">{venue.address}</div>
-                    <div className="text-xs text-gray-500">{venue.type}</div>
                   </div>
                   
                   <div className="flex items-center gap-4">
@@ -2778,6 +2771,8 @@ const HuddleUpApp = () => {
     const [editCapacity, setEditCapacity] = useState('');
     const [editDescription, setEditDescription] = useState('');
     const [savingVenue, setSavingVenue] = useState(false);
+    const [uploadingLogo, setUploadingLogo] = useState(false);
+    const [uploadingPicture, setUploadingPicture] = useState(false);
 
     const startEditing = () => {
       setEditName(userVenue.name || '');
@@ -2789,6 +2784,33 @@ const HuddleUpApp = () => {
       setEditCapacity(userVenue.capacity ? String(userVenue.capacity) : '');
       setEditDescription(userVenue.description || '');
       setEditingVenue(true);
+    };
+
+    const handleVenueImageUpload = async (file, imageType) => {
+      if (!file || !file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image must be under 5MB');
+        return;
+      }
+      const setter = imageType === 'logo' ? setUploadingLogo : setUploadingPicture;
+      setter(true);
+      try {
+        const { uploadURL, objectPath } = await api.users.requestVenueImageUrl(file.type, imageType);
+        const uploadRes = await fetch(uploadURL, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+        if (!uploadRes.ok) throw new Error('Upload failed');
+        await api.venues.updateMine({
+          name: userVenue.name,
+          address: userVenue.address,
+          [imageType]: objectPath
+        });
+        await loadVenues();
+      } catch (err) {
+        alert('Failed to upload image: ' + err.message);
+      }
+      setter(false);
     };
 
     const saveVenueDetails = async () => {
@@ -2886,22 +2908,32 @@ const HuddleUpApp = () => {
           <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-2xl border border-white/10 shadow-xl">
             {!editingVenue ? (
               <>
+                {userVenue.picture && (
+                  <div className="mb-6 -mt-2 -mx-2 rounded-xl overflow-hidden">
+                    <img src={`/api/uploads/serve/${userVenue.picture.replace('/objects/', '')}`} alt={userVenue.name} className="w-full h-48 object-cover" />
+                  </div>
+                )}
                 <div className="flex items-start justify-between">
-                  <div>
-                    <h1 className="text-4xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
-                      {userVenue.name}
-                    </h1>
-                    <p className="text-gray-400 mb-1">{userVenue.address}</p>
-                    {userVenue.city && <p className="text-gray-400 text-sm mb-1">{userVenue.city}</p>}
-                    <p className="text-sm text-gray-500">{userVenue.type}</p>
-                    <div className="flex flex-wrap gap-3 mt-3 text-sm text-gray-400">
-                      {userVenue.phone && <span>Phone: {userVenue.phone}</span>}
-                      {userVenue.website && <span>Web: {userVenue.website}</span>}
-                      {userVenue.capacity && <span>Seats: {userVenue.capacity}</span>}
-                    </div>
-                    {userVenue.description && (
-                      <p className="text-gray-400 text-sm mt-3 italic">"{userVenue.description}"</p>
+                  <div className="flex items-start gap-4">
+                    {userVenue.logo && (
+                      <img src={`/api/uploads/serve/${userVenue.logo.replace('/objects/', '')}`} alt="Logo" className="w-16 h-16 rounded-xl object-cover border border-white/20" />
                     )}
+                    <div>
+                      <h1 className="text-4xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                        {userVenue.name}
+                      </h1>
+                      <p className="text-gray-400 mb-1"><AddressLink address={userVenue.address} /></p>
+                      {userVenue.city && <p className="text-gray-400 text-sm mb-1">{userVenue.city}</p>}
+                      <p className="text-sm text-gray-500">{userVenue.type}</p>
+                      <div className="flex flex-wrap gap-3 mt-3 text-sm text-gray-400">
+                        {userVenue.phone && <span>Phone: {userVenue.phone}</span>}
+                        {userVenue.website && <span>Web: {userVenue.website}</span>}
+                        {userVenue.capacity && <span>Seats: {userVenue.capacity}</span>}
+                      </div>
+                      {userVenue.description && (
+                        <p className="text-gray-400 text-sm mt-3 italic">"{userVenue.description}"</p>
+                      )}
+                    </div>
                   </div>
                   <div className="flex flex-col items-end gap-3">
                     <div className="text-right">
@@ -2997,6 +3029,45 @@ const HuddleUpApp = () => {
                     placeholder="Tell fans what makes your venue great! e.g., 20 big screens, outdoor patio, game day drink specials, private party rooms..."
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Venue Logo</label>
+                    <div className="flex items-center gap-4">
+                      {userVenue.logo ? (
+                        <img src={`/api/uploads/serve/${userVenue.logo.replace('/objects/', '')}`} alt="Logo" className="w-16 h-16 rounded-xl object-cover border border-white/20" />
+                      ) : (
+                        <div className="w-16 h-16 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-gray-500">
+                          <Building2 className="w-6 h-6" />
+                        </div>
+                      )}
+                      <label className={`px-4 py-2 rounded-xl text-sm font-bold cursor-pointer transition-all ${uploadingLogo ? 'bg-gray-500 text-gray-300' : 'bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 border border-cyan-500/30'}`}>
+                        {uploadingLogo ? 'Uploading...' : 'Upload Logo'}
+                        <input type="file" accept="image/*" className="hidden" disabled={uploadingLogo}
+                          onChange={(e) => handleVenueImageUpload(e.target.files?.[0], 'logo')} />
+                      </label>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Square image works best (e.g., 200x200)</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Venue Photo</label>
+                    <div className="flex items-center gap-4">
+                      {userVenue.picture ? (
+                        <img src={`/api/uploads/serve/${userVenue.picture.replace('/objects/', '')}`} alt="Venue" className="w-24 h-16 rounded-xl object-cover border border-white/20" />
+                      ) : (
+                        <div className="w-24 h-16 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-gray-500">
+                          <Camera className="w-6 h-6" />
+                        </div>
+                      )}
+                      <label className={`px-4 py-2 rounded-xl text-sm font-bold cursor-pointer transition-all ${uploadingPicture ? 'bg-gray-500 text-gray-300' : 'bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 border border-cyan-500/30'}`}>
+                        {uploadingPicture ? 'Uploading...' : 'Upload Photo'}
+                        <input type="file" accept="image/*" className="hidden" disabled={uploadingPicture}
+                          onChange={(e) => handleVenueImageUpload(e.target.files?.[0], 'picture')} />
+                      </label>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Show fans what your venue looks like</p>
+                  </div>
                 </div>
 
                 <div className="flex gap-3 pt-2">
@@ -3342,6 +3413,18 @@ const HuddleUpApp = () => {
                   {user.name}
                 </h1>
                 <p className="text-gray-400 text-sm">{user.email}</p>
+                {user.dateOfBirth && (
+                  <p className="text-sm text-gray-400 mt-1">
+                    Age: {(() => {
+                      const dob = new Date(user.dateOfBirth);
+                      const today = new Date();
+                      let age = today.getFullYear() - dob.getFullYear();
+                      const m = today.getMonth() - dob.getMonth();
+                      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+                      return age;
+                    })()}
+                  </p>
+                )}
                 {user.country && (
                   <p className="text-sm mt-1">
                     <span className="text-lg mr-1">{COUNTRY_FLAGS[user.country] || '🌍'}</span>
@@ -3450,7 +3533,7 @@ const HuddleUpApp = () => {
                             <div className="text-sm text-gray-400 space-y-1">
                               <div className="flex items-center gap-2">
                                 <MapPin className="w-3 h-3" />
-                                {party.venueName || party.location}
+                                <AddressLink address={party.venueName || party.location} />
                               </div>
                               <div className="flex items-center gap-2">
                                 <Users className="w-3 h-3" />
@@ -3481,7 +3564,7 @@ const HuddleUpApp = () => {
                             <div>Hosted by {party.hostName}</div>
                             <div className="flex items-center gap-2">
                               <MapPin className="w-3 h-3" />
-                              {party.venueName || party.location}
+                              <AddressLink address={party.venueName || party.location} />
                             </div>
                           </div>
                         </div>

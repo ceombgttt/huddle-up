@@ -28,6 +28,8 @@ router.get('/', async (req, res) => {
       city: v.city,
       capacity: v.capacity,
       description: v.description,
+      logo: v.logo,
+      picture: v.picture,
       totalParties: parseInt(v.total_parties),
       totalFans: parseInt(v.total_fans)
     }));
@@ -115,7 +117,7 @@ router.put('/me', requireAuth, async (req, res) => {
     const venue = await pool.query('SELECT * FROM venues WHERE claimed_by = $1', [req.session.userId]);
     if (venue.rows.length === 0) return res.status(404).json({ error: 'No venue found for this user' });
 
-    const { name, address, city, type, phone, website, capacity, description } = req.body;
+    const { name, address, city, type, phone, website, capacity, description, logo, picture } = req.body;
     const v = venue.rows[0];
 
     if (!name || !address) return res.status(400).json({ error: 'Business name and address are required' });
@@ -123,8 +125,9 @@ router.put('/me', requireAuth, async (req, res) => {
     await pool.query(
       `UPDATE venues SET
         name = $1, address = $2, city = $3, type = $4,
-        phone = $5, website = $6, capacity = $7, description = $8
-       WHERE id = $9`,
+        phone = $5, website = $6, capacity = $7, description = $8,
+        logo = $9, picture = $10
+       WHERE id = $11`,
       [
         name,
         address,
@@ -134,6 +137,8 @@ router.put('/me', requireAuth, async (req, res) => {
         website !== undefined ? website : v.website,
         capacity !== undefined ? capacity : v.capacity,
         description !== undefined ? description : v.description,
+        logo !== undefined ? logo : v.logo,
+        picture !== undefined ? picture : v.picture,
         v.id
       ]
     );
@@ -150,7 +155,7 @@ router.put('/:id', requireAdmin, async (req, res) => {
     const venue = await pool.query('SELECT * FROM venues WHERE id = $1', [req.params.id]);
     if (venue.rows.length === 0) return res.status(404).json({ error: 'Venue not found' });
 
-    const { name, address, city, type, phone, website, capacity, description, featured } = req.body;
+    const { name, address, city, type, phone, website, capacity, description, featured, logo, picture } = req.body;
     const v = venue.rows[0];
 
     if (!name || !address) return res.status(400).json({ error: 'Business name and address are required' });
@@ -158,8 +163,9 @@ router.put('/:id', requireAdmin, async (req, res) => {
     await pool.query(
       `UPDATE venues SET
         name = $1, address = $2, city = $3, type = $4,
-        phone = $5, website = $6, capacity = $7, description = $8, featured = $9
-       WHERE id = $10`,
+        phone = $5, website = $6, capacity = $7, description = $8, featured = $9,
+        logo = $10, picture = $11
+       WHERE id = $12`,
       [
         name,
         address,
@@ -170,6 +176,8 @@ router.put('/:id', requireAdmin, async (req, res) => {
         capacity !== undefined ? capacity : v.capacity,
         description !== undefined ? description : v.description,
         featured !== undefined ? featured : v.featured,
+        logo !== undefined ? logo : v.logo,
+        picture !== undefined ? picture : v.picture,
         v.id
       ]
     );

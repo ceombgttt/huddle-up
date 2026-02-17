@@ -74,12 +74,12 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - `GET /api/games` - Fetch live games/scores from ESPN API (9 leagues, 60s cache)
 
 ## Database Tables
-- `users` - User accounts with bcrypt password hashes + notifications_enabled flag
+- `users` - User accounts with bcrypt password hashes, date_of_birth, notifications_enabled flag
 - `parties` - Watch party events with venue/game info
 - `party_attendees` - Many-to-many party membership
 - `party_invitations` - Party invitation tracking (pending/accepted/declined)
 - `notifications` - In-app notifications (fan_party type, tracks read/unread)
-- `venues` - Bar/restaurant venues
+- `venues` - Bar/restaurant venues (with logo and picture columns)
 - `venue_claims` - Venue ownership claims for approval
 - `user_favorite_teams` - User sport/team preferences
 - `user_sessions` - Server-side session storage (connect-pg-simple)
@@ -94,11 +94,17 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - Production: `NODE_ENV=production node server/index.js`
 
 ## Storage
-- **Object Storage**: Replit built-in (GCS-backed) for profile picture uploads
+- **Object Storage**: Replit built-in (GCS-backed) for profile pictures and venue images
 - Profile pictures stored at `/objects/profile-pictures/<uuid>` paths
+- Venue logos stored at `/objects/venue-logos/<uuid>` paths
+- Venue photos stored at `/objects/venue-pictures/<uuid>` paths
 - Presigned URL upload flow: request URL → PUT to GCS → save path in DB
 
 ## Recent Changes
+- 2026-02-17: Added Huddle Up logo to welcome screen and dashboard header
+- 2026-02-17: Made all venue addresses clickable Google Maps links for directions
+- 2026-02-17: Added venue logo and picture upload for venue owners (displayed on venue dashboard, leaderboard, party cards, admin panel)
+- 2026-02-17: Added mandatory date of birth field to signup with 21+ age verification; age displayed on profile
 - 2026-02-17: Added profile picture upload feature - users can upload face photos for transparency, displayed on profile, nav bar, fan finder, and party attendee lists; uses Replit object storage with presigned URLs; restricted to profile-pictures path for security
 - 2026-02-16: Added live game scores from ESPN API - auto-refreshes every 60 seconds, shows scores/logos/records/broadcast info for NFL, NBA, MLB, NHL, College Football, College Basketball, Premier League, La Liga MX, MLS
 - 2026-02-16: Added password reset flow - "Forgot Password" link on login, two-step reset (email verification → code + new password), rate-limited, codes expire in 10 minutes
