@@ -1829,6 +1829,42 @@ const HuddleUpApp = () => {
   };
 
   const AdminPanelScreen = () => {
+    const [adminEditVenue, setAdminEditVenue] = useState(null);
+    const [adminEditForm, setAdminEditForm] = useState({});
+    const [adminSavingVenue, setAdminSavingVenue] = useState(false);
+
+    const openAdminEditVenue = (venue) => {
+      setAdminEditForm({
+        name: venue.name || '',
+        address: venue.address || '',
+        city: venue.city || '',
+        type: venue.type || 'Sports Bar',
+        phone: venue.phone || '',
+        website: venue.website || '',
+        capacity: venue.capacity || '',
+        description: venue.description || '',
+        featured: venue.featured || false,
+      });
+      setAdminEditVenue(venue);
+    };
+
+    const handleAdminSaveVenue = async () => {
+      if (!adminEditForm.name || !adminEditForm.address) {
+        alert('Name and address are required.');
+        return;
+      }
+      setAdminSavingVenue(true);
+      try {
+        await api.venues.adminUpdate(adminEditVenue.id, adminEditForm);
+        await loadVenues();
+        setAdminEditVenue(null);
+      } catch (error) {
+        alert(error.message);
+      } finally {
+        setAdminSavingVenue(false);
+      }
+    };
+
     const pendingClaims = venueClaims.filter(c => c.status === 'pending');
     const approvedClaims = venueClaims.filter(c => c.status === 'approved');
     const rejectedClaims = venueClaims.filter(c => c.status === 'rejected');
@@ -2205,12 +2241,138 @@ const HuddleUpApp = () => {
                         ${venue.featured ? '199' : '0'}/mo
                       </div>
                     </div>
+                    <button
+                      onClick={() => openAdminEditVenue(venue)}
+                      className="px-3 py-2 bg-cyan-500/20 text-cyan-300 rounded-lg text-xs font-bold hover:bg-cyan-500/30 border border-cyan-500/30 transition-all"
+                    >
+                      Edit
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
           </div>
         </div>
+
+        {adminEditVenue && (
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setAdminEditVenue(null)}>
+            <div className="bg-slate-800 rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto border border-white/10" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>EDIT VENUE</h3>
+                <button onClick={() => setAdminEditVenue(null)} className="text-gray-400 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Business Name *</label>
+                  <input
+                    value={adminEditForm.name}
+                    onChange={e => setAdminEditForm({...adminEditForm, name: e.target.value})}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Address *</label>
+                  <input
+                    value={adminEditForm.address}
+                    onChange={e => setAdminEditForm({...adminEditForm, address: e.target.value})}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">City</label>
+                  <input
+                    value={adminEditForm.city}
+                    onChange={e => setAdminEditForm({...adminEditForm, city: e.target.value})}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Business Type</label>
+                  <select
+                    value={adminEditForm.type}
+                    onChange={e => setAdminEditForm({...adminEditForm, type: e.target.value})}
+                    className="w-full px-4 py-3 bg-slate-700 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  >
+                    <option value="Sports Bar">Sports Bar</option>
+                    <option value="Restaurant">Restaurant</option>
+                    <option value="Bar & Grill">Bar & Grill</option>
+                    <option value="Brewery/Taproom">Brewery/Taproom</option>
+                    <option value="Pub">Pub</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Phone</label>
+                    <input
+                      value={adminEditForm.phone}
+                      onChange={e => setAdminEditForm({...adminEditForm, phone: e.target.value})}
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Website</label>
+                    <input
+                      value={adminEditForm.website}
+                      onChange={e => setAdminEditForm({...adminEditForm, website: e.target.value})}
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Capacity</label>
+                  <input
+                    type="number"
+                    value={adminEditForm.capacity}
+                    onChange={e => setAdminEditForm({...adminEditForm, capacity: e.target.value})}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
+                  <textarea
+                    value={adminEditForm.description}
+                    onChange={e => setAdminEditForm({...adminEditForm, description: e.target.value})}
+                    rows={3}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                </div>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={adminEditForm.featured}
+                    onChange={e => setAdminEditForm({...adminEditForm, featured: e.target.checked})}
+                    className="w-4 h-4 rounded border-gray-600 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-0 bg-white/10"
+                  />
+                  <span className="text-sm text-gray-300">Featured Venue ($199/mo)</span>
+                </label>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setAdminEditVenue(null)}
+                  className="flex-1 py-3 bg-white/10 text-white rounded-xl font-bold hover:bg-white/20 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAdminSaveVenue}
+                  disabled={adminSavingVenue || !adminEditForm.name || !adminEditForm.address}
+                  className={`flex-1 py-3 rounded-xl font-bold transition-all ${
+                    adminSavingVenue || !adminEditForm.name || !adminEditForm.address
+                      ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:shadow-cyan-500/30 hover:shadow-lg'
+                  }`}
+                >
+                  {adminSavingVenue ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   };

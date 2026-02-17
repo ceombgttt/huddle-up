@@ -145,6 +145,42 @@ router.put('/me', requireAuth, async (req, res) => {
   }
 });
 
+router.put('/:id', requireAdmin, async (req, res) => {
+  try {
+    const venue = await pool.query('SELECT * FROM venues WHERE id = $1', [req.params.id]);
+    if (venue.rows.length === 0) return res.status(404).json({ error: 'Venue not found' });
+
+    const { name, address, city, type, phone, website, capacity, description, featured } = req.body;
+    const v = venue.rows[0];
+
+    if (!name || !address) return res.status(400).json({ error: 'Business name and address are required' });
+
+    await pool.query(
+      `UPDATE venues SET
+        name = $1, address = $2, city = $3, type = $4,
+        phone = $5, website = $6, capacity = $7, description = $8, featured = $9
+       WHERE id = $10`,
+      [
+        name,
+        address,
+        city !== undefined ? city : v.city,
+        type || v.type,
+        phone !== undefined ? phone : v.phone,
+        website !== undefined ? website : v.website,
+        capacity !== undefined ? capacity : v.capacity,
+        description !== undefined ? description : v.description,
+        featured !== undefined ? featured : v.featured,
+        v.id
+      ]
+    );
+
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Admin update venue error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 router.post('/claims/:id/reject', requireAdmin, async (req, res) => {
   try {
     await pool.query(

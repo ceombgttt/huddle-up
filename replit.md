@@ -65,6 +65,7 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - `POST /api/notifications/read/:id` - Mark a notification as read
 - `POST /api/notifications/read-all` - Mark all notifications as read
 - `PUT /api/notifications/settings` - Toggle notification preference
+- `PUT /api/venues/:id` - Admin edit any venue (name, address, city, type, phone, website, capacity, description, featured)
 - `GET /api/games` - Fetch live games/scores from ESPN API (9 leagues, 60s cache)
 
 ## Database Tables
