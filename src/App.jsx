@@ -2611,6 +2611,79 @@ const HuddleUpApp = () => {
             )}
           </div>
 
+          {/* Promote & Share Section */}
+          <div className="bg-gradient-to-br from-emerald-500/10 to-cyan-500/10 border-2 border-emerald-500/30 p-6 rounded-2xl space-y-5">
+            <h2 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+              <Share2 className="inline w-6 h-6 mr-2 text-emerald-400" />
+              PROMOTE YOUR VENUE
+            </h2>
+            <p className="text-gray-300 text-sm">Share your venue with fans and drive more watch parties to your business.</p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                onClick={async () => {
+                  const shareUrl = window.location.origin;
+                  const text = `Watch the game at ${userVenue.name}! Find watch parties and join the crew on Huddle Up.`;
+                  if (navigator.share) {
+                    try { await navigator.share({ title: userVenue.name + ' on Huddle Up', text, url: shareUrl }); } catch (e) {}
+                  } else {
+                    try {
+                      await navigator.clipboard.writeText(`${text} ${shareUrl}`);
+                      setShowShareToast(true);
+                      setTimeout(() => setShowShareToast(false), 2000);
+                    } catch (e) {}
+                  }
+                }}
+                className="flex items-center justify-center gap-3 py-4 bg-gradient-to-r from-emerald-500 to-green-500 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-emerald-500/50 transition-all text-sm"
+              >
+                <Share2 className="w-5 h-5" />
+                Share Your Venue
+              </button>
+
+              <button
+                onClick={shareApp}
+                className="flex items-center justify-center gap-3 py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-cyan-500/50 transition-all text-sm"
+              >
+                <Users className="w-5 h-5" />
+                Invite Fans to Huddle Up
+              </button>
+
+              <button
+                onClick={async () => {
+                  const shareUrl = window.location.origin;
+                  const text = `🏈 Watch parties happening at ${userVenue.name}! Download Huddle Up to find your crew and join the fun.`;
+                  try {
+                    await navigator.clipboard.writeText(`${text} ${shareUrl}`);
+                    setShowShareToast(true);
+                    setTimeout(() => setShowShareToast(false), 2000);
+                  } catch (e) {}
+                }}
+                className="flex items-center justify-center gap-3 py-4 bg-white/10 text-white font-bold rounded-xl hover:bg-white/20 transition-all border border-white/20 text-sm"
+              >
+                <span className="text-lg">📋</span>
+                Copy Social Media Post
+              </button>
+
+              <button
+                onClick={() => setCurrentScreen('games')}
+                className="flex items-center justify-center gap-3 py-4 bg-white/10 text-white font-bold rounded-xl hover:bg-white/20 transition-all border border-white/20 text-sm"
+              >
+                <Calendar className="w-5 h-5" />
+                Create a Watch Party
+              </button>
+            </div>
+
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-2">
+              <p className="text-white font-bold text-sm">Quick promo ideas:</p>
+              <ul className="space-y-1.5 text-xs text-gray-400">
+                <li>• Post your Huddle Up link on Instagram, Facebook, and X</li>
+                <li>• Add a QR code or table tent: "Find tonight's watch party on Huddle Up!"</li>
+                <li>• Text your regulars the link before big game days</li>
+                <li>• Offer a game day special and mention it in your party description</li>
+              </ul>
+            </div>
+          </div>
+
           {/* Tips for Venues */}
           <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 p-6 rounded-2xl">
             <h3 className="text-lg font-black text-white mb-4">💡 Tips to Get More Watch Parties</h3>
