@@ -91,7 +91,7 @@ const SAMPLE_GAMES = [
   { id: 'cri3', sport: 'Cricket', homeTeam: 'IPL Final', awayTeam: 'Championship Match', startTime: '2026-05-30T10:00:00', venue: 'Narendra Modi Stadium, Ahmedabad' },
 ];
 
-const SPORTS = ['All', 'NFL', 'NBA', 'MLB', 'NHL', 'College Football', 'College Basketball', 'Premier League', 'La Liga', 'Liga MX', 'MLS', 'Champions League', 'Formula 1', 'Tennis', 'Rugby', 'Cricket', 'UFC'];
+const SPORTS = ['All', 'UFC', 'NFL', 'NBA', 'MLB', 'NHL', 'College Football', 'College Basketball', 'Premier League', 'La Liga', 'Liga MX', 'MLS', 'Champions League', 'Formula 1', 'Tennis', 'Rugby', 'Cricket'];
 
 const SPORT_ICONS = {
   'All': '🏟️',
