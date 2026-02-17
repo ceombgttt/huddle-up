@@ -106,6 +106,24 @@ export async function initDB() {
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
 
+      CREATE TABLE IF NOT EXISTS sponsors (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        venue_id UUID REFERENCES venues(id) ON DELETE CASCADE,
+        name TEXT NOT NULL,
+        contact_name TEXT,
+        contact_email TEXT,
+        contact_phone TEXT,
+        logo TEXT,
+        website TEXT,
+        notes TEXT,
+        amount_paid NUMERIC(10,2) DEFAULT 0,
+        payment_frequency TEXT DEFAULT 'one-time' CHECK (payment_frequency IN ('one-time', 'monthly', 'quarterly', 'yearly')),
+        start_date DATE,
+        end_date DATE,
+        status TEXT DEFAULT 'active' CHECK (status IN ('active', 'paused', 'ended')),
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
       ALTER TABLE users ADD COLUMN IF NOT EXISTS notifications_enabled BOOLEAN DEFAULT TRUE;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS date_of_birth DATE;
       ALTER TABLE venues ADD COLUMN IF NOT EXISTS logo TEXT;

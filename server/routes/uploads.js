@@ -132,13 +132,13 @@ router.post('/venue-image/request-url', requireAuth, async (req, res) => {
     if (!contentType || !contentType.startsWith('image/')) {
       return res.status(400).json({ error: 'Only image files are allowed' });
     }
-    if (!['logo', 'picture'].includes(imageType)) {
+    if (!['logo', 'picture', 'sponsor-logo'].includes(imageType)) {
       return res.status(400).json({ error: 'Invalid image type' });
     }
 
     const privateDir = getPrivateObjectDir();
     const objectId = randomUUID();
-    const folder = imageType === 'logo' ? 'venue-logos' : 'venue-pictures';
+    const folder = imageType === 'logo' ? 'venue-logos' : imageType === 'sponsor-logo' ? 'sponsor-logos' : 'venue-pictures';
     const fullPath = `${privateDir}/${folder}/${objectId}`;
     const { bucketName, objectName } = parseObjectPath(fullPath);
 
@@ -161,7 +161,7 @@ router.post('/venue-image/request-url', requireAuth, async (req, res) => {
 router.get('/serve/*', async (req, res) => {
   try {
     const objectSubPath = req.params[0];
-    const allowedPrefixes = ['profile-pictures/', 'venue-logos/', 'venue-pictures/'];
+    const allowedPrefixes = ['profile-pictures/', 'venue-logos/', 'venue-pictures/', 'sponsor-logos/'];
     if (!allowedPrefixes.some(p => objectSubPath.startsWith(p))) {
       return res.status(403).json({ error: 'Access denied' });
     }

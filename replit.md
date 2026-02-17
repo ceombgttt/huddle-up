@@ -73,6 +73,10 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - `DELETE /api/uploads/profile-picture` - Remove profile picture
 - `GET /api/uploads/serve/profile-pictures/:id` - Serve profile picture images
 - `GET /api/games` - Fetch live games/scores from ESPN API (9 leagues, 60s cache)
+- `GET /api/sponsors` - List sponsors for venue owner's venue
+- `POST /api/sponsors` - Add a new sponsor (venue owner only)
+- `PUT /api/sponsors/:id` - Update a sponsor (venue owner only)
+- `DELETE /api/sponsors/:id` - Delete a sponsor (venue owner only)
 
 ## Database Tables
 - `users` - User accounts with bcrypt password hashes, date_of_birth, notifications_enabled flag
@@ -83,6 +87,7 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - `venues` - Bar/restaurant venues (with logo and picture columns)
 - `venue_claims` - Venue ownership claims for approval
 - `user_favorite_teams` - User sport/team preferences
+- `sponsors` - Venue sponsor tracking (name, contact, logo, revenue, frequency, dates, status)
 - `user_sessions` - Server-side session storage (connect-pg-simple)
 
 ## Admin Account
@@ -102,6 +107,7 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - Presigned URL upload flow: request URL → PUT to GCS → save path in DB
 
 ## Recent Changes
+- 2026-02-17: Added sponsor management to venue owner dashboard - add/edit/delete sponsors with logo upload, contact details, revenue tracking (amount, frequency), date ranges, status (active/paused/ended), revenue summary cards
 - 2026-02-17: Updated logo to new shield/fist design (huddle-up-logo-2.png) across welcome, signup, and dashboard header
 - 2026-02-17: Added glowing scroll-down arrow with bounce animation to guide users to game cards below banners
 - 2026-02-17: Added dynamic sponsor banner on dashboard - changes based on selected sport filter, rotates every 5s when "All" selected, placeholder spots for all 15+ sports

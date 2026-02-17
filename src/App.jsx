@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2 } from 'lucide-react';
 import { api } from './api.js';
 
 // Sample games data for different sports
@@ -2998,6 +2998,136 @@ const HuddleUpApp = () => {
     const [uploadingLogo, setUploadingLogo] = useState(false);
     const [uploadingPicture, setUploadingPicture] = useState(false);
 
+    const [sponsors, setSponsors] = useState([]);
+    const [showSponsorForm, setShowSponsorForm] = useState(false);
+    const [editingSponsor, setEditingSponsor] = useState(null);
+    const [sponsorName, setSponsorName] = useState('');
+    const [sponsorContactName, setSponsorContactName] = useState('');
+    const [sponsorContactEmail, setSponsorContactEmail] = useState('');
+    const [sponsorContactPhone, setSponsorContactPhone] = useState('');
+    const [sponsorWebsite, setSponsorWebsite] = useState('');
+    const [sponsorNotes, setSponsorNotes] = useState('');
+    const [sponsorAmount, setSponsorAmount] = useState('');
+    const [sponsorFrequency, setSponsorFrequency] = useState('one-time');
+    const [sponsorStartDate, setSponsorStartDate] = useState('');
+    const [sponsorEndDate, setSponsorEndDate] = useState('');
+    const [sponsorStatus, setSponsorStatus] = useState('active');
+    const [sponsorLogo, setSponsorLogo] = useState(null);
+    const [savingSponsor, setSavingSponsor] = useState(false);
+    const [uploadingSponsorLogo, setUploadingSponsorLogo] = useState(false);
+
+    const loadSponsors = useCallback(async () => {
+      try {
+        const data = await api.sponsors.list();
+        setSponsors(data);
+      } catch (err) {
+        console.error('Failed to load sponsors:', err);
+      }
+    }, []);
+
+    useEffect(() => {
+      if (userVenue) loadSponsors();
+    }, [userVenue, loadSponsors]);
+
+    const resetSponsorForm = () => {
+      setSponsorName('');
+      setSponsorContactName('');
+      setSponsorContactEmail('');
+      setSponsorContactPhone('');
+      setSponsorWebsite('');
+      setSponsorNotes('');
+      setSponsorAmount('');
+      setSponsorFrequency('one-time');
+      setSponsorStartDate('');
+      setSponsorEndDate('');
+      setSponsorStatus('active');
+      setSponsorLogo(null);
+      setEditingSponsor(null);
+      setShowSponsorForm(false);
+    };
+
+    const startEditSponsor = (s) => {
+      setSponsorName(s.name || '');
+      setSponsorContactName(s.contactName || '');
+      setSponsorContactEmail(s.contactEmail || '');
+      setSponsorContactPhone(s.contactPhone || '');
+      setSponsorWebsite(s.website || '');
+      setSponsorNotes(s.notes || '');
+      setSponsorAmount(s.amountPaid ? String(s.amountPaid) : '');
+      setSponsorFrequency(s.paymentFrequency || 'one-time');
+      setSponsorStartDate(s.startDate ? s.startDate.split('T')[0] : '');
+      setSponsorEndDate(s.endDate ? s.endDate.split('T')[0] : '');
+      setSponsorStatus(s.status || 'active');
+      setSponsorLogo(s.logo || null);
+      setEditingSponsor(s.id);
+      setShowSponsorForm(true);
+    };
+
+    const handleSponsorLogoUpload = async (file) => {
+      if (!file || !file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image must be under 5MB');
+        return;
+      }
+      setUploadingSponsorLogo(true);
+      try {
+        const { uploadURL, objectPath } = await api.sponsors.requestLogoUrl(file.type);
+        const uploadRes = await fetch(uploadURL, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+        if (!uploadRes.ok) throw new Error('Upload failed');
+        setSponsorLogo(objectPath);
+      } catch (err) {
+        alert('Failed to upload logo: ' + err.message);
+      }
+      setUploadingSponsorLogo(false);
+    };
+
+    const saveSponsor = async () => {
+      if (!sponsorName) { alert('Sponsor name is required'); return; }
+      setSavingSponsor(true);
+      try {
+        const data = {
+          name: sponsorName,
+          contactName: sponsorContactName,
+          contactEmail: sponsorContactEmail,
+          contactPhone: sponsorContactPhone,
+          logo: sponsorLogo,
+          website: sponsorWebsite,
+          notes: sponsorNotes,
+          amountPaid: sponsorAmount ? parseFloat(sponsorAmount) : 0,
+          paymentFrequency: sponsorFrequency,
+          startDate: sponsorStartDate || null,
+          endDate: sponsorEndDate || null,
+          status: sponsorStatus
+        };
+        if (editingSponsor) {
+          await api.sponsors.update(editingSponsor, data);
+        } else {
+          await api.sponsors.create(data);
+        }
+        await loadSponsors();
+        resetSponsorForm();
+      } catch (err) {
+        alert('Failed to save sponsor: ' + err.message);
+      }
+      setSavingSponsor(false);
+    };
+
+    const deleteSponsor = async (id) => {
+      if (!confirm('Are you sure you want to remove this sponsor?')) return;
+      try {
+        await api.sponsors.delete(id);
+        await loadSponsors();
+      } catch (err) {
+        alert('Failed to delete sponsor: ' + err.message);
+      }
+    };
+
+    const totalSponsorRevenue = sponsors.reduce((sum, s) => sum + (s.amountPaid || 0), 0);
+    const activeSponsors = sponsors.filter(s => s.status === 'active');
+
     const startEditing = () => {
       setEditName(userVenue.name || '');
       setEditAddress(userVenue.address || '');
@@ -3468,6 +3598,250 @@ const HuddleUpApp = () => {
                     </div>
                   );
                 })}
+              </div>
+            )}
+          </div>
+
+          {/* Sponsor Management Section */}
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-2xl border border-white/10">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                <DollarSign className="inline w-6 h-6 mr-2 text-green-400" />
+                SPONSOR MANAGEMENT
+              </h2>
+              <button
+                onClick={() => { resetSponsorForm(); setShowSponsorForm(true); }}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-green-500/50 transition-all text-sm"
+              >
+                <Plus className="w-4 h-4" />
+                Add Sponsor
+              </button>
+            </div>
+
+            {/* Revenue Summary */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+              <div className="bg-green-500/10 border border-green-500/20 p-4 rounded-xl">
+                <div className="text-sm text-green-300 mb-1">Total Revenue</div>
+                <div className="text-2xl font-black text-white">${totalSponsorRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+              </div>
+              <div className="bg-cyan-500/10 border border-cyan-500/20 p-4 rounded-xl">
+                <div className="text-sm text-cyan-300 mb-1">Active Sponsors</div>
+                <div className="text-2xl font-black text-white">{activeSponsors.length}</div>
+              </div>
+              <div className="bg-purple-500/10 border border-purple-500/20 p-4 rounded-xl">
+                <div className="text-sm text-purple-300 mb-1">Total Sponsors</div>
+                <div className="text-2xl font-black text-white">{sponsors.length}</div>
+              </div>
+            </div>
+
+            {/* Add/Edit Sponsor Form */}
+            {showSponsorForm && (
+              <div className="bg-white/5 border border-white/10 rounded-xl p-6 mb-6 space-y-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-lg font-bold text-white">
+                    {editingSponsor ? 'Edit Sponsor' : 'Add New Sponsor'}
+                  </h3>
+                  <button onClick={resetSponsorForm} className="text-gray-400 hover:text-white">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Sponsor/Company Name *</label>
+                    <input type="text" value={sponsorName} onChange={(e) => setSponsorName(e.target.value)}
+                      placeholder="e.g., Bud Light"
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Contact Name</label>
+                    <input type="text" value={sponsorContactName} onChange={(e) => setSponsorContactName(e.target.value)}
+                      placeholder="Rep name"
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Contact Email</label>
+                    <input type="email" value={sponsorContactEmail} onChange={(e) => setSponsorContactEmail(e.target.value)}
+                      placeholder="sponsor@company.com"
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Contact Phone</label>
+                    <input type="tel" value={sponsorContactPhone} onChange={(e) => setSponsorContactPhone(e.target.value)}
+                      placeholder="(555) 123-4567"
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Website</label>
+                    <input type="text" value={sponsorWebsite} onChange={(e) => setSponsorWebsite(e.target.value)}
+                      placeholder="sponsor-website.com"
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Amount Paid ($)</label>
+                    <input type="number" step="0.01" value={sponsorAmount} onChange={(e) => setSponsorAmount(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Payment Frequency</label>
+                    <select value={sponsorFrequency} onChange={(e) => setSponsorFrequency(e.target.value)}
+                      className="w-full px-4 py-3 bg-slate-700 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                    >
+                      <option value="one-time" className="bg-slate-700">One-Time</option>
+                      <option value="monthly" className="bg-slate-700">Monthly</option>
+                      <option value="quarterly" className="bg-slate-700">Quarterly</option>
+                      <option value="yearly" className="bg-slate-700">Yearly</option>
+                    </select>
+                  </div>
+                  {editingSponsor && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">Status</label>
+                      <select value={sponsorStatus} onChange={(e) => setSponsorStatus(e.target.value)}
+                        className="w-full px-4 py-3 bg-slate-700 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                      >
+                        <option value="active" className="bg-slate-700">Active</option>
+                        <option value="paused" className="bg-slate-700">Paused</option>
+                        <option value="ended" className="bg-slate-700">Ended</option>
+                      </select>
+                    </div>
+                  )}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Start Date</label>
+                    <input type="date" value={sponsorStartDate} onChange={(e) => setSponsorStartDate(e.target.value)}
+                      className="w-full px-4 py-3 bg-slate-700 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">End Date</label>
+                    <input type="date" value={sponsorEndDate} onChange={(e) => setSponsorEndDate(e.target.value)}
+                      className="w-full px-4 py-3 bg-slate-700 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Notes</label>
+                  <textarea value={sponsorNotes} onChange={(e) => setSponsorNotes(e.target.value)}
+                    rows={2}
+                    placeholder="Deal details, special terms, deliverables..."
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Sponsor Logo</label>
+                  <div className="flex items-center gap-4">
+                    {sponsorLogo ? (
+                      <img src={`/api/uploads/serve/${sponsorLogo.replace('/objects/', '')}`} alt="Logo" className="w-16 h-16 rounded-xl object-cover border border-white/20" />
+                    ) : (
+                      <div className="w-16 h-16 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-gray-500">
+                        <Building2 className="w-6 h-6" />
+                      </div>
+                    )}
+                    <label className={`px-4 py-2 rounded-xl text-sm font-bold cursor-pointer transition-all ${uploadingSponsorLogo ? 'bg-gray-500 text-gray-300' : 'bg-green-500/20 text-green-300 hover:bg-green-500/30 border border-green-500/30'}`}>
+                      {uploadingSponsorLogo ? 'Uploading...' : 'Upload Logo'}
+                      <input type="file" accept="image/*" className="hidden" disabled={uploadingSponsorLogo}
+                        onChange={(e) => handleSponsorLogoUpload(e.target.files?.[0])} />
+                    </label>
+                    {sponsorLogo && (
+                      <button onClick={() => setSponsorLogo(null)} className="text-red-400 hover:text-red-300 text-sm">
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={saveSponsor}
+                    disabled={savingSponsor || !sponsorName}
+                    className={`flex-1 py-3 font-bold rounded-xl transition-all ${
+                      savingSponsor || !sponsorName
+                        ? 'bg-gray-500 text-gray-300 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:shadow-lg hover:shadow-green-500/50'
+                    }`}
+                  >
+                    {savingSponsor ? 'Saving...' : editingSponsor ? 'Update Sponsor' : 'Add Sponsor'}
+                  </button>
+                  <button
+                    onClick={resetSponsorForm}
+                    className="px-6 py-3 bg-white/10 text-gray-300 font-bold rounded-xl hover:bg-white/20 transition-all"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Sponsor List */}
+            {sponsors.length === 0 && !showSponsorForm ? (
+              <div className="text-center py-8 text-gray-400">
+                <DollarSign className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p className="font-bold mb-1">No sponsors yet</p>
+                <p className="text-sm">Add sponsors to track their logos, deals, and revenue.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {sponsors.map(s => (
+                  <div key={s.id} className={`bg-white/5 p-5 rounded-xl border ${s.status === 'active' ? 'border-green-500/20' : s.status === 'paused' ? 'border-yellow-500/20' : 'border-gray-500/20'}`}>
+                    <div className="flex items-start gap-4">
+                      {s.logo ? (
+                        <img src={`/api/uploads/serve/${s.logo.replace('/objects/', '')}`} alt={s.name} className="w-14 h-14 rounded-xl object-cover border border-white/20 flex-shrink-0" />
+                      ) : (
+                        <div className="w-14 h-14 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-gray-500 flex-shrink-0">
+                          <Building2 className="w-6 h-6" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <span className="text-white font-bold text-lg">{s.name}</span>
+                          <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${
+                            s.status === 'active' ? 'bg-green-500/20 text-green-300 border border-green-500/30' :
+                            s.status === 'paused' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' :
+                            'bg-gray-500/20 text-gray-400 border border-gray-500/30'
+                          }`}>
+                            {s.status.toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-400">
+                          {s.contactName && <span>{s.contactName}</span>}
+                          {s.contactEmail && <span>{s.contactEmail}</span>}
+                          {s.contactPhone && <span>{s.contactPhone}</span>}
+                        </div>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm">
+                          <span className="text-green-400 font-bold">${(s.amountPaid || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                          <span className="text-gray-500">{s.paymentFrequency === 'one-time' ? 'One-Time' : s.paymentFrequency.charAt(0).toUpperCase() + s.paymentFrequency.slice(1)}</span>
+                          {s.startDate && <span className="text-gray-500">From: {new Date(s.startDate).toLocaleDateString()}</span>}
+                          {s.endDate && <span className="text-gray-500">To: {new Date(s.endDate).toLocaleDateString()}</span>}
+                        </div>
+                        {s.notes && <p className="text-gray-500 text-xs mt-2 italic">"{s.notes}"</p>}
+                      </div>
+                      <div className="flex gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => startEditSponsor(s)}
+                          className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-all text-gray-300 hover:text-white"
+                          title="Edit"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteSponsor(s.id)}
+                          className="p-2 bg-red-500/10 rounded-lg hover:bg-red-500/20 transition-all text-red-400 hover:text-red-300"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
