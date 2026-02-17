@@ -729,9 +729,18 @@ const HuddleUpApp = () => {
     if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB'); return; }
     setUploadingSponsorLogo(true);
     try {
-      const { uploadURL, objectPath } = await api.sponsors.requestLogoUrl(file.type);
-      const uploadRes = await fetch(uploadURL, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
-      if (!uploadRes.ok) throw new Error('Upload failed');
+      const fileBuffer = await file.arrayBuffer();
+      const uploadRes = await fetch('/api/uploads/venue-image/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': file.type, 'x-image-type': 'sponsor-logo' },
+        credentials: 'include',
+        body: fileBuffer,
+      });
+      if (!uploadRes.ok) {
+        const errData = await uploadRes.json().catch(() => ({}));
+        throw new Error(errData.error || 'Upload failed');
+      }
+      const { objectPath } = await uploadRes.json();
       setSponsorLogo(objectPath);
     } catch (err) { alert('Failed to upload logo: ' + err.message); }
     setUploadingSponsorLogo(false);
@@ -3890,9 +3899,18 @@ const HuddleUpApp = () => {
       const setter = imageType === 'logo' ? setUploadingLogo : setUploadingPicture;
       setter(true);
       try {
-        const { uploadURL, objectPath } = await api.users.requestVenueImageUrl(file.type, imageType);
-        const uploadRes = await fetch(uploadURL, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
-        if (!uploadRes.ok) throw new Error('Upload failed');
+        const fileBuffer = await file.arrayBuffer();
+        const uploadRes = await fetch('/api/uploads/venue-image/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': file.type, 'x-image-type': imageType },
+          credentials: 'include',
+          body: fileBuffer,
+        });
+        if (!uploadRes.ok) {
+          const errData = await uploadRes.json().catch(() => ({}));
+          throw new Error(errData.error || 'Upload failed');
+        }
+        const { objectPath } = await uploadRes.json();
         await api.venues.updateMine({
           name: userVenue.name,
           address: userVenue.address,
@@ -4479,14 +4497,18 @@ const HuddleUpApp = () => {
                         return;
                       }
                       try {
-                        const { uploadURL, objectPath } = await api.users.requestProfilePictureUrl(file.type);
-                        const uploadRes = await fetch(uploadURL, {
-                          method: 'PUT',
-                          body: file,
+                        const fileBuffer = await file.arrayBuffer();
+                        const uploadRes = await fetch('/api/uploads/profile-picture/upload', {
+                          method: 'POST',
                           headers: { 'Content-Type': file.type },
+                          credentials: 'include',
+                          body: fileBuffer,
                         });
-                        if (!uploadRes.ok) throw new Error('Upload failed');
-                        await api.users.saveProfilePicture(objectPath);
+                        if (!uploadRes.ok) {
+                          const errData = await uploadRes.json().catch(() => ({}));
+                          throw new Error(errData.error || 'Upload failed');
+                        }
+                        const { objectPath } = await uploadRes.json();
                         setUser({ ...user, profilePicture: objectPath });
                       } catch (err) {
                         alert('Failed to upload photo: ' + err.message);

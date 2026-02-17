@@ -25,6 +25,8 @@ const isProduction = process.env.NODE_ENV === 'production';
 const app = express();
 const PgSession = connectPgSimple(session);
 
+app.use('/api/uploads/venue-image/upload', express.raw({ type: 'image/*', limit: '5mb' }));
+app.use('/api/uploads/profile-picture/upload', express.raw({ type: 'image/*', limit: '5mb' }));
 app.use(express.json());
 
 app.use(session({

@@ -158,6 +158,76 @@ router.post('/venue-image/request-url', requireAuth, async (req, res) => {
   }
 });
 
+router.post('/venue-image/upload', requireAuth, async (req, res) => {
+  try {
+    const imageType = req.headers['x-image-type'] || '';
+    const contentType = req.headers['x-file-content-type'] || req.headers['content-type'] || 'application/octet-stream';
+
+    if (!['logo', 'picture', 'sponsor-logo'].includes(imageType)) {
+      return res.status(400).json({ error: 'Invalid image type. Set x-image-type header.' });
+    }
+
+    if (!req.body || req.body.length === 0) {
+      return res.status(400).json({ error: 'No file data received' });
+    }
+
+    const privateDir = getPrivateObjectDir();
+    const objectId = randomUUID();
+    const folder = imageType === 'logo' ? 'venue-logos' : imageType === 'sponsor-logo' ? 'sponsor-logos' : 'venue-pictures';
+    const fullPath = `${privateDir}/${folder}/${objectId}`;
+    const { bucketName, objectName } = parseObjectPath(fullPath);
+
+    const bucket = storage.bucket(bucketName);
+    const file = bucket.file(objectName);
+
+    await file.save(req.body, {
+      metadata: { contentType: contentType.split(';')[0] },
+      resumable: false,
+    });
+
+    const objectPath = `/objects/${folder}/${objectId}`;
+    res.json({ objectPath });
+  } catch (error) {
+    console.error('Venue image direct upload error:', error);
+    res.status(500).json({ error: 'Failed to upload image' });
+  }
+});
+
+router.post('/profile-picture/upload', requireAuth, async (req, res) => {
+  try {
+    const contentType = req.headers['x-file-content-type'] || req.headers['content-type'] || 'application/octet-stream';
+
+    if (!req.body || req.body.length === 0) {
+      return res.status(400).json({ error: 'No file data received' });
+    }
+
+    const privateDir = getPrivateObjectDir();
+    const objectId = randomUUID();
+    const fullPath = `${privateDir}/profile-pictures/${objectId}`;
+    const { bucketName, objectName } = parseObjectPath(fullPath);
+
+    const bucket = storage.bucket(bucketName);
+    const file = bucket.file(objectName);
+
+    await file.save(req.body, {
+      metadata: { contentType: contentType.split(';')[0] },
+      resumable: false,
+    });
+
+    const objectPath = `/objects/profile-pictures/${objectId}`;
+
+    await pool.query(
+      'UPDATE users SET profile_picture = $1 WHERE id = $2',
+      [objectPath, req.session.userId]
+    );
+
+    res.json({ objectPath, profilePicture: objectPath });
+  } catch (error) {
+    console.error('Profile picture direct upload error:', error);
+    res.status(500).json({ error: 'Failed to upload profile picture' });
+  }
+});
+
 router.get('/serve/*', async (req, res) => {
   try {
     const objectSubPath = req.params[0];
