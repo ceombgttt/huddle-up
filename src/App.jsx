@@ -493,6 +493,7 @@ const HuddleUpApp = () => {
   const [adminEditVenue, setAdminEditVenue] = useState(null);
   const [adminEditForm, setAdminEditForm] = useState({});
   const [adminSavingVenue, setAdminSavingVenue] = useState(false);
+  const [totalUsers, setTotalUsersCount] = useState(0);
   const [invitations, setInvitations] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [fanSearchSport, setFanSearchSport] = useState('');
@@ -550,7 +551,10 @@ const HuddleUpApp = () => {
   }, []);
 
   useEffect(() => {
-    if (currentScreen === 'admin' && user?.isAdmin) { loadSponsors(); }
+    if (currentScreen === 'admin' && user?.isAdmin) {
+      loadSponsors();
+      api.users.stats().then(s => setTotalUsersCount(s.totalUsers)).catch(() => {});
+    }
   }, [currentScreen, user?.isAdmin, loadSponsors]);
 
   const resetSponsorForm = () => {
@@ -2368,11 +2372,6 @@ const HuddleUpApp = () => {
     const monthlyRecurringRevenue = (featuredVenues.length * 199) + (regularVenues.length * 0); // Free tier = $0
     const projectedAnnualRevenue = monthlyRecurringRevenue * 12;
     
-    // Activity Metrics
-    const [totalUsers, setTotalUsersCount] = useState(0);
-    useEffect(() => {
-      api.users.stats().then(s => setTotalUsersCount(s.totalUsers)).catch(() => {});
-    }, []);
     const activeParties = parties.filter(p => {
       const game = games.find(g => g.id === p.gameId);
       return game && new Date(game.startTime) > new Date();
