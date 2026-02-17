@@ -17,6 +17,7 @@ import uploadRoutes from './routes/uploads.js';
 import sponsorRoutes from './routes/sponsors.js';
 import pushRoutes from './routes/push.js';
 import chatRoutes from './routes/chat.js';
+import analyticsRoutes from './routes/analytics.js';
 import { startScoreChecker } from './scoreChecker.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -59,6 +60,7 @@ app.use('/api/uploads', uploadRoutes);
 app.use('/api/sponsors', sponsorRoutes);
 app.use('/api/push', pushRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 

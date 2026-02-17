@@ -73,6 +73,17 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - `POST /api/uploads/profile-picture/save` - Save profile picture path after upload
 - `DELETE /api/uploads/profile-picture` - Remove profile picture
 - `GET /api/uploads/serve/profile-pictures/:id` - Serve profile picture images
+- `GET /api/analytics/overview` - KPI summary (admin only)
+- `GET /api/analytics/user-growth?days=N` - Daily signup counts (admin only)
+- `GET /api/analytics/party-trends?days=N` - Daily party creation counts (admin only)
+- `GET /api/analytics/top-sports` - Sports ranked by party count (admin only)
+- `GET /api/analytics/top-cities` - Cities ranked by party count (admin only)
+- `GET /api/analytics/top-teams` - Teams ranked by fan count (admin only)
+- `GET /api/analytics/venue-performance` - Venue rankings by parties/attendees (admin only)
+- `GET /api/analytics/engagement` - User engagement metrics + demographics (admin only)
+- `GET /api/analytics/recent-activity` - Recent signups, parties, messages (admin only)
+- `GET /api/analytics/user-cities` - User distribution by city (admin only)
+- `GET /api/analytics/hourly-activity` - Chat message counts by hour (admin only)
 - `GET /api/games` - Fetch live games/scores from ESPN API (9 leagues, 60s cache)
 - `GET /api/chat/parties/:partyId/messages` - Get party chat messages (requires membership)
 - `POST /api/chat/parties/:partyId/messages` - Send party chat message (requires membership, 500 char limit)
@@ -112,6 +123,7 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - Presigned URL upload flow: request URL → PUT to GCS → save path in DB
 
 ## Recent Changes
+- 2026-02-17: Added comprehensive admin analytics dashboard - tabbed interface (Analytics/Management), KPI cards (users/parties/venues/attendees/messages/friendships), user growth bar chart (90 days), engagement rings (favorites/profile pics/friends/parties/chat), gender & age demographics, top sports/cities/teams rankings, venue performance table, user locations map, hourly chat activity chart, recent signups/parties/messages feeds, refresh button
 - 2026-02-17: Fixed venue edit form resetting on scroll - lifted editing state to App level so data refreshes don't unmount the edit form; added fixed scroll container to prevent mobile overscroll navigation
 - 2026-02-17: Added party chat system - real-time messaging within party cards for attendees/hosts, auto-polls every 5s, message bubbles with profile pics and timestamps, 500 char limit, membership-verified access
 - 2026-02-17: Added "My Crew" friend/community system - send/accept/decline friend requests from Fan Finder, "My Crew" nav button with pending request badge, crew list with invite-to-party and remove friend, friend request notifications, "In Your Crew" badge on Fan Finder results

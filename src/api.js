@@ -124,4 +124,17 @@ export const api = {
     sendMessage: (partyId, message) =>
       request(`/chat/parties/${partyId}/messages`, { method: 'POST', body: JSON.stringify({ message }) }),
   },
+  analytics: {
+    overview: () => request('/analytics/overview'),
+    userGrowth: (days = 30) => request(`/analytics/user-growth?days=${days}`),
+    partyTrends: (days = 30) => request(`/analytics/party-trends?days=${days}`),
+    topSports: () => request('/analytics/top-sports'),
+    topCities: () => request('/analytics/top-cities'),
+    topTeams: () => request('/analytics/top-teams'),
+    venuePerformance: () => request('/analytics/venue-performance'),
+    engagement: () => request('/analytics/engagement'),
+    recentActivity: () => request('/analytics/recent-activity'),
+    userCities: () => request('/analytics/user-cities'),
+    hourlyActivity: () => request('/analytics/hourly-activity'),
+  },
 };

@@ -549,6 +549,9 @@ const HuddleUpApp = () => {
   const [adminEditForm, setAdminEditForm] = useState({});
   const [adminSavingVenue, setAdminSavingVenue] = useState(false);
   const [totalUsers, setTotalUsersCount] = useState(0);
+  const [adminTab, setAdminTab] = useState('analytics');
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [invitations, setInvitations] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [fanSearchSport, setFanSearchSport] = useState('');
@@ -697,9 +700,33 @@ const HuddleUpApp = () => {
     }
   }, []);
 
+  const loadAnalytics = useCallback(async () => {
+    setAnalyticsLoading(true);
+    try {
+      const [overview, userGrowth, partyTrends, topSports, topCities, topTeams, venuePerf, engagement, recentActivity, userCities, hourlyActivity] = await Promise.all([
+        api.analytics.overview(),
+        api.analytics.userGrowth(90),
+        api.analytics.partyTrends(90),
+        api.analytics.topSports(),
+        api.analytics.topCities(),
+        api.analytics.topTeams(),
+        api.analytics.venuePerformance(),
+        api.analytics.engagement(),
+        api.analytics.recentActivity(),
+        api.analytics.userCities(),
+        api.analytics.hourlyActivity(),
+      ]);
+      setAnalyticsData({ overview, userGrowth, partyTrends, topSports, topCities, topTeams, venuePerf, engagement, recentActivity, userCities, hourlyActivity });
+    } catch (err) {
+      console.error('Failed to load analytics:', err);
+    }
+    setAnalyticsLoading(false);
+  }, []);
+
   useEffect(() => {
     if (currentScreen === 'admin' && user?.isAdmin) {
       loadSponsors();
+      loadAnalytics();
       api.users.stats().then(s => setTotalUsersCount(s.totalUsers)).catch(() => {});
     }
   }, [currentScreen, user?.isAdmin, loadSponsors]);
@@ -2977,6 +3004,37 @@ const HuddleUpApp = () => {
       })
       .sort((a, b) => b.totalAttendees - a.totalAttendees);
 
+    const MiniBar = ({ data, maxVal, color = 'cyan' }) => {
+      if (!data || data.length === 0) return null;
+      const max = maxVal || Math.max(...data, 1);
+      return (
+        <div className="flex items-end gap-px h-12">
+          {data.map((val, i) => (
+            <div key={i} className={`flex-1 rounded-t bg-${color}-500/60 min-w-[2px]`} style={{ height: `${Math.max((val / max) * 100, 2)}%` }} />
+          ))}
+        </div>
+      );
+    };
+
+    const ProgressRing = ({ value, max, label, color = '#06b6d4' }) => {
+      const pct = max > 0 ? Math.round((value / max) * 100) : 0;
+      const circumference = 2 * Math.PI * 36;
+      const offset = circumference - (pct / 100) * circumference;
+      return (
+        <div className="flex flex-col items-center">
+          <svg width="88" height="88" viewBox="0 0 88 88">
+            <circle cx="44" cy="44" r="36" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="6" />
+            <circle cx="44" cy="44" r="36" fill="none" stroke={color} strokeWidth="6" strokeLinecap="round"
+              strokeDasharray={circumference} strokeDashoffset={offset} transform="rotate(-90 44 44)" className="transition-all duration-1000" />
+            <text x="44" y="44" textAnchor="middle" dominantBaseline="central" fill="white" fontSize="18" fontWeight="bold">{pct}%</text>
+          </svg>
+          <div className="text-xs text-gray-400 mt-1 text-center">{label}</div>
+        </div>
+      );
+    };
+
+    const a = analyticsData;
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
@@ -2984,7 +3042,7 @@ const HuddleUpApp = () => {
             <div className="flex items-center justify-between">
               <h1 className="text-3xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
                 <Settings className="inline w-8 h-8 mr-2 text-cyan-400" />
-                OWNER DASHBOARD
+                ADMIN DASHBOARD
               </h1>
               <button
                 onClick={() => setCurrentScreen('games')}
@@ -2993,11 +3051,389 @@ const HuddleUpApp = () => {
                 Back to App
               </button>
             </div>
+            <div className="flex gap-2 mt-3">
+              {[
+                { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+                { id: 'management', label: 'Management', icon: Settings },
+              ].map(tab => (
+                <button key={tab.id} onClick={() => setAdminTab(tab.id)}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                    adminTab === tab.id ? 'bg-cyan-500 text-white shadow-lg shadow-cyan-500/25' : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
+                  }`}>
+                  <tab.icon className="w-4 h-4" />
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-          
+
+        {adminTab === 'analytics' && (
+          <>
+            {analyticsLoading && !a ? (
+              <div className="text-center py-20">
+                <div className="animate-spin w-10 h-10 border-4 border-cyan-500 border-t-transparent rounded-full mx-auto mb-4" />
+                <p className="text-gray-400">Loading analytics...</p>
+              </div>
+            ) : a ? (
+              <>
+                {/* KPI Cards Row */}
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                  {[
+                    { label: 'Total Users', value: a.overview.totalUsers, sub: `+${a.overview.newUsersWeek} this week`, color: 'from-cyan-500/20 to-blue-500/20', border: 'border-cyan-500/30' },
+                    { label: 'Total Parties', value: a.overview.totalParties, sub: `+${a.overview.newPartiesWeek} this week`, color: 'from-purple-500/20 to-pink-500/20', border: 'border-purple-500/30' },
+                    { label: 'Venues', value: a.overview.totalVenues, sub: `${a.overview.pendingClaims} pending`, color: 'from-green-500/20 to-emerald-500/20', border: 'border-green-500/30' },
+                    { label: 'Attendees', value: a.overview.totalAttendees, sub: 'Party joins', color: 'from-orange-500/20 to-amber-500/20', border: 'border-orange-500/30' },
+                    { label: 'Messages', value: a.overview.totalMessages, sub: `+${a.overview.newMessagesWeek} this week`, color: 'from-pink-500/20 to-rose-500/20', border: 'border-pink-500/30' },
+                    { label: 'Friendships', value: a.overview.totalFriendships, sub: 'Connections', color: 'from-indigo-500/20 to-violet-500/20', border: 'border-indigo-500/30' },
+                  ].map(kpi => (
+                    <div key={kpi.label} className={`bg-gradient-to-br ${kpi.color} border ${kpi.border} p-4 rounded-2xl`}>
+                      <div className="text-xs text-gray-400 mb-1">{kpi.label}</div>
+                      <div className="text-2xl font-black text-white">{kpi.value.toLocaleString()}</div>
+                      <div className="text-xs text-gray-500 mt-1">{kpi.sub}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* User Growth Chart */}
+                <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-white/10">
+                  <h3 className="text-lg font-black text-white mb-4" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                    USER GROWTH (Last 90 Days)
+                  </h3>
+                  {a.userGrowth.length > 0 ? (
+                    <div>
+                      <div className="flex items-end gap-[2px] h-32 mb-2">
+                        {a.userGrowth.map((d, i) => {
+                          const max = Math.max(...a.userGrowth.map(x => parseInt(x.signups)), 1);
+                          const h = (parseInt(d.signups) / max) * 100;
+                          return (
+                            <div key={i} className="flex-1 group relative">
+                              <div className="bg-cyan-500/70 hover:bg-cyan-400 rounded-t transition-all min-w-[2px]" style={{ height: `${Math.max(h, 3)}%` }} />
+                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-slate-700 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                {new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: {d.signups} signups
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>{a.userGrowth.length > 0 ? new Date(a.userGrowth[0].date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}</span>
+                        <span>{a.userGrowth.length > 0 ? new Date(a.userGrowth[a.userGrowth.length - 1].date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">No signup data yet</div>
+                  )}
+                </div>
+
+                {/* Engagement Rings */}
+                <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-white/10">
+                  <h3 className="text-lg font-black text-white mb-6" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                    USER ENGAGEMENT
+                  </h3>
+                  <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
+                    <ProgressRing value={a.engagement.usersWithFavorites} max={a.engagement.totalUsers} label="Set Favorites" color="#06b6d4" />
+                    <ProgressRing value={a.engagement.usersWithProfilePic} max={a.engagement.totalUsers} label="Profile Pic" color="#8b5cf6" />
+                    <ProgressRing value={a.engagement.usersWithFriends} max={a.engagement.totalUsers} label="Have Friends" color="#ec4899" />
+                    <ProgressRing value={a.engagement.usersWithParties} max={a.engagement.totalUsers} label="Joined Party" color="#f59e0b" />
+                    <ProgressRing value={a.engagement.chatActiveUsers} max={a.engagement.totalUsers} label="Used Chat" color="#10b981" />
+                    <ProgressRing value={a.overview.totalUsers - a.engagement.usersWithFavorites} max={a.engagement.totalUsers} label="No Favorites" color="#ef4444" />
+                  </div>
+                </div>
+
+                {/* Demographics Row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Gender */}
+                  <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-white/10">
+                    <h3 className="text-lg font-black text-white mb-4" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                      GENDER BREAKDOWN
+                    </h3>
+                    <div className="space-y-3">
+                      {a.engagement.genderBreakdown.map(g => {
+                        const pct = a.engagement.totalUsers > 0 ? Math.round((g.count / a.engagement.totalUsers) * 100) : 0;
+                        const genderLabel = g.gender === 'male' ? 'Male' : g.gender === 'female' ? 'Female' : g.gender === 'non-binary' ? 'Non-Binary' : g.gender === 'prefer-not-to-say' ? 'Prefer Not to Say' : g.gender;
+                        return (
+                          <div key={g.gender}>
+                            <div className="flex justify-between text-sm mb-1">
+                              <span className="text-gray-300">{genderLabel}</span>
+                              <span className="text-white font-bold">{g.count} ({pct}%)</span>
+                            </div>
+                            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                              <div className="h-full bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full transition-all duration-1000" style={{ width: `${pct}%` }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Age */}
+                  <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-white/10">
+                    <h3 className="text-lg font-black text-white mb-4" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                      AGE DISTRIBUTION
+                    </h3>
+                    <div className="space-y-3">
+                      {a.engagement.ageBreakdown.map(ag => {
+                        const pct = a.engagement.totalUsers > 0 ? Math.round((ag.count / a.engagement.totalUsers) * 100) : 0;
+                        return (
+                          <div key={ag.ageGroup}>
+                            <div className="flex justify-between text-sm mb-1">
+                              <span className="text-gray-300">{ag.ageGroup}</span>
+                              <span className="text-white font-bold">{ag.count} ({pct}%)</span>
+                            </div>
+                            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                              <div className="h-full bg-gradient-to-r from-orange-500 to-pink-500 rounded-full transition-all duration-1000" style={{ width: `${pct}%` }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Top Sports & Top Cities */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-white/10">
+                    <h3 className="text-lg font-black text-white mb-4" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                      TOP SPORTS
+                    </h3>
+                    {a.topSports.length > 0 ? (
+                      <div className="space-y-3">
+                        {a.topSports.slice(0, 10).map((s, i) => {
+                          const maxParties = Math.max(...a.topSports.map(x => x.partyCount), 1);
+                          return (
+                            <div key={s.sport} className="flex items-center gap-3">
+                              <div className="w-6 text-center text-gray-500 text-xs font-bold">#{i + 1}</div>
+                              <div className="flex-1">
+                                <div className="flex justify-between text-sm mb-1">
+                                  <span className="text-white font-medium">{s.sport}</span>
+                                  <span className="text-cyan-400 font-bold">{s.partyCount} parties</span>
+                                </div>
+                                <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                  <div className="h-full bg-cyan-500 rounded-full" style={{ width: `${(s.partyCount / maxParties) * 100}%` }} />
+                                </div>
+                                <div className="text-xs text-gray-500 mt-0.5">{s.attendeeCount} attendees | {s.uniqueHosts} hosts</div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : <div className="text-center py-4 text-gray-500">No data yet</div>}
+                  </div>
+
+                  <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-white/10">
+                    <h3 className="text-lg font-black text-white mb-4" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                      TOP CITIES
+                    </h3>
+                    {a.topCities.length > 0 ? (
+                      <div className="space-y-3">
+                        {a.topCities.slice(0, 10).map((c, i) => {
+                          const maxParties = Math.max(...a.topCities.map(x => x.partyCount), 1);
+                          return (
+                            <div key={c.city} className="flex items-center gap-3">
+                              <div className="w-6 text-center text-gray-500 text-xs font-bold">#{i + 1}</div>
+                              <div className="flex-1">
+                                <div className="flex justify-between text-sm mb-1">
+                                  <span className="text-white font-medium">{c.city}</span>
+                                  <span className="text-purple-400 font-bold">{c.partyCount} parties</span>
+                                </div>
+                                <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                  <div className="h-full bg-purple-500 rounded-full" style={{ width: `${(c.partyCount / maxParties) * 100}%` }} />
+                                </div>
+                                <div className="text-xs text-gray-500 mt-0.5">{c.attendeeCount} attendees | {c.uniqueHosts} hosts</div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : <div className="text-center py-4 text-gray-500">No data yet</div>}
+                  </div>
+                </div>
+
+                {/* Top Teams */}
+                <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-white/10">
+                  <h3 className="text-lg font-black text-white mb-4" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                    MOST POPULAR TEAMS
+                  </h3>
+                  {a.topTeams.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {a.topTeams.slice(0, 15).map((t, i) => (
+                        <div key={`${t.sport}-${t.team}`} className="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black ${i < 3 ? 'bg-yellow-500 text-black' : 'bg-white/10 text-gray-400'}`}>
+                            #{i + 1}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-white font-medium text-sm truncate">{t.team}</div>
+                            <div className="text-xs text-gray-500">{t.sport}</div>
+                          </div>
+                          <div className="text-cyan-400 font-bold text-sm">{t.fanCount} fans</div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : <div className="text-center py-4 text-gray-500">No favorite teams set yet</div>}
+                </div>
+
+                {/* Venue Performance */}
+                <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-white/10">
+                  <h3 className="text-lg font-black text-white mb-4" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                    VENUE PERFORMANCE
+                  </h3>
+                  {a.venuePerf.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="text-gray-400 border-b border-white/10">
+                            <th className="text-left py-2 px-2">#</th>
+                            <th className="text-left py-2 px-2">Venue</th>
+                            <th className="text-left py-2 px-2">City</th>
+                            <th className="text-right py-2 px-2">Parties</th>
+                            <th className="text-right py-2 px-2">Attendees</th>
+                            <th className="text-right py-2 px-2">Messages</th>
+                            <th className="text-center py-2 px-2">Featured</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {a.venuePerf.map((v, i) => (
+                            <tr key={v.id} className="border-b border-white/5 hover:bg-white/5">
+                              <td className="py-2 px-2 text-gray-500">{i + 1}</td>
+                              <td className="py-2 px-2 text-white font-medium">{v.name}</td>
+                              <td className="py-2 px-2 text-gray-400">{v.city || '-'}</td>
+                              <td className="py-2 px-2 text-right text-cyan-400 font-bold">{v.partiesHosted}</td>
+                              <td className="py-2 px-2 text-right text-purple-400 font-bold">{v.totalAttendees}</td>
+                              <td className="py-2 px-2 text-right text-pink-400 font-bold">{v.totalMessages}</td>
+                              <td className="py-2 px-2 text-center">{v.featured ? <Star className="w-4 h-4 text-yellow-400 inline" /> : '-'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : <div className="text-center py-4 text-gray-500">No venue data yet</div>}
+                </div>
+
+                {/* User Cities & Hourly Activity */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-white/10">
+                    <h3 className="text-lg font-black text-white mb-4" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                      USER LOCATIONS
+                    </h3>
+                    {a.userCities.length > 0 ? (
+                      <div className="space-y-2">
+                        {a.userCities.slice(0, 10).map((c, i) => (
+                          <div key={c.city} className="flex items-center justify-between bg-white/5 px-3 py-2 rounded-lg">
+                            <div className="flex items-center gap-2">
+                              <MapPin className="w-3.5 h-3.5 text-green-400" />
+                              <span className="text-white text-sm">{c.city}</span>
+                            </div>
+                            <span className="text-green-400 font-bold text-sm">{c.userCount} users</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : <div className="text-center py-4 text-gray-500">No city data yet</div>}
+                  </div>
+
+                  <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-white/10">
+                    <h3 className="text-lg font-black text-white mb-4" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                      CHAT ACTIVITY BY HOUR
+                    </h3>
+                    {a.hourlyActivity.length > 0 ? (
+                      <div>
+                        <div className="flex items-end gap-[2px] h-24">
+                          {Array.from({ length: 24 }, (_, h) => {
+                            const entry = a.hourlyActivity.find(x => x.hour === h);
+                            const count = entry ? entry.count : 0;
+                            const max = Math.max(...a.hourlyActivity.map(x => x.count), 1);
+                            return (
+                              <div key={h} className="flex-1 group relative">
+                                <div className="bg-pink-500/60 hover:bg-pink-400 rounded-t transition-all" style={{ height: `${Math.max((count / max) * 100, 2)}%` }} />
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-slate-700 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                                  {h}:00 - {count} msgs
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                          <span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>11pm</span>
+                        </div>
+                      </div>
+                    ) : <div className="text-center py-4 text-gray-500">No chat data yet</div>}
+                  </div>
+                </div>
+
+                {/* Recent Activity */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-white/10">
+                    <h3 className="text-lg font-black text-white mb-4" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                      RECENT SIGNUPS
+                    </h3>
+                    <div className="space-y-3">
+                      {a.recentActivity.recentUsers.map(u => (
+                        <div key={u.id} className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400 text-xs font-bold">
+                            {u.name?.charAt(0)?.toUpperCase()}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-white text-sm truncate">{u.name}</div>
+                            <div className="text-xs text-gray-500">{u.email}</div>
+                          </div>
+                          <div className="text-xs text-gray-500">{new Date(u.joined_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-white/10">
+                    <h3 className="text-lg font-black text-white mb-4" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                      RECENT PARTIES
+                    </h3>
+                    <div className="space-y-3">
+                      {a.recentActivity.recentParties.map(p => (
+                        <div key={p.id} className="bg-white/5 p-3 rounded-lg">
+                          <div className="text-white text-sm font-medium truncate">{p.title || `${p.sport} Watch Party`}</div>
+                          <div className="text-xs text-gray-500 mt-0.5">by {p.host_name} | {p.city || 'Unknown city'}</div>
+                          <div className="flex justify-between mt-1 text-xs">
+                            <span className="text-purple-400">{p.sport}</span>
+                            <span className="text-cyan-400">{p.attendee_count} going</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-white/10">
+                    <h3 className="text-lg font-black text-white mb-4" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                      RECENT CHAT
+                    </h3>
+                    <div className="space-y-3">
+                      {a.recentActivity.recentMessages.map((m, i) => (
+                        <div key={i} className="bg-white/5 p-3 rounded-lg">
+                          <div className="flex justify-between items-start">
+                            <span className="text-cyan-400 text-xs font-bold">{m.user_name}</span>
+                            <span className="text-xs text-gray-600">{new Date(m.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                          </div>
+                          <div className="text-white text-sm mt-1 line-clamp-2">{m.message}</div>
+                          <div className="text-xs text-gray-500 mt-0.5">in {m.party_title || 'party'}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <button onClick={loadAnalytics} disabled={analyticsLoading}
+                  className="w-full py-3 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white rounded-xl transition-all text-sm font-medium">
+                  {analyticsLoading ? 'Refreshing...' : 'Refresh Analytics'}
+                </button>
+              </>
+            ) : (
+              <div className="text-center py-20 text-gray-400">Failed to load analytics. Try refreshing.</div>
+            )}
+          </>
+        )}
+
+        {adminTab === 'management' && (
+          <>
           {/* Revenue Overview */}
           <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30 p-8 rounded-2xl">
             <h2 className="text-2xl font-black text-white mb-6" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
@@ -3522,7 +3958,6 @@ const HuddleUpApp = () => {
               </div>
             )}
           </div>
-        </div>
 
         {adminEditVenue && (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setAdminEditVenue(null); }}>
@@ -3643,7 +4078,11 @@ const HuddleUpApp = () => {
             </div>
           </div>
         )}
+        </>
+        )}
+
       </div>
+    </div>
     );
   };
 
