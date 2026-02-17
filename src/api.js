@@ -16,10 +16,10 @@ async function request(path, options = {}) {
 export const api = {
   auth: {
     me: () => request('/auth/me'),
-    signup: (email, password, name, gender) =>
-      request('/auth/signup', { method: 'POST', body: JSON.stringify({ email, password, name, gender }) }),
-    login: (email, password) =>
-      request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
+    signup: (email, password, name, gender, rememberMe = true) =>
+      request('/auth/signup', { method: 'POST', body: JSON.stringify({ email, password, name, gender, rememberMe }) }),
+    login: (email, password, rememberMe = true) =>
+      request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password, rememberMe }) }),
     logout: () => request('/auth/logout', { method: 'POST' }),
     verifyEmail: (email) =>
       request('/auth/verify-email', { method: 'POST', body: JSON.stringify({ email }) }),

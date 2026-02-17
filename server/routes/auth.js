@@ -6,7 +6,7 @@ const router = Router();
 
 router.post('/signup', async (req, res) => {
   try {
-    const { email, password, name, gender } = req.body;
+    const { email, password, name, gender, rememberMe = true } = req.body;
     if (!email || !password || !name || !gender) {
       return res.status(400).json({ error: 'All fields are required' });
     }
@@ -26,6 +26,12 @@ router.post('/signup', async (req, res) => {
     req.session.userId = user.id;
     req.session.isAdmin = user.is_admin;
 
+    if (rememberMe) {
+      req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000;
+    } else {
+      req.session.cookie.maxAge = null;
+    }
+
     res.json({
       id: user.id,
       email: user.email,
@@ -44,7 +50,7 @@ router.post('/signup', async (req, res) => {
 
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, rememberMe = true } = req.body;
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
     }
@@ -62,6 +68,12 @@ router.post('/login', async (req, res) => {
 
     req.session.userId = user.id;
     req.session.isAdmin = user.is_admin;
+
+    if (rememberMe) {
+      req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000;
+    } else {
+      req.session.cookie.maxAge = null;
+    }
 
     const favResult = await pool.query('SELECT sport, team FROM user_favorite_teams WHERE user_id = $1', [user.id]);
     const favoriteTeams = {};

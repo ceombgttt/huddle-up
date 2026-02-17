@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff } from 'lucide-react';
 import { api } from './api.js';
 
 // Sample games data for different sports
@@ -312,9 +312,9 @@ const HuddleUpApp = () => {
     }
   };
 
-  const handleSignUp = async (email, password, name, gender) => {
+  const handleSignUp = async (email, password, name, gender, rememberMe = true) => {
     try {
-      const userData = await api.auth.signup(email, password, name, gender);
+      const userData = await api.auth.signup(email, password, name, gender, rememberMe);
       setUser(userData);
       setShowOnboarding(true);
       setOnboardingStep(0);
@@ -331,9 +331,9 @@ const HuddleUpApp = () => {
     }
   };
 
-  const handleLogin = async (email, password) => {
+  const handleLogin = async (email, password, rememberMe = true) => {
     try {
-      const userData = await api.auth.login(email, password);
+      const userData = await api.auth.login(email, password, rememberMe);
       setUser(userData);
       loadUserParties();
       loadParties();
@@ -733,6 +733,8 @@ const HuddleUpApp = () => {
   const LoginScreen = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [rememberMe, setRememberMe] = useState(true);
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
@@ -758,17 +760,36 @@ const HuddleUpApp = () => {
             
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                placeholder="••••••••"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-3 pr-12 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
 
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 rounded border-gray-600 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-0 bg-white/10"
+              />
+              <span className="text-sm text-gray-300">Remember me</span>
+            </label>
+
             <button
-              onClick={() => handleLogin(email, password)}
+              onClick={() => handleLogin(email, password, rememberMe)}
               className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-cyan-500/50 transform hover:scale-105 transition-all duration-200"
             >
               LOG IN
@@ -950,9 +971,11 @@ const HuddleUpApp = () => {
   const SignUpScreen = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [name, setName] = useState('');
     const [gender, setGender] = useState('');
     const [acceptedTerms, setAcceptedTerms] = useState(false);
+    const [rememberMe, setRememberMe] = useState(true);
 
     const handleSubmit = () => {
       if (!acceptedTerms) {
@@ -963,7 +986,7 @@ const HuddleUpApp = () => {
         alert('Please fill in all fields.');
         return;
       }
-      handleSignUp(email, password, name, gender);
+      handleSignUp(email, password, name, gender, rememberMe);
     };
 
     return (
@@ -1015,14 +1038,33 @@ const HuddleUpApp = () => {
             
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                placeholder="••••••••"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-3 pr-12 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
+
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 rounded border-gray-600 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-0 bg-white/10"
+              />
+              <span className="text-sm text-gray-300">Remember me</span>
+            </label>
 
             <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
               <label className="flex items-start gap-3 cursor-pointer">
