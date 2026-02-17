@@ -518,6 +518,18 @@ const HuddleUpApp = () => {
   const [sponsorIndex, setSponsorIndex] = useState(0);
   const [adminSponsors, setAdminSponsors] = useState([]);
   const [showSponsorForm, setShowSponsorForm] = useState(false);
+  const [editingVenue, setEditingVenue] = useState(false);
+  const [venueEditName, setVenueEditName] = useState('');
+  const [venueEditAddress, setVenueEditAddress] = useState('');
+  const [venueEditCity, setVenueEditCity] = useState('');
+  const [venueEditType, setVenueEditType] = useState('');
+  const [venueEditPhone, setVenueEditPhone] = useState('');
+  const [venueEditWebsite, setVenueEditWebsite] = useState('');
+  const [venueEditCapacity, setVenueEditCapacity] = useState('');
+  const [venueEditDescription, setVenueEditDescription] = useState('');
+  const [savingVenue, setSavingVenue] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingPicture, setUploadingPicture] = useState(false);
   const [editingSponsor, setEditingSponsor] = useState(null);
   const [sponsorName, setSponsorName] = useState('');
   const [sponsorContactName, setSponsorContactName] = useState('');
@@ -3854,29 +3866,15 @@ const HuddleUpApp = () => {
   ) : null;
 
   const VenueAnalyticsDashboard = () => {
-    const [editingVenue, setEditingVenue] = useState(false);
-    const [editName, setEditName] = useState('');
-    const [editAddress, setEditAddress] = useState('');
-    const [editCity, setEditCity] = useState('');
-    const [editType, setEditType] = useState('');
-    const [editPhone, setEditPhone] = useState('');
-    const [editWebsite, setEditWebsite] = useState('');
-    const [editCapacity, setEditCapacity] = useState('');
-    const [editDescription, setEditDescription] = useState('');
-    const [savingVenue, setSavingVenue] = useState(false);
-    const [uploadingLogo, setUploadingLogo] = useState(false);
-    const [uploadingPicture, setUploadingPicture] = useState(false);
-
-
     const startEditing = () => {
-      setEditName(userVenue.name || '');
-      setEditAddress(userVenue.address || '');
-      setEditCity(userVenue.city || '');
-      setEditType(userVenue.type || '');
-      setEditPhone(userVenue.phone || '');
-      setEditWebsite(userVenue.website || '');
-      setEditCapacity(userVenue.capacity ? String(userVenue.capacity) : '');
-      setEditDescription(userVenue.description || '');
+      setVenueEditName(userVenue.name || '');
+      setVenueEditAddress(userVenue.address || '');
+      setVenueEditCity(userVenue.city || '');
+      setVenueEditType(userVenue.type || '');
+      setVenueEditPhone(userVenue.phone || '');
+      setVenueEditWebsite(userVenue.website || '');
+      setVenueEditCapacity(userVenue.capacity ? String(userVenue.capacity) : '');
+      setVenueEditDescription(userVenue.description || '');
       setEditingVenue(true);
     };
 
@@ -3911,14 +3909,14 @@ const HuddleUpApp = () => {
       setSavingVenue(true);
       try {
         await api.venues.updateMine({
-          name: editName,
-          address: editAddress,
-          city: editCity,
-          type: editType,
-          phone: editPhone,
-          website: editWebsite,
-          capacity: editCapacity ? parseInt(editCapacity) : null,
-          description: editDescription
+          name: venueEditName,
+          address: venueEditAddress,
+          city: venueEditCity,
+          type: venueEditType,
+          phone: venueEditPhone,
+          website: venueEditWebsite,
+          capacity: venueEditCapacity ? parseInt(venueEditCapacity) : null,
+          description: venueEditDescription
         });
         await loadVenues();
         setEditingVenue(false);
@@ -4063,13 +4061,13 @@ const HuddleUpApp = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-1">Business Name *</label>
-                    <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)}
+                    <input type="text" value={venueEditName} onChange={(e) => setVenueEditName(e.target.value)}
                       className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-1">Business Type</label>
-                    <select value={editType} onChange={(e) => setEditType(e.target.value)}
+                    <select value={venueEditType} onChange={(e) => setVenueEditType(e.target.value)}
                       className="w-full px-4 py-3 bg-slate-700 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     >
                       <option value="Sports Bar" className="bg-slate-700 text-white">Sports Bar</option>
@@ -4081,35 +4079,35 @@ const HuddleUpApp = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-1">Full Address *</label>
-                    <input type="text" value={editAddress} onChange={(e) => setEditAddress(e.target.value)}
+                    <input type="text" value={venueEditAddress} onChange={(e) => setVenueEditAddress(e.target.value)}
                       placeholder="123 Main St, Suite #110"
                       className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-1">City, State</label>
-                    <input type="text" value={editCity} onChange={(e) => setEditCity(e.target.value)}
+                    <input type="text" value={venueEditCity} onChange={(e) => setVenueEditCity(e.target.value)}
                       placeholder="e.g., Fort Lauderdale, FL"
                       className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-1">Phone Number</label>
-                    <input type="tel" value={editPhone} onChange={(e) => setEditPhone(e.target.value)}
+                    <input type="tel" value={venueEditPhone} onChange={(e) => setVenueEditPhone(e.target.value)}
                       placeholder="(555) 123-4567"
                       className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-1">Website</label>
-                    <input type="text" value={editWebsite} onChange={(e) => setEditWebsite(e.target.value)}
+                    <input type="text" value={venueEditWebsite} onChange={(e) => setVenueEditWebsite(e.target.value)}
                       placeholder="yourwebsite.com"
                       className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-1">Seating Capacity</label>
-                    <input type="number" value={editCapacity} onChange={(e) => setEditCapacity(e.target.value)}
+                    <input type="number" value={venueEditCapacity} onChange={(e) => setVenueEditCapacity(e.target.value)}
                       placeholder="e.g., 150"
                       className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     />
@@ -4118,7 +4116,7 @@ const HuddleUpApp = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-1">Venue Description & Special Features</label>
-                  <textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)}
+                  <textarea value={venueEditDescription} onChange={(e) => setVenueEditDescription(e.target.value)}
                     rows={3}
                     placeholder="Tell fans what makes your venue great! e.g., 20 big screens, outdoor patio, game day drink specials, private party rooms..."
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
@@ -4167,9 +4165,9 @@ const HuddleUpApp = () => {
                 <div className="flex gap-3 pt-2">
                   <button
                     onClick={saveVenueDetails}
-                    disabled={savingVenue || !editName || !editAddress}
+                    disabled={savingVenue || !venueEditName || !venueEditAddress}
                     className={`flex-1 py-3 font-bold rounded-xl transition-all ${
-                      savingVenue || !editName || !editAddress
+                      savingVenue || !venueEditName || !venueEditAddress
                         ? 'bg-gray-500 text-gray-300 cursor-not-allowed'
                         : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:shadow-lg hover:shadow-cyan-500/50'
                     }`}

@@ -112,6 +112,7 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - Presigned URL upload flow: request URL → PUT to GCS → save path in DB
 
 ## Recent Changes
+- 2026-02-17: Fixed venue edit form resetting on scroll - lifted editing state to App level so data refreshes don't unmount the edit form; added fixed scroll container to prevent mobile overscroll navigation
 - 2026-02-17: Added party chat system - real-time messaging within party cards for attendees/hosts, auto-polls every 5s, message bubbles with profile pics and timestamps, 500 char limit, membership-verified access
 - 2026-02-17: Added "My Crew" friend/community system - send/accept/decline friend requests from Fan Finder, "My Crew" nav button with pending request badge, crew list with invite-to-party and remove friend, friend request notifications, "In Your Crew" badge on Fan Finder results
 - 2026-02-17: Added browser geolocation to auto-detect user's city - auto-populates city filter, sorts parties by proximity, "NEAR YOU" badge on matching party cards, location detect button in city input
