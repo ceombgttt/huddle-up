@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import pool from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
+import { sendSMS } from '../sms.js';
 
 const router = Router();
 
@@ -129,6 +130,28 @@ router.post('/', requireAuth, async (req, res) => {
           `INSERT INTO notifications (user_id, type, title, message, party_id) VALUES ${values}`,
           params
         );
+      }
+
+      if (teams.length > 0 && city) {
+        const smsFans = await pool.query(
+          `SELECT DISTINCT u.phone_number FROM users u
+           JOIN user_favorite_teams ft ON ft.user_id = u.id
+           WHERE ft.sport = $1
+           AND ft.team = ANY($2::text[])
+           AND u.id != $3
+           AND u.sms_notifications = TRUE
+           AND u.phone_number IS NOT NULL
+           AND u.user_city ILIKE $4`,
+          [sport, teams, req.session.userId, `%${city}%`]
+        );
+
+        if (smsFans.rows.length > 0) {
+          const partyLabel = title || `${homeTeam} vs ${awayTeam}`;
+          const smsMessage = `HUDDLE UP! 🏟️ A ${sport} watch party for "${partyLabel}" was just created in ${city}! Open Huddle Up to join your fellow fans.`;
+          for (const fan of smsFans.rows) {
+            sendSMS(fan.phone_number, smsMessage).catch(() => {});
+          }
+        }
       }
     }
 

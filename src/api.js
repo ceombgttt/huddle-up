@@ -67,6 +67,8 @@ export const api = {
       request(`/users/me/favorites/${encodeURIComponent(sport)}`, { method: 'DELETE' }),
     stats: () => request('/users/stats'),
     badge: () => request('/users/me/badge'),
+    updateSmsSettings: (data) =>
+      request('/users/me/sms-settings', { method: 'PUT', body: JSON.stringify(data) }),
   },
   notifications: {
     list: () => request('/notifications'),

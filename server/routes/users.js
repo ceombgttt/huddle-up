@@ -81,6 +81,24 @@ router.put('/me/profile', requireAuth, async (req, res) => {
   }
 });
 
+router.put('/me/sms-settings', requireAuth, async (req, res) => {
+  try {
+    const { phoneNumber, userCity, smsNotifications } = req.body;
+    const phone = phoneNumber ? phoneNumber.replace(/[^\d+]/g, '') : null;
+    if (phone && phone.length < 10) {
+      return res.status(400).json({ error: 'Please enter a valid phone number' });
+    }
+    await pool.query(
+      'UPDATE users SET phone_number = $1, user_city = $2, sms_notifications = $3 WHERE id = $4',
+      [phone || null, userCity || null, !!smsNotifications, req.session.userId]
+    );
+    res.json({ phoneNumber: phone, userCity: userCity || null, smsNotifications: !!smsNotifications });
+  } catch (error) {
+    console.error('Update SMS settings error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 router.get('/me/badge', requireAuth, async (req, res) => {
   try {
     const hosted = await pool.query(

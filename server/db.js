@@ -126,6 +126,9 @@ export async function initDB() {
 
       ALTER TABLE users ADD COLUMN IF NOT EXISTS notifications_enabled BOOLEAN DEFAULT TRUE;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS date_of_birth DATE;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS phone_number TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS user_city TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS sms_notifications BOOLEAN DEFAULT FALSE;
       ALTER TABLE venues ADD COLUMN IF NOT EXISTS logo TEXT;
       ALTER TABLE venues ADD COLUMN IF NOT EXISTS picture TEXT;
     `);

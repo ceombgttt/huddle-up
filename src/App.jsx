@@ -4148,6 +4148,97 @@ const HuddleUpApp = () => {
                 }`} />
               </button>
             </div>
+
+            <div className="mt-4 space-y-3">
+              <div className="flex items-center justify-between bg-white/5 p-4 rounded-xl">
+                <div>
+                  <div className="text-white font-semibold flex items-center gap-2">
+                    <span>📱</span> Text Message Alerts
+                  </div>
+                  <div className="text-gray-400 text-sm mt-1">
+                    Get a "HUDDLE UP" text when a watch party is created for your team in your city
+                  </div>
+                </div>
+                <button
+                  onClick={async () => {
+                    const newVal = !user.smsNotifications;
+                    if (newVal && !user.phoneNumber) {
+                      alert('Please add your phone number below first');
+                      return;
+                    }
+                    if (newVal && !user.userCity) {
+                      alert('Please add your city below first');
+                      return;
+                    }
+                    try {
+                      await api.users.updateSmsSettings({
+                        phoneNumber: user.phoneNumber,
+                        userCity: user.userCity,
+                        smsNotifications: newVal
+                      });
+                      setUser(prev => ({ ...prev, smsNotifications: newVal }));
+                    } catch (err) { alert(err.message); }
+                  }}
+                  className={`relative w-14 h-7 rounded-full transition-colors ${
+                    user.smsNotifications ? 'bg-green-500' : 'bg-gray-600'
+                  }`}
+                >
+                  <div className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${
+                    user.smsNotifications ? 'translate-x-7' : 'translate-x-0.5'
+                  }`} />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Phone Number</label>
+                  <input
+                    type="tel"
+                    defaultValue={user.phoneNumber || ''}
+                    placeholder="+1 (555) 123-4567"
+                    onBlur={async (e) => {
+                      const val = e.target.value.trim();
+                      if (val !== (user.phoneNumber || '')) {
+                        try {
+                          await api.users.updateSmsSettings({
+                            phoneNumber: val,
+                            userCity: user.userCity,
+                            smsNotifications: user.smsNotifications
+                          });
+                          setUser(prev => ({ ...prev, phoneNumber: val || null }));
+                        } catch (err) { alert(err.message); }
+                      }
+                    }}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Your City</label>
+                  <input
+                    type="text"
+                    defaultValue={user.userCity || ''}
+                    placeholder="e.g., Fort Lauderdale, FL"
+                    onBlur={async (e) => {
+                      const val = e.target.value.trim();
+                      if (val !== (user.userCity || '')) {
+                        try {
+                          await api.users.updateSmsSettings({
+                            phoneNumber: user.phoneNumber,
+                            userCity: val,
+                            smsNotifications: user.smsNotifications
+                          });
+                          setUser(prev => ({ ...prev, userCity: val || null }));
+                        } catch (err) { alert(err.message); }
+                      }
+                    }}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+              </div>
+              {!user.smsNotifications && (
+                <p className="text-xs text-gray-500 italic">Add your phone number and city, then enable the toggle to receive text alerts when parties match your teams.</p>
+              )}
+            </div>
           </div>
 
           {/* MY COUNTRY SECTION */}
