@@ -473,6 +473,26 @@ const HuddleUpApp = () => {
   const [loadingGames, setLoadingGames] = useState(false);
   
   const [sponsorIndex, setSponsorIndex] = useState(0);
+  const [adminSponsors, setAdminSponsors] = useState([]);
+  const [showSponsorForm, setShowSponsorForm] = useState(false);
+  const [editingSponsor, setEditingSponsor] = useState(null);
+  const [sponsorName, setSponsorName] = useState('');
+  const [sponsorContactName, setSponsorContactName] = useState('');
+  const [sponsorContactEmail, setSponsorContactEmail] = useState('');
+  const [sponsorContactPhone, setSponsorContactPhone] = useState('');
+  const [sponsorWebsite, setSponsorWebsite] = useState('');
+  const [sponsorNotes, setSponsorNotes] = useState('');
+  const [sponsorAmount, setSponsorAmount] = useState('');
+  const [sponsorFrequency, setSponsorFrequency] = useState('one-time');
+  const [sponsorStartDate, setSponsorStartDate] = useState('');
+  const [sponsorEndDate, setSponsorEndDate] = useState('');
+  const [sponsorStatus, setSponsorStatus] = useState('active');
+  const [sponsorLogo, setSponsorLogo] = useState(null);
+  const [savingSponsor, setSavingSponsor] = useState(false);
+  const [uploadingSponsorLogo, setUploadingSponsorLogo] = useState(false);
+  const [adminEditVenue, setAdminEditVenue] = useState(null);
+  const [adminEditForm, setAdminEditForm] = useState({});
+  const [adminSavingVenue, setAdminSavingVenue] = useState(false);
   const [invitations, setInvitations] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [fanSearchSport, setFanSearchSport] = useState('');
@@ -519,6 +539,79 @@ const HuddleUpApp = () => {
       setGames(SAMPLE_GAMES);
     }
   };
+
+  const loadSponsors = useCallback(async () => {
+    try {
+      const data = await api.sponsors.list();
+      setAdminSponsors(data);
+    } catch (err) {
+      console.error('Failed to load sponsors:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (currentScreen === 'admin' && user?.isAdmin) { loadSponsors(); }
+  }, [currentScreen, user?.isAdmin, loadSponsors]);
+
+  const resetSponsorForm = () => {
+    setSponsorName(''); setSponsorContactName(''); setSponsorContactEmail('');
+    setSponsorContactPhone(''); setSponsorWebsite(''); setSponsorNotes('');
+    setSponsorAmount(''); setSponsorFrequency('one-time'); setSponsorStartDate('');
+    setSponsorEndDate(''); setSponsorStatus('active'); setSponsorLogo(null);
+    setEditingSponsor(null); setShowSponsorForm(false);
+  };
+
+  const startEditSponsor = (s) => {
+    setSponsorName(s.name || ''); setSponsorContactName(s.contactName || '');
+    setSponsorContactEmail(s.contactEmail || ''); setSponsorContactPhone(s.contactPhone || '');
+    setSponsorWebsite(s.website || ''); setSponsorNotes(s.notes || '');
+    setSponsorAmount(s.amountPaid ? String(s.amountPaid) : '');
+    setSponsorFrequency(s.paymentFrequency || 'one-time');
+    setSponsorStartDate(s.startDate ? s.startDate.split('T')[0] : '');
+    setSponsorEndDate(s.endDate ? s.endDate.split('T')[0] : '');
+    setSponsorStatus(s.status || 'active'); setSponsorLogo(s.logo || null);
+    setEditingSponsor(s.id); setShowSponsorForm(true);
+  };
+
+  const handleSponsorLogoUpload = async (file) => {
+    if (!file || !file.type.startsWith('image/')) { alert('Please select an image file'); return; }
+    if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB'); return; }
+    setUploadingSponsorLogo(true);
+    try {
+      const { uploadURL, objectPath } = await api.sponsors.requestLogoUrl(file.type);
+      const uploadRes = await fetch(uploadURL, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+      if (!uploadRes.ok) throw new Error('Upload failed');
+      setSponsorLogo(objectPath);
+    } catch (err) { alert('Failed to upload logo: ' + err.message); }
+    setUploadingSponsorLogo(false);
+  };
+
+  const saveSponsor = async () => {
+    if (!sponsorName) { alert('Sponsor name is required'); return; }
+    setSavingSponsor(true);
+    try {
+      const data = {
+        name: sponsorName, contactName: sponsorContactName, contactEmail: sponsorContactEmail,
+        contactPhone: sponsorContactPhone, logo: sponsorLogo, website: sponsorWebsite,
+        notes: sponsorNotes, amountPaid: sponsorAmount ? parseFloat(sponsorAmount) : 0,
+        paymentFrequency: sponsorFrequency, startDate: sponsorStartDate || null,
+        endDate: sponsorEndDate || null, status: sponsorStatus
+      };
+      if (editingSponsor) { await api.sponsors.update(editingSponsor, data); }
+      else { await api.sponsors.create(data); }
+      await loadSponsors(); resetSponsorForm();
+    } catch (err) { alert('Failed to save sponsor: ' + err.message); }
+    setSavingSponsor(false);
+  };
+
+  const deleteSponsor = async (id) => {
+    if (!confirm('Are you sure you want to remove this sponsor?')) return;
+    try { await api.sponsors.delete(id); await loadSponsors(); }
+    catch (err) { alert('Failed to delete sponsor: ' + err.message); }
+  };
+
+  const totalSponsorRevenue = adminSponsors.reduce((sum, s) => sum + (s.amountPaid || 0), 0);
+  const activeSponsors = adminSponsors.filter(s => s.status === 'active');
 
   const formScreens = ['welcome', 'login', 'signup', 'forgotPassword', 'claimVenue', 'createParty'];
   const isFormScreen = formScreens.includes(currentScreen);
@@ -2231,98 +2324,7 @@ const HuddleUpApp = () => {
   );
 
   const AdminPanelScreen = () => {
-    const [adminEditVenue, setAdminEditVenue] = useState(null);
-    const [adminEditForm, setAdminEditForm] = useState({});
-    const [adminSavingVenue, setAdminSavingVenue] = useState(false);
-
-    const [sponsors, setSponsors] = useState([]);
-    const [showSponsorForm, setShowSponsorForm] = useState(false);
-    const [editingSponsor, setEditingSponsor] = useState(null);
-    const [sponsorName, setSponsorName] = useState('');
-    const [sponsorContactName, setSponsorContactName] = useState('');
-    const [sponsorContactEmail, setSponsorContactEmail] = useState('');
-    const [sponsorContactPhone, setSponsorContactPhone] = useState('');
-    const [sponsorWebsite, setSponsorWebsite] = useState('');
-    const [sponsorNotes, setSponsorNotes] = useState('');
-    const [sponsorAmount, setSponsorAmount] = useState('');
-    const [sponsorFrequency, setSponsorFrequency] = useState('one-time');
-    const [sponsorStartDate, setSponsorStartDate] = useState('');
-    const [sponsorEndDate, setSponsorEndDate] = useState('');
-    const [sponsorStatus, setSponsorStatus] = useState('active');
-    const [sponsorLogo, setSponsorLogo] = useState(null);
-    const [savingSponsor, setSavingSponsor] = useState(false);
-    const [uploadingSponsorLogo, setUploadingSponsorLogo] = useState(false);
-
-    const loadSponsors = useCallback(async () => {
-      try {
-        const data = await api.sponsors.list();
-        setSponsors(data);
-      } catch (err) {
-        console.error('Failed to load sponsors:', err);
-      }
-    }, []);
-
-    useEffect(() => { loadSponsors(); }, [loadSponsors]);
-
-    const resetSponsorForm = () => {
-      setSponsorName(''); setSponsorContactName(''); setSponsorContactEmail('');
-      setSponsorContactPhone(''); setSponsorWebsite(''); setSponsorNotes('');
-      setSponsorAmount(''); setSponsorFrequency('one-time'); setSponsorStartDate('');
-      setSponsorEndDate(''); setSponsorStatus('active'); setSponsorLogo(null);
-      setEditingSponsor(null); setShowSponsorForm(false);
-    };
-
-    const startEditSponsor = (s) => {
-      setSponsorName(s.name || ''); setSponsorContactName(s.contactName || '');
-      setSponsorContactEmail(s.contactEmail || ''); setSponsorContactPhone(s.contactPhone || '');
-      setSponsorWebsite(s.website || ''); setSponsorNotes(s.notes || '');
-      setSponsorAmount(s.amountPaid ? String(s.amountPaid) : '');
-      setSponsorFrequency(s.paymentFrequency || 'one-time');
-      setSponsorStartDate(s.startDate ? s.startDate.split('T')[0] : '');
-      setSponsorEndDate(s.endDate ? s.endDate.split('T')[0] : '');
-      setSponsorStatus(s.status || 'active'); setSponsorLogo(s.logo || null);
-      setEditingSponsor(s.id); setShowSponsorForm(true);
-    };
-
-    const handleSponsorLogoUpload = async (file) => {
-      if (!file || !file.type.startsWith('image/')) { alert('Please select an image file'); return; }
-      if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB'); return; }
-      setUploadingSponsorLogo(true);
-      try {
-        const { uploadURL, objectPath } = await api.sponsors.requestLogoUrl(file.type);
-        const uploadRes = await fetch(uploadURL, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
-        if (!uploadRes.ok) throw new Error('Upload failed');
-        setSponsorLogo(objectPath);
-      } catch (err) { alert('Failed to upload logo: ' + err.message); }
-      setUploadingSponsorLogo(false);
-    };
-
-    const saveSponsor = async () => {
-      if (!sponsorName) { alert('Sponsor name is required'); return; }
-      setSavingSponsor(true);
-      try {
-        const data = {
-          name: sponsorName, contactName: sponsorContactName, contactEmail: sponsorContactEmail,
-          contactPhone: sponsorContactPhone, logo: sponsorLogo, website: sponsorWebsite,
-          notes: sponsorNotes, amountPaid: sponsorAmount ? parseFloat(sponsorAmount) : 0,
-          paymentFrequency: sponsorFrequency, startDate: sponsorStartDate || null,
-          endDate: sponsorEndDate || null, status: sponsorStatus
-        };
-        if (editingSponsor) { await api.sponsors.update(editingSponsor, data); }
-        else { await api.sponsors.create(data); }
-        await loadSponsors(); resetSponsorForm();
-      } catch (err) { alert('Failed to save sponsor: ' + err.message); }
-      setSavingSponsor(false);
-    };
-
-    const deleteSponsor = async (id) => {
-      if (!confirm('Are you sure you want to remove this sponsor?')) return;
-      try { await api.sponsors.delete(id); await loadSponsors(); }
-      catch (err) { alert('Failed to delete sponsor: ' + err.message); }
-    };
-
-    const totalSponsorRevenue = sponsors.reduce((sum, s) => sum + (s.amountPaid || 0), 0);
-    const activeSponsors = sponsors.filter(s => s.status === 'active');
+    const sponsors = adminSponsors;
 
     const openAdminEditVenue = (venue) => {
       setAdminEditForm({
