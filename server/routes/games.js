@@ -18,6 +18,7 @@ const ESPN_ENDPOINTS = {
   'Tennis': 'https://site.api.espn.com/apis/site/v2/sports/tennis/atp/scoreboard',
   'Rugby': 'https://site.api.espn.com/apis/site/v2/sports/rugby/rugby-union/scoreboard',
   'Cricket': 'https://site.api.espn.com/apis/site/v2/sports/cricket/icc/scoreboard',
+  'UFC': 'https://site.api.espn.com/apis/site/v2/sports/mma/ufc/scoreboard',
 };
 
 let gamesCache = { data: null, timestamp: 0 };

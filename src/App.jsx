@@ -91,7 +91,7 @@ const SAMPLE_GAMES = [
   { id: 'cri3', sport: 'Cricket', homeTeam: 'IPL Final', awayTeam: 'Championship Match', startTime: '2026-05-30T10:00:00', venue: 'Narendra Modi Stadium, Ahmedabad' },
 ];
 
-const SPORTS = ['All', 'NFL', 'NBA', 'MLB', 'NHL', 'College Football', 'College Basketball', 'Premier League', 'La Liga', 'Liga MX', 'MLS', 'Champions League', 'Formula 1', 'Tennis', 'Rugby', 'Cricket'];
+const SPORTS = ['All', 'NFL', 'NBA', 'MLB', 'NHL', 'College Football', 'College Basketball', 'Premier League', 'La Liga', 'Liga MX', 'MLS', 'Champions League', 'Formula 1', 'Tennis', 'Rugby', 'Cricket', 'UFC'];
 
 const SPORT_ICONS = {
   'All': '🏟️',
@@ -132,6 +132,7 @@ const TEAMS_BY_SPORT = {
   'Tennis': ['Novak Djokovic', 'Carlos Alcaraz', 'Jannik Sinner', 'Daniil Medvedev', 'Alexander Zverev', 'Stefanos Tsitsipas', 'Holger Rune', 'Andrey Rublev', 'Iga Swiatek', 'Aryna Sabalenka', 'Coco Gauff', 'Elena Rybakina'],
   'Rugby': ['New Zealand All Blacks', 'South Africa Springboks', 'England', 'Ireland', 'France', 'Australia Wallabies', 'Wales', 'Scotland', 'Argentina Pumas', 'Japan'],
   'Cricket': ['India', 'Australia', 'England', 'South Africa', 'New Zealand', 'Pakistan', 'West Indies', 'Sri Lanka', 'Bangladesh', 'Mumbai Indians', 'Chennai Super Kings', 'Royal Challengers Bangalore'],
+  'UFC': ['Jon Jones', 'Islam Makhachev', 'Alex Pereira', 'Leon Edwards', 'Ilia Topuria', 'Sean O\'Malley', 'Dricus du Plessis', 'Max Holloway', 'Conor McGregor', 'Dustin Poirier', 'Charles Oliveira', 'Kamaru Usman', 'Israel Adesanya', 'Amanda Nunes', 'Valentina Shevchenko'],
   'FIFA World Cup': ['USA', 'Mexico', 'Canada', 'Brazil', 'Argentina', 'England', 'France', 'Germany', 'Spain', 'Portugal', 'Netherlands', 'Italy', 'Japan', 'South Korea', 'Australia']
 };
 
@@ -218,6 +219,9 @@ const SPORT_SPONSORS = {
   ],
   'Cricket': [
     { name: 'Cricket Sponsor Spot', tagline: 'Reach cricket fans worldwide', icon: '🏏', color: 'from-sky-700/40 to-blue-500/40', borderColor: 'border-sky-400/30', url: null },
+  ],
+  'UFC': [
+    { name: 'UFC Sponsor Spot', tagline: 'Reach MMA fans on fight night', icon: '🥊', color: 'from-red-800/40 to-yellow-600/40', borderColor: 'border-red-500/30', url: null },
   ],
   'FIFA World Cup': [
     { name: 'World Cup Sponsor', tagline: 'The biggest stage in sports', icon: '🏆', color: 'from-amber-600/40 to-yellow-500/40', borderColor: 'border-amber-400/30', url: null },
