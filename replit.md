@@ -55,6 +55,7 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - `GET /api/venues/claims` - List claims (admin)
 - `POST /api/venues/claims/:id/approve` - Approve claim (admin)
 - `POST /api/venues/claims/:id/reject` - Reject claim (admin)
+- `PUT /api/users/me/profile` - Update profile (dateOfBirth, ageConfirmed)
 - `PUT /api/users/me/favorites` - Update favorite team
 - `DELETE /api/users/me/favorites/:sport` - Remove favorite team
 - `GET /api/fans/by-team?sport=X&team=Y` - Find fans by favorite team
@@ -101,6 +102,9 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - Presigned URL upload flow: request URL → PUT to GCS → save path in DB
 
 ## Recent Changes
+- 2026-02-17: Added team logos (ESPN CDN) to favorite teams on profile, sport icons on all sports labels
+- 2026-02-17: Added Edit Profile button with birthday editor modal and 21+ age verification disclaimer checkbox
+- 2026-02-17: Added mandatory 21+ age verification disclaimer checkbox to signup form
 - 2026-02-17: Added Huddle Up logo to welcome screen and dashboard header
 - 2026-02-17: Made all venue addresses clickable Google Maps links for directions
 - 2026-02-17: Added venue logo and picture upload for venue owners (displayed on venue dashboard, leaderboard, party cards, admin panel)

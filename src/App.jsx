@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2 } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil } from 'lucide-react';
 import { api } from './api.js';
 
 // Sample games data for different sports
@@ -133,6 +133,22 @@ const TEAMS_BY_SPORT = {
   'Rugby': ['New Zealand All Blacks', 'South Africa Springboks', 'England', 'Ireland', 'France', 'Australia Wallabies', 'Wales', 'Scotland', 'Argentina Pumas', 'Japan'],
   'Cricket': ['India', 'Australia', 'England', 'South Africa', 'New Zealand', 'Pakistan', 'West Indies', 'Sri Lanka', 'Bangladesh', 'Mumbai Indians', 'Chennai Super Kings', 'Royal Challengers Bangalore'],
   'FIFA World Cup': ['USA', 'Mexico', 'Canada', 'Brazil', 'Argentina', 'England', 'France', 'Germany', 'Spain', 'Portugal', 'Netherlands', 'Italy', 'Japan', 'South Korea', 'Australia']
+};
+
+const TEAM_LOGO_MAP = {
+  'NFL': { league: 'nfl', teams: { 'Arizona Cardinals': 'ari', 'Atlanta Falcons': 'atl', 'Baltimore Ravens': 'bal', 'Buffalo Bills': 'buf', 'Carolina Panthers': 'car', 'Chicago Bears': 'chi', 'Cincinnati Bengals': 'cin', 'Cleveland Browns': 'cle', 'Dallas Cowboys': 'dal', 'Denver Broncos': 'den', 'Detroit Lions': 'det', 'Green Bay Packers': 'gb', 'Houston Texans': 'hou', 'Indianapolis Colts': 'ind', 'Jacksonville Jaguars': 'jax', 'Kansas City Chiefs': 'kc', 'Las Vegas Raiders': 'lv', 'LA Chargers': 'lac', 'LA Rams': 'lar', 'Miami Dolphins': 'mia', 'Minnesota Vikings': 'min', 'New England Patriots': 'ne', 'New Orleans Saints': 'no', 'NY Giants': 'nyg', 'NY Jets': 'nyj', 'Philadelphia Eagles': 'phi', 'Pittsburgh Steelers': 'pit', 'San Francisco 49ers': 'sf', 'Seattle Seahawks': 'sea', 'Tampa Bay Buccaneers': 'tb', 'Tennessee Titans': 'ten', 'Washington Commanders': 'wsh' }},
+  'NBA': { league: 'nba', teams: { 'Atlanta Hawks': 'atl', 'Boston Celtics': 'bos', 'Brooklyn Nets': 'bkn', 'Charlotte Hornets': 'cha', 'Chicago Bulls': 'chi', 'Cleveland Cavaliers': 'cle', 'Dallas Mavericks': 'dal', 'Denver Nuggets': 'den', 'Detroit Pistons': 'det', 'Golden State Warriors': 'gs', 'Houston Rockets': 'hou', 'Indiana Pacers': 'ind', 'LA Clippers': 'lac', 'LA Lakers': 'lal', 'Memphis Grizzlies': 'mem', 'Miami Heat': 'mia', 'Milwaukee Bucks': 'mil', 'Minnesota Timberwolves': 'min', 'New Orleans Pelicans': 'no', 'NY Knicks': 'ny', 'Oklahoma City Thunder': 'okc', 'Orlando Magic': 'orl', 'Philadelphia 76ers': 'phi', 'Phoenix Suns': 'phx', 'Portland Trail Blazers': 'por', 'Sacramento Kings': 'sac', 'San Antonio Spurs': 'sa', 'Toronto Raptors': 'tor', 'Utah Jazz': 'uta', 'Washington Wizards': 'wsh' }},
+  'MLB': { league: 'mlb', teams: { 'Arizona Diamondbacks': 'ari', 'Atlanta Braves': 'atl', 'Baltimore Orioles': 'bal', 'Boston Red Sox': 'bos', 'Chicago Cubs': 'chc', 'Chicago White Sox': 'chw', 'Cincinnati Reds': 'cin', 'Cleveland Guardians': 'cle', 'Colorado Rockies': 'col', 'Detroit Tigers': 'det', 'Houston Astros': 'hou', 'Kansas City Royals': 'kc', 'LA Angels': 'laa', 'LA Dodgers': 'lad', 'Miami Marlins': 'mia', 'Milwaukee Brewers': 'mil', 'Minnesota Twins': 'min', 'NY Mets': 'nym', 'NY Yankees': 'nyy', 'Oakland Athletics': 'oak', 'Philadelphia Phillies': 'phi', 'Pittsburgh Pirates': 'pit', 'San Diego Padres': 'sd', 'San Francisco Giants': 'sf', 'Seattle Mariners': 'sea', 'St. Louis Cardinals': 'stl', 'Tampa Bay Rays': 'tb', 'Texas Rangers': 'tex', 'Toronto Blue Jays': 'tor', 'Washington Nationals': 'wsh' }},
+  'NHL': { league: 'nhl', teams: { 'Anaheim Ducks': 'ana', 'Arizona Coyotes': 'ari', 'Boston Bruins': 'bos', 'Buffalo Sabres': 'buf', 'Calgary Flames': 'cgy', 'Carolina Hurricanes': 'car', 'Chicago Blackhawks': 'chi', 'Colorado Avalanche': 'col', 'Columbus Blue Jackets': 'cbj', 'Dallas Stars': 'dal', 'Detroit Red Wings': 'det', 'Edmonton Oilers': 'edm', 'Florida Panthers': 'fla', 'LA Kings': 'la', 'Minnesota Wild': 'min', 'Montreal Canadiens': 'mtl', 'Nashville Predators': 'nsh', 'New Jersey Devils': 'njd', 'NY Islanders': 'nyi', 'NY Rangers': 'nyr', 'Ottawa Senators': 'ott', 'Philadelphia Flyers': 'phi', 'Pittsburgh Penguins': 'pit', 'San Jose Sharks': 'sjs', 'Seattle Kraken': 'sea', 'St. Louis Blues': 'stl', 'Tampa Bay Lightning': 'tb', 'Toronto Maple Leafs': 'tor', 'Vancouver Canucks': 'van', 'Vegas Golden Knights': 'vgk', 'Washington Capitals': 'wsh', 'Winnipeg Jets': 'wpg' }},
+  'MLS': { league: 'usa.1', teams: { 'LA Galaxy': 'lag', 'LAFC': 'lafc', 'Seattle Sounders': 'sea', 'Portland Timbers': 'por', 'Atlanta United': 'atl', 'Inter Miami': 'mia', 'NY Red Bulls': 'rbny', 'NYCFC': 'nyc', 'Toronto FC': 'tor', 'Vancouver Whitecaps': 'van', 'Austin FC': 'atx', 'Chicago Fire': 'chi' }},
+};
+
+const getTeamLogoUrl = (sport, team) => {
+  const sportData = TEAM_LOGO_MAP[sport];
+  if (!sportData) return null;
+  const abbr = sportData.teams?.[team];
+  if (!abbr) return null;
+  return `https://a.espncdn.com/i/teamlogos/${sportData.league}/500/${abbr}.png`;
 };
 
 const COUNTRY_FLAGS = {
@@ -294,6 +310,99 @@ const DebouncedInput = React.memo(({ value, onChange, delay = 300, ...props }) =
   return <input {...props} value={localValue} onChange={handleChange} />;
 });
 
+const EditProfileModal = ({ user, onClose, onSave }) => {
+  const [editDob, setEditDob] = useState(user.dateOfBirth ? user.dateOfBirth.split('T')[0] : '');
+  const [ageConfirmed, setAgeConfirmed] = useState(!!user.dateOfBirth);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const calcAge = (dobStr) => {
+    const dob = new Date(dobStr);
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+    return age;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    if (!editDob) { setError('Please enter your date of birth'); return; }
+    if (!ageConfirmed) { setError('You must confirm you are 21 years of age or older'); return; }
+    if (calcAge(editDob) < 21) { setError('You must be 21 years of age or older'); return; }
+    setSaving(true);
+    try {
+      await onSave(editDob, ageConfirmed);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-slate-800 rounded-2xl p-6 max-w-md w-full border border-white/20 shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+            <Pencil className="inline w-5 h-5 mr-2 text-cyan-400" />
+            EDIT PROFILE
+          </h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-white">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Date of Birth</label>
+              <input
+                type="date"
+                value={editDob}
+                onChange={e => setEditDob(e.target.value)}
+                max={new Date().toISOString().split('T')[0]}
+                className="w-full px-4 py-3 bg-slate-700 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+              />
+              {editDob && (
+                <p className="text-gray-400 text-sm mt-1">Age: {calcAge(editDob)}</p>
+              )}
+            </div>
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={ageConfirmed}
+                  onChange={e => setAgeConfirmed(e.target.checked)}
+                  className="mt-1 w-5 h-5 rounded border-2 border-amber-500/50 bg-slate-700 text-amber-500 focus:ring-amber-500 accent-amber-500"
+                />
+                <div>
+                  <span className="text-amber-300 font-bold text-sm">Age Verification Disclaimer</span>
+                  <p className="text-amber-200/70 text-xs mt-1">
+                    I confirm that I am 21 years of age or older. I understand that Huddle Up watch parties may take place at venues that serve alcohol, and I meet the legal age requirement to attend such establishments.
+                  </p>
+                </div>
+              </label>
+            </div>
+            {error && (
+              <div className="text-red-400 text-sm bg-red-500/10 p-3 rounded-xl border border-red-500/20">
+                {error}
+              </div>
+            )}
+            <button
+              type="submit"
+              disabled={saving}
+              className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-cyan-500/50 transition-all disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 const HuddleUpApp = () => {
   const [currentScreen, setCurrentScreen] = useState('welcome');
   const [user, setUser] = useState(null);
@@ -325,6 +434,7 @@ const HuddleUpApp = () => {
   const [badgeStats, setBadgeStats] = useState({ partiesHosted: 0, partiesAttended: 0 });
   const [showShareToast, setShowShareToast] = useState(false);
   const [showSignupShare, setShowSignupShare] = useState(false);
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
 
   const shareApp = async () => {
     const shareUrl = window.location.origin;
@@ -1049,11 +1159,16 @@ const HuddleUpApp = () => {
     const [gender, setGender] = useState('');
     const [dateOfBirth, setDateOfBirth] = useState('');
     const [acceptedTerms, setAcceptedTerms] = useState(false);
+    const [ageConfirmed, setAgeConfirmed] = useState(false);
     const [rememberMe, setRememberMe] = useState(true);
 
     const handleSubmit = () => {
       if (!acceptedTerms) {
         alert('You must accept the Terms of Service and Privacy Policy to sign up.');
+        return;
+      }
+      if (!ageConfirmed) {
+        alert('You must confirm you are 21 years of age or older.');
         return;
       }
       if (!email || !password || !name || !gender || !dateOfBirth) {
@@ -1184,11 +1299,28 @@ const HuddleUpApp = () => {
               </label>
             </div>
 
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={ageConfirmed}
+                  onChange={(e) => setAgeConfirmed(e.target.checked)}
+                  className="mt-1 w-4 h-4 rounded border-gray-600 text-amber-500 focus:ring-amber-500 focus:ring-offset-0 bg-white/10 accent-amber-500"
+                />
+                <div>
+                  <span className="text-amber-300 font-bold text-sm">Age Verification Disclaimer</span>
+                  <p className="text-amber-200/70 text-xs mt-1">
+                    I confirm that I am 21 years of age or older. I understand that Huddle Up watch parties may take place at venues that serve alcohol, and I meet the legal age requirement to attend such establishments.
+                  </p>
+                </div>
+              </label>
+            </div>
+
             <button
               onClick={handleSubmit}
-              disabled={!acceptedTerms}
+              disabled={!acceptedTerms || !ageConfirmed}
               className={`w-full py-4 text-white font-bold text-lg rounded-2xl shadow-lg transform transition-all duration-200 ${
-                acceptedTerms
+                acceptedTerms && ageConfirmed
                   ? 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:shadow-cyan-500/50 hover:scale-105'
                   : 'bg-gray-500 cursor-not-allowed opacity-50'
               }`}
@@ -3431,6 +3563,12 @@ const HuddleUpApp = () => {
                     <span className="text-cyan-300 font-semibold">{user.country}</span>
                   </p>
                 )}
+                <button
+                  onClick={() => setEditProfileOpen(true)}
+                  className="mt-3 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-semibold rounded-xl transition-all flex items-center gap-2 mx-auto"
+                >
+                  <Pencil className="w-4 h-4" /> Edit Profile
+                </button>
                 {!user.profilePicture && (
                   <p className="text-amber-400 text-xs mt-2 flex items-center gap-1">
                     <Camera className="w-3 h-3" /> Add a profile photo for trust & transparency
@@ -3491,6 +3629,18 @@ const HuddleUpApp = () => {
               })()}
             </div>
           </div>
+
+          {editProfileOpen && (
+            <EditProfileModal
+              user={user}
+              onClose={() => setEditProfileOpen(false)}
+              onSave={async (editDob, ageConfirmed) => {
+                await api.users.updateProfile({ dateOfBirth: editDob, ageConfirmed });
+                setUser({ ...user, dateOfBirth: editDob });
+                setEditProfileOpen(false);
+              }}
+            />
+          )}
 
           <div>
             <h2 className="text-2xl font-black text-white mb-4" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
@@ -3679,7 +3829,9 @@ const HuddleUpApp = () => {
                 return (
                   <div key={sport} className="bg-white/5 p-4 rounded-xl">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-white font-bold">{sport}</span>
+                      <span className="text-white font-bold flex items-center gap-2">
+                        <span>{SPORT_ICONS[sport] || '🏅'}</span> {sport}
+                      </span>
                       {currentTeam && (
                         <button
                           onClick={() => removeFavoriteTeam(sport)}
@@ -3701,8 +3853,15 @@ const HuddleUpApp = () => {
                     </select>
                     {currentTeam && (
                       <div className="mt-2 flex items-center gap-2 text-cyan-400 text-sm">
-                        <CheckCircle className="w-4 h-4" />
-                        <span>You support the {currentTeam}!</span>
+                        {(() => {
+                          const logoUrl = getTeamLogoUrl(sport, currentTeam);
+                          return logoUrl ? (
+                            <img src={logoUrl} alt={currentTeam} className="w-8 h-8 object-contain" />
+                          ) : (
+                            <span className="text-lg">{SPORT_ICONS[sport] || '🏅'}</span>
+                          );
+                        })()}
+                        <span className="font-semibold">You support the {currentTeam}!</span>
                       </div>
                     )}
                   </div>

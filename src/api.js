@@ -61,6 +61,8 @@ export const api = {
       request('/uploads/profile-picture', { method: 'DELETE' }),
     requestVenueImageUrl: (contentType, imageType) =>
       request('/uploads/venue-image/request-url', { method: 'POST', body: JSON.stringify({ contentType, imageType }) }),
+    updateProfile: (data) =>
+      request('/users/me/profile', { method: 'PUT', body: JSON.stringify(data) }),
     removeFavorite: (sport) =>
       request(`/users/me/favorites/${encodeURIComponent(sport)}`, { method: 'DELETE' }),
     stats: () => request('/users/stats'),

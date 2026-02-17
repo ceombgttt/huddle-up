@@ -53,6 +53,34 @@ router.put('/me/country', requireAuth, async (req, res) => {
   }
 });
 
+router.put('/me/profile', requireAuth, async (req, res) => {
+  try {
+    const { dateOfBirth, ageConfirmed } = req.body;
+    if (!dateOfBirth) {
+      return res.status(400).json({ error: 'Date of birth is required' });
+    }
+    if (!ageConfirmed) {
+      return res.status(400).json({ error: 'You must confirm you are 21 years of age or older' });
+    }
+    const dob = new Date(dateOfBirth);
+    if (isNaN(dob.getTime())) {
+      return res.status(400).json({ error: 'Invalid date of birth' });
+    }
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+    if (age < 21) {
+      return res.status(400).json({ error: 'You must be 21 years of age or older to use this app' });
+    }
+    await pool.query('UPDATE users SET date_of_birth = $1 WHERE id = $2', [dateOfBirth, req.session.userId]);
+    res.json({ dateOfBirth });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 router.get('/me/badge', requireAuth, async (req, res) => {
   try {
     const hosted = await pool.query(
