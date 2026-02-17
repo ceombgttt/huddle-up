@@ -44,20 +44,6 @@ body {
   animation: pulse-slow 3s ease-in-out infinite;
 }
 
-@keyframes scroll-glow {
-  0%, 100% {
-    box-shadow: 0 0 8px rgba(34, 211, 238, 0.4), 0 0 16px rgba(34, 211, 238, 0.2);
-    transform: translateX(0);
-  }
-  50% {
-    box-shadow: 0 0 14px rgba(34, 211, 238, 0.7), 0 0 28px rgba(34, 211, 238, 0.4);
-    transform: translateX(3px);
-  }
-}
-
-.animate-scroll-glow {
-  animation: scroll-glow 1.5s ease-in-out infinite;
-}
 
 @keyframes wc-shimmer {
   0% { background-position: -200% center; }
@@ -76,6 +62,28 @@ body {
 
 .animate-sponsor-shimmer {
   animation: sponsor-shimmer 4s ease-in-out infinite;
+}
+
+@keyframes scroll-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
+.animate-scroll-bounce {
+  animation: scroll-bounce 1.5s ease-in-out infinite;
+}
+
+@keyframes scroll-glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(34, 211, 238, 0.4), 0 0 20px rgba(34, 211, 238, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(34, 211, 238, 0.6), 0 0 40px rgba(34, 211, 238, 0.3), 0 0 60px rgba(34, 211, 238, 0.1);
+  }
+}
+
+.animate-scroll-glow {
+  animation: scroll-glow-pulse 2s ease-in-out infinite;
 }
 
 @keyframes wc-glow {

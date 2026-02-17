@@ -102,6 +102,8 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - Presigned URL upload flow: request URL → PUT to GCS → save path in DB
 
 ## Recent Changes
+- 2026-02-17: Updated logo to new shield/fist design (huddle-up-logo-2.png) across welcome, signup, and dashboard header
+- 2026-02-17: Added glowing scroll-down arrow with bounce animation to guide users to game cards below banners
 - 2026-02-17: Added dynamic sponsor banner on dashboard - changes based on selected sport filter, rotates every 5s when "All" selected, placeholder spots for all 15+ sports
 - 2026-02-17: Added team logos (ESPN CDN) to favorite teams on profile, sport icons on all sports labels
 - 2026-02-17: Added Edit Profile button with birthday editor modal and 21+ age verification disclaimer checkbox

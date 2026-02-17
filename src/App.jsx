@@ -234,13 +234,6 @@ const SAMPLE_VENUES = [
   { id: 'v4', name: "Bokampers Sports Bar", address: "321 Commercial Blvd, Fort Lauderdale, FL", verified: true, featured: false, type: 'Sports Bar' },
 ];
 
-// Sponsor data for banner ads
-const SPONSORS = [
-  { id: 'sponsor1', name: 'Bud Light', tagline: 'Official Beer Partner of Huddle Up', logo: '🍺', cta: 'Find at your local bar' },
-  { id: 'sponsor2', name: 'DraftKings', tagline: 'Bet on Live Games - Get $200 Bonus', logo: '📱', cta: 'Learn More' },
-  { id: 'sponsor3', name: 'Nike', tagline: 'Game Day Gear - 20% off with code HUDDLE20', logo: '👕', cta: 'Shop Now' }
-];
-
 // Multi-location venue pricing
 const VENUE_PRICING = {
   single: { name: "Single Location", featured: 199 },
@@ -963,7 +956,7 @@ const HuddleUpApp = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
       <div className="max-w-md w-full text-center space-y-8 animate-fade-in">
         <div className="space-y-4">
-          <img src="/huddle-up-logo.png" alt="Huddle Up - Find Your Crew. Watch The Game!" className="w-64 mx-auto animate-logo-pop" />
+          <img src="/huddle-up-logo-2.png" alt="Huddle Up - Find Your Crew. Watch The Game!" className="w-64 mx-auto animate-logo-pop" />
         </div>
         <div className="space-y-4">
           <button
@@ -1261,7 +1254,7 @@ const HuddleUpApp = () => {
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
-            <img src="/huddle-up-logo.png" alt="Huddle Up" className="h-16 mx-auto mb-4 drop-shadow-lg" />
+            <img src="/huddle-up-logo-2.png" alt="Huddle Up" className="h-16 mx-auto mb-4 drop-shadow-lg" />
             <h2 className="text-4xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
               JOIN THE CREW
             </h2>
@@ -1416,7 +1409,7 @@ const HuddleUpApp = () => {
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <img src="/huddle-up-logo.png" alt="Huddle Up" className="h-12 drop-shadow-lg" />
+              <img src="/huddle-up-logo-2.png" alt="Huddle Up" className="h-12 drop-shadow-lg" />
             </div>
             <div className="flex gap-1.5">
               {userVenue && (
@@ -1687,25 +1680,15 @@ const HuddleUpApp = () => {
         </div>
       </div>
 
-      {/* SPONSOR BANNER - ENHANCED FEATURE */}
-      <div className="max-w-4xl mx-auto px-4 py-3">
-        <div className="bg-gradient-to-r from-yellow-500/15 via-orange-500/15 to-red-500/15 border border-yellow-500/30 rounded-xl p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center font-black text-2xl shadow-lg">
-                {SPONSORS[0].logo}
-              </div>
-              <div>
-                <div className="text-xs text-gray-400 uppercase tracking-wide">Sponsored</div>
-                <div className="text-white font-bold">{SPONSORS[0].name}</div>
-                <div className="text-gray-300 text-sm">{SPONSORS[0].tagline}</div>
-              </div>
-            </div>
-            <button className="hidden sm:block px-4 py-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-slate-900 font-bold rounded-lg hover:shadow-lg transition-all text-sm">
-              {SPONSORS[0].cta}
-            </button>
+      {/* GLOWING SCROLL DOWN ARROW */}
+      <div className="flex flex-col items-center py-4">
+        <p className="text-gray-400 text-xs uppercase tracking-widest mb-2 animate-pulse">Scroll for more games</p>
+        <div className="animate-scroll-bounce">
+          <div className="w-10 h-10 rounded-full bg-cyan-500/20 border border-cyan-400/50 flex items-center justify-center shadow-lg shadow-cyan-500/30 animate-scroll-glow">
+            <svg className="w-5 h-5 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
           </div>
-          <div className="text-xs text-gray-500 mt-2 text-right">Advertisement</div>
         </div>
       </div>
 
