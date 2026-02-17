@@ -15,6 +15,7 @@ export async function initDB() {
         password_hash TEXT NOT NULL,
         name TEXT NOT NULL,
         gender TEXT NOT NULL DEFAULT 'prefer-not-to-say',
+        country TEXT,
         is_admin BOOLEAN DEFAULT FALSE,
         joined_at TIMESTAMPTZ DEFAULT NOW()
       );

@@ -135,6 +135,25 @@ const TEAMS_BY_SPORT = {
   'FIFA World Cup': ['USA', 'Mexico', 'Canada', 'Brazil', 'Argentina', 'England', 'France', 'Germany', 'Spain', 'Portugal', 'Netherlands', 'Italy', 'Japan', 'South Korea', 'Australia']
 };
 
+const COUNTRY_FLAGS = {
+  'USA': '🇺🇸', 'Mexico': '🇲🇽', 'Canada': '🇨🇦', 'Brazil': '🇧🇷', 'Argentina': '🇦🇷',
+  'England': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'France': '🇫🇷', 'Germany': '🇩🇪', 'Spain': '🇪🇸', 'Portugal': '🇵🇹',
+  'Netherlands': '🇳🇱', 'Italy': '🇮🇹', 'Japan': '🇯🇵', 'South Korea': '🇰🇷', 'Australia': '🇦🇺',
+  'Colombia': '🇨🇴', 'Uruguay': '🇺🇾', 'Chile': '🇨🇱', 'Peru': '🇵🇪', 'Ecuador': '🇪🇨',
+  'Belgium': '🇧🇪', 'Croatia': '🇭🇷', 'Denmark': '🇩🇰', 'Switzerland': '🇨🇭', 'Poland': '🇵🇱',
+  'Sweden': '🇸🇪', 'Serbia': '🇷🇸', 'Wales': '🏴󠁧󠁢󠁷󠁬󠁳󠁿', 'Scotland': '🏴󠁧󠁢󠁳󠁣󠁴󠁿', 'Ireland': '🇮🇪',
+  'Nigeria': '🇳🇬', 'Senegal': '🇸🇳', 'Ghana': '🇬🇭', 'Cameroon': '🇨🇲', 'Morocco': '🇲🇦',
+  'Egypt': '🇪🇬', 'Tunisia': '🇹🇳', 'South Africa': '🇿🇦', 'Algeria': '🇩🇿',
+  'India': '🇮🇳', 'Pakistan': '🇵🇰', 'Iran': '🇮🇷', 'Saudi Arabia': '🇸🇦', 'Qatar': '🇶🇦',
+  'Costa Rica': '🇨🇷', 'Honduras': '🇭🇳', 'Jamaica': '🇯🇲', 'Panama': '🇵🇦',
+  'New Zealand': '🇳🇿', 'China': '🇨🇳', 'Russia': '🇷🇺', 'Turkey': '🇹🇷', 'Greece': '🇬🇷',
+  'Czech Republic': '🇨🇿', 'Romania': '🇷🇴', 'Hungary': '🇭🇺', 'Norway': '🇳🇴', 'Austria': '🇦🇹',
+  'Paraguay': '🇵🇾', 'Bolivia': '🇧🇴', 'Venezuela': '🇻🇪', 'Cuba': '🇨🇺', 'Haiti': '🇭🇹',
+  'Trinidad & Tobago': '🇹🇹', 'El Salvador': '🇸🇻', 'Guatemala': '🇬🇹', 'Dominican Republic': '🇩🇴',
+};
+
+const COUNTRIES_LIST = Object.keys(COUNTRY_FLAGS).sort();
+
 // Sample verified venues (in production, this comes from database)
 const SAMPLE_VENUES = [
   { id: 'v1', name: "Buffalo Wild Wings Downtown", address: "123 Main St, Fort Lauderdale, FL", verified: true, featured: true, type: 'Sports Bar' },
@@ -3240,6 +3259,12 @@ const HuddleUpApp = () => {
                   {user.name}
                 </h1>
                 <p className="text-gray-400 text-sm">{user.email}</p>
+                {user.country && (
+                  <p className="text-sm mt-1">
+                    <span className="text-lg mr-1">{COUNTRY_FLAGS[user.country] || '🌍'}</span>
+                    <span className="text-cyan-300 font-semibold">{user.country}</span>
+                  </p>
+                )}
               </div>
               <BadgeDisplay attended={badgeStats.partiesAttended} hosted={badgeStats.partiesHosted} size="lg" />
               <div className="flex gap-6 mt-2">
@@ -3315,6 +3340,56 @@ const HuddleUpApp = () => {
                 }`} />
               </button>
             </div>
+          </div>
+
+          {/* MY COUNTRY SECTION */}
+          <div className="bg-gradient-to-br from-amber-900/30 to-slate-900 p-6 rounded-2xl border border-amber-500/20 shadow-xl">
+            <h2 className="text-2xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+              🌍 MY COUNTRY
+            </h2>
+            <p className="text-gray-400 text-sm mb-4">
+              Select the country you support for the FIFA World Cup and other international events!
+            </p>
+            <select
+              value={user.country || ''}
+              onChange={async (e) => {
+                const country = e.target.value;
+                try {
+                  await api.users.updateCountry(country);
+                  setUser({ ...user, country: country || null });
+                } catch (err) {
+                  alert(err.message);
+                }
+              }}
+              className="w-full px-4 py-3 bg-slate-700 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+            >
+              <option value="">Select your country...</option>
+              {COUNTRIES_LIST.map(c => (
+                <option key={c} value={c}>{COUNTRY_FLAGS[c]} {c}</option>
+              ))}
+            </select>
+            {user.country && (
+              <div className="mt-4 flex items-center gap-3 bg-white/5 p-4 rounded-xl">
+                <span className="text-4xl">{COUNTRY_FLAGS[user.country] || '🌍'}</span>
+                <div>
+                  <div className="text-white font-bold">{user.country}</div>
+                  <div className="text-amber-300 text-xs">Your country for international events</div>
+                </div>
+                <button
+                  onClick={async () => {
+                    try {
+                      await api.users.updateCountry('');
+                      setUser({ ...user, country: null });
+                    } catch (err) {
+                      alert(err.message);
+                    }
+                  }}
+                  className="ml-auto text-xs text-red-400 hover:text-red-300"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
           </div>
 
           {/* MY FAVORITE TEAMS SECTION */}

@@ -42,6 +42,17 @@ router.delete('/me/favorites/:sport', requireAuth, async (req, res) => {
   }
 });
 
+router.put('/me/country', requireAuth, async (req, res) => {
+  try {
+    const { country } = req.body;
+    await pool.query('UPDATE users SET country = $1 WHERE id = $2', [country || null, req.session.userId]);
+    res.json({ country: country || null });
+  } catch (error) {
+    console.error('Update country error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 router.get('/me/badge', requireAuth, async (req, res) => {
   try {
     const hosted = await pool.query(

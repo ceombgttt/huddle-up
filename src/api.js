@@ -51,6 +51,8 @@ export const api = {
   users: {
     updateFavorite: (sport, team) =>
       request('/users/me/favorites', { method: 'PUT', body: JSON.stringify({ sport, team }) }),
+    updateCountry: (country) =>
+      request('/users/me/country', { method: 'PUT', body: JSON.stringify({ country }) }),
     removeFavorite: (sport) =>
       request(`/users/me/favorites/${encodeURIComponent(sport)}`, { method: 'DELETE' }),
     stats: () => request('/users/stats'),
