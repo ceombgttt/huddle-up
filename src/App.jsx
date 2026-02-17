@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2 } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, Megaphone } from 'lucide-react';
 import { api } from './api.js';
 
 // Sample games data for different sports
@@ -1092,6 +1092,49 @@ const HuddleUpApp = () => {
     </a>
   );
 
+  const getMapsEmbedUrl = (address) => `https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`;
+
+  const VenueMap = ({ address, venueName }) => {
+    const [expanded, setExpanded] = useState(false);
+    if (!address) return null;
+    return (
+      <div className="mt-3">
+        <button
+          onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+          className="flex items-center gap-2 text-sm text-cyan-400 hover:text-cyan-300 transition-colors font-semibold"
+        >
+          <MapPin className="w-4 h-4" />
+          {expanded ? 'Hide Map' : 'Show Map & Directions'}
+          <ChevronDown className={`w-4 h-4 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+        </button>
+        {expanded && (
+          <div className="mt-2 rounded-xl overflow-hidden border border-white/20 shadow-lg">
+            <iframe
+              src={getMapsEmbedUrl(address)}
+              width="100%"
+              height="200"
+              style={{ border: 0, display: 'block' }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title={`Map to ${venueName || address}`}
+            />
+            <a
+              href={getMapsUrl(address)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Navigation className="w-4 h-4" />
+              Get Directions in Google Maps
+            </a>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const formatDateTime = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleString('en-US', {
@@ -2171,7 +2214,7 @@ const HuddleUpApp = () => {
                           <div className="space-y-2 text-sm text-gray-400">
                             <div className="flex items-center gap-2">
                               <MapPin className="w-4 h-4 text-cyan-400" />
-                              <AddressLink address={party.location} />
+                              <AddressLink address={party.venueAddress || party.location} />
                             </div>
                             <div className="flex items-center gap-2">
                               <Calendar className="w-4 h-4 text-cyan-400" />
@@ -2185,6 +2228,7 @@ const HuddleUpApp = () => {
                               </span>
                             </div>
                           </div>
+                          <VenueMap address={party.venueAddress || party.location} venueName={party.venueName || party.location} />
 
                           {party.notes && (
                             <p className="mt-3 text-gray-300 text-sm">{party.notes}</p>
@@ -4898,6 +4942,23 @@ const HuddleUpApp = () => {
           animation: spin 1s linear infinite;
         }
       `}</style>
+
+      {!['welcome', 'login', 'signup', 'forgotPassword'].includes(currentScreen) && !showOnboarding && (
+        <div className="sticky top-0 z-40 bg-gradient-to-r from-amber-600 via-orange-500 to-amber-600 shadow-lg shadow-orange-500/20">
+          <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-center gap-3">
+            <Megaphone className="w-4 h-4 text-white flex-shrink-0" />
+            <span className="text-white text-xs sm:text-sm font-bold tracking-wide">
+              MAIN SPONSOR — <span className="font-normal opacity-90">Your brand here! Premium placement across all pages.</span>
+            </span>
+            <a
+              href="mailto:sponsor@huddleupusa.com"
+              className="px-3 py-1 bg-white/20 hover:bg-white/30 text-white text-xs font-bold rounded-full border border-white/30 transition-colors flex-shrink-0"
+            >
+              Advertise
+            </a>
+          </div>
+        </div>
+      )}
 
       {/* FEATURE 1: Onboarding Tutorial Overlay */}
       {showOnboarding && <OnboardingOverlay />}

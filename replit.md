@@ -108,6 +108,9 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - Presigned URL upload flow: request URL → PUT to GCS → save path in DB
 
 ## Recent Changes
+- 2026-02-17: Added persistent main sponsor bar at top of all authenticated pages (orange gradient, "Advertise" CTA)
+- 2026-02-17: Added interactive venue map to party cards - expandable Google Maps embed with "Get Directions" button
+- 2026-02-17: Added team affiliation to parties - hosts select supported team during creation, party cards display team logo with team-colored gradient backgrounds (50+ team color schemes mapped)
 - 2026-02-17: Added push notifications for score alerts - users tap bell icon on any game to get browser/phone notifications when scores change, even when app is closed; uses Web Push API with service worker, score checker polls ESPN every 60s
 - 2026-02-17: Added team logos next to attendee names in "Who's Going" party cards (shows favorite teams)
 - 2026-02-17: Added UFC sport with ESPN API integration and fighter roster
