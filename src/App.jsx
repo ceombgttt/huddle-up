@@ -992,6 +992,7 @@ const HuddleUpApp = () => {
   };
 
   const loadFriends = async () => {
+    if (!user) return;
     try {
       const [friends, requests] = await Promise.all([
         api.friends.list(),
@@ -5261,11 +5262,11 @@ const HuddleUpApp = () => {
     };
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative z-0">
+        <div className="bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 py-4">
             <div className="flex items-center gap-3">
-              <button onClick={() => setCurrentScreen('games')} className="p-2 bg-white/10 rounded-xl hover:bg-white/20">
+              <button onClick={() => setCurrentScreen('games')} className="p-2 bg-white/10 rounded-xl hover:bg-white/20 active:bg-white/30">
                 <ArrowLeft className="w-5 h-5 text-white" />
               </button>
               <h1 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
@@ -5275,7 +5276,7 @@ const HuddleUpApp = () => {
               <div className="ml-auto">
                 <button
                   onClick={() => setCurrentScreen('fanFinder')}
-                  className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-bold rounded-xl hover:shadow-lg transition-all flex items-center gap-2"
+                  className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-bold rounded-xl hover:shadow-lg active:scale-95 transition-all flex items-center gap-2"
                 >
                   <UserPlus className="w-4 h-4" /> Find Fans
                 </button>
@@ -5285,13 +5286,13 @@ const HuddleUpApp = () => {
             <div className="flex gap-2 mt-3">
               <button
                 onClick={() => setCrewTab('friends')}
-                className={`flex-1 py-2 rounded-xl font-bold text-sm transition-all ${crewTab === 'friends' ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white' : 'bg-white/10 text-gray-400'}`}
+                className={`flex-1 py-2 rounded-xl font-bold text-sm transition-all active:scale-95 ${crewTab === 'friends' ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white' : 'bg-white/10 text-gray-400'}`}
               >
                 My Crew ({friendsList.length})
               </button>
               <button
                 onClick={() => setCrewTab('requests')}
-                className={`flex-1 py-2 rounded-xl font-bold text-sm transition-all relative ${crewTab === 'requests' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'bg-white/10 text-gray-400'}`}
+                className={`flex-1 py-2 rounded-xl font-bold text-sm transition-all active:scale-95 relative ${crewTab === 'requests' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'bg-white/10 text-gray-400'}`}
               >
                 Requests
                 {friendRequests.length > 0 && (
@@ -5384,7 +5385,9 @@ const HuddleUpApp = () => {
                           <div className="flex gap-2 flex-shrink-0">
                             {crewInvitePartyId && (
                               <button
-                                onClick={async () => {
+                                onClick={async (e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
                                   try {
                                     await api.fans.invite(crewInvitePartyId, friend.id);
                                     alert(`Invited ${friend.name}!`);
@@ -5392,14 +5395,14 @@ const HuddleUpApp = () => {
                                     alert(e.message || 'Failed to invite');
                                   }
                                 }}
-                                className="px-3 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded-xl hover:shadow-lg transition-all"
+                                className="px-3 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded-xl hover:shadow-lg active:scale-95 transition-all"
                               >
                                 <Send className="w-3 h-3 inline mr-1" /> Invite
                               </button>
                             )}
                             <button
-                              onClick={() => removeFriend(friend.id)}
-                              className="p-2 bg-white/5 hover:bg-red-500/20 text-gray-500 hover:text-red-400 rounded-xl transition-all"
+                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeFriend(friend.id); }}
+                              className="p-2 bg-white/5 hover:bg-red-500/20 active:bg-red-500/30 text-gray-500 hover:text-red-400 rounded-xl transition-all"
                               title="Remove from crew"
                             >
                               <X className="w-4 h-4" />
@@ -5443,14 +5446,14 @@ const HuddleUpApp = () => {
                       </div>
                       <div className="flex gap-3">
                         <button
-                          onClick={() => acceptFriendRequest(req.id)}
-                          className="flex-1 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-green-500/50 transition-all flex items-center justify-center gap-2"
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); acceptFriendRequest(req.id); }}
+                          className="flex-1 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-green-500/50 active:scale-95 transition-all flex items-center justify-center gap-2"
                         >
                           <CheckCircle className="w-4 h-4" /> Accept
                         </button>
                         <button
-                          onClick={() => declineFriendRequest(req.id)}
-                          className="flex-1 py-3 bg-white/10 text-gray-300 font-bold rounded-xl hover:bg-white/20 transition-all flex items-center justify-center gap-2"
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); declineFriendRequest(req.id); }}
+                          className="flex-1 py-3 bg-white/10 text-gray-300 font-bold rounded-xl hover:bg-white/20 active:scale-95 transition-all flex items-center justify-center gap-2"
                         >
                           <X className="w-4 h-4" /> Decline
                         </button>
@@ -5467,7 +5470,7 @@ const HuddleUpApp = () => {
   };
 
   return (
-    <div className="font-sans">
+    <div className="font-sans fixed inset-0 overflow-y-auto overflow-x-hidden" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'none' }}>
       <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
       <style>{`
         .scrollbar-hide::-webkit-scrollbar {
