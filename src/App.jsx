@@ -5415,7 +5415,7 @@ const HuddleUpApp = () => {
         <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 py-4">
             <div className="flex items-center gap-3">
-              <button onClick={() => setCurrentScreen('games')} className="p-2 bg-white/10 rounded-xl hover:bg-white/20">
+              <button type="button" onClick={() => setCurrentScreen('games')} className="p-2 bg-white/10 rounded-xl hover:bg-white/20 active:bg-white/30 cursor-pointer">
                 <ArrowLeft className="w-5 h-5 text-white" />
               </button>
               <h1 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
@@ -5740,10 +5740,10 @@ const HuddleUpApp = () => {
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative z-0">
-        <div className="bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+        <div className="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 py-4">
             <div className="flex items-center gap-3">
-              <button onClick={() => setCurrentScreen('games')} className="p-2 bg-white/10 rounded-xl hover:bg-white/20 active:bg-white/30">
+              <button onClick={() => setCurrentScreen('games')} className="p-2 bg-white/10 rounded-xl hover:bg-white/20 active:bg-white/30 cursor-pointer" type="button">
                 <ArrowLeft className="w-5 h-5 text-white" />
               </button>
               <h1 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
@@ -5753,7 +5753,8 @@ const HuddleUpApp = () => {
               <div className="ml-auto">
                 <button
                   onClick={() => setCurrentScreen('fanFinder')}
-                  className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-bold rounded-xl hover:shadow-lg active:scale-95 transition-all flex items-center gap-2"
+                  className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-bold rounded-xl hover:shadow-lg active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+                  type="button"
                 >
                   <UserPlus className="w-4 h-4" /> Find Fans
                 </button>
@@ -5763,13 +5764,15 @@ const HuddleUpApp = () => {
             <div className="flex gap-2 mt-3">
               <button
                 onClick={() => setCrewTab('friends')}
-                className={`flex-1 py-2 rounded-xl font-bold text-sm transition-all active:scale-95 ${crewTab === 'friends' ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white' : 'bg-white/10 text-gray-400'}`}
+                type="button"
+                className={`flex-1 py-2 rounded-xl font-bold text-sm transition-all active:scale-95 cursor-pointer ${crewTab === 'friends' ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white' : 'bg-white/10 text-gray-400'}`}
               >
                 My Crew ({friendsList.length})
               </button>
               <button
                 onClick={() => setCrewTab('requests')}
-                className={`flex-1 py-2 rounded-xl font-bold text-sm transition-all active:scale-95 relative ${crewTab === 'requests' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'bg-white/10 text-gray-400'}`}
+                type="button"
+                className={`flex-1 py-2 rounded-xl font-bold text-sm transition-all active:scale-95 cursor-pointer relative ${crewTab === 'requests' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'bg-white/10 text-gray-400'}`}
               >
                 Requests
                 {friendRequests.length > 0 && (
@@ -5791,8 +5794,9 @@ const HuddleUpApp = () => {
                   <h3 className="text-xl font-bold text-white mb-2">Build Your Crew</h3>
                   <p className="text-gray-400 mb-6 max-w-sm mx-auto">Find fans who love the same teams and add them to your crew. Then invite them to watch parties!</p>
                   <button
+                    type="button"
                     onClick={() => setCurrentScreen('fanFinder')}
-                    className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-cyan-500/50 transition-all"
+                    className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-cyan-500/50 transition-all cursor-pointer active:scale-95"
                   >
                     <UserPlus className="w-5 h-5 inline mr-2" /> Find Fellow Fans
                   </button>
@@ -5973,7 +5977,7 @@ const HuddleUpApp = () => {
       `}</style>
 
       {!['welcome', 'login', 'signup', 'forgotPassword'].includes(currentScreen) && !showOnboarding && (
-        <div className="sticky top-0 z-40 bg-gradient-to-r from-amber-600 via-orange-500 to-amber-600 shadow-lg shadow-orange-500/20">
+        <div className="relative z-40 bg-gradient-to-r from-amber-600 via-orange-500 to-amber-600 shadow-lg shadow-orange-500/20">
           <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-center gap-3">
             <Megaphone className="w-4 h-4 text-white flex-shrink-0" />
             <span className="text-white text-xs sm:text-sm font-bold tracking-wide">
