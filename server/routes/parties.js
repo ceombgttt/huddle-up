@@ -10,9 +10,11 @@ router.get('/', async (req, res) => {
     const { gameId, city } = req.query;
     let query = `
       SELECT p.*, u.name as host_name, u.email as host_email,
-        (SELECT COUNT(*) FROM party_attendees pa WHERE pa.party_id = p.id) as attendee_count
+        (SELECT COUNT(*) FROM party_attendees pa WHERE pa.party_id = p.id) as attendee_count,
+        v.picture as venue_picture, v.logo as venue_logo
       FROM parties p
       JOIN users u ON p.host_id = u.id
+      LEFT JOIN venues v ON LOWER(v.name) = LOWER(p.venue_name) AND LOWER(v.city) = LOWER(p.city)
     `;
     const params = [];
     const conditions = [];
@@ -59,7 +61,9 @@ router.get('/', async (req, res) => {
         attendees: attendees.rows.map(a => a.email),
         attendeeDetails: attendees.rows.map(a => ({ email: a.email, name: a.name, gender: a.gender, profilePicture: a.profile_picture, favoriteTeams: a.favorite_teams || {} })),
         supportedTeam: party.supported_team,
-        createdAt: party.created_at
+        createdAt: party.created_at,
+        venuePicture: party.venue_picture || null,
+        venueLogo: party.venue_logo || null
       };
     }));
 

@@ -2434,7 +2434,13 @@ const HuddleUpApp = () => {
                 {gameParties.map(party => {
                   const isAttending = party.attendees.includes(user.email);
                   const isFull = party.capacity && party.attendees.length >= party.capacity;
-                  const venue = party.venueId ? venues.find(v => v.id === party.venueId) : null;
+                  const matchedVenue = venues.find(v => v.name?.toLowerCase() === party.venueName?.toLowerCase());
+                  const venue = {
+                    logo: party.venueLogo || matchedVenue?.logo || null,
+                    picture: party.venuePicture || matchedVenue?.picture || null,
+                    verified: matchedVenue?.verified || false,
+                    featured: matchedVenue?.featured || false,
+                  };
                   
                   const teamColors = party.supportedTeam ? getTeamColors(party.sport, party.supportedTeam) : null;
                   const teamLogo = party.supportedTeam ? getTeamLogoUrl(party.sport, party.supportedTeam) : null;
@@ -2451,7 +2457,12 @@ const HuddleUpApp = () => {
                         background: 'linear-gradient(135deg, rgb(30,41,59), rgb(15,23,42))'
                       }}
                     >
-                      {teamLogo && (
+                      {venue.picture && (
+                        <div className="w-full h-36 overflow-hidden">
+                          <img src={`/api/uploads/serve/${venue.picture.replace('/objects/', '')}`} alt={party.venueName} className="w-full h-full object-cover" />
+                        </div>
+                      )}
+                      {teamLogo && !venue.picture && (
                         <div className="absolute top-4 right-4 opacity-15 pointer-events-none">
                           <img src={teamLogo} alt="" className="w-32 h-32 object-contain" />
                         </div>

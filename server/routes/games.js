@@ -105,7 +105,24 @@ async function fetchAllGames() {
 router.get('/', async (req, res) => {
   try {
     const games = await fetchAllGames();
-    res.json(games);
+    const now = new Date();
+    const sixHoursAgo = new Date(now.getTime() - 6 * 60 * 60 * 1000);
+
+    const filtered = games.filter(game => {
+      if (game.gameStatus === 'live') return true;
+      if (game.gameStatus === 'scheduled') {
+        const gameTime = new Date(game.startTime);
+        return gameTime >= sixHoursAgo;
+      }
+      if (game.gameStatus === 'final') {
+        const gameTime = new Date(game.startTime);
+        const estimatedEndTime = new Date(gameTime.getTime() + 4 * 60 * 60 * 1000);
+        return estimatedEndTime >= sixHoursAgo;
+      }
+      return false;
+    });
+
+    res.json(filtered);
   } catch (error) {
     console.error('Games fetch error:', error);
     res.status(500).json({ error: 'Failed to fetch games' });
