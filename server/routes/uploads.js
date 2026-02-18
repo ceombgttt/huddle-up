@@ -233,7 +233,7 @@ router.post('/profile-picture/upload', requireAuth, async (req, res) => {
 router.get('/serve/*', async (req, res) => {
   try {
     const objectSubPath = req.params[0];
-    const allowedPrefixes = ['profile-pictures/', 'venue-logos/', 'venue-pictures/', 'sponsor-logos/'];
+    const allowedPrefixes = ['profile-pictures/', 'venue-logos/', 'venue-pictures/', 'sponsor-logos/', 'party-photos/'];
     if (!allowedPrefixes.some(p => objectSubPath.startsWith(p))) {
       return res.status(403).json({ error: 'Access denied' });
     }

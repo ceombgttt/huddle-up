@@ -20,6 +20,7 @@ import chatRoutes from './routes/chat.js';
 import analyticsRoutes from './routes/analytics.js';
 import stripeRoutes from './routes/stripe.js';
 import referralRoutes from './routes/referrals.js';
+import photoRoutes from './routes/photos.js';
 import { startScoreChecker } from './scoreChecker.js';
 import { WebhookHandlers } from './stripe/webhookHandlers.js';
 import { initStripe } from './stripe/init.js';
@@ -51,6 +52,7 @@ app.post(
 
 app.use('/api/uploads/venue-image/upload', express.raw({ type: 'image/*', limit: '5mb' }));
 app.use('/api/uploads/profile-picture/upload', express.raw({ type: 'image/*', limit: '5mb' }));
+app.use('/api/photos/parties/:partyId/upload', express.raw({ type: 'image/*', limit: '10mb' }));
 app.use(express.json());
 
 app.use(session({
@@ -86,6 +88,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/stripe', stripeRoutes);
 app.use('/api/referrals', referralRoutes);
+app.use('/api/photos', photoRoutes);
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 

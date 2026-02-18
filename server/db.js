@@ -190,6 +190,24 @@ export async function initDB() {
         status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'paid', 'cancelled')),
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS party_photos (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        party_id UUID REFERENCES parties(id) ON DELETE CASCADE,
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        object_path TEXT NOT NULL,
+        caption TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS photo_tags (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        photo_id UUID REFERENCES party_photos(id) ON DELETE CASCADE,
+        tagged_user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        tagged_by UUID REFERENCES users(id) ON DELETE CASCADE,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(photo_id, tagged_user_id)
+      );
     `);
 
     const adminCheck = await client.query("SELECT id FROM users WHERE email = 'admin@huddleupusa.com'");
