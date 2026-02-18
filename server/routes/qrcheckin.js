@@ -312,6 +312,71 @@ router.post('/scan', requireAuth, async (req, res) => {
   }
 });
 
+router.post('/admin/generate/:venueId', requireAdmin, async (req, res) => {
+  try {
+    const { venueId } = req.params;
+    const venue = await pool.query('SELECT id, name FROM venues WHERE id = $1', [venueId]);
+    if (venue.rows.length === 0) {
+      return res.status(404).json({ error: 'Venue not found' });
+    }
+
+    const venueName = venue.rows[0].name;
+
+    await pool.query('UPDATE venue_qr_codes SET active = FALSE WHERE venue_id = $1', [venueId]);
+
+    const token = crypto.randomBytes(32).toString('hex');
+    await pool.query('INSERT INTO venue_qr_codes (venue_id, token) VALUES ($1, $2)', [venueId, token]);
+
+    const host = req.get('host');
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const checkinUrl = `${protocol}://${host}/checkin/${token}`;
+
+    const qrDataUrl = await QRCode.toDataURL(checkinUrl, {
+      width: 400,
+      margin: 2,
+      color: { dark: '#1e293b', light: '#ffffff' },
+      errorCorrectionLevel: 'H'
+    });
+
+    res.json({ qrDataUrl, checkinUrl, venueName, venueId, generatedAt: new Date().toISOString() });
+  } catch (error) {
+    console.error('Admin generate QR error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.get('/admin/venue/:venueId/qr', requireAdmin, async (req, res) => {
+  try {
+    const { venueId } = req.params;
+    const venue = await pool.query('SELECT id, name FROM venues WHERE id = $1', [venueId]);
+    if (venue.rows.length === 0) return res.status(404).json({ error: 'Venue not found' });
+
+    const qr = await pool.query(
+      'SELECT token, created_at FROM venue_qr_codes WHERE venue_id = $1 AND active = TRUE ORDER BY created_at DESC LIMIT 1',
+      [venueId]
+    );
+
+    if (qr.rows.length === 0) {
+      return res.json({ hasQr: false, venueName: venue.rows[0].name, venueId });
+    }
+
+    const host = req.get('host');
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const checkinUrl = `${protocol}://${host}/checkin/${qr.rows[0].token}`;
+
+    const qrDataUrl = await QRCode.toDataURL(checkinUrl, {
+      width: 400, margin: 2,
+      color: { dark: '#1e293b', light: '#ffffff' },
+      errorCorrectionLevel: 'H'
+    });
+
+    res.json({ hasQr: true, qrDataUrl, checkinUrl, venueName: venue.rows[0].name, venueId, createdAt: qr.rows[0].created_at });
+  } catch (error) {
+    console.error('Admin get QR error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 router.get('/admin/stats', requireAdmin, async (req, res) => {
   try {
     const stats = await pool.query(`

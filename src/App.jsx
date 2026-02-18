@@ -1160,6 +1160,7 @@ const HuddleUpApp = () => {
   const [analyticsData, setAnalyticsData] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [qrCheckinToken, setQrCheckinToken] = useState(null);
+  const [adminQrModal, setAdminQrModal] = useState(null);
   const [invitations, setInvitations] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [fanSearchSport, setFanSearchSport] = useState('');
@@ -4750,6 +4751,24 @@ const HuddleUpApp = () => {
                       </div>
                     </div>
                     <button
+                      onClick={async () => {
+                        try {
+                          const qr = await api.qr.adminGetVenueQr(venue.id);
+                          if (qr.hasQr) {
+                            setAdminQrModal({ venue, qrDataUrl: qr.qrDataUrl, checkinUrl: qr.checkinUrl });
+                          } else {
+                            if (confirm(`Generate a QR code for ${venue.name}?`)) {
+                              const result = await api.qr.adminGenerateQr(venue.id);
+                              setAdminQrModal({ venue, qrDataUrl: result.qrDataUrl, checkinUrl: result.checkinUrl });
+                            }
+                          }
+                        } catch (e) { alert(e.message); }
+                      }}
+                      className="px-3 py-2 bg-amber-500/20 text-amber-300 rounded-lg text-xs font-bold hover:bg-amber-500/30 border border-amber-500/30 transition-all"
+                    >
+                      QR Code
+                    </button>
+                    <button
                       onClick={() => openAdminEditVenue(venue)}
                       className="px-3 py-2 bg-cyan-500/20 text-cyan-300 rounded-lg text-xs font-bold hover:bg-cyan-500/30 border border-cyan-500/30 transition-all"
                     >
@@ -4960,6 +4979,59 @@ const HuddleUpApp = () => {
             )}
           </div>
 
+        {adminQrModal && (
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setAdminQrModal(null); }}>
+            <div className="bg-slate-800 rounded-2xl p-6 max-w-md w-full border border-white/10" onMouseDown={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>QR CODE - {adminQrModal.venue.name}</h3>
+                <button onClick={() => setAdminQrModal(null)} className="text-gray-400 hover:text-white"><X className="w-5 h-5" /></button>
+              </div>
+              <div className="flex flex-col items-center gap-4">
+                <div className="bg-white p-4 rounded-2xl">
+                  <img src={adminQrModal.qrDataUrl} alt="Venue QR Code" className="w-48 h-48" />
+                </div>
+                <p className="text-gray-400 text-sm text-center">Fans scan this to check in at {adminQrModal.venue.name}</p>
+                <div className="flex gap-2 w-full">
+                  <button
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.download = `${adminQrModal.venue.name.replace(/\s+/g, '_')}_QR.png`;
+                      link.href = adminQrModal.qrDataUrl;
+                      link.click();
+                    }}
+                    className="flex-1 py-2 bg-amber-500/20 text-amber-300 font-bold rounded-xl text-sm hover:bg-amber-500/30 border border-amber-500/30"
+                  >
+                    Download
+                  </button>
+                  <button
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(adminQrModal.checkinUrl);
+                        alert('Check-in link copied!');
+                      } catch (e) {}
+                    }}
+                    className="flex-1 py-2 bg-white/10 text-white font-bold rounded-xl text-sm hover:bg-white/20 border border-white/20"
+                  >
+                    Copy Link
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (confirm('Regenerate QR code? The old one will stop working.')) {
+                        try {
+                          const result = await api.qr.adminGenerateQr(adminQrModal.venue.id);
+                          setAdminQrModal({ venue: adminQrModal.venue, qrDataUrl: result.qrDataUrl, checkinUrl: result.checkinUrl });
+                        } catch (e) { alert(e.message); }
+                      }
+                    }}
+                    className="flex-1 py-2 bg-white/10 text-gray-300 font-bold rounded-xl text-sm hover:bg-white/20 border border-white/20"
+                  >
+                    Regenerate
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         {adminEditVenue && (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setAdminEditVenue(null); }}>
             <div className="bg-slate-800 rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto border border-white/10 overscroll-contain" onMouseDown={e => e.stopPropagation()} onTouchStart={e => e.stopPropagation()}>

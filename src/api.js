@@ -175,6 +175,8 @@ export const api = {
     verifyToken: (token) => request(`/qr/verify/${encodeURIComponent(token)}`),
     scan: (token, partyId) => request('/qr/scan', { method: 'POST', body: JSON.stringify({ token, partyId }) }),
     adminStats: () => request('/qr/admin/stats'),
+    adminGenerateQr: (venueId) => request(`/qr/admin/generate/${venueId}`, { method: 'POST' }),
+    adminGetVenueQr: (venueId) => request(`/qr/admin/venue/${venueId}/qr`),
   },
   analytics: {
     overview: () => request('/analytics/overview'),
