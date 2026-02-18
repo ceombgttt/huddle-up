@@ -4636,8 +4636,8 @@ const HuddleUpApp = () => {
         {adminTab === 'management' && (
           <>
           {/* Revenue Overview */}
-          <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30 p-8 rounded-2xl">
-            <h2 className="text-2xl font-black text-white mb-6" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+          <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30 p-4 sm:p-8 rounded-2xl overflow-hidden">
+            <h2 className="text-xl sm:text-2xl font-black text-white mb-4 sm:mb-6" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
               💰 REVENUE OVERVIEW
             </h2>
             
@@ -4727,8 +4727,8 @@ const HuddleUpApp = () => {
           )}
 
           {/* Sport Performance */}
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-2xl border border-white/10">
-            <h2 className="text-2xl font-black text-white mb-6" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-4 sm:p-8 rounded-2xl border border-white/10 overflow-hidden">
+            <h2 className="text-xl sm:text-2xl font-black text-white mb-4 sm:mb-6" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
               <BarChart3 className="inline w-6 h-6 mr-2 text-cyan-400" />
               SPORT PERFORMANCE
             </h2>
@@ -4767,8 +4767,8 @@ const HuddleUpApp = () => {
           </div>
 
           {/* Top Performing Venues */}
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-2xl border border-white/10">
-            <h2 className="text-2xl font-black text-white mb-6" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-4 sm:p-8 rounded-2xl border border-white/10 overflow-hidden">
+            <h2 className="text-xl sm:text-2xl font-black text-white mb-4 sm:mb-6" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
               🏆 TOP PERFORMING VENUES
             </h2>
             
@@ -4781,44 +4781,44 @@ const HuddleUpApp = () => {
                 {venuePerformance.slice(0, 10).map((venue, index) => (
                   <div
                     key={venue.id}
-                    className="bg-white/5 p-5 rounded-xl border border-white/10 flex items-center justify-between"
+                    className="bg-white/5 p-4 rounded-xl border border-white/10"
                   >
-                    <div className="flex items-center gap-4 flex-1">
-                      <div className="text-2xl font-black text-gray-600">#{index + 1}</div>
+                    <div className="flex items-start gap-3 mb-3">
+                      <div className="text-2xl font-black text-gray-600 flex-shrink-0">#{index + 1}</div>
                       {venue.logo && (
-                        <img src={`/api/uploads/serve/${venue.logo.replace('/objects/', '')}`} alt="" className="w-10 h-10 rounded-lg object-cover border border-white/20" />
+                        <img src={`/api/uploads/serve/${venue.logo.replace('/objects/', '')}`} alt="" className="w-10 h-10 rounded-lg object-cover border border-white/20 flex-shrink-0" />
                       )}
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-bold text-white">{venue.name}</h3>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-bold text-white text-sm truncate">{venue.name}</h3>
+                        <div className="flex flex-wrap gap-1 mt-1">
                           <VenueBadgeDisplay totalParties={venue.partiesHosted || 0} totalFans={venue.totalAttendees || 0} />
                           {venue.subscribed && (
-                            <span className="px-2 py-1 bg-green-500/20 text-green-300 text-xs font-bold rounded-full flex items-center gap-1">
-                              <CheckCircle className="w-3 h-3" /> SUBSCRIBED
+                            <span className="px-1.5 py-0.5 bg-green-500/20 text-green-300 text-[10px] font-bold rounded-full flex items-center gap-0.5">
+                              <CheckCircle className="w-2.5 h-2.5" /> SUB
                             </span>
                           )}
                           {venue.featured && (
-                            <span className="px-2 py-1 bg-purple-500/20 text-purple-300 text-xs font-bold rounded-full">
+                            <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-300 text-[10px] font-bold rounded-full">
                               ⭐ FEATURED
                             </span>
                           )}
                         </div>
-                        <div className="text-sm text-gray-400"><AddressLink address={venue.address} /></div>
+                        <div className="text-xs text-gray-400 truncate mt-1"><AddressLink address={venue.address} /></div>
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-3 gap-6 text-center">
+                    <div className="grid grid-cols-3 gap-3 text-center bg-white/5 rounded-lg p-2">
                       <div>
-                        <div className="text-xs text-gray-500 mb-1">Parties</div>
-                        <div className="text-lg font-bold text-white">{venue.partiesHosted}</div>
+                        <div className="text-[10px] text-gray-500">Parties</div>
+                        <div className="text-sm font-bold text-white">{venue.partiesHosted}</div>
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500 mb-1">Attendees</div>
-                        <div className="text-lg font-bold text-cyan-400">{venue.totalAttendees}</div>
+                        <div className="text-[10px] text-gray-500">Attendees</div>
+                        <div className="text-sm font-bold text-cyan-400">{venue.totalAttendees}</div>
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500 mb-1">Avg Size</div>
-                        <div className="text-lg font-bold text-purple-400">{venue.avgPartySize}</div>
+                        <div className="text-[10px] text-gray-500">Avg Size</div>
+                        <div className="text-sm font-bold text-purple-400">{venue.avgPartySize}</div>
                       </div>
                     </div>
                   </div>
@@ -4828,8 +4828,8 @@ const HuddleUpApp = () => {
           </div>
 
           {/* Venue Claims */}
-          <div id="venue-claims-section" className="bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-2xl border border-white/10">
-            <h2 className="text-2xl font-black text-white mb-6" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+          <div id="venue-claims-section" className="bg-gradient-to-br from-slate-800 to-slate-900 p-4 sm:p-8 rounded-2xl border border-white/10 overflow-hidden">
+            <h2 className="text-xl sm:text-2xl font-black text-white mb-4 sm:mb-6" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
               Venue Claims to Review ({pendingClaims.length} Pending)
             </h2>
 
@@ -4907,8 +4907,8 @@ const HuddleUpApp = () => {
           </div>
 
           {/* All Venues Management */}
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-2xl border border-white/10">
-            <h2 className="text-2xl font-black text-white mb-6" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-4 sm:p-8 rounded-2xl border border-white/10 overflow-hidden">
+            <h2 className="text-xl sm:text-2xl font-black text-white mb-4 sm:mb-6" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
               All Verified Venues ({venues.filter(v => v.verified).length})
             </h2>
 
@@ -4916,68 +4916,71 @@ const HuddleUpApp = () => {
               {venues.filter(v => v.verified).map(venue => (
                 <div
                   key={venue.id}
-                  className="bg-white/5 p-4 rounded-xl border border-white/10 flex items-center justify-between"
+                  className="bg-white/5 p-4 rounded-xl border border-white/10 overflow-hidden"
                 >
-                  <div className="flex items-center gap-3 flex-1">
+                  <div className="flex items-start gap-3 mb-3">
                     {venue.logo && (
-                      <img src={`/api/uploads/serve/${venue.logo.replace('/objects/', '')}`} alt="" className="w-10 h-10 rounded-lg object-cover border border-white/20" />
+                      <img src={`/api/uploads/serve/${venue.logo.replace('/objects/', '')}`} alt="" className="w-10 h-10 rounded-lg object-cover border border-white/20 flex-shrink-0" />
                     )}
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-bold text-white">{venue.name}</h3>
-                        {venue.featured && (
-                          <span className="px-2 py-1 bg-purple-500/20 text-purple-300 text-xs font-bold rounded-full">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                        <h3 className="font-bold text-white text-sm">{venue.name}</h3>
+                        {venue.featured ? (
+                          <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-300 text-[10px] font-bold rounded-full whitespace-nowrap">
                             ⭐ FEATURED ($199/mo)
                           </span>
-                        )}
-                        {!venue.featured && (
-                          <span className="px-2 py-1 bg-gray-500/20 text-gray-300 text-xs font-bold rounded-full">
+                        ) : (
+                          <span className="px-1.5 py-0.5 bg-gray-500/20 text-gray-300 text-[10px] font-bold rounded-full whitespace-nowrap">
                             FREE TIER
                           </span>
                         )}
                       </div>
-                      <div className="text-sm text-gray-400"><AddressLink address={venue.address} /></div>
-                      <div className="text-xs text-gray-500">{venue.type}</div>
+                      <div className="text-xs text-gray-400 truncate"><AddressLink address={venue.address} /></div>
+                      <div className="text-[10px] text-gray-500">{venue.type}</div>
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <div className="text-gray-400 text-xs">Parties Hosted</div>
-                      <div className="text-white font-bold">
-                        {parties.filter(p => p.venueId === venue.id).length}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex gap-4">
+                      <div>
+                        <div className="text-gray-400 text-[10px]">Parties Hosted</div>
+                        <div className="text-white font-bold text-sm">
+                          {parties.filter(p => p.venueId === venue.id).length}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-gray-400 text-[10px]">Revenue</div>
+                        <div className="text-green-400 font-bold text-sm">
+                          ${venue.featured ? '199' : '0'}/mo
+                        </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-gray-400 text-xs">Revenue</div>
-                      <div className="text-green-400 font-bold">
-                        ${venue.featured ? '199' : '0'}/mo
-                      </div>
-                    </div>
-                    <button
-                      onClick={async () => {
-                        try {
-                          const qr = await api.qr.adminGetVenueQr(venue.id);
-                          if (qr.hasQr) {
-                            setAdminQrModal({ venue, qrDataUrl: qr.qrDataUrl, checkinUrl: qr.checkinUrl });
-                          } else {
-                            if (confirm(`Generate a QR code for ${venue.name}?`)) {
-                              const result = await api.qr.adminGenerateQr(venue.id);
-                              setAdminQrModal({ venue, qrDataUrl: result.qrDataUrl, checkinUrl: result.checkinUrl });
+                    <div className="flex gap-2 flex-shrink-0">
+                      <button
+                        onClick={async () => {
+                          try {
+                            const qr = await api.qr.adminGetVenueQr(venue.id);
+                            if (qr.hasQr) {
+                              setAdminQrModal({ venue, qrDataUrl: qr.qrDataUrl, checkinUrl: qr.checkinUrl });
+                            } else {
+                              if (confirm(`Generate a QR code for ${venue.name}?`)) {
+                                const result = await api.qr.adminGenerateQr(venue.id);
+                                setAdminQrModal({ venue, qrDataUrl: result.qrDataUrl, checkinUrl: result.checkinUrl });
+                              }
                             }
-                          }
-                        } catch (e) { alert(e.message); }
-                      }}
-                      className="px-3 py-2 bg-amber-500/20 text-amber-300 rounded-lg text-xs font-bold hover:bg-amber-500/30 border border-amber-500/30 transition-all"
-                    >
-                      QR Code
-                    </button>
-                    <button
-                      onClick={() => openAdminEditVenue(venue)}
-                      className="px-3 py-2 bg-cyan-500/20 text-cyan-300 rounded-lg text-xs font-bold hover:bg-cyan-500/30 border border-cyan-500/30 transition-all"
-                    >
-                      Edit
-                    </button>
+                          } catch (e) { alert(e.message); }
+                        }}
+                        className="px-2.5 py-1.5 bg-amber-500/20 text-amber-300 rounded-lg text-[10px] font-bold hover:bg-amber-500/30 border border-amber-500/30 transition-all"
+                      >
+                        QR Code
+                      </button>
+                      <button
+                        onClick={() => openAdminEditVenue(venue)}
+                        className="px-2.5 py-1.5 bg-cyan-500/20 text-cyan-300 rounded-lg text-[10px] font-bold hover:bg-cyan-500/30 border border-cyan-500/30 transition-all"
+                      >
+                        Edit
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -4985,9 +4988,9 @@ const HuddleUpApp = () => {
           </div>
 
           {/* Sponsor Management Section */}
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-2xl border border-white/10">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-4 sm:p-8 rounded-2xl border border-white/10 overflow-hidden">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-4 sm:mb-6">
+              <h2 className="text-xl sm:text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
                 <DollarSign className="inline w-6 h-6 mr-2 text-green-400" />
                 SPONSOR MANAGEMENT
               </h2>
