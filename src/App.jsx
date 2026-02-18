@@ -226,6 +226,49 @@ const DEMO_SPONSORS = [
   { name: 'Hoops & Hops', tagline: 'Where basketball meets craft beer', demoLogo: '/demo-sponsors/surge-energy.png', url: '#', sport: 'NBA', slot: 5, tier: 'premium' },
 ];
 
+const DEMO_MAIN_SPONSOR = {
+  name: 'Victory Sports Drink',
+  tagline: 'Fuel the Fans. Own the Moment.',
+  logoUrl: '/demo-sponsors/victory-sports-main.png',
+  url: '#',
+  isDemo: true,
+};
+
+const MainSponsorBanner = ({ mainSponsor, onAdvertise }) => {
+  const sponsor = mainSponsor || DEMO_MAIN_SPONSOR;
+  const isExample = !mainSponsor;
+  return (
+    <div
+      onClick={() => sponsor.url && sponsor.url !== '#' && window.open(sponsor.url, '_blank')}
+      className={`w-full h-10 bg-gradient-to-r from-amber-700 via-orange-600 to-amber-700 ${sponsor.url && sponsor.url !== '#' ? 'cursor-pointer' : ''}`}
+    >
+      <div className="max-w-4xl mx-auto px-4 h-full flex items-center justify-center gap-3">
+        <div className="flex-shrink-0 w-7 h-7 rounded-lg overflow-hidden bg-white/10 flex items-center justify-center">
+          {sponsor.logoUrl ? (
+            <img src={sponsor.logoUrl} alt={sponsor.name} className="w-full h-full object-cover" />
+          ) : (
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
+          )}
+        </div>
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-yellow-200 font-black text-xs sm:text-sm uppercase tracking-wider whitespace-nowrap">MAIN SPONSOR</span>
+          <span className="text-white/60 hidden sm:inline">—</span>
+          <span className="text-white font-bold text-sm sm:text-base truncate">{sponsor.name}</span>
+          <span className="text-white/70 text-xs sm:text-sm truncate hidden sm:inline">{sponsor.tagline}</span>
+        </div>
+        {isExample && onAdvertise && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onAdvertise(); }}
+            className="flex-shrink-0 px-3 py-1 bg-white/20 hover:bg-white/30 border border-white/30 rounded-full text-white text-xs font-bold transition-all whitespace-nowrap"
+          >
+            Advertise
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const COUNTRIES_LIST = Object.keys(COUNTRY_FLAGS).sort();
 
 // Sample verified venues (in production, this comes from database)
@@ -2838,8 +2881,8 @@ const HuddleUpApp = () => {
   );
 
   const gamesScreenJSX = () => (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+    <div className="min-h-screen pt-10 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <div className="sticky top-10 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3 mb-4">
             <div className="flex-shrink-0">
@@ -3271,8 +3314,8 @@ const HuddleUpApp = () => {
     const gameParties = getPartiesForGame(selectedGame.id);
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+      <div className="min-h-screen pt-10 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="sticky top-10 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 py-4">
             <button
               onClick={() => setCurrentScreen('games')}
@@ -3898,8 +3941,8 @@ const HuddleUpApp = () => {
   };
 
   const claimVenueScreenJSX = () => (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+      <div className="min-h-screen pt-10 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="sticky top-10 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 py-4">
             <button
               onClick={() => setCurrentScreen('createParty')}
@@ -4188,8 +4231,8 @@ const HuddleUpApp = () => {
     const a = analyticsData;
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+      <div className="min-h-screen pt-10 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="sticky top-10 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-7xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <h1 className="text-3xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
@@ -5365,8 +5408,8 @@ const HuddleUpApp = () => {
   };
 
   const createPartyScreenJSX = () => selectedGame ? (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+      <div className="min-h-screen pt-10 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="sticky top-10 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 py-4">
             <button
               onClick={() => setCurrentScreen('gameDetail')}
@@ -5679,7 +5722,7 @@ const HuddleUpApp = () => {
 
     if (!userVenue) {
       return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+        <div className="min-h-screen pt-10 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
           <div className="text-center">
             <Building2 className="w-16 h-16 text-gray-600 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-white mb-2">No Venue Found</h2>
@@ -5718,8 +5761,8 @@ const HuddleUpApp = () => {
       .slice(0, 5);
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+      <div className="min-h-screen pt-10 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="sticky top-10 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-6xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <button
@@ -6217,8 +6260,8 @@ const HuddleUpApp = () => {
     };
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+      <div className="min-h-screen pt-10 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="sticky top-10 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 py-4">
             <button
               onClick={() => setCurrentScreen('games')}
@@ -6433,14 +6476,14 @@ const HuddleUpApp = () => {
     };
 
     if (loading) return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen pt-10 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-orange-400" />
       </div>
     );
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+      <div className="min-h-screen pt-10 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="sticky top-10 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 py-4">
             <button onClick={() => setCurrentScreen('profile')} className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
               <ArrowLeft className="w-5 h-5" /> Back to Profile
@@ -6556,8 +6599,8 @@ const HuddleUpApp = () => {
     const joinedParties = myParties.filter(party => party.hostEmail !== user.email);
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+      <div className="min-h-screen pt-10 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="sticky top-10 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <button
@@ -7046,8 +7089,8 @@ const HuddleUpApp = () => {
   );
 
   const renderFanFinderScreen = () => (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+      <div className="min-h-screen pt-10 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="sticky top-10 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 py-4">
             <div className="flex items-center gap-3">
               <button type="button" onClick={() => setCurrentScreen('games')} className="p-2 bg-white/10 rounded-xl hover:bg-white/20 active:bg-white/30 cursor-pointer">
@@ -7236,8 +7279,8 @@ const HuddleUpApp = () => {
     ];
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+      <div className="min-h-screen pt-10 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="sticky top-10 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 py-4">
             <div className="flex items-center gap-3">
               <button onClick={() => setCurrentScreen('games')} className="p-2 bg-white/10 rounded-xl hover:bg-white/20">
@@ -7449,8 +7492,8 @@ const HuddleUpApp = () => {
   const InvitationsScreen = () => {
     const unreadNotifications = notifications.filter(n => !n.isRead);
     return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+    <div className="min-h-screen pt-10 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <div className="sticky top-10 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
             <button onClick={() => setCurrentScreen('games')} className="p-2 bg-white/10 rounded-xl hover:bg-white/20">
@@ -7641,7 +7684,7 @@ const HuddleUpApp = () => {
     };
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+      <div className="min-h-screen pt-10 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
         <div className="max-w-md w-full">
           {checkinStatus === 'loading' && (
             <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl border border-white/10 p-8 text-center">
@@ -7746,8 +7789,8 @@ const HuddleUpApp = () => {
   };
 
   const renderMyCrewScreen = () => (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative z-0">
-        <div className="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+      <div className="min-h-screen pt-10 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative z-0">
+        <div className="sticky top-10 z-30 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 py-4">
             <div className="flex items-center gap-3">
               <button onClick={() => setCurrentScreen('games')} className="p-2 bg-white/10 rounded-xl hover:bg-white/20 active:bg-white/30 cursor-pointer" type="button">
@@ -8001,6 +8044,12 @@ const HuddleUpApp = () => {
 
       {/* FEATURE 1: Onboarding Tutorial Overlay */}
       {showOnboarding && <OnboardingOverlay />}
+
+      {user && !['welcome', 'login', 'signup', 'forgotPassword'].includes(currentScreen) && (
+        <div className="fixed top-0 left-0 right-0 z-[60]">
+          <MainSponsorBanner onAdvertise={() => setCurrentScreen('sponsorDashboard')} />
+        </div>
+      )}
 
       {currentScreen === 'welcome' && <WelcomeScreen />}
       {currentScreen === 'login' && loginScreenJSX}
