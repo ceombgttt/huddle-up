@@ -919,7 +919,10 @@ const HuddleUpApp = () => {
       const userData = await api.auth.me();
       if (userData) {
         setUser(userData);
-        setCurrentScreen('games');
+        setCurrentScreen(prev => {
+          const authScreens = ['welcome', 'login', 'signup', 'forgotPassword'];
+          return authScreens.includes(prev) ? 'games' : prev;
+        });
         loadUserParties();
         loadVenueClaims();
         loadInvitations();
