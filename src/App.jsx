@@ -5433,23 +5433,23 @@ const HuddleUpApp = () => {
               <select
                 value={fanSearchSport}
                 onChange={(e) => { setFanSearchSport(e.target.value); setFanSearchTeam(''); setFanResults([]); }}
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                className="w-full px-4 py-3 bg-slate-700 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
               >
-                <option value="" className="bg-slate-800">Select a sport...</option>
-                {Object.keys(TEAMS_BY_SPORT).map(sport => (
-                  <option key={sport} value={sport} className="bg-slate-800">{sport}</option>
+                <option value="" className="bg-slate-700">Select a sport...</option>
+                {Object.keys(TEAMS_BY_SPORT).sort().map(sport => (
+                  <option key={sport} value={sport} className="bg-slate-700">{sport}</option>
                 ))}
               </select>
 
               {fanSearchSport && TEAMS_BY_SPORT[fanSearchSport] && (
                 <select
                   value={fanSearchTeam}
-                  onChange={(e) => setFanSearchTeam(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  onChange={(e) => { setFanSearchTeam(e.target.value); setFanResults([]); }}
+                  className="w-full px-4 py-3 bg-slate-700 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 >
-                  <option value="" className="bg-slate-800">Select a team...</option>
+                  <option value="" className="bg-slate-700">Select a team...</option>
                   {TEAMS_BY_SPORT[fanSearchSport].map(team => (
-                    <option key={team} value={team} className="bg-slate-800">{team}</option>
+                    <option key={team} value={team} className="bg-slate-700">{team}</option>
                   ))}
                 </select>
               )}
