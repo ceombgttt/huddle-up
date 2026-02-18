@@ -205,64 +205,20 @@ const COUNTRY_FLAGS = {
   'Trinidad & Tobago': '🇹🇹', 'El Salvador': '🇸🇻', 'Guatemala': '🇬🇹', 'Dominican Republic': '🇩🇴',
 };
 
-const SPORT_SPONSORS = {
-  'All': [
-    { name: 'Your Brand Here', tagline: 'Reach sports fans nationwide', icon: '📢', color: 'from-cyan-600/40 to-blue-600/40', borderColor: 'border-cyan-500/30', url: null },
-    { name: 'Advertise With Us', tagline: 'Premium sponsor placement available', icon: '🎯', color: 'from-purple-600/40 to-pink-600/40', borderColor: 'border-purple-500/30', url: null },
-    { name: 'Sponsor Huddle Up', tagline: 'Connect with passionate fans', icon: '🤝', color: 'from-amber-600/40 to-orange-600/40', borderColor: 'border-amber-500/30', url: null },
-  ],
-  'NFL': [
-    { name: 'NFL Sponsor Spot', tagline: 'Reach football fans on game day', icon: '🏈', color: 'from-green-700/40 to-emerald-600/40', borderColor: 'border-green-500/30', url: null },
-  ],
-  'NBA': [
-    { name: 'NBA Sponsor Spot', tagline: 'Connect with basketball enthusiasts', icon: '🏀', color: 'from-orange-600/40 to-red-600/40', borderColor: 'border-orange-500/30', url: null },
-  ],
-  'MLB': [
-    { name: 'MLB Sponsor Spot', tagline: 'Advertise to baseball fans', icon: '⚾', color: 'from-red-700/40 to-blue-700/40', borderColor: 'border-red-500/30', url: null },
-  ],
-  'NHL': [
-    { name: 'NHL Sponsor Spot', tagline: 'Reach hockey fans everywhere', icon: '🏒', color: 'from-blue-800/40 to-slate-600/40', borderColor: 'border-blue-500/30', url: null },
-  ],
-  'College Football': [
-    { name: 'College Football Sponsor', tagline: 'Reach the college football crowd', icon: '🎓🏈', color: 'from-yellow-700/40 to-red-700/40', borderColor: 'border-yellow-500/30', url: null },
-  ],
-  'College Basketball': [
-    { name: 'College Basketball Sponsor', tagline: 'March Madness & beyond', icon: '🎓🏀', color: 'from-blue-600/40 to-orange-600/40', borderColor: 'border-blue-400/30', url: null },
-  ],
-  'Premier League': [
-    { name: 'Premier League Sponsor', tagline: 'The beautiful game, premium reach', icon: '⚽', color: 'from-purple-800/40 to-purple-500/40', borderColor: 'border-purple-400/30', url: null },
-  ],
-  'La Liga': [
-    { name: 'La Liga Sponsor', tagline: 'Reach Spanish football fans', icon: '⚽', color: 'from-orange-700/40 to-yellow-600/40', borderColor: 'border-orange-400/30', url: null },
-  ],
-  'Liga MX': [
-    { name: 'Liga MX Sponsor', tagline: 'Connect with Liga MX followers', icon: '⚽', color: 'from-green-700/40 to-red-600/40', borderColor: 'border-green-400/30', url: null },
-  ],
-  'MLS': [
-    { name: 'MLS Sponsor Spot', tagline: 'Growing the game in America', icon: '⚽', color: 'from-blue-600/40 to-red-500/40', borderColor: 'border-blue-400/30', url: null },
-  ],
-  'Champions League': [
-    { name: 'Champions League Sponsor', tagline: 'Elite football, elite audience', icon: '⚽', color: 'from-blue-900/40 to-indigo-600/40', borderColor: 'border-indigo-400/30', url: null },
-  ],
-  'Formula 1': [
-    { name: 'F1 Sponsor Spot', tagline: 'Speed meets premium branding', icon: '🏎️', color: 'from-red-700/40 to-black/40', borderColor: 'border-red-500/30', url: null },
-  ],
-  'Tennis': [
-    { name: 'Tennis Sponsor Spot', tagline: 'Serve your brand to tennis fans', icon: '🎾', color: 'from-green-600/40 to-lime-500/40', borderColor: 'border-green-400/30', url: null },
-  ],
-  'Rugby': [
-    { name: 'Rugby Sponsor Spot', tagline: 'Tough sport, loyal fans', icon: '🏉', color: 'from-emerald-700/40 to-teal-600/40', borderColor: 'border-emerald-400/30', url: null },
-  ],
-  'Cricket': [
-    { name: 'Cricket Sponsor Spot', tagline: 'Reach cricket fans worldwide', icon: '🏏', color: 'from-sky-700/40 to-blue-500/40', borderColor: 'border-sky-400/30', url: null },
-  ],
-  'UFC': [
-    { name: 'UFC Sponsor Spot', tagline: 'Reach MMA fans on fight night', icon: '🥊', color: 'from-red-800/40 to-yellow-600/40', borderColor: 'border-red-500/30', url: null },
-  ],
-  'FIFA World Cup': [
-    { name: 'World Cup Sponsor', tagline: 'The biggest stage in sports', icon: '🏆', color: 'from-amber-600/40 to-yellow-500/40', borderColor: 'border-amber-400/30', url: null },
-  ],
-};
+const SLOT_STYLES = [
+  { color: 'from-cyan-600/40 to-blue-600/40', borderColor: 'border-cyan-500/30' },
+  { color: 'from-purple-600/40 to-pink-600/40', borderColor: 'border-purple-500/30' },
+  { color: 'from-amber-600/40 to-orange-600/40', borderColor: 'border-amber-500/30' },
+];
+
+const DEMO_SPONSORS = [
+  { name: 'Game Day Grill', tagline: 'Fuel your game day experience', demoLogo: '/demo-sponsors/gameday-grill.png', url: '#', sport: 'NFL', slot: 1 },
+  { name: 'Cold Brew Co', tagline: 'Craft beers for every quarter', demoLogo: '/demo-sponsors/cold-brew-co.png', url: '#', sport: 'NFL', slot: 2 },
+  { name: 'FanBet', tagline: 'Your game, your call - bet smarter', demoLogo: '/demo-sponsors/fanbet.png', url: '#', sport: 'NFL', slot: 3, tier: 'premium' },
+  { name: 'Peak Athletics', tagline: 'Performance gear for real fans', demoLogo: '/demo-sponsors/peak-athletics.png', url: '#', sport: 'NBA', slot: 1 },
+  { name: 'Surge Energy', tagline: 'Powered by fans, fueled by Surge', demoLogo: '/demo-sponsors/surge-energy.png', url: '#', sport: 'NBA', slot: 2 },
+  { name: 'Slam Dunk Pizza', tagline: 'Score big with every slice', demoLogo: '/demo-sponsors/slam-dunk-pizza.png', url: '#', sport: 'NBA', slot: 3, tier: 'premium' },
+];
 
 const COUNTRIES_LIST = Object.keys(COUNTRY_FLAGS).sort();
 
@@ -1524,26 +1480,84 @@ const HuddleUpApp = () => {
   }, [isPauseScreen]);
 
   const getSponsorsForSport = useCallback((sport) => {
-    const BANNER_COLORS = [
-      { color: 'from-cyan-600/40 to-blue-600/40', borderColor: 'border-cyan-500/30' },
-      { color: 'from-purple-600/40 to-pink-600/40', borderColor: 'border-purple-500/30' },
-      { color: 'from-amber-600/40 to-orange-600/40', borderColor: 'border-amber-500/30' },
-      { color: 'from-green-700/40 to-emerald-600/40', borderColor: 'border-green-500/30' },
-      { color: 'from-red-600/40 to-rose-600/40', borderColor: 'border-red-500/30' },
-    ];
-    const realSponsors = sponsorBanners.filter(s =>
-      s.targetSports?.length === 0 || s.targetSports?.includes(sport) || sport === 'All'
-    ).map((s, i) => ({
-      name: s.name,
-      tagline: s.tagline || 'Official Huddle Up Sponsor',
-      icon: s.logo ? null : '⭐',
-      logoUrl: s.logo ? `/api/uploads/serve/${s.logo.replace('/objects/', '')}` : null,
-      ...BANNER_COLORS[i % BANNER_COLORS.length],
-      url: s.url || null,
-      isReal: true,
-    }));
-    if (realSponsors.length > 0) return realSponsors;
-    return SPORT_SPONSORS[sport] || SPORT_SPONSORS['All'];
+    const standardForSport = sponsorBanners.filter(s =>
+      s.tier !== 'premium' && s.targetSports?.includes(sport)
+    );
+    const premiumForSport = sponsorBanners.filter(s =>
+      s.tier === 'premium' && (s.targetSports?.includes(sport) || s.targetSports?.length === 0)
+    );
+
+    const demoForSport = DEMO_SPONSORS.filter(d => d.sport === sport);
+
+    const slots = [null, null, null];
+
+    standardForSport.slice(0, 2).forEach((s, i) => {
+      slots[i] = {
+        name: s.name,
+        tagline: s.tagline || 'Official Huddle Up Sponsor',
+        icon: null,
+        logoUrl: s.logo ? `/api/uploads/serve/${s.logo.replace('/objects/', '')}` : null,
+        ...SLOT_STYLES[i],
+        url: s.url || null,
+        isReal: true,
+        tier: 'standard',
+        slotNum: i + 1,
+      };
+    });
+
+    if (premiumForSport.length > 0) {
+      const p = premiumForSport[0];
+      slots[2] = {
+        name: p.name,
+        tagline: p.tagline || 'Official Huddle Up Sponsor',
+        icon: null,
+        logoUrl: p.logo ? `/api/uploads/serve/${p.logo.replace('/objects/', '')}` : null,
+        ...SLOT_STYLES[2],
+        url: p.url || null,
+        isReal: true,
+        tier: 'premium',
+        slotNum: 3,
+      };
+    }
+
+    for (let i = 0; i < 3; i++) {
+      if (!slots[i]) {
+        const demo = demoForSport.find(d => d.slot === i + 1);
+        if (demo) {
+          slots[i] = {
+            name: demo.name,
+            tagline: demo.tagline,
+            icon: null,
+            logoUrl: demo.demoLogo,
+            ...SLOT_STYLES[i],
+            url: demo.url,
+            isDemo: true,
+            tier: demo.tier || 'standard',
+            slotNum: demo.slot,
+          };
+        }
+      }
+    }
+
+    for (let i = 0; i < 3; i++) {
+      if (!slots[i]) {
+        const tierLabel = i === 2 ? 'Premium Multi-Sport' : 'Standard';
+        const price = i === 2 ? '$299.99/mo' : '$99.99/mo';
+        slots[i] = {
+          name: `${sport === 'All' ? '' : sport + ' '}Sponsor Slot ${i + 1}`,
+          tagline: `${tierLabel} - ${price}`,
+          icon: SPORT_ICONS[sport] || '📢',
+          logoUrl: null,
+          ...SLOT_STYLES[i],
+          url: null,
+          isEmpty: true,
+          tier: i === 2 ? 'premium' : 'standard',
+          slotNum: i + 1,
+        };
+      }
+    }
+
+    return slots;
   }, [sponsorBanners]);
 
   useEffect(() => {
@@ -3038,54 +3052,75 @@ const HuddleUpApp = () => {
         </div>
       </div>
 
-      {/* SPONSOR BANNER - Dynamic based on selected sport */}
+      {/* SPONSOR BANNERS - 3 slots per sport */}
       {(() => {
         const sponsors = getSponsorsForSport(selectedSport);
         const sponsor = sponsors[sponsorIndex % sponsors.length];
         return (
-          <div className="max-w-4xl mx-auto px-4 pt-3">
+          <div className="max-w-4xl mx-auto px-4 pt-3 space-y-2">
             <div
-              onClick={() => sponsor.url && window.open(sponsor.url, '_blank')}
-              className={`relative overflow-hidden rounded-2xl border ${sponsor.borderColor} bg-gradient-to-r ${sponsor.color} ${sponsor.url ? 'cursor-pointer' : ''} transition-all duration-500 hover:scale-[1.01]`}
+              onClick={() => sponsor.url && sponsor.url !== '#' && window.open(sponsor.url, '_blank')}
+              className={`relative overflow-hidden rounded-2xl border ${sponsor.borderColor} bg-gradient-to-r ${sponsor.color} ${sponsor.url && sponsor.url !== '#' ? 'cursor-pointer' : ''} transition-all duration-500 hover:scale-[1.01]`}
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-sponsor-shimmer pointer-events-none" />
               <div className="relative flex items-center gap-4 p-4">
                 <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center overflow-hidden">
                   {sponsor.logoUrl ? (
-                    <img src={sponsor.logoUrl} alt={sponsor.name} className="w-full h-full object-cover rounded-xl" />
-                  ) : (
+                    <img src={sponsor.logoUrl} alt={sponsor.name} className="w-full h-full object-cover rounded-xl" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling && (e.target.nextSibling.style.display = 'flex'); }} />
+                  ) : null}
+                  {sponsor.icon && !sponsor.logoUrl ? (
                     <span className="text-2xl">{sponsor.icon}</span>
-                  )}
+                  ) : null}
+                  {sponsor.logoUrl ? (
+                    <span className="text-2xl hidden items-center justify-center">{SPORT_ICONS[selectedSport] || '📢'}</span>
+                  ) : null}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="px-2 py-0.5 bg-white/10 text-gray-300 text-[10px] font-bold uppercase rounded tracking-wider">Sponsor</span>
-                    {sponsor.isReal && (
-                      <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-300 text-[10px] font-bold uppercase rounded tracking-wider flex items-center gap-1">
-                        <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" /></svg>
-                        Verified
+                  <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                    <span className="px-2 py-0.5 bg-white/10 text-gray-300 text-[10px] font-bold uppercase rounded tracking-wider">
+                      Slot {sponsor.slotNum}/3
+                    </span>
+                    {sponsor.tier === 'premium' && (
+                      <span className="px-2 py-0.5 bg-gradient-to-r from-amber-500/30 to-yellow-500/30 text-yellow-300 text-[10px] font-bold uppercase rounded tracking-wider flex items-center gap-1">
+                        <Star className="w-2.5 h-2.5" fill="currentColor" /> Premium Multi-Sport
                       </span>
                     )}
-                    {selectedSport !== 'All' && !sponsor.isReal && (
-                      <span className="px-2 py-0.5 bg-white/10 text-gray-300 text-[10px] font-bold uppercase rounded tracking-wider">{selectedSport}</span>
+                    {sponsor.isReal && (
+                      <span className="px-2 py-0.5 bg-green-500/20 text-green-300 text-[10px] font-bold uppercase rounded tracking-wider flex items-center gap-1">
+                        <CheckCircle className="w-2.5 h-2.5" /> Active
+                      </span>
+                    )}
+                    {sponsor.isDemo && (
+                      <span className="px-2 py-0.5 bg-blue-500/20 text-blue-300 text-[10px] font-bold uppercase rounded tracking-wider">
+                        Example
+                      </span>
+                    )}
+                    {sponsor.isEmpty && (
+                      <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 text-[10px] font-bold uppercase rounded tracking-wider animate-pulse">
+                        Available
+                      </span>
                     )}
                   </div>
                   <h3 className="text-white font-bold text-lg truncate">{sponsor.name}</h3>
                   <p className="text-gray-300 text-sm truncate">{sponsor.tagline}</p>
                 </div>
                 <div className="flex-shrink-0 hidden sm:flex items-center gap-2">
-                  {sponsors.length > 1 && (
-                    <div className="flex gap-1.5 mr-2">
-                      {sponsors.map((_, i) => (
-                        <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all ${i === sponsorIndex % sponsors.length ? 'bg-white w-4' : 'bg-white/30'}`} />
-                      ))}
+                  <div className="flex gap-1.5 mr-2">
+                    {sponsors.map((_, i) => (
+                      <div key={i} className={`w-2 h-2 rounded-full transition-all ${i === sponsorIndex % sponsors.length ? 'bg-white w-5' : 'bg-white/30'}`} />
+                    ))}
+                  </div>
+                  {sponsor.isEmpty ? (
+                    <div className="px-3 py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-bold whitespace-nowrap">
+                      {sponsor.tier === 'premium' ? '$299.99/mo' : '$99.99/mo'}
+                    </div>
+                  ) : (
+                    <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
                     </div>
                   )}
-                  <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center">
-                    <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
                 </div>
               </div>
             </div>

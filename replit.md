@@ -17,6 +17,9 @@ Venues get unique QR codes for attendance verification. Venue owners generate/ma
 ## Rewards & Points System
 Users earn points for engagement: creating parties (50 pts), attending parties (25 pts), inviting friends (100 pts), and checking in at venues (75 pts). Points can be redeemed for rewards like free drinks, subscription months, merch discounts, VIP badges, and more. Backend uses transactional point deduction with SELECT FOR UPDATE for concurrency safety. Points are awarded automatically in existing party/invite flows. Check-in is available on party cards for attending members. Tables: user_points, points_history, rewards, reward_redemptions, venue_checkins. Routes at /api/rewards/*.
 
+## Sponsor System (Per-Sport Slots)
+3 sponsor slots per sport league. Slots 1 & 2 are Standard tier ($99.99/mo, single-sport placement). Slot 3 is Premium Multi-Sport tier ($299.99/mo, can target multiple sports). Sponsors subscribe via Stripe, auto-get a sponsor record, and manage their banner (name, tagline, logo, website, target sports) from the Sponsor Dashboard. Demo example sponsors with generated logos are shown for NFL and NBA to visualize the system. Empty slots show "Available" with pricing. Real sponsors replace demo/empty slots. Backend: server/routes/sponsors.js. DB columns: sponsor_tier (standard/premium), slot_number, target_sports[]. Frontend: DEMO_SPONSORS array, getSponsorsForSport() function, rotating banner display with slot/tier badges. Admin manages all sponsors from admin panel. public/demo-sponsors/ contains example logo images.
+
 ## External Dependencies
 - **PostgreSQL**: Primary database for all application data.
 - **Express**: Backend web framework.

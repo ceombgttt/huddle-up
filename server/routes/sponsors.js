@@ -4,7 +4,17 @@ import { requireAdmin, requireAuth } from '../middleware/auth.js';
 
 const router = Router();
 
-const MAX_SPONSOR_SLOTS = 20;
+const SLOTS_PER_SPORT = 3;
+const SPONSOR_TIERS = {
+  standard: { price: 99.99, label: 'Standard', maxSports: 1 },
+  premium: { price: 299.99, label: 'Premium Multi-Sport', maxSports: 99 },
+};
+
+const ALL_SPORTS = [
+  'NFL', 'NBA', 'MLB', 'NHL', 'College Football', 'College Basketball',
+  'Premier League', 'La Liga', 'Liga MX', 'MLS', 'Champions League',
+  'Formula 1', 'Tennis', 'Rugby', 'Cricket', 'UFC', 'FIFA World Cup'
+];
 
 const mapSponsor = (s) => ({
   id: s.id,
@@ -17,6 +27,8 @@ const mapSponsor = (s) => ({
   notes: s.notes,
   tagline: s.tagline,
   targetSports: s.target_sports || [],
+  sponsorTier: s.sponsor_tier || 'standard',
+  slotNumber: s.slot_number || null,
   userId: s.user_id,
   amountPaid: parseFloat(s.amount_paid || 0),
   paymentFrequency: s.payment_frequency,
@@ -127,14 +139,19 @@ router.put('/me', requireAuth, async (req, res) => {
     const sponsor = await pool.query('SELECT * FROM sponsors WHERE user_id = $1', [req.session.userId]);
     if (sponsor.rows.length === 0) return res.status(404).json({ error: 'No sponsor record found' });
 
-    const { name, tagline, logo, website, targetSports } = req.body;
+    const { name, tagline, logo, website, targetSports, sponsorTier } = req.body;
     if (!name) return res.status(400).json({ error: 'Sponsor name is required' });
 
     const sports = Array.isArray(targetSports) ? targetSports : [];
+    const tier = sponsorTier === 'premium' ? 'premium' : 'standard';
+
+    if (tier === 'standard' && sports.length > 1) {
+      return res.status(400).json({ error: 'Standard tier sponsors can only target 1 sport. Upgrade to Premium for multi-sport placement.' });
+    }
 
     await pool.query(
-      `UPDATE sponsors SET name = $1, tagline = $2, logo = $3, website = $4, target_sports = $5 WHERE user_id = $6`,
-      [name, tagline || null, logo || null, website || null, sports, req.session.userId]
+      `UPDATE sponsors SET name = $1, tagline = $2, logo = $3, website = $4, target_sports = $5, sponsor_tier = $6 WHERE user_id = $7`,
+      [name, tagline || null, logo || null, website || null, sports, tier, req.session.userId]
     );
 
     res.json({ ok: true });
@@ -147,14 +164,17 @@ router.put('/me', requireAuth, async (req, res) => {
 router.get('/banners', async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT name, tagline, logo, website, target_sports FROM sponsors WHERE status = 'active' ORDER BY created_at DESC`
+      `SELECT name, tagline, logo, website, target_sports, sponsor_tier FROM sponsors WHERE status = 'active' ORDER BY
+        CASE WHEN sponsor_tier = 'premium' THEN 0 ELSE 1 END,
+        created_at DESC`
     );
     res.json(result.rows.map(s => ({
       name: s.name,
       tagline: s.tagline || '',
       logo: s.logo,
       url: s.website,
-      targetSports: s.target_sports || []
+      targetSports: s.target_sports || [],
+      tier: s.sponsor_tier || 'standard'
     })));
   } catch (error) {
     console.error('Get banners error:', error);
@@ -164,9 +184,31 @@ router.get('/banners', async (req, res) => {
 
 router.get('/slots', async (req, res) => {
   try {
-    const result = await pool.query("SELECT COUNT(*) FROM sponsors WHERE status = 'active'");
-    const activeCount = parseInt(result.rows[0].count);
-    res.json({ total: MAX_SPONSOR_SLOTS, active: activeCount, available: MAX_SPONSOR_SLOTS - activeCount });
+    const result = await pool.query(
+      `SELECT target_sports, sponsor_tier FROM sponsors WHERE status = 'active'`
+    );
+
+    const sportSlots = {};
+    ALL_SPORTS.forEach(sport => {
+      sportSlots[sport] = { total: SLOTS_PER_SPORT, filled: 0, available: SLOTS_PER_SPORT };
+    });
+
+    result.rows.forEach(s => {
+      const sports = s.target_sports || [];
+      sports.forEach(sport => {
+        if (sportSlots[sport]) {
+          sportSlots[sport].filled++;
+          sportSlots[sport].available = Math.max(0, sportSlots[sport].total - sportSlots[sport].filled);
+        }
+      });
+    });
+
+    res.json({
+      slotsPerSport: SLOTS_PER_SPORT,
+      tiers: SPONSOR_TIERS,
+      sports: sportSlots,
+      allSports: ALL_SPORTS
+    });
   } catch (error) {
     console.error('Get slots error:', error);
     res.status(500).json({ error: 'Server error' });
