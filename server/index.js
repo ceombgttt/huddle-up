@@ -18,13 +18,36 @@ import sponsorRoutes from './routes/sponsors.js';
 import pushRoutes from './routes/push.js';
 import chatRoutes from './routes/chat.js';
 import analyticsRoutes from './routes/analytics.js';
+import stripeRoutes from './routes/stripe.js';
+import referralRoutes from './routes/referrals.js';
 import { startScoreChecker } from './scoreChecker.js';
+import { WebhookHandlers } from './stripe/webhookHandlers.js';
+import { initStripe } from './stripe/init.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const isProduction = process.env.NODE_ENV === 'production';
 
 const app = express();
 const PgSession = connectPgSimple(session);
+
+app.post(
+  '/api/stripe/webhook',
+  express.raw({ type: 'application/json' }),
+  async (req, res) => {
+    const signature = req.headers['stripe-signature'];
+    if (!signature) {
+      return res.status(400).json({ error: 'Missing stripe-signature' });
+    }
+    try {
+      const sig = Array.isArray(signature) ? signature[0] : signature;
+      await WebhookHandlers.processWebhook(req.body, sig);
+      res.status(200).json({ received: true });
+    } catch (error) {
+      console.error('Webhook error:', error.message);
+      res.status(400).json({ error: 'Webhook processing error' });
+    }
+  }
+);
 
 app.use('/api/uploads/venue-image/upload', express.raw({ type: 'image/*', limit: '5mb' }));
 app.use('/api/uploads/profile-picture/upload', express.raw({ type: 'image/*', limit: '5mb' }));
@@ -61,11 +84,20 @@ app.use('/api/sponsors', sponsorRoutes);
 app.use('/api/push', pushRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/stripe', stripeRoutes);
+app.use('/api/referrals', referralRoutes);
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
 async function start() {
   await initDB();
+
+  try {
+    await initStripe();
+    console.log('Stripe initialized successfully');
+  } catch (error) {
+    console.error('Stripe initialization failed (payments will be unavailable):', error.message);
+  }
 
   if (isProduction) {
     const distPath = path.resolve(__dirname, '..', 'dist');
