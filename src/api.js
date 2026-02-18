@@ -137,6 +137,29 @@ export const api = {
     stats: () => request('/referrals/stats'),
     validate: (code) => request(`/referrals/validate/${encodeURIComponent(code)}`),
   },
+  photos: {
+    getPartyPhotos: (partyId) => request(`/photos/parties/${partyId}/photos`),
+    uploadPhoto: async (partyId, file, caption = '') => {
+      const res = await fetch(`/api/photos/parties/${partyId}/upload`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': file.type,
+          'x-file-content-type': file.type,
+          'x-photo-caption': caption,
+        },
+        body: file,
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Upload failed' }));
+        throw new Error(err.error || 'Upload failed');
+      }
+      return res.json();
+    },
+    deletePhoto: (photoId) => request(`/photos/photos/${photoId}`, { method: 'DELETE' }),
+    tagPhoto: (photoId, taggedUserId) => request(`/photos/photos/${photoId}/tag`, { method: 'POST', body: JSON.stringify({ taggedUserId }) }),
+    removeTag: (photoId, taggedUserId) => request(`/photos/photos/${photoId}/tag/${taggedUserId}`, { method: 'DELETE' }),
+  },
   analytics: {
     overview: () => request('/analytics/overview'),
     userGrowth: (days = 30) => request(`/analytics/user-growth?days=${days}`),

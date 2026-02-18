@@ -579,6 +579,13 @@ const HuddleUpApp = () => {
   const [chatSending, setChatSending] = useState(false);
   const chatEndRef = useRef(null);
   const chatPollRef = useRef(null);
+  const [openPhotoPartyId, setOpenPhotoPartyId] = useState(null);
+  const [partyPhotos, setPartyPhotos] = useState([]);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoCaption, setPhotoCaption] = useState('');
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [tagMenuPhotoId, setTagMenuPhotoId] = useState(null);
+  const photoInputRef = useRef(null);
 
   const shareApp = async () => {
     const shareUrl = window.location.origin;
@@ -1254,6 +1261,93 @@ const HuddleUpApp = () => {
   useEffect(() => {
     return () => { if (chatPollRef.current) clearInterval(chatPollRef.current); };
   }, []);
+
+  const openPartyPhotos = async (partyId) => {
+    if (openPhotoPartyId === partyId) {
+      setOpenPhotoPartyId(null);
+      setPartyPhotos([]);
+      setSelectedPhoto(null);
+      setTagMenuPhotoId(null);
+      return;
+    }
+    setOpenPhotoPartyId(partyId);
+    setSelectedPhoto(null);
+    setTagMenuPhotoId(null);
+    try {
+      const photos = await api.photos.getPartyPhotos(partyId);
+      setPartyPhotos(photos);
+    } catch (e) {
+      console.error('Load photos error:', e);
+    }
+  };
+
+  const handlePhotoUpload = async (partyId, file) => {
+    if (!file || photoUploading) return;
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Photo must be under 10MB');
+      return;
+    }
+    setPhotoUploading(true);
+    try {
+      const photo = await api.photos.uploadPhoto(partyId, file, photoCaption);
+      setPartyPhotos(prev => [photo, ...prev]);
+      setPhotoCaption('');
+      if (photoInputRef.current) photoInputRef.current.value = '';
+    } catch (e) {
+      alert('Upload failed: ' + e.message);
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
+
+  const handleDeletePhoto = async (photoId) => {
+    if (!confirm('Delete this photo?')) return;
+    try {
+      await api.photos.deletePhoto(photoId);
+      setPartyPhotos(prev => prev.filter(p => p.id !== photoId));
+      if (selectedPhoto?.id === photoId) setSelectedPhoto(null);
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
+  const handleTagFriend = async (photoId, taggedUserId) => {
+    try {
+      const tags = await api.photos.tagPhoto(photoId, taggedUserId);
+      setPartyPhotos(prev => prev.map(p => p.id === photoId ? { ...p, tags } : p));
+      if (selectedPhoto?.id === photoId) setSelectedPhoto(prev => ({ ...prev, tags }));
+      setTagMenuPhotoId(null);
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
+  const handleRemoveTag = async (photoId, taggedUserId) => {
+    try {
+      await api.photos.removeTag(photoId, taggedUserId);
+      setPartyPhotos(prev => prev.map(p => p.id === photoId ? { ...p, tags: p.tags.filter(t => t.userId !== taggedUserId) } : p));
+      if (selectedPhoto?.id === photoId) setSelectedPhoto(prev => ({ ...prev, tags: prev.tags.filter(t => t.userId !== taggedUserId) }));
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
+  const sharePhoto = async (photo, party) => {
+    const shareText = `Check out this photo from the ${party.title || party.sport} watch party! #HuddleUp`;
+    const shareUrl = window.location.origin;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Huddle Up Party Photo', text: shareText, url: shareUrl });
+      } catch (e) {}
+    } else {
+      try {
+        await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
+        alert('Share text copied to clipboard!');
+      } catch (e) {
+        alert('Could not share');
+      }
+    }
+  };
 
   const handleVenueClaim = async (claimData) => {
     try {
@@ -2679,6 +2773,172 @@ const HuddleUpApp = () => {
                             <MessageCircle className="w-4 h-4" />
                             {openChatPartyId === party.id ? 'Close Chat' : 'Party Chat'}
                           </button>
+
+                          <button
+                            onClick={() => openPartyPhotos(party.id)}
+                            className={`w-full mt-2 py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
+                              openPhotoPartyId === party.id
+                                ? 'bg-orange-500/30 text-orange-300 border-2 border-orange-500/40'
+                                : 'bg-white/10 text-gray-300 border-2 border-white/20 hover:bg-white/20'
+                            }`}
+                          >
+                            <Camera className="w-4 h-4" />
+                            {openPhotoPartyId === party.id ? 'Close Photos' : `Party Photos${partyPhotos.length > 0 && openPhotoPartyId === party.id ? ` (${partyPhotos.length})` : ''}`}
+                          </button>
+
+                          {openPhotoPartyId === party.id && (
+                            <div className="mt-3 bg-slate-800/80 rounded-xl border border-white/10 overflow-hidden">
+                              <div className="p-3 bg-gradient-to-r from-orange-500/20 to-yellow-500/20 border-b border-white/10">
+                                <h4 className="text-white font-bold text-sm flex items-center gap-2">
+                                  <Camera className="w-4 h-4 text-orange-400" />
+                                  Party Photo Album ({partyPhotos.length})
+                                </h4>
+                              </div>
+
+                              <div className="p-3 border-b border-white/10">
+                                <div className="flex gap-2 items-center">
+                                  <input
+                                    type="text"
+                                    value={photoCaption}
+                                    onChange={(e) => setPhotoCaption(e.target.value)}
+                                    placeholder="Add a caption..."
+                                    maxLength={200}
+                                    className="flex-1 bg-white/10 border border-white/20 rounded-full px-4 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-orange-500/50"
+                                  />
+                                  <input
+                                    ref={photoInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                      if (e.target.files?.[0]) handlePhotoUpload(party.id, e.target.files[0]);
+                                    }}
+                                  />
+                                  <button
+                                    onClick={() => photoInputRef.current?.click()}
+                                    disabled={photoUploading}
+                                    className="bg-gradient-to-r from-orange-500 to-yellow-500 text-white p-2.5 rounded-full hover:opacity-90 transition-all disabled:opacity-50 flex items-center gap-1"
+                                  >
+                                    {photoUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+                                  </button>
+                                </div>
+                              </div>
+
+                              {partyPhotos.length === 0 ? (
+                                <div className="p-6 text-center text-gray-500 text-sm">
+                                  No photos yet. Be the first to share!
+                                </div>
+                              ) : (
+                                <div className="p-3">
+                                  <div className="grid grid-cols-3 gap-2">
+                                    {partyPhotos.map((photo) => (
+                                      <div key={photo.id} className="relative group cursor-pointer" onClick={() => setSelectedPhoto(photo)}>
+                                        <img
+                                          src={`/api/uploads/serve/${photo.object_path.replace('/objects/', '')}`}
+                                          alt={photo.caption || 'Party photo'}
+                                          className="w-full aspect-square object-cover rounded-lg border border-white/10"
+                                        />
+                                        {photo.tags?.length > 0 && (
+                                          <div className="absolute bottom-1 left-1 bg-black/70 rounded-full px-1.5 py-0.5 flex items-center gap-0.5">
+                                            <User className="w-2.5 h-2.5 text-cyan-400" />
+                                            <span className="text-[9px] text-white">{photo.tags.length}</span>
+                                          </div>
+                                        )}
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                          <Eye className="w-5 h-5 text-white" />
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {selectedPhoto && (
+                                <div className="fixed inset-0 bg-black/90 z-50 flex flex-col" onClick={(e) => { if (e.target === e.currentTarget) { setSelectedPhoto(null); setTagMenuPhotoId(null); } }}>
+                                  <div className="flex items-center justify-between p-4">
+                                    <div className="flex items-center gap-2">
+                                      <ProfileAvatar src={selectedPhoto.user_profile_picture} name={selectedPhoto.user_name} size="sm" />
+                                      <div>
+                                        <p className="text-white font-bold text-sm">{selectedPhoto.user_name}</p>
+                                        <p className="text-gray-400 text-xs">{new Date(selectedPhoto.created_at).toLocaleString()}</p>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <button onClick={() => setTagMenuPhotoId(tagMenuPhotoId === selectedPhoto.id ? null : selectedPhoto.id)} className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-all" title="Tag friends">
+                                        <UserPlus className="w-4 h-4 text-cyan-400" />
+                                      </button>
+                                      <button onClick={() => sharePhoto(selectedPhoto, party)} className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-all" title="Share">
+                                        <Share2 className="w-4 h-4 text-green-400" />
+                                      </button>
+                                      {(selectedPhoto.user_id === user.id || party.hostEmail === user.email) && (
+                                        <button onClick={() => handleDeletePhoto(selectedPhoto.id)} className="p-2 bg-white/10 rounded-full hover:bg-red-500/30 transition-all" title="Delete">
+                                          <Trash2 className="w-4 h-4 text-red-400" />
+                                        </button>
+                                      )}
+                                      <button onClick={() => { setSelectedPhoto(null); setTagMenuPhotoId(null); }} className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-all">
+                                        <X className="w-4 h-4 text-white" />
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  {tagMenuPhotoId === selectedPhoto.id && (
+                                    <div className="px-4 pb-3">
+                                      <div className="bg-slate-800 rounded-lg p-3 border border-white/10">
+                                        <p className="text-white text-xs font-bold mb-2">Tag a party member:</p>
+                                        <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
+                                          {party.attendees
+                                            .filter(a => !selectedPhoto.tags?.some(t => t.userId === a.userId))
+                                            .map(a => (
+                                              <button
+                                                key={a.userId}
+                                                onClick={() => handleTagFriend(selectedPhoto.id, a.userId)}
+                                                className="flex items-center gap-1 bg-white/10 hover:bg-cyan-500/20 border border-white/20 rounded-full px-2.5 py-1 text-xs text-white transition-all"
+                                              >
+                                                <UserPlus className="w-3 h-3 text-cyan-400" />
+                                                {a.name}
+                                              </button>
+                                            ))}
+                                          {party.attendees.filter(a => !selectedPhoto.tags?.some(t => t.userId === a.userId)).length === 0 && (
+                                            <span className="text-gray-500 text-xs">Everyone is already tagged!</span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  <div className="flex-1 flex items-center justify-center px-4">
+                                    <img
+                                      src={`/api/uploads/serve/${selectedPhoto.object_path.replace('/objects/', '')}`}
+                                      alt={selectedPhoto.caption || 'Party photo'}
+                                      className="max-w-full max-h-[60vh] object-contain rounded-lg"
+                                    />
+                                  </div>
+
+                                  <div className="p-4">
+                                    {selectedPhoto.caption && (
+                                      <p className="text-white text-sm mb-2">{selectedPhoto.caption}</p>
+                                    )}
+                                    {selectedPhoto.tags?.length > 0 && (
+                                      <div className="flex flex-wrap gap-1.5 mb-2">
+                                        {selectedPhoto.tags.map(tag => (
+                                          <span key={tag.userId} className="inline-flex items-center gap-1 bg-cyan-500/20 border border-cyan-500/30 rounded-full px-2.5 py-1 text-xs text-cyan-300">
+                                            <User className="w-3 h-3" />
+                                            {tag.name}
+                                            {(selectedPhoto.user_id === user.id || tag.userId === user.id) && (
+                                              <button onClick={() => handleRemoveTag(selectedPhoto.id, tag.userId)} className="ml-0.5 hover:text-red-400">
+                                                <X className="w-3 h-3" />
+                                              </button>
+                                            )}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    )}
+                                    <p className="text-gray-500 text-xs text-center">Share with #HuddleUp</p>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
 
                           {openChatPartyId === party.id && (
                             <div className="mt-3 bg-slate-800/80 rounded-xl border border-white/10 overflow-hidden">

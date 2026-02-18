@@ -91,6 +91,11 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - `POST /api/sponsors` - Add a new sponsor (venue owner only)
 - `PUT /api/sponsors/:id` - Update a sponsor (venue owner only)
 - `DELETE /api/sponsors/:id` - Delete a sponsor (venue owner only)
+- `POST /api/photos/parties/:partyId/upload` - Upload party photo (raw image body, membership required)
+- `GET /api/photos/parties/:partyId/photos` - Get party photo album (membership required)
+- `DELETE /api/photos/photos/:photoId` - Delete a photo (uploader or host only)
+- `POST /api/photos/photos/:photoId/tag` - Tag a friend in a photo (party members only)
+- `DELETE /api/photos/photos/:photoId/tag/:taggedUserId` - Remove a tag
 
 ## Database Tables
 - `users` - User accounts with bcrypt password hashes, date_of_birth, notifications_enabled flag
@@ -104,6 +109,8 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - `sponsors` - Venue sponsor tracking (name, contact, logo, revenue, frequency, dates, status)
 - `friendships` - Friend/crew relationships (user_id, friend_id, status: pending/accepted/declined)
 - `party_messages` - Party chat messages (party_id, user_id, message, created_at)
+- `party_photos` - Party photo uploads (party_id, user_id, object_path, caption)
+- `photo_tags` - Photo tagging (photo_id, tagged_user_id, tagged_by)
 - `user_sessions` - Server-side session storage (connect-pg-simple)
 
 ## Admin Account
@@ -120,9 +127,11 @@ Single Express server on port 5000 hosts both the API (`/api/*`) and the Vite de
 - Profile pictures stored at `/objects/profile-pictures/<uuid>` paths
 - Venue logos stored at `/objects/venue-logos/<uuid>` paths
 - Venue photos stored at `/objects/venue-pictures/<uuid>` paths
+- Party photos stored at `/objects/party-photos/<uuid>` paths
 - Presigned URL upload flow: request URL → PUT to GCS → save path in DB
 
 ## Recent Changes
+- 2026-02-18: Added party photo sharing - attendees can upload photos during parties, photo album gallery with grid view, full-screen photo viewer, tag friends in photos (with notifications), share to social media with #HuddleUp, delete photos (uploader or host), 10MB max per photo
 - 2026-02-17: Added comprehensive admin analytics dashboard - tabbed interface (Analytics/Management), KPI cards (users/parties/venues/attendees/messages/friendships), user growth bar chart (90 days), engagement rings (favorites/profile pics/friends/parties/chat), gender & age demographics, top sports/cities/teams rankings, venue performance table, user locations map, hourly chat activity chart, recent signups/parties/messages feeds, refresh button
 - 2026-02-17: Fixed venue edit form resetting on scroll - lifted editing state to App level so data refreshes don't unmount the edit form; added fixed scroll container to prevent mobile overscroll navigation
 - 2026-02-17: Added party chat system - real-time messaging within party cards for attendees/hosts, auto-polls every 5s, message bubbles with profile pics and timestamps, 500 char limit, membership-verified access

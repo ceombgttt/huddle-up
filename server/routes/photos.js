@@ -59,6 +59,10 @@ router.post('/parties/:partyId/upload', requireAuth, async (req, res) => {
     const contentType = req.headers['x-file-content-type'] || req.headers['content-type'] || 'application/octet-stream';
     const caption = req.headers['x-photo-caption'] || '';
 
+    if (!contentType || !contentType.startsWith('image/')) {
+      return res.status(400).json({ error: 'Only image files are allowed' });
+    }
+
     if (!await isPartyMember(userId, partyId)) {
       return res.status(403).json({ error: 'You must be a party member to upload photos' });
     }
