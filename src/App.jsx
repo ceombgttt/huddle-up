@@ -400,10 +400,16 @@ const DebouncedInput = React.memo(({ value, onChange, delay = 300, ...props }) =
 });
 
 const EditProfileModal = ({ user, onClose, onSave }) => {
+  const [editName, setEditName] = useState(user.name || '');
+  const [editEmail, setEditEmail] = useState(user.email || '');
+  const [editPhone, setEditPhone] = useState(user.phoneNumber || '');
+  const [editCity, setEditCity] = useState(user.userCity || '');
   const [editDob, setEditDob] = useState(user.dateOfBirth ? user.dateOfBirth.split('T')[0] : '');
   const [ageConfirmed, setAgeConfirmed] = useState(!!user.dateOfBirth);
+  const [currentPassword, setCurrentPassword] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const emailChanged = editEmail.trim().toLowerCase() !== (user.email || '').toLowerCase();
 
   const calcAge = (dobStr) => {
     const dob = new Date(dobStr);
@@ -417,12 +423,27 @@ const EditProfileModal = ({ user, onClose, onSave }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!editDob) { setError('Please enter your date of birth'); return; }
-    if (!ageConfirmed) { setError('You must confirm you are 21 years of age or older'); return; }
-    if (calcAge(editDob) < 21) { setError('You must be 21 years of age or older'); return; }
+    if (!editName.trim()) { setError('Name is required'); return; }
+    if (!editEmail.trim() || !editEmail.includes('@')) { setError('Valid email is required'); return; }
+    if (emailChanged && !currentPassword) { setError('Enter your current password to change email'); return; }
+    if (editDob && !ageConfirmed) { setError('You must confirm you are 21 years of age or older'); return; }
+    if (editDob && calcAge(editDob) < 21) { setError('You must be 21 years of age or older'); return; }
     setSaving(true);
     try {
-      await onSave(editDob, ageConfirmed);
+      const data = {
+        name: editName.trim(),
+        email: editEmail.trim(),
+      };
+      if (emailChanged) data.currentPassword = currentPassword;
+      if (editPhone.trim()) data.phoneNumber = editPhone.trim();
+      else data.phoneNumber = '';
+      if (editCity.trim()) data.userCity = editCity.trim();
+      else data.userCity = '';
+      if (editDob) {
+        data.dateOfBirth = editDob;
+        data.ageConfirmed = ageConfirmed;
+      }
+      await onSave(data);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -432,7 +453,7 @@ const EditProfileModal = ({ user, onClose, onSave }) => {
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="bg-slate-800 rounded-2xl p-6 max-w-md w-full border border-white/20 shadow-2xl overscroll-contain" onMouseDown={e => e.stopPropagation()}>
+      <div className="bg-slate-800 rounded-2xl p-6 max-w-md w-full border border-white/20 shadow-2xl max-h-[90vh] overflow-y-auto overscroll-contain" onMouseDown={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
             <Pencil className="inline w-5 h-5 mr-2 text-cyan-400" />
@@ -445,7 +466,61 @@ const EditProfileModal = ({ user, onClose, onSave }) => {
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Date of Birth</label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Name</label>
+              <input
+                type="text"
+                value={editName}
+                onChange={e => setEditName(e.target.value)}
+                placeholder="Your name"
+                className="w-full px-4 py-3 bg-slate-700 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
+              <input
+                type="email"
+                value={editEmail}
+                onChange={e => setEditEmail(e.target.value)}
+                placeholder="your@email.com"
+                className="w-full px-4 py-3 bg-slate-700 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+              />
+            </div>
+            {emailChanged && (
+              <div>
+                <label className="block text-sm font-medium text-amber-300 mb-1">Current Password (required to change email)</label>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={e => setCurrentPassword(e.target.value)}
+                  placeholder="Enter your current password"
+                  className="w-full px-4 py-3 bg-slate-700 border border-amber-500/30 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Phone Number</label>
+                <input
+                  type="tel"
+                  value={editPhone}
+                  onChange={e => setEditPhone(e.target.value)}
+                  placeholder="+1 (555) 123-4567"
+                  className="w-full px-4 py-3 bg-slate-700 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Your City</label>
+                <input
+                  type="text"
+                  value={editCity}
+                  onChange={e => setEditCity(e.target.value)}
+                  placeholder="e.g., Miami, FL"
+                  className="w-full px-4 py-3 bg-slate-700 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Date of Birth</label>
               <input
                 type="date"
                 value={editDob}
@@ -761,6 +836,78 @@ const ReferralSection = ({ user }) => {
           )}
         </div>
       )}
+    </div>
+  );
+};
+
+const SmsFieldsSection = ({ user, setUser }) => {
+  const [phone, setPhone] = useState(user.phoneNumber || '');
+  const [city, setCity] = useState(user.userCity || '');
+  const [phoneFocused, setPhoneFocused] = useState(false);
+  const [cityFocused, setCityFocused] = useState(false);
+
+  useEffect(() => {
+    if (!phoneFocused) setPhone(user.phoneNumber || '');
+  }, [user.phoneNumber, phoneFocused]);
+
+  useEffect(() => {
+    if (!cityFocused) setCity(user.userCity || '');
+  }, [user.userCity, cityFocused]);
+
+  const savePhone = async () => {
+    const val = phone.trim();
+    if (val !== (user.phoneNumber || '')) {
+      try {
+        await api.users.updateSmsSettings({
+          phoneNumber: val,
+          userCity: user.userCity,
+          smsNotifications: user.smsNotifications
+        });
+        setUser(prev => ({ ...prev, phoneNumber: val || null }));
+      } catch (err) { alert(err.message); }
+    }
+  };
+
+  const saveCity = async () => {
+    const val = city.trim();
+    if (val !== (user.userCity || '')) {
+      try {
+        await api.users.updateSmsSettings({
+          phoneNumber: user.phoneNumber,
+          userCity: val,
+          smsNotifications: user.smsNotifications
+        });
+        setUser(prev => ({ ...prev, userCity: val || null }));
+      } catch (err) { alert(err.message); }
+    }
+  };
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-1">Phone Number</label>
+        <input
+          type="tel"
+          value={phone}
+          onChange={e => setPhone(e.target.value)}
+          onFocus={() => setPhoneFocused(true)}
+          onBlur={() => { setPhoneFocused(false); savePhone(); }}
+          placeholder="+1 (555) 123-4567"
+          className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-1">Your City</label>
+        <input
+          type="text"
+          value={city}
+          onChange={e => setCity(e.target.value)}
+          onFocus={() => setCityFocused(true)}
+          onBlur={() => { setCityFocused(false); saveCity(); }}
+          placeholder="e.g., Fort Lauderdale, FL"
+          className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+        />
+      </div>
     </div>
   );
 };
@@ -5733,9 +5880,9 @@ const HuddleUpApp = () => {
             <EditProfileModal
               user={user}
               onClose={() => setEditProfileOpen(false)}
-              onSave={async (editDob, ageConfirmed) => {
-                await api.users.updateProfile({ dateOfBirth: editDob, ageConfirmed });
-                setUser({ ...user, dateOfBirth: editDob });
+              onSave={async (data) => {
+                const updatedUser = await api.users.updateProfile(data);
+                setUser(updatedUser);
                 setEditProfileOpen(false);
               }}
             />
@@ -5906,52 +6053,7 @@ const HuddleUpApp = () => {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Phone Number</label>
-                  <input
-                    type="tel"
-                    defaultValue={user.phoneNumber || ''}
-                    placeholder="+1 (555) 123-4567"
-                    onBlur={async (e) => {
-                      const val = e.target.value.trim();
-                      if (val !== (user.phoneNumber || '')) {
-                        try {
-                          await api.users.updateSmsSettings({
-                            phoneNumber: val,
-                            userCity: user.userCity,
-                            smsNotifications: user.smsNotifications
-                          });
-                          setUser(prev => ({ ...prev, phoneNumber: val || null }));
-                        } catch (err) { alert(err.message); }
-                      }
-                    }}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Your City</label>
-                  <input
-                    type="text"
-                    defaultValue={user.userCity || ''}
-                    placeholder="e.g., Fort Lauderdale, FL"
-                    onBlur={async (e) => {
-                      const val = e.target.value.trim();
-                      if (val !== (user.userCity || '')) {
-                        try {
-                          await api.users.updateSmsSettings({
-                            phoneNumber: user.phoneNumber,
-                            userCity: val,
-                            smsNotifications: user.smsNotifications
-                          });
-                          setUser(prev => ({ ...prev, userCity: val || null }));
-                        } catch (err) { alert(err.message); }
-                      }
-                    }}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-              </div>
+              <SmsFieldsSection user={user} setUser={setUser} />
               {!user.smsNotifications && (
                 <p className="text-xs text-gray-500 italic">Add your phone number and city, then enable the toggle to receive text alerts when parties match your teams.</p>
               )}
