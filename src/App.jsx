@@ -209,15 +209,21 @@ const SLOT_STYLES = [
   { color: 'from-cyan-600/40 to-blue-600/40', borderColor: 'border-cyan-500/30' },
   { color: 'from-purple-600/40 to-pink-600/40', borderColor: 'border-purple-500/30' },
   { color: 'from-amber-600/40 to-orange-600/40', borderColor: 'border-amber-500/30' },
+  { color: 'from-emerald-600/40 to-teal-600/40', borderColor: 'border-emerald-500/30' },
+  { color: 'from-rose-600/40 to-red-600/40', borderColor: 'border-rose-500/30' },
 ];
 
 const DEMO_SPONSORS = [
   { name: 'Game Day Grill', tagline: 'Fuel your game day experience', demoLogo: '/demo-sponsors/gameday-grill.png', url: '#', sport: 'NFL', slot: 1 },
   { name: 'Cold Brew Co', tagline: 'Craft beers for every quarter', demoLogo: '/demo-sponsors/cold-brew-co.png', url: '#', sport: 'NFL', slot: 2 },
-  { name: 'FanBet', tagline: 'Your game, your call - bet smarter', demoLogo: '/demo-sponsors/fanbet.png', url: '#', sport: 'NFL', slot: 3, tier: 'premium' },
+  { name: 'FanBet', tagline: 'Your game, your call - bet smarter', demoLogo: '/demo-sponsors/fanbet.png', url: '#', sport: 'NFL', slot: 3 },
+  { name: 'Gridiron Gear', tagline: 'Gear up for game day', demoLogo: '/demo-sponsors/gameday-grill.png', url: '#', sport: 'NFL', slot: 4 },
+  { name: 'Tailgate Nation', tagline: 'The ultimate tailgate experience', demoLogo: '/demo-sponsors/cold-brew-co.png', url: '#', sport: 'NFL', slot: 5, tier: 'premium' },
   { name: 'Peak Athletics', tagline: 'Performance gear for real fans', demoLogo: '/demo-sponsors/peak-athletics.png', url: '#', sport: 'NBA', slot: 1 },
   { name: 'Surge Energy', tagline: 'Powered by fans, fueled by Surge', demoLogo: '/demo-sponsors/surge-energy.png', url: '#', sport: 'NBA', slot: 2 },
-  { name: 'Slam Dunk Pizza', tagline: 'Score big with every slice', demoLogo: '/demo-sponsors/slam-dunk-pizza.png', url: '#', sport: 'NBA', slot: 3, tier: 'premium' },
+  { name: 'Slam Dunk Pizza', tagline: 'Score big with every slice', demoLogo: '/demo-sponsors/slam-dunk-pizza.png', url: '#', sport: 'NBA', slot: 3 },
+  { name: 'Courtside Kicks', tagline: 'Step up your sneaker game', demoLogo: '/demo-sponsors/peak-athletics.png', url: '#', sport: 'NBA', slot: 4 },
+  { name: 'Hoops & Hops', tagline: 'Where basketball meets craft beer', demoLogo: '/demo-sponsors/surge-energy.png', url: '#', sport: 'NBA', slot: 5, tier: 'premium' },
 ];
 
 const COUNTRIES_LIST = Object.keys(COUNTRY_FLAGS).sort();
@@ -1488,16 +1494,16 @@ const HuddleUpApp = () => {
     );
 
     const demoForSport = DEMO_SPONSORS.filter(d => d.sport === sport);
+    const totalSlots = 5;
+    const slots = Array(totalSlots).fill(null);
 
-    const slots = [null, null, null];
-
-    standardForSport.slice(0, 2).forEach((s, i) => {
+    standardForSport.slice(0, 4).forEach((s, i) => {
       slots[i] = {
         name: s.name,
         tagline: s.tagline || 'Official Huddle Up Sponsor',
         icon: null,
         logoUrl: s.logo ? `/api/uploads/serve/${s.logo.replace('/objects/', '')}` : null,
-        ...SLOT_STYLES[i],
+        ...SLOT_STYLES[i % SLOT_STYLES.length],
         url: s.url || null,
         isReal: true,
         tier: 'standard',
@@ -1507,20 +1513,20 @@ const HuddleUpApp = () => {
 
     if (premiumForSport.length > 0) {
       const p = premiumForSport[0];
-      slots[2] = {
+      slots[4] = {
         name: p.name,
         tagline: p.tagline || 'Official Huddle Up Sponsor',
         icon: null,
         logoUrl: p.logo ? `/api/uploads/serve/${p.logo.replace('/objects/', '')}` : null,
-        ...SLOT_STYLES[2],
+        ...SLOT_STYLES[4 % SLOT_STYLES.length],
         url: p.url || null,
         isReal: true,
         tier: 'premium',
-        slotNum: 3,
+        slotNum: 5,
       };
     }
 
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < totalSlots; i++) {
       if (!slots[i]) {
         const demo = demoForSport.find(d => d.slot === i + 1);
         if (demo) {
@@ -1529,7 +1535,7 @@ const HuddleUpApp = () => {
             tagline: demo.tagline,
             icon: null,
             logoUrl: demo.demoLogo,
-            ...SLOT_STYLES[i],
+            ...SLOT_STYLES[i % SLOT_STYLES.length],
             url: demo.url,
             isDemo: true,
             tier: demo.tier || 'standard',
@@ -1539,19 +1545,17 @@ const HuddleUpApp = () => {
       }
     }
 
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < totalSlots; i++) {
       if (!slots[i]) {
-        const tierLabel = i === 2 ? 'Premium Multi-Sport' : 'Standard';
-        const price = i === 2 ? '$299.99/mo' : '$99.99/mo';
         slots[i] = {
           name: `${sport === 'All' ? '' : sport + ' '}Sponsor Slot ${i + 1}`,
-          tagline: `${tierLabel} - ${price}`,
+          tagline: 'Become a sponsor today',
           icon: SPORT_ICONS[sport] || '📢',
           logoUrl: null,
-          ...SLOT_STYLES[i],
+          ...SLOT_STYLES[i % SLOT_STYLES.length],
           url: null,
           isEmpty: true,
-          tier: i === 2 ? 'premium' : 'standard',
+          tier: i === 4 ? 'premium' : 'standard',
           slotNum: i + 1,
         };
       }
@@ -3052,7 +3056,7 @@ const HuddleUpApp = () => {
         </div>
       </div>
 
-      {/* SPONSOR BANNERS - 3 slots per sport */}
+      {/* MAIN SPONSOR BANNER - 5 slots per sport */}
       {(() => {
         const sponsors = getSponsorsForSport(selectedSport);
         const sponsor = sponsors[sponsorIndex % sponsors.length];
@@ -3060,67 +3064,46 @@ const HuddleUpApp = () => {
           <div className="max-w-4xl mx-auto px-4 pt-3 space-y-2">
             <div
               onClick={() => sponsor.url && sponsor.url !== '#' && window.open(sponsor.url, '_blank')}
-              className={`relative overflow-hidden rounded-2xl border ${sponsor.borderColor} bg-gradient-to-r ${sponsor.color} ${sponsor.url && sponsor.url !== '#' ? 'cursor-pointer' : ''} transition-all duration-500 hover:scale-[1.01]`}
+              className={`relative overflow-hidden rounded-2xl border-2 ${sponsor.borderColor} bg-gradient-to-r ${sponsor.color} ${sponsor.url && sponsor.url !== '#' ? 'cursor-pointer' : ''} transition-all duration-500 hover:scale-[1.01] shadow-lg shadow-black/20`}
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-sponsor-shimmer pointer-events-none" />
-              <div className="relative flex items-center gap-4 p-4">
-                <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center overflow-hidden">
+              <div className="relative flex items-stretch min-h-[120px]">
+                <div className="flex-shrink-0 w-[45%] bg-black/20 flex items-center justify-center overflow-hidden rounded-l-2xl">
                   {sponsor.logoUrl ? (
-                    <img src={sponsor.logoUrl} alt={sponsor.name} className="w-full h-full object-cover rounded-xl" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling && (e.target.nextSibling.style.display = 'flex'); }} />
+                    <img src={sponsor.logoUrl} alt={sponsor.name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling && (e.target.nextSibling.style.display = 'flex'); }} />
                   ) : null}
                   {sponsor.icon && !sponsor.logoUrl ? (
-                    <span className="text-2xl">{sponsor.icon}</span>
+                    <span className="text-6xl">{sponsor.icon}</span>
                   ) : null}
                   {sponsor.logoUrl ? (
-                    <span className="text-2xl hidden items-center justify-center">{SPORT_ICONS[selectedSport] || '📢'}</span>
+                    <span className="text-6xl hidden items-center justify-center">{SPORT_ICONS[selectedSport] || '📢'}</span>
                   ) : null}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                    <span className="px-2 py-0.5 bg-white/10 text-gray-300 text-[10px] font-bold uppercase rounded tracking-wider">
-                      Slot {sponsor.slotNum}/3
-                    </span>
+                <div className="flex-1 flex flex-col justify-center p-5 min-w-0">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
                     {sponsor.tier === 'premium' && (
-                      <span className="px-2 py-0.5 bg-gradient-to-r from-amber-500/30 to-yellow-500/30 text-yellow-300 text-[10px] font-bold uppercase rounded tracking-wider flex items-center gap-1">
-                        <Star className="w-2.5 h-2.5" fill="currentColor" /> Premium Multi-Sport
-                      </span>
-                    )}
-                    {sponsor.isReal && (
-                      <span className="px-2 py-0.5 bg-green-500/20 text-green-300 text-[10px] font-bold uppercase rounded tracking-wider flex items-center gap-1">
-                        <CheckCircle className="w-2.5 h-2.5" /> Active
+                      <span className="px-2 py-0.5 bg-gradient-to-r from-amber-500/30 to-yellow-500/30 text-yellow-300 text-xs font-bold uppercase rounded tracking-wider flex items-center gap-1">
+                        <Star className="w-3 h-3" fill="currentColor" /> Premium
                       </span>
                     )}
                     {sponsor.isDemo && (
-                      <span className="px-2 py-0.5 bg-blue-500/20 text-blue-300 text-[10px] font-bold uppercase rounded tracking-wider">
+                      <span className="px-2 py-0.5 bg-blue-500/20 text-blue-300 text-xs font-bold uppercase rounded tracking-wider">
                         Example
                       </span>
                     )}
                     {sponsor.isEmpty && (
-                      <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 text-[10px] font-bold uppercase rounded tracking-wider animate-pulse">
+                      <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 text-xs font-bold uppercase rounded tracking-wider animate-pulse">
                         Available
                       </span>
                     )}
                   </div>
-                  <h3 className="text-white font-bold text-lg truncate">{sponsor.name}</h3>
-                  <p className="text-gray-300 text-sm truncate">{sponsor.tagline}</p>
-                </div>
-                <div className="flex-shrink-0 hidden sm:flex items-center gap-2">
-                  <div className="flex gap-1.5 mr-2">
+                  <h3 className="text-white font-extrabold text-2xl sm:text-3xl truncate leading-tight">{sponsor.name}</h3>
+                  <p className="text-gray-200 text-base sm:text-lg mt-1 truncate">{sponsor.tagline}</p>
+                  <div className="flex gap-1.5 mt-3">
                     {sponsors.map((_, i) => (
-                      <div key={i} className={`w-2 h-2 rounded-full transition-all ${i === sponsorIndex % sponsors.length ? 'bg-white w-5' : 'bg-white/30'}`} />
+                      <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i === sponsorIndex % sponsors.length ? 'bg-white w-6' : 'bg-white/25 w-1.5'}`} />
                     ))}
                   </div>
-                  {sponsor.isEmpty ? (
-                    <div className="px-3 py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-bold whitespace-nowrap">
-                      {sponsor.tier === 'premium' ? '$299.99/mo' : '$99.99/mo'}
-                    </div>
-                  ) : (
-                    <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center">
-                      <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
