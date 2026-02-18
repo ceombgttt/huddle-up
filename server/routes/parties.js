@@ -2,6 +2,7 @@ import { Router } from 'express';
 import pool from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
 import { sendSMS } from '../sms.js';
+import { awardPoints } from './rewards.js';
 
 const router = Router();
 
@@ -162,6 +163,8 @@ router.post('/', requireAuth, async (req, res) => {
       }
     }
 
+    awardPoints(req.session.userId, 'create_party', `Created party: ${title || `${homeTeam} vs ${awayTeam}`}`, partyId).catch(() => {});
+
     res.json({ id: partyId });
   } catch (error) {
     console.error('Create party error:', error);
@@ -171,10 +174,13 @@ router.post('/', requireAuth, async (req, res) => {
 
 router.post('/:id/join', requireAuth, async (req, res) => {
   try {
-    await pool.query(
-      'INSERT INTO party_attendees (party_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+    const result = await pool.query(
+      'INSERT INTO party_attendees (party_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING id',
       [req.params.id, req.session.userId]
     );
+    if (result.rows.length > 0) {
+      awardPoints(req.session.userId, 'attend_party', 'Joined a watch party', req.params.id).catch(() => {});
+    }
     res.json({ ok: true });
   } catch (error) {
     console.error('Join party error:', error);

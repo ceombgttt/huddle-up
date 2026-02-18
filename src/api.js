@@ -160,6 +160,14 @@ export const api = {
     tagPhoto: (photoId, taggedUserId) => request(`/photos/photos/${photoId}/tag`, { method: 'POST', body: JSON.stringify({ taggedUserId }) }),
     removeTag: (photoId, taggedUserId) => request(`/photos/photos/${photoId}/tag/${taggedUserId}`, { method: 'DELETE' }),
   },
+  rewards: {
+    balance: () => request('/rewards/balance'),
+    history: () => request('/rewards/history'),
+    catalog: () => request('/rewards/catalog'),
+    redeem: (rewardId) => request('/rewards/redeem', { method: 'POST', body: JSON.stringify({ rewardId }) }),
+    redemptions: () => request('/rewards/redemptions'),
+    checkin: (partyId) => request('/rewards/checkin', { method: 'POST', body: JSON.stringify({ partyId }) }),
+  },
   analytics: {
     overview: () => request('/analytics/overview'),
     userGrowth: (days = 30) => request(`/analytics/user-growth?days=${days}`),

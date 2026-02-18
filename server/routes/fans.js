@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import pool from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
+import { awardPoints } from './rewards.js';
 
 const router = Router();
 
@@ -66,13 +67,18 @@ router.post('/invite', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'This user is already in the party' });
     }
 
-    await pool.query(
+    const invResult = await pool.query(
       `INSERT INTO party_invitations (party_id, from_user_id, to_user_id)
        VALUES ($1, $2, $3)
        ON CONFLICT (party_id, to_user_id) DO UPDATE SET
-         status = 'pending', from_user_id = $2, created_at = NOW(), responded_at = NULL`,
+         status = 'pending', from_user_id = $2, created_at = NOW(), responded_at = NULL
+       RETURNING id`,
       [partyId, req.session.userId, toUserId]
     );
+
+    if (invResult.rows.length > 0) {
+      awardPoints(req.session.userId, 'invite_friend', 'Invited a friend to a party', partyId).catch(() => {});
+    }
 
     res.json({ ok: true });
   } catch (error) {

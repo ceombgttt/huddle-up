@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, Megaphone, MessageCircle } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, Megaphone, MessageCircle, Gift, Award, MapPinCheck, Clock, Zap } from 'lucide-react';
 import { api } from './api.js';
 
 // Sample games data for different sports
@@ -581,6 +581,13 @@ const HuddleUpApp = () => {
   const chatPollRef = useRef(null);
   const [openPhotoPartyId, setOpenPhotoPartyId] = useState(null);
   const [partyPhotos, setPartyPhotos] = useState([]);
+  const [checkedInParties, setCheckedInParties] = useState({});
+  const [rewardsBalance, setRewardsBalance] = useState({ totalPoints: 0, lifetimePoints: 0 });
+  const [rewardsHistory, setRewardsHistory] = useState([]);
+  const [rewardsCatalog, setRewardsCatalog] = useState([]);
+  const [rewardsRedemptions, setRewardsRedemptions] = useState([]);
+  const [rewardsTab, setRewardsTab] = useState('earn');
+  const [redeemingReward, setRedeemingReward] = useState(null);
   const [photoUploading, setPhotoUploading] = useState(false);
   const [photoCaption, setPhotoCaption] = useState('');
   const [selectedPhoto, setSelectedPhoto] = useState(null);
@@ -737,6 +744,9 @@ const HuddleUpApp = () => {
       loadSponsors();
       loadAnalytics();
       api.users.stats().then(s => setTotalUsersCount(s.totalUsers)).catch(() => {});
+    }
+    if (currentScreen === 'rewards' && user) {
+      loadRewards();
     }
   }, [currentScreen, user?.isAdmin, loadSponsors]);
 
@@ -1083,6 +1093,51 @@ const HuddleUpApp = () => {
       setFriendRequests(requests);
     } catch (e) {
       console.log('Friends load error:', e);
+    }
+  };
+
+  const loadRewards = async () => {
+    if (!user) return;
+    try {
+      const [balance, history, catalog, redemptions] = await Promise.all([
+        api.rewards.balance(),
+        api.rewards.history(),
+        api.rewards.catalog(),
+        api.rewards.redemptions(),
+      ]);
+      setRewardsBalance(balance);
+      setRewardsHistory(history);
+      setRewardsCatalog(catalog);
+      setRewardsRedemptions(redemptions);
+    } catch (e) {
+      console.log('Rewards load error:', e);
+    }
+  };
+
+  const handleCheckin = async (partyId) => {
+    try {
+      const result = await api.rewards.checkin(partyId);
+      setCheckedInParties(prev => ({ ...prev, [partyId]: true }));
+      alert(`Checked in! You earned ${result.pointsEarned} points!`);
+      loadRewards();
+    } catch (e) {
+      if (e.message?.includes('already checked in')) {
+        setCheckedInParties(prev => ({ ...prev, [partyId]: true }));
+      }
+      alert(e.message || 'Check-in failed');
+    }
+  };
+
+  const handleRedeemReward = async (rewardId) => {
+    setRedeemingReward(rewardId);
+    try {
+      const result = await api.rewards.redeem(rewardId);
+      alert(`Redeemed: ${result.reward.name}! You now have ${result.totalPoints} points.`);
+      loadRewards();
+    } catch (e) {
+      alert(e.message || 'Redemption failed');
+    } finally {
+      setRedeemingReward(null);
     }
   };
 
@@ -2082,6 +2137,13 @@ const HuddleUpApp = () => {
                 )}
               </button>
               <button
+                onClick={() => setCurrentScreen('rewards')}
+                className="flex flex-col items-center px-2 py-1.5 bg-yellow-500/20 rounded-xl hover:bg-yellow-500/30 transition-colors border border-yellow-500/30"
+              >
+                <Gift className="w-5 h-5 text-yellow-300" />
+                <span className="text-[9px] text-yellow-300 mt-0.5 leading-none">Rewards</span>
+              </button>
+              <button
                 onClick={() => setCurrentScreen('fanFinder')}
                 className="flex flex-col items-center px-2 py-1.5 bg-blue-500/20 rounded-xl hover:bg-blue-500/30 transition-colors border border-blue-500/30"
               >
@@ -2785,6 +2847,22 @@ const HuddleUpApp = () => {
                             <Camera className="w-4 h-4" />
                             {openPhotoPartyId === party.id ? 'Close Photos' : `Party Photos${partyPhotos.length > 0 && openPhotoPartyId === party.id ? ` (${partyPhotos.length})` : ''}`}
                           </button>
+
+                          {!checkedInParties[party.id] && (
+                            <button
+                              onClick={() => handleCheckin(party.id)}
+                              className="w-full mt-2 py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 text-yellow-300 border-2 border-yellow-500/30 hover:bg-yellow-500/30"
+                            >
+                              <MapPinCheck className="w-4 h-4" />
+                              Check In (+75 pts)
+                            </button>
+                          )}
+                          {checkedInParties[party.id] && (
+                            <div className="w-full mt-2 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 bg-green-500/20 text-green-300 border-2 border-green-500/30">
+                              <CheckCircle className="w-4 h-4" />
+                              Checked In!
+                            </div>
+                          )}
 
                           {openPhotoPartyId === party.id && (
                             <div className="mt-3 bg-slate-800/80 rounded-xl border border-white/10 overflow-hidden">
@@ -6164,6 +6242,225 @@ const HuddleUpApp = () => {
       </div>
   );
 
+  const RewardsScreen = () => {
+    const pointActions = [
+      { action: 'Create a Party', points: 50, icon: <Plus className="w-5 h-5" />, color: 'from-cyan-500 to-blue-500' },
+      { action: 'Attend a Party', points: 25, icon: <Users className="w-5 h-5" />, color: 'from-green-500 to-emerald-500' },
+      { action: 'Invite a Friend', points: 100, icon: <Send className="w-5 h-5" />, color: 'from-purple-500 to-pink-500' },
+      { action: 'Check In at Venue', points: 75, icon: <MapPinCheck className="w-5 h-5" />, color: 'from-orange-500 to-amber-500' },
+    ];
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+          <div className="max-w-4xl mx-auto px-4 py-4">
+            <div className="flex items-center gap-3">
+              <button onClick={() => setCurrentScreen('games')} className="p-2 bg-white/10 rounded-xl hover:bg-white/20">
+                <ArrowLeft className="w-5 h-5 text-white" />
+              </button>
+              <h1 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                <Gift className="inline w-6 h-6 mr-2 text-yellow-400" />
+                REWARDS
+              </h1>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+          <div className="bg-gradient-to-br from-yellow-500/20 via-amber-500/20 to-orange-500/20 rounded-3xl border border-yellow-500/30 p-6 text-center">
+            <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg shadow-orange-500/30">
+              <Trophy className="w-10 h-10 text-white" />
+            </div>
+            <div className="text-5xl font-black text-white mb-1" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+              {rewardsBalance.totalPoints.toLocaleString()}
+            </div>
+            <div className="text-yellow-300 text-sm font-bold">AVAILABLE POINTS</div>
+            <div className="text-gray-400 text-xs mt-1">Lifetime earned: {rewardsBalance.lifetimePoints.toLocaleString()} pts</div>
+          </div>
+
+          <div className="flex gap-2 bg-slate-800/50 rounded-2xl p-1 border border-white/10">
+            {[
+              { key: 'earn', label: 'Earn', icon: <Zap className="w-4 h-4" /> },
+              { key: 'redeem', label: 'Redeem', icon: <Gift className="w-4 h-4" /> },
+              { key: 'history', label: 'History', icon: <Clock className="w-4 h-4" /> },
+            ].map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setRewardsTab(tab.key)}
+                className={`flex-1 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 transition-all ${
+                  rewardsTab === tab.key
+                    ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-lg'
+                    : 'text-gray-400 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                {tab.icon} {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {rewardsTab === 'earn' && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Zap className="w-5 h-5 text-yellow-400" /> How to Earn Points
+              </h3>
+              <div className="grid grid-cols-2 gap-3">
+                {pointActions.map((item, i) => (
+                  <div key={i} className="bg-slate-800/80 rounded-2xl border border-white/10 p-4 text-center">
+                    <div className={`w-12 h-12 bg-gradient-to-br ${item.color} rounded-2xl flex items-center justify-center mx-auto mb-2 text-white shadow-lg`}>
+                      {item.icon}
+                    </div>
+                    <div className="text-white font-bold text-sm">{item.action}</div>
+                    <div className="text-yellow-400 font-black text-lg mt-1">+{item.points}</div>
+                    <div className="text-gray-500 text-xs">points</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="bg-slate-800/80 rounded-2xl border border-white/10 p-4 mt-4">
+                <h4 className="text-white font-bold text-sm mb-3 flex items-center gap-2">
+                  <Award className="w-4 h-4 text-cyan-400" /> Quick Tips
+                </h4>
+                <ul className="space-y-2 text-sm text-gray-300">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
+                    Create parties for upcoming games to earn 50 points each
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
+                    Invite friends from Fan Finder for 100 points per invite
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
+                    Check in when you arrive at the venue for 75 bonus points
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
+                    Join other fans' parties to earn 25 points per party
+                  </li>
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {rewardsTab === 'redeem' && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Gift className="w-5 h-5 text-yellow-400" /> Rewards Store
+              </h3>
+              {rewardsCatalog.length === 0 ? (
+                <div className="text-center py-8 text-gray-400">
+                  <Gift className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>No rewards available right now</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {rewardsCatalog.map(reward => {
+                    const canAfford = rewardsBalance.totalPoints >= reward.points_cost;
+                    return (
+                      <div key={reward.id} className="bg-slate-800/80 rounded-2xl border border-white/10 p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-yellow-500/30 to-amber-500/30 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0">
+                            {reward.icon}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-white font-bold">{reward.name}</div>
+                            <div className="text-gray-400 text-xs mt-0.5">{reward.description}</div>
+                            <div className="flex items-center justify-between mt-2">
+                              <span className="text-yellow-400 font-black text-sm">{reward.points_cost.toLocaleString()} pts</span>
+                              <button
+                                onClick={() => handleRedeemReward(reward.id)}
+                                disabled={!canAfford || redeemingReward === reward.id}
+                                className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                                  canAfford
+                                    ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white hover:shadow-lg hover:shadow-yellow-500/30'
+                                    : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                                }`}
+                              >
+                                {redeemingReward === reward.id ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : canAfford ? 'Redeem' : `Need ${(reward.points_cost - rewardsBalance.totalPoints).toLocaleString()} more`}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {rewardsRedemptions.length > 0 && (
+                <div className="mt-6">
+                  <h4 className="text-sm font-bold text-gray-400 mb-3">YOUR REDEMPTIONS</h4>
+                  <div className="space-y-2">
+                    {rewardsRedemptions.map(r => (
+                      <div key={r.id} className="bg-slate-800/60 rounded-xl border border-white/5 p-3 flex items-center gap-3">
+                        <span className="text-xl">{r.reward_icon}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-white text-sm font-medium">{r.reward_name}</div>
+                          <div className="text-gray-500 text-xs">{new Date(r.redeemed_at).toLocaleDateString()}</div>
+                        </div>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
+                          r.status === 'redeemed' ? 'bg-green-500/20 text-green-400' :
+                          r.status === 'used' ? 'bg-gray-500/20 text-gray-400' :
+                          'bg-red-500/20 text-red-400'
+                        }`}>{r.status}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {rewardsTab === 'history' && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Clock className="w-5 h-5 text-yellow-400" /> Points History
+              </h3>
+              {rewardsHistory.length === 0 ? (
+                <div className="text-center py-8 text-gray-400">
+                  <Clock className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>No points activity yet</p>
+                  <p className="text-xs mt-1">Start earning by creating or joining parties!</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {rewardsHistory.map(entry => {
+                    const isEarn = entry.points > 0;
+                    const actionIcons = {
+                      create_party: <Plus className="w-4 h-4" />,
+                      attend_party: <Users className="w-4 h-4" />,
+                      invite_friend: <Send className="w-4 h-4" />,
+                      venue_checkin: <MapPinCheck className="w-4 h-4" />,
+                      redeem: <Gift className="w-4 h-4" />,
+                    };
+                    return (
+                      <div key={entry.id} className="bg-slate-800/60 rounded-xl border border-white/5 p-3 flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                          isEarn ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                        }`}>
+                          {actionIcons[entry.action] || <Zap className="w-4 h-4" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-white text-sm font-medium">{entry.description || entry.action.replace(/_/g, ' ')}</div>
+                          <div className="text-gray-500 text-xs">{new Date(entry.created_at).toLocaleDateString()} {new Date(entry.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                        </div>
+                        <span className={`font-black text-sm ${isEarn ? 'text-green-400' : 'text-red-400'}`}>
+                          {isEarn ? '+' : ''}{entry.points}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const InvitationsScreen = () => {
     const unreadNotifications = notifications.filter(n => !n.isRead);
     return (
@@ -6579,6 +6876,7 @@ const HuddleUpApp = () => {
       {currentScreen === 'profile' && <ProfileScreen />}
       {currentScreen === 'fanFinder' && renderFanFinderScreen()}
       {currentScreen === 'myCrew' && renderMyCrewScreen()}
+      {currentScreen === 'rewards' && <RewardsScreen />}
       {currentScreen === 'invitations' && <InvitationsScreen />}
 
       {showShareToast && (

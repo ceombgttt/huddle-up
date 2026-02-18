@@ -208,6 +208,52 @@ export async function initDB() {
         created_at TIMESTAMPTZ DEFAULT NOW(),
         UNIQUE(photo_id, tagged_user_id)
       );
+
+      CREATE TABLE IF NOT EXISTS user_points (
+        user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+        total_points INTEGER DEFAULT 0,
+        lifetime_points INTEGER DEFAULT 0,
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS points_history (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        points INTEGER NOT NULL,
+        action TEXT NOT NULL,
+        description TEXT,
+        reference_id UUID,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS rewards (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name TEXT NOT NULL,
+        description TEXT,
+        points_cost INTEGER NOT NULL,
+        category TEXT NOT NULL,
+        icon TEXT,
+        active BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS reward_redemptions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        reward_id UUID REFERENCES rewards(id) ON DELETE CASCADE,
+        points_spent INTEGER NOT NULL,
+        status TEXT DEFAULT 'redeemed' CHECK (status IN ('redeemed', 'used', 'expired')),
+        redeemed_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS venue_checkins (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        party_id UUID REFERENCES parties(id) ON DELETE CASCADE,
+        venue_name TEXT NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(user_id, party_id)
+      );
     `);
 
     const adminCheck = await client.query("SELECT id FROM users WHERE email = 'admin@huddleupusa.com'");
@@ -218,6 +264,21 @@ export async function initDB() {
         "INSERT INTO users (email, password_hash, name, gender, is_admin) VALUES ('admin@huddleupusa.com', $1, 'Admin', 'prefer-not-to-say', TRUE)",
         [hash]
       );
+    }
+
+    const rewardsCheck = await client.query("SELECT id FROM rewards LIMIT 1");
+    if (rewardsCheck.rows.length === 0) {
+      await client.query(`
+        INSERT INTO rewards (name, description, points_cost, category, icon) VALUES
+        ('Free Drink', 'Redeem for a free drink at any partner venue', 500, 'drinks', '🍺'),
+        ('Free Month Fan Subscription', 'Get one month of Fan tier subscription for free', 1000, 'subscription', '⭐'),
+        ('Merch Discount 20%', 'Get 20% off official Huddle Up merchandise', 300, 'merch', '👕'),
+        ('VIP Party Host Badge', 'Unlock the exclusive VIP Party Host badge on your profile', 750, 'badge', '🏆'),
+        ('Premium Drink Upgrade', 'Upgrade to a premium drink at partner venues', 350, 'drinks', '🍸'),
+        ('Free Appetizer', 'Redeem for a free appetizer at partner venues', 400, 'drinks', '🍗'),
+        ('Exclusive Merch Item', 'Get an exclusive limited-edition Huddle Up item', 1500, 'merch', '🧢'),
+        ('Priority Seating', 'Get priority seating at partner venues for watch parties', 600, 'perks', '💺')
+      `);
     }
 
     const venueCheck = await client.query("SELECT id FROM venues LIMIT 1");

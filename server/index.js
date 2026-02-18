@@ -21,6 +21,7 @@ import analyticsRoutes from './routes/analytics.js';
 import stripeRoutes from './routes/stripe.js';
 import referralRoutes from './routes/referrals.js';
 import photoRoutes from './routes/photos.js';
+import rewardsRoutes from './routes/rewards.js';
 import { startScoreChecker } from './scoreChecker.js';
 import { WebhookHandlers } from './stripe/webhookHandlers.js';
 import { initStripe } from './stripe/init.js';
@@ -89,6 +90,7 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/stripe', stripeRoutes);
 app.use('/api/referrals', referralRoutes);
 app.use('/api/photos', photoRoutes);
+app.use('/api/rewards', rewardsRoutes);
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
