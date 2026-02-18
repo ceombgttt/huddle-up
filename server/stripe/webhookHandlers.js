@@ -48,6 +48,26 @@ export class WebhookHandlers {
     );
     console.log(`User ${userId} subscription updated to tier: ${tier}`);
 
+    if (tier === 'sponsor') {
+      try {
+        const existing = await pool.query('SELECT id FROM sponsors WHERE user_id = $1', [userId]);
+        if (existing.rows.length === 0) {
+          const userInfo = await pool.query('SELECT name, email FROM users WHERE id = $1', [userId]);
+          const u = userInfo.rows[0];
+          await pool.query(
+            `INSERT INTO sponsors (name, contact_name, contact_email, user_id, tagline, status, amount_paid, payment_frequency, start_date)
+             VALUES ($1, $2, $3, $4, $5, 'active', 99.99, 'monthly', NOW())`,
+            [u?.name || 'New Sponsor', u?.name || '', u?.email || '', userId, 'Your tagline here']
+          );
+          console.log(`Auto-created sponsor record for user ${userId}`);
+        } else {
+          await pool.query("UPDATE sponsors SET status = 'active' WHERE user_id = $1", [userId]);
+        }
+      } catch (err) {
+        console.error('Auto-create sponsor error:', err.message);
+      }
+    }
+
     if (referredBy) {
       try {
         const referrerResult = await pool.query(
@@ -93,10 +113,14 @@ export class WebhookHandlers {
         [subscription.id, tier, userId]
       );
     } else if (status === 'canceled' || status === 'unpaid' || status === 'past_due') {
+      const prevTier = await pool.query('SELECT subscription_tier FROM users WHERE id = $1', [userId]);
       await pool.query(
         "UPDATE users SET stripe_subscription_id = NULL, subscription_tier = 'free' WHERE id = $1",
         [userId]
       );
+      if (prevTier.rows[0]?.subscription_tier === 'sponsor') {
+        await pool.query("UPDATE sponsors SET status = 'ended' WHERE user_id = $1", [userId]);
+      }
       console.log(`User ${userId} subscription ${status}, reverted to free tier`);
     }
   }

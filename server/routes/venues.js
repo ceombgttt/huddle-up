@@ -7,12 +7,14 @@ const router = Router();
 router.get('/', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT v.*, u.email as claimed_by_email,
+      SELECT v.*, u.email as claimed_by_email, u.subscription_tier as owner_tier,
         (SELECT COUNT(*) FROM parties WHERE venue_name = v.name) as total_parties,
         (SELECT COUNT(DISTINCT pa.user_id) FROM party_attendees pa JOIN parties p ON pa.party_id = p.id WHERE p.venue_name = v.name) as total_fans
       FROM venues v
       LEFT JOIN users u ON v.claimed_by = u.id
-      ORDER BY v.featured DESC, v.name
+      ORDER BY
+        CASE WHEN u.subscription_tier IN ('venue', 'sponsor') THEN 0 ELSE 1 END,
+        v.featured DESC, v.name
     `);
 
     const venues = result.rows.map(v => ({
@@ -23,6 +25,7 @@ router.get('/', async (req, res) => {
       verified: v.verified,
       featured: v.featured,
       claimedBy: v.claimed_by_email,
+      subscribed: v.owner_tier === 'venue' || v.owner_tier === 'sponsor',
       phone: v.phone,
       website: v.website,
       city: v.city,

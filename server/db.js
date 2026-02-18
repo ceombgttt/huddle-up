@@ -123,6 +123,9 @@ export async function initDB() {
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
       ALTER TABLE sponsors DROP COLUMN IF EXISTS venue_id;
+      ALTER TABLE sponsors ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES users(id) ON DELETE SET NULL;
+      ALTER TABLE sponsors ADD COLUMN IF NOT EXISTS tagline TEXT;
+      ALTER TABLE sponsors ADD COLUMN IF NOT EXISTS target_sports TEXT[] DEFAULT '{}';
 
       CREATE TABLE IF NOT EXISTS push_subscriptions (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

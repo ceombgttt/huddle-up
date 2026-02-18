@@ -87,6 +87,10 @@ export const api = {
     create: (data) => request('/sponsors', { method: 'POST', body: JSON.stringify(data) }),
     update: (id, data) => request(`/sponsors/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id) => request(`/sponsors/${id}`, { method: 'DELETE' }),
+    me: () => request('/sponsors/me'),
+    updateMe: (data) => request('/sponsors/me', { method: 'PUT', body: JSON.stringify(data) }),
+    banners: () => request('/sponsors/banners'),
+    slots: () => request('/sponsors/slots'),
     requestLogoUrl: (contentType) =>
       request('/uploads/venue-image/request-url', { method: 'POST', body: JSON.stringify({ contentType, imageType: 'sponsor-logo' }) }),
   },

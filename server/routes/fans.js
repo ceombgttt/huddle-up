@@ -13,7 +13,7 @@ router.get('/by-team', requireAuth, async (req, res) => {
     }
 
     const result = await pool.query(
-      `SELECT u.id, u.name, u.gender, u.profile_picture, u.joined_at,
+      `SELECT u.id, u.name, u.gender, u.profile_picture, u.joined_at, u.subscription_tier,
         json_agg(DISTINCT jsonb_build_object('sport', ft.sport, 'team', ft.team)) as favorite_teams,
         (SELECT COUNT(*) FROM parties WHERE host_id = u.id) as parties_hosted,
         (SELECT COUNT(*) FROM party_attendees WHERE user_id = u.id) as parties_attended
@@ -23,7 +23,7 @@ router.get('/by-team', requireAuth, async (req, res) => {
          SELECT user_id FROM user_favorite_teams WHERE sport = $1 AND team = $2
        )
        AND u.id != $3
-       GROUP BY u.id, u.name, u.gender, u.profile_picture, u.joined_at
+       GROUP BY u.id, u.name, u.gender, u.profile_picture, u.joined_at, u.subscription_tier
        ORDER BY u.name`,
       [sport, team, req.session.userId]
     );
@@ -34,6 +34,7 @@ router.get('/by-team', requireAuth, async (req, res) => {
       gender: r.gender,
       profilePicture: r.profile_picture,
       joinedAt: r.joined_at,
+      subscriptionTier: r.subscription_tier || 'free',
       favoriteTeams: r.favorite_teams,
       partiesHosted: parseInt(r.parties_hosted),
       partiesAttended: parseInt(r.parties_attended)

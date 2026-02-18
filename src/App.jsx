@@ -1123,6 +1123,7 @@ const HuddleUpApp = () => {
   const [loadingGames, setLoadingGames] = useState(false);
   
   const [sponsorIndex, setSponsorIndex] = useState(0);
+  const [sponsorBanners, setSponsorBanners] = useState([]);
   const [adminSponsors, setAdminSponsors] = useState([]);
   const [showSponsorForm, setShowSponsorForm] = useState(false);
   const [editingVenue, setEditingVenue] = useState(false);
@@ -1439,7 +1440,7 @@ const HuddleUpApp = () => {
   const activeSponsors = adminSponsors.filter(s => s.status === 'active');
 
   const formScreens = ['welcome', 'login', 'signup', 'forgotPassword', 'claimVenue', 'createParty'];
-  const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', 'qrCheckin', 'myParties', 'myCrew', 'fanFinder', 'invitations', 'venueDashboard', ...formScreens];
+  const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', 'qrCheckin', 'myParties', 'myCrew', 'fanFinder', 'invitations', 'venueDashboard', 'sponsorDashboard', ...formScreens];
   const isFormScreen = formScreens.includes(currentScreen);
   const isPauseScreen = pauseScreens.includes(currentScreen);
 
@@ -1488,6 +1489,7 @@ const HuddleUpApp = () => {
     loadVenues();
     loadGames();
     detectUserLocation();
+    api.sponsors.banners().then(b => setSponsorBanners(b || [])).catch(() => {});
 
     const params = new URLSearchParams(window.location.search);
     if (params.get('checkout') === 'success') {
@@ -1521,9 +1523,32 @@ const HuddleUpApp = () => {
     return () => clearInterval(gamesInterval);
   }, [isPauseScreen]);
 
+  const getSponsorsForSport = useCallback((sport) => {
+    const BANNER_COLORS = [
+      { color: 'from-cyan-600/40 to-blue-600/40', borderColor: 'border-cyan-500/30' },
+      { color: 'from-purple-600/40 to-pink-600/40', borderColor: 'border-purple-500/30' },
+      { color: 'from-amber-600/40 to-orange-600/40', borderColor: 'border-amber-500/30' },
+      { color: 'from-green-700/40 to-emerald-600/40', borderColor: 'border-green-500/30' },
+      { color: 'from-red-600/40 to-rose-600/40', borderColor: 'border-red-500/30' },
+    ];
+    const realSponsors = sponsorBanners.filter(s =>
+      s.targetSports?.length === 0 || s.targetSports?.includes(sport) || sport === 'All'
+    ).map((s, i) => ({
+      name: s.name,
+      tagline: s.tagline || 'Official Huddle Up Sponsor',
+      icon: s.logo ? null : '⭐',
+      logoUrl: s.logo ? `/api/uploads/serve/${s.logo.replace('/objects/', '')}` : null,
+      ...BANNER_COLORS[i % BANNER_COLORS.length],
+      url: s.url || null,
+      isReal: true,
+    }));
+    if (realSponsors.length > 0) return realSponsors;
+    return SPORT_SPONSORS[sport] || SPORT_SPONSORS['All'];
+  }, [sponsorBanners]);
+
   useEffect(() => {
     if (isPauseScreen) return;
-    const sponsors = SPORT_SPONSORS[selectedSport] || SPORT_SPONSORS['All'];
+    const sponsors = getSponsorsForSport(selectedSport);
     if (sponsors.length > 1) {
       setSponsorIndex(0);
       const interval = setInterval(() => {
@@ -1533,7 +1558,7 @@ const HuddleUpApp = () => {
     } else {
       setSponsorIndex(0);
     }
-  }, [selectedSport, isPauseScreen]);
+  }, [selectedSport, isPauseScreen, getSponsorsForSport]);
 
   const loadUserData = async () => {
     try {
@@ -3015,7 +3040,7 @@ const HuddleUpApp = () => {
 
       {/* SPONSOR BANNER - Dynamic based on selected sport */}
       {(() => {
-        const sponsors = SPORT_SPONSORS[selectedSport] || SPORT_SPONSORS['All'];
+        const sponsors = getSponsorsForSport(selectedSport);
         const sponsor = sponsors[sponsorIndex % sponsors.length];
         return (
           <div className="max-w-4xl mx-auto px-4 pt-3">
@@ -3025,13 +3050,23 @@ const HuddleUpApp = () => {
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-sponsor-shimmer pointer-events-none" />
               <div className="relative flex items-center gap-4 p-4">
-                <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center">
-                  <span className="text-2xl">{sponsor.icon}</span>
+                <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center overflow-hidden">
+                  {sponsor.logoUrl ? (
+                    <img src={sponsor.logoUrl} alt={sponsor.name} className="w-full h-full object-cover rounded-xl" />
+                  ) : (
+                    <span className="text-2xl">{sponsor.icon}</span>
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
                     <span className="px-2 py-0.5 bg-white/10 text-gray-300 text-[10px] font-bold uppercase rounded tracking-wider">Sponsor</span>
-                    {selectedSport !== 'All' && (
+                    {sponsor.isReal && (
+                      <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-300 text-[10px] font-bold uppercase rounded tracking-wider flex items-center gap-1">
+                        <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" /></svg>
+                        Verified
+                      </span>
+                    )}
+                    {selectedSport !== 'All' && !sponsor.isReal && (
                       <span className="px-2 py-0.5 bg-white/10 text-gray-300 text-[10px] font-bold uppercase rounded tracking-wider">{selectedSport}</span>
                     )}
                   </div>
@@ -4690,6 +4725,11 @@ const HuddleUpApp = () => {
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="font-bold text-white">{venue.name}</h3>
                           <VenueBadgeDisplay totalParties={venue.partiesHosted || 0} totalFans={venue.totalAttendees || 0} />
+                          {venue.subscribed && (
+                            <span className="px-2 py-1 bg-green-500/20 text-green-300 text-xs font-bold rounded-full flex items-center gap-1">
+                              <CheckCircle className="w-3 h-3" /> SUBSCRIBED
+                            </span>
+                          )}
                           {venue.featured && (
                             <span className="px-2 py-1 bg-purple-500/20 text-purple-300 text-xs font-bold rounded-full">
                               ⭐ FEATURED
@@ -5413,7 +5453,7 @@ const HuddleUpApp = () => {
                   <option value="">Choose a venue...</option>
                   {venues.filter(v => v.verified).map(venue => (
                     <option key={venue.id} value={venue.id}>
-                      {venue.featured ? '⭐ ' : ''}{venue.name} - {venue.address}
+                      {venue.subscribed ? '✓ ' : ''}{venue.featured ? '⭐ ' : ''}{venue.name} - {venue.address}
                     </option>
                   ))}
                 </select>
@@ -6312,6 +6352,186 @@ const HuddleUpApp = () => {
     );
   };
 
+  const SponsorDashboard = () => {
+    const [sponsorData, setSponsorData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [form, setForm] = useState({ name: '', tagline: '', website: '', logo: '', targetSports: [] });
+
+    useEffect(() => {
+      const load = async () => {
+        try {
+          const data = await api.sponsors.me();
+          if (data) {
+            setSponsorData(data);
+            setForm({ name: data.name || '', tagline: data.tagline || '', website: data.website || '', logo: data.logo || '', targetSports: data.targetSports || [] });
+          }
+        } catch (err) { console.error(err); }
+        finally { setLoading(false); }
+      };
+      load();
+    }, []);
+
+    const handleSave = async () => {
+      setSaving(true);
+      try {
+        await api.sponsors.updateMe(form);
+        alert('Sponsor profile saved!');
+      } catch (err) { alert('Error: ' + err.message); }
+      finally { setSaving(false); }
+    };
+
+    const handleLogoUpload = async () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = async (ev) => {
+        const file = ev.target.files?.[0];
+        if (!file || file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB'); return; }
+        try {
+          const fileBuffer = await file.arrayBuffer();
+          const uploadRes = await fetch('/api/uploads/venue-image/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': file.type, 'X-Image-Type': 'sponsor-logo' },
+            credentials: 'include',
+            body: fileBuffer,
+          });
+          const uploadData = await uploadRes.json();
+          if (uploadData.objectPath) {
+            setForm(f => ({ ...f, logo: uploadData.objectPath }));
+          }
+        } catch (err) { alert('Upload failed: ' + err.message); }
+      };
+      input.click();
+    };
+
+    const toggleSport = (sport) => {
+      setForm(f => ({
+        ...f,
+        targetSports: f.targetSports.includes(sport)
+          ? f.targetSports.filter(s => s !== sport)
+          : [...f.targetSports, sport]
+      }));
+    };
+
+    if (loading) return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-orange-400" />
+      </div>
+    );
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+          <div className="max-w-4xl mx-auto px-4 py-4">
+            <button onClick={() => setCurrentScreen('profile')} className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
+              <ArrowLeft className="w-5 h-5" /> Back to Profile
+            </button>
+          </div>
+        </div>
+        <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+          <h2 className="text-3xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+            <Megaphone className="inline w-7 h-7 mr-2 text-orange-400" />
+            SPONSOR DASHBOARD
+          </h2>
+
+          {!sponsorData ? (
+            <div className="bg-white/5 p-8 rounded-2xl border border-white/10 text-center">
+              <Megaphone className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+              <p className="text-gray-400 mb-2">No sponsor profile found.</p>
+              <p className="text-gray-500 text-sm">Subscribe to the Sponsor plan to manage your banner ad.</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <div className="bg-gradient-to-br from-orange-500/10 to-amber-500/10 p-6 rounded-2xl border border-orange-500/30">
+                <h3 className="text-lg font-bold text-orange-300 mb-4">Your Banner Ad</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">Business / Brand Name</label>
+                    <input type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      placeholder="Your Business Name" />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">Tagline / Message</label>
+                    <input type="text" value={form.tagline} onChange={e => setForm(f => ({ ...f, tagline: e.target.value }))}
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      placeholder="Reach sports fans nationwide!" maxLength={80} />
+                    <p className="text-xs text-gray-500 mt-1">{form.tagline.length}/80 characters</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">Website URL</label>
+                    <input type="url" value={form.website} onChange={e => setForm(f => ({ ...f, website: e.target.value }))}
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      placeholder="https://yourbusiness.com" />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">Logo</label>
+                    <div className="flex items-center gap-3">
+                      {form.logo ? (
+                        <img src={`/api/uploads/serve/${form.logo}`} alt="Logo" className="w-16 h-16 rounded-xl object-cover border border-white/20" />
+                      ) : (
+                        <div className="w-16 h-16 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center">
+                          <Camera className="w-6 h-6 text-gray-500" />
+                        </div>
+                      )}
+                      <button onClick={handleLogoUpload} className="px-4 py-2 bg-white/10 text-white text-sm rounded-xl hover:bg-white/20 transition-colors">
+                        {form.logo ? 'Change Logo' : 'Upload Logo'}
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-2">Target Sports (your ad shows on these sport pages)</label>
+                    <div className="flex flex-wrap gap-2">
+                      {SPORTS.filter(s => s !== 'All').map(sport => (
+                        <button key={sport} onClick={() => toggleSport(sport)}
+                          className={`px-3 py-1.5 rounded-full text-sm font-semibold transition-all ${
+                            form.targetSports.includes(sport)
+                              ? 'bg-orange-500 text-white'
+                              : 'bg-white/10 text-gray-400 hover:bg-white/20'
+                          }`}>
+                          {SPORT_ICONS[sport] || '🏅'} {sport}
+                        </button>
+                      ))}
+                    </div>
+                    {form.targetSports.length === 0 && (
+                      <p className="text-xs text-amber-400 mt-2">Select at least one sport, or your ad will show on all pages.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white/5 p-6 rounded-2xl border border-white/10">
+                <h3 className="text-lg font-bold text-white mb-3">Banner Preview</h3>
+                <div className="relative overflow-hidden rounded-2xl border border-orange-500/30 bg-gradient-to-r from-orange-600/40 to-amber-600/40 p-4">
+                  <div className="flex items-center gap-3">
+                    {form.logo ? (
+                      <img src={`/api/uploads/serve/${form.logo}`} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                    ) : (
+                      <span className="text-2xl">📢</span>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="text-white font-bold text-sm">{form.name || 'Your Brand'}</div>
+                      <div className="text-orange-200 text-xs">{form.tagline || 'Your tagline here'}</div>
+                    </div>
+                    {form.website && (
+                      <span className="px-3 py-1 bg-orange-500/30 text-orange-200 text-xs font-bold rounded-full">Visit</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <button onClick={handleSave} disabled={saving || !form.name}
+                className="w-full py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold rounded-xl hover:shadow-lg transition-all disabled:opacity-50">
+                {saving ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Save Sponsor Profile'}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const ProfileScreen = () => {
     const myParties = parties.filter(party => userParties.includes(party.id));
     const hostedParties = myParties.filter(party => party.hostEmail === user.email);
@@ -6396,6 +6616,17 @@ const HuddleUpApp = () => {
                   {user.name}
                 </h1>
                 <p className="text-gray-400 text-sm">{user.email}</p>
+                {user.subscriptionTier && user.subscriptionTier !== 'free' && (
+                  <span className={`inline-flex items-center gap-1 px-3 py-1 mt-1 rounded-full text-xs font-bold border ${
+                    user.subscriptionTier === 'sponsor' ? 'bg-orange-500/20 text-orange-300 border-orange-500/30' :
+                    user.subscriptionTier === 'venue' ? 'bg-green-500/20 text-green-300 border-green-500/30' :
+                    'bg-cyan-500/20 text-cyan-300 border-cyan-500/30'
+                  }`}>
+                    {user.subscriptionTier === 'sponsor' ? '📢 Sponsor' :
+                     user.subscriptionTier === 'venue' ? '🏪 Venue Owner' :
+                     '🏟️ Fan'}
+                  </span>
+                )}
                 {user.dateOfBirth && (
                   <p className="text-sm text-gray-400 mt-1">
                     Age: {(() => {
@@ -6576,6 +6807,22 @@ const HuddleUpApp = () => {
               </div>
             )}
           </div>
+
+          {user.subscriptionTier === 'sponsor' && (
+            <div className="bg-gradient-to-br from-orange-500/10 to-amber-500/10 p-6 rounded-2xl border border-orange-500/30 shadow-xl">
+              <h2 className="text-2xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                <Megaphone className="inline w-6 h-6 mr-2 text-orange-400" />
+                SPONSOR DASHBOARD
+              </h2>
+              <p className="text-gray-400 text-sm mb-4">Manage your banner ad, logo, and target sports.</p>
+              <button
+                onClick={() => setCurrentScreen('sponsorDashboard')}
+                className="w-full py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold rounded-xl hover:shadow-lg transition-all"
+              >
+                Open Sponsor Dashboard
+              </button>
+            </div>
+          )}
 
           <SubscriptionSection />
 
@@ -6869,6 +7116,12 @@ const HuddleUpApp = () => {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-white font-semibold">{fan.name}</span>
                         <BadgeDisplay attended={fan.partiesAttended || 0} hosted={fan.partiesHosted || 0} size="sm" />
+                        {fan.subscriptionTier === 'sponsor' && (
+                          <span className="px-2 py-0.5 bg-orange-500/20 text-orange-300 text-xs font-bold rounded-full border border-orange-500/30">📢 Sponsor</span>
+                        )}
+                        {fan.subscriptionTier === 'venue' && (
+                          <span className="px-2 py-0.5 bg-green-500/20 text-green-300 text-xs font-bold rounded-full border border-green-500/30">🏪 Venue</span>
+                        )}
                         {isFriend && (
                           <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 text-xs rounded-full border border-emerald-500/30">
                             <Users className="w-3 h-3 inline mr-1" />In Your Crew
@@ -7741,6 +7994,7 @@ const HuddleUpApp = () => {
       {currentScreen === 'claimVenue' && claimVenueScreenJSX()}
       {currentScreen === 'admin' && AdminPanelScreen()}
       {currentScreen === 'venueDashboard' && <VenueAnalyticsDashboard />}
+      {currentScreen === 'sponsorDashboard' && <SponsorDashboard />}
       {currentScreen === 'myParties' && <MyPartiesScreen />}
       {currentScreen === 'profile' && <ProfileScreen />}
       {currentScreen === 'fanFinder' && renderFanFinderScreen()}
