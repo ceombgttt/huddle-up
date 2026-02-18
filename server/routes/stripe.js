@@ -69,10 +69,31 @@ router.get('/products', async (req, res) => {
 
 router.post('/checkout', requireAuth, async (req, res) => {
   try {
-    const { priceId, tier } = req.body;
+    const { priceId } = req.body;
     if (!priceId) {
       return res.status(400).json({ error: 'priceId is required' });
     }
+
+    const priceResult = await pool.query(`
+      SELECT pr.id, pr.product, pr.active, p.metadata as product_metadata, p.active as product_active
+      FROM stripe.prices pr
+      JOIN stripe.products p ON p.id = pr.product
+      WHERE pr.id = $1
+    `, [priceId]);
+
+    if (priceResult.rows.length === 0) {
+      return res.status(400).json({ error: 'Invalid price' });
+    }
+
+    const priceRow = priceResult.rows[0];
+    if (!priceRow.active || !priceRow.product_active) {
+      return res.status(400).json({ error: 'Price or product is no longer active' });
+    }
+
+    const productMetadata = typeof priceRow.product_metadata === 'string'
+      ? JSON.parse(priceRow.product_metadata)
+      : priceRow.product_metadata || {};
+    const tier = productMetadata.tier || 'fan';
 
     const stripe = await getUncachableStripeClient();
     const userId = req.session.userId;
@@ -108,7 +129,7 @@ router.post('/checkout', requireAuth, async (req, res) => {
       cancel_url: `${baseUrl}/?checkout=cancel`,
       metadata: {
         userId: user.id,
-        tier: tier || 'fan',
+        tier,
         referredBy: user.referred_by || '',
       },
     };

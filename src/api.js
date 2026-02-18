@@ -126,7 +126,7 @@ export const api = {
   },
   stripe: {
     products: () => request('/stripe/products'),
-    checkout: (priceId, tier) => request('/stripe/checkout', { method: 'POST', body: JSON.stringify({ priceId, tier }) }),
+    checkout: (priceId) => request('/stripe/checkout', { method: 'POST', body: JSON.stringify({ priceId }) }),
     subscription: () => request('/stripe/subscription'),
     portal: () => request('/stripe/portal', { method: 'POST' }),
     syncSubscription: () => request('/stripe/sync-subscription', { method: 'POST' }),

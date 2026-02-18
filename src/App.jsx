@@ -4969,7 +4969,7 @@ const HuddleUpApp = () => {
     const handleCheckout = async (priceId, tier) => {
       setCheckoutLoading(tier);
       try {
-        const { url } = await api.stripe.checkout(priceId, tier);
+        const { url } = await api.stripe.checkout(priceId);
         if (url) window.location.href = url;
       } catch (err) {
         alert('Could not start checkout: ' + err.message);
