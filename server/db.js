@@ -171,8 +171,25 @@ export async function initDB() {
       ALTER TABLE users ADD COLUMN IF NOT EXISTS phone_number TEXT;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS user_city TEXT;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS sms_notifications BOOLEAN DEFAULT FALSE;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_tier TEXT DEFAULT 'free';
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_code TEXT UNIQUE;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by TEXT;
       ALTER TABLE venues ADD COLUMN IF NOT EXISTS logo TEXT;
       ALTER TABLE venues ADD COLUMN IF NOT EXISTS picture TEXT;
+
+      CREATE TABLE IF NOT EXISTS referral_conversions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        referral_code TEXT NOT NULL,
+        referrer_user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        referred_user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        subscription_tier TEXT,
+        commission_amount NUMERIC(10,2) DEFAULT 0,
+        commission_pct NUMERIC(5,2) DEFAULT 10,
+        status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'paid', 'cancelled')),
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
     `);
 
     const adminCheck = await client.query("SELECT id FROM users WHERE email = 'admin@huddleupusa.com'");
