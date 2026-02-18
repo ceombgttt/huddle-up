@@ -6,7 +6,7 @@ const router = Router();
 
 router.post('/signup', async (req, res) => {
   try {
-    const { email, password, name, gender, dateOfBirth, rememberMe = true } = req.body;
+    const { email, password, name, gender, dateOfBirth, rememberMe = true, referralCode = '' } = req.body;
     if (!email || !password || !name || !gender || !dateOfBirth) {
       return res.status(400).json({ error: 'All fields are required' });
     }
@@ -25,10 +25,18 @@ router.post('/signup', async (req, res) => {
       return res.status(409).json({ error: 'Email already registered' });
     }
 
+    let validReferral = null;
+    if (referralCode && referralCode.trim()) {
+      const refCheck = await pool.query('SELECT id FROM users WHERE referral_code = $1', [referralCode.trim().toUpperCase()]);
+      if (refCheck.rows.length > 0) {
+        validReferral = referralCode.trim().toUpperCase();
+      }
+    }
+
     const passwordHash = await bcrypt.hash(password, 10);
     const result = await pool.query(
-      'INSERT INTO users (email, password_hash, name, gender, date_of_birth) VALUES ($1, $2, $3, $4, $5) RETURNING id, email, name, gender, country, profile_picture, date_of_birth, is_admin, joined_at, notifications_enabled, phone_number, user_city, sms_notifications',
-      [email, passwordHash, name, gender, dateOfBirth]
+      'INSERT INTO users (email, password_hash, name, gender, date_of_birth, referred_by) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, email, name, gender, country, profile_picture, date_of_birth, is_admin, joined_at, notifications_enabled, phone_number, user_city, sms_notifications',
+      [email, passwordHash, name, gender, dateOfBirth, validReferral]
     );
 
     const user = result.rows[0];

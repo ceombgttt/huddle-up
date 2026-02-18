@@ -16,8 +16,8 @@ async function request(path, options = {}) {
 export const api = {
   auth: {
     me: () => request('/auth/me'),
-    signup: (email, password, name, gender, dateOfBirth, rememberMe = true) =>
-      request('/auth/signup', { method: 'POST', body: JSON.stringify({ email, password, name, gender, dateOfBirth, rememberMe }) }),
+    signup: (email, password, name, gender, dateOfBirth, rememberMe = true, referralCode = '') =>
+      request('/auth/signup', { method: 'POST', body: JSON.stringify({ email, password, name, gender, dateOfBirth, rememberMe, referralCode }) }),
     login: (email, password, rememberMe = true) =>
       request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password, rememberMe }) }),
     logout: () => request('/auth/logout', { method: 'POST' }),
@@ -123,6 +123,19 @@ export const api = {
     },
     sendMessage: (partyId, message) =>
       request(`/chat/parties/${partyId}/messages`, { method: 'POST', body: JSON.stringify({ message }) }),
+  },
+  stripe: {
+    products: () => request('/stripe/products'),
+    checkout: (priceId, tier) => request('/stripe/checkout', { method: 'POST', body: JSON.stringify({ priceId, tier }) }),
+    subscription: () => request('/stripe/subscription'),
+    portal: () => request('/stripe/portal', { method: 'POST' }),
+    syncSubscription: () => request('/stripe/sync-subscription', { method: 'POST' }),
+  },
+  referrals: {
+    myCode: () => request('/referrals/my-code'),
+    apply: (referralCode) => request('/referrals/apply', { method: 'POST', body: JSON.stringify({ referralCode }) }),
+    stats: () => request('/referrals/stats'),
+    validate: (code) => request(`/referrals/validate/${encodeURIComponent(code)}`),
   },
   analytics: {
     overview: () => request('/analytics/overview'),
