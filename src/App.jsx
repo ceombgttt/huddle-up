@@ -1100,7 +1100,9 @@ const HuddleUpApp = () => {
   const activeSponsors = adminSponsors.filter(s => s.status === 'active');
 
   const formScreens = ['welcome', 'login', 'signup', 'forgotPassword', 'claimVenue', 'createParty'];
+  const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', ...formScreens];
   const isFormScreen = formScreens.includes(currentScreen);
+  const isPauseScreen = pauseScreens.includes(currentScreen);
 
   const detectUserLocation = useCallback(() => {
     if (!navigator.geolocation) {
@@ -1174,7 +1176,7 @@ const HuddleUpApp = () => {
   }, [isFormScreen]);
 
   useEffect(() => {
-    if (isFormScreen) return;
+    if (isPauseScreen) return;
     const sponsors = SPORT_SPONSORS[selectedSport] || SPORT_SPONSORS['All'];
     if (sponsors.length > 1) {
       setSponsorIndex(0);
@@ -1185,7 +1187,7 @@ const HuddleUpApp = () => {
     } else {
       setSponsorIndex(0);
     }
-  }, [selectedSport, isFormScreen]);
+  }, [selectedSport, isPauseScreen]);
 
   const loadUserData = async () => {
     try {
