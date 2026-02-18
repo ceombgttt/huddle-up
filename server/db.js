@@ -252,8 +252,19 @@ export async function initDB() {
         party_id UUID REFERENCES parties(id) ON DELETE CASCADE,
         venue_name TEXT NOT NULL,
         created_at TIMESTAMPTZ DEFAULT NOW(),
+        qr_verified BOOLEAN DEFAULT FALSE,
         UNIQUE(user_id, party_id)
       );
+
+      CREATE TABLE IF NOT EXISTS venue_qr_codes (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        venue_id UUID REFERENCES venues(id) ON DELETE CASCADE,
+        token TEXT UNIQUE NOT NULL,
+        active BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        last_rotated_at TIMESTAMPTZ DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_venue_qr_token ON venue_qr_codes(token) WHERE active = TRUE;
     `);
 
     const adminCheck = await client.query("SELECT id FROM users WHERE email = 'admin@huddleupusa.com'");

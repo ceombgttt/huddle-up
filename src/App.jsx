@@ -567,6 +567,193 @@ const EditProfileModal = ({ user, onClose, onSave }) => {
   );
 };
 
+const VenueQrSection = ({ userVenue }) => {
+  const [qrData, setQrData] = useState(null);
+  const [venueStats, setVenueStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [showStats, setShowStats] = useState(false);
+
+  useEffect(() => {
+    loadQrData();
+  }, []);
+
+  const loadQrData = async () => {
+    try {
+      const [qr, stats] = await Promise.all([
+        api.qr.getVenueQr(),
+        api.qr.venueStats()
+      ]);
+      setQrData(qr);
+      setVenueStats(stats);
+    } catch (e) {
+      console.error('Load QR data error:', e);
+    }
+    setLoading(false);
+  };
+
+  const generateQr = async () => {
+    setGenerating(true);
+    try {
+      const result = await api.qr.generateQr();
+      setQrData({ hasQr: true, ...result });
+    } catch (e) {
+      alert(e.message || 'Failed to generate QR code');
+    }
+    setGenerating(false);
+  };
+
+  const copyCheckinLink = async () => {
+    if (qrData?.checkinUrl) {
+      try {
+        await navigator.clipboard.writeText(qrData.checkinUrl);
+        alert('Check-in link copied!');
+      } catch (e) {}
+    }
+  };
+
+  const downloadQr = () => {
+    if (!qrData?.qrDataUrl) return;
+    const link = document.createElement('a');
+    link.download = `${userVenue.name.replace(/\s+/g, '_')}_QR_Code.png`;
+    link.href = qrData.qrDataUrl;
+    link.click();
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-2xl border border-white/10">
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-2 border-amber-500/30 p-6 rounded-2xl space-y-5">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+          <CheckCircle className="inline w-6 h-6 mr-2 text-amber-400" />
+          QR CODE CHECK-IN
+        </h2>
+        {qrData?.hasQr && (
+          <button
+            onClick={() => setShowStats(!showStats)}
+            className="px-3 py-1.5 bg-white/10 text-amber-300 text-sm font-bold rounded-lg hover:bg-white/20 transition-all border border-amber-500/30"
+          >
+            {showStats ? 'Show QR Code' : 'View Turnout Stats'}
+          </button>
+        )}
+      </div>
+
+      <p className="text-gray-300 text-sm">
+        Generate a unique QR code for your venue. Fans scan it to check in and prove attendance, earning points and the "Verified Attendee" badge.
+      </p>
+
+      {!showStats ? (
+        <>
+          {qrData?.hasQr ? (
+            <div className="flex flex-col sm:flex-row items-center gap-6">
+              <div className="bg-white p-4 rounded-2xl shadow-lg">
+                <img src={qrData.qrDataUrl} alt="Venue QR Code" className="w-48 h-48" />
+              </div>
+              <div className="flex-1 space-y-3">
+                <div className="text-white font-bold text-lg">{userVenue.name}</div>
+                <p className="text-gray-400 text-sm">
+                  Print this QR code and display it at your venue. Fans scan it with their phone camera to check in instantly.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <button onClick={downloadQr}
+                    className="px-4 py-2 bg-amber-500/20 text-amber-300 font-bold rounded-xl hover:bg-amber-500/30 transition-all text-sm border border-amber-500/30">
+                    Download QR
+                  </button>
+                  <button onClick={copyCheckinLink}
+                    className="px-4 py-2 bg-white/10 text-white font-bold rounded-xl hover:bg-white/20 transition-all text-sm border border-white/20">
+                    Copy Link
+                  </button>
+                  <button onClick={generateQr} disabled={generating}
+                    className="px-4 py-2 bg-white/10 text-gray-300 font-bold rounded-xl hover:bg-white/20 transition-all text-sm border border-white/20">
+                    {generating ? 'Regenerating...' : 'Regenerate'}
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500">
+                  Regenerating creates a new code and deactivates the old one.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-6">
+              <div className="w-20 h-20 bg-amber-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-10 h-10 text-amber-400" />
+              </div>
+              <p className="text-gray-400 mb-4">No QR code generated yet.</p>
+              <button onClick={generateQr} disabled={generating}
+                className={`px-6 py-3 font-bold rounded-xl transition-all ${
+                  generating ? 'bg-gray-500 text-gray-300' : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:shadow-lg hover:shadow-amber-500/50'
+                }`}>
+                {generating ? 'Generating...' : 'Generate QR Code'}
+              </button>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="space-y-4">
+          {venueStats && (
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="bg-white/5 p-4 rounded-xl border border-white/10 text-center">
+                  <div className="text-2xl font-black text-white">{venueStats.totalCheckins}</div>
+                  <div className="text-xs text-gray-400 mt-1">Total Check-ins</div>
+                </div>
+                <div className="bg-white/5 p-4 rounded-xl border border-white/10 text-center">
+                  <div className="text-2xl font-black text-green-400">{venueStats.verifiedCheckins}</div>
+                  <div className="text-xs text-gray-400 mt-1">QR Verified</div>
+                </div>
+                <div className="bg-white/5 p-4 rounded-xl border border-white/10 text-center">
+                  <div className="text-2xl font-black text-cyan-400">{venueStats.uniqueVisitors}</div>
+                  <div className="text-xs text-gray-400 mt-1">Unique Visitors</div>
+                </div>
+                <div className="bg-white/5 p-4 rounded-xl border border-white/10 text-center">
+                  <div className="text-2xl font-black text-purple-400">{venueStats.totalParties}</div>
+                  <div className="text-xs text-gray-400 mt-1">Total Parties</div>
+                </div>
+              </div>
+
+              {venueStats.recentCheckins.length > 0 && (
+                <div>
+                  <h3 className="text-white font-bold mb-3">Recent Check-ins</h3>
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {venueStats.recentCheckins.map((ci, i) => (
+                      <div key={i} className="bg-white/5 p-3 rounded-xl border border-white/10 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${ci.qrVerified ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}`}>
+                            {ci.qrVerified ? <CheckCircle className="w-4 h-4" /> : <User className="w-4 h-4" />}
+                          </div>
+                          <div>
+                            <div className="text-white text-sm font-bold">{ci.userName}</div>
+                            {ci.gameTitle && <div className="text-gray-400 text-xs">{ci.gameTitle}</div>}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {ci.qrVerified && (
+                            <span className="px-2 py-0.5 bg-green-500/20 text-green-300 text-xs font-bold rounded-full">VERIFIED</span>
+                          )}
+                          <span className="text-gray-500 text-xs">{new Date(ci.checkedInAt).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const SubscriptionSection = () => {
   const [products, setProducts] = useState([]);
   const [subInfo, setSubInfo] = useState(null);
@@ -972,6 +1159,7 @@ const HuddleUpApp = () => {
   const [adminTab, setAdminTab] = useState('analytics');
   const [analyticsData, setAnalyticsData] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [qrCheckinToken, setQrCheckinToken] = useState(null);
   const [invitations, setInvitations] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [fanSearchSport, setFanSearchSport] = useState('');
@@ -1247,7 +1435,7 @@ const HuddleUpApp = () => {
   const activeSponsors = adminSponsors.filter(s => s.status === 'active');
 
   const formScreens = ['welcome', 'login', 'signup', 'forgotPassword', 'claimVenue', 'createParty'];
-  const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', ...formScreens];
+  const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', 'qrCheckin', ...formScreens];
   const isFormScreen = formScreens.includes(currentScreen);
   const isPauseScreen = pauseScreens.includes(currentScreen);
 
@@ -1308,6 +1496,13 @@ const HuddleUpApp = () => {
     } else if (params.get('checkout') === 'cancel') {
       window.history.replaceState({}, '', window.location.pathname);
     }
+
+    const checkinMatch = window.location.pathname.match(/^\/checkin\/(.+)$/);
+    if (checkinMatch) {
+      setQrCheckinToken(checkinMatch[1]);
+      setCurrentScreen('qrCheckin');
+      window.history.replaceState({}, '', '/');
+    }
   }, []);
 
   useEffect(() => {
@@ -1343,6 +1538,7 @@ const HuddleUpApp = () => {
         setUser(userData);
         setCurrentScreen(prev => {
           const authScreens = ['welcome', 'login', 'signup', 'forgotPassword'];
+          if (qrCheckinToken) return 'qrCheckin';
           return authScreens.includes(prev) ? 'games' : prev;
         });
         loadUserParties();
@@ -5690,6 +5886,8 @@ const HuddleUpApp = () => {
             </div>
           </div>
 
+          <VenueQrSection userVenue={userVenue} />
+
           {/* Tips for Venues */}
           <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 p-6 rounded-2xl">
             <h3 className="text-lg font-black text-white mb-4">💡 Tips to Get More Watch Parties</h3>
@@ -6708,6 +6906,160 @@ const HuddleUpApp = () => {
     );
   };
 
+  const QrCheckinScreen = () => {
+    const [checkinStatus, setCheckinStatus] = useState('loading');
+    const [venueInfo, setVenueInfo] = useState(null);
+    const [checkinResult, setCheckinResult] = useState(null);
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+      if (!qrCheckinToken) {
+        setCheckinStatus('error');
+        setError('No QR code token found');
+        return;
+      }
+      verifyAndCheckin();
+    }, [qrCheckinToken]);
+
+    const verifyAndCheckin = async () => {
+      try {
+        const verify = await api.qr.verifyToken(qrCheckinToken);
+        if (!verify.valid) {
+          setCheckinStatus('invalid');
+          setError(verify.error || 'Invalid or expired QR code');
+          return;
+        }
+        setVenueInfo(verify);
+
+        if (!user) {
+          setCheckinStatus('needsLogin');
+          return;
+        }
+
+        const result = await api.qr.scan(qrCheckinToken);
+        setCheckinResult(result);
+        setCheckinStatus('success');
+      } catch (e) {
+        setCheckinStatus('error');
+        setError(e.message || 'Check-in failed');
+      }
+    };
+
+    const handleLoginAndCheckin = () => {
+      setCurrentScreen('login');
+    };
+
+    const retryCheckin = async () => {
+      if (!user) return;
+      setCheckinStatus('loading');
+      try {
+        const result = await api.qr.scan(qrCheckinToken);
+        setCheckinResult(result);
+        setCheckinStatus('success');
+      } catch (e) {
+        setCheckinStatus('error');
+        setError(e.message || 'Check-in failed');
+      }
+    };
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+        <div className="max-w-md w-full">
+          {checkinStatus === 'loading' && (
+            <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl border border-white/10 p-8 text-center">
+              <Loader2 className="w-16 h-16 text-amber-400 animate-spin mx-auto mb-4" />
+              <h2 className="text-2xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                CHECKING IN...
+              </h2>
+              <p className="text-gray-400">Verifying your QR code</p>
+            </div>
+          )}
+
+          {checkinStatus === 'success' && (
+            <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl border border-green-500/30 p-8 text-center space-y-4">
+              <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
+                <CheckCircle className="w-12 h-12 text-green-400" />
+              </div>
+              <h2 className="text-3xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                {checkinResult?.alreadyCheckedIn ? 'ALREADY VERIFIED!' : 'CHECKED IN!'}
+              </h2>
+              <p className="text-gray-300 text-lg">{checkinResult?.message}</p>
+              {checkinResult?.pointsEarned > 0 && (
+                <div className="bg-amber-500/20 border border-amber-500/30 rounded-xl p-4">
+                  <div className="text-amber-400 font-black text-2xl">+{checkinResult.pointsEarned} pts</div>
+                  <div className="text-amber-300 text-sm">Points earned!</div>
+                </div>
+              )}
+              <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-3">
+                <div className="flex items-center justify-center gap-2 text-green-300 font-bold">
+                  <Award className="w-5 h-5" />
+                  Verified Attendee
+                </div>
+                <p className="text-green-300/70 text-xs mt-1">Your attendance has been verified via QR scan</p>
+              </div>
+              <button
+                onClick={() => { setQrCheckinToken(null); setCurrentScreen('games'); }}
+                className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-xl hover:shadow-lg transition-all"
+              >
+                Continue to Huddle Up
+              </button>
+            </div>
+          )}
+
+          {checkinStatus === 'needsLogin' && (
+            <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl border border-amber-500/30 p-8 text-center space-y-4">
+              <div className="w-20 h-20 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto">
+                <MapPin className="w-12 h-12 text-amber-400" />
+              </div>
+              <h2 className="text-3xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                CHECK IN AT {venueInfo?.venueName?.toUpperCase()}
+              </h2>
+              <p className="text-gray-300">Log in or sign up to check in and earn points!</p>
+              <button
+                onClick={handleLoginAndCheckin}
+                className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold rounded-xl hover:shadow-lg transition-all"
+              >
+                Log In to Check In
+              </button>
+              <button
+                onClick={() => { setQrCheckinToken(null); setCurrentScreen('signup'); }}
+                className="w-full py-3 bg-white/10 text-white font-bold rounded-xl hover:bg-white/20 transition-all border border-white/20"
+              >
+                Sign Up for Huddle Up
+              </button>
+            </div>
+          )}
+
+          {(checkinStatus === 'invalid' || checkinStatus === 'error') && (
+            <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl border border-red-500/30 p-8 text-center space-y-4">
+              <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto">
+                <X className="w-12 h-12 text-red-400" />
+              </div>
+              <h2 className="text-3xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                CHECK-IN FAILED
+              </h2>
+              <p className="text-gray-300">{error}</p>
+              {user && (
+                <button
+                  onClick={retryCheckin}
+                  className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold rounded-xl hover:shadow-lg transition-all"
+                >
+                  Try Again
+                </button>
+              )}
+              <button
+                onClick={() => { setQrCheckinToken(null); setCurrentScreen(user ? 'games' : 'welcome'); }}
+                className="w-full py-3 bg-white/10 text-white font-bold rounded-xl hover:bg-white/20 transition-all border border-white/20"
+              >
+                {user ? 'Back to Games' : 'Go to Huddle Up'}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const crewMyParties = parties.filter(p => userParties.includes(p.id) || p.hostId === user?.id);
 
   const getFriendTeamLogos = (friend) => {
@@ -6987,6 +7339,7 @@ const HuddleUpApp = () => {
       {currentScreen === 'myCrew' && renderMyCrewScreen()}
       {currentScreen === 'rewards' && <RewardsScreen />}
       {currentScreen === 'invitations' && <InvitationsScreen />}
+      {currentScreen === 'qrCheckin' && <QrCheckinScreen />}
 
       {showShareToast && (
         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 bg-emerald-500 text-white px-6 py-3 rounded-2xl shadow-lg flex items-center gap-2 animate-fade-in">

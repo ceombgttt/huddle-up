@@ -11,6 +11,9 @@ The application employs a single Express server to serve both the API and the Re
 
 The UI/UX focuses on intuitive navigation and a visually engaging experience for sports fans, featuring team logos, color schemes, and interactive elements like maps and chat. Key features include real-time game scores from the ESPN API, a comprehensive notification system for party updates and score alerts, a fan-finder mechanism for social interaction, and robust administrative analytics for monitoring platform activity. The system also supports SMS notifications via Twilio for personalized party alerts and a rewards system to incentivize user engagement.
 
+## Venue QR Code Check-in System
+Venues get unique QR codes for attendance verification. Venue owners generate/manage QR codes from their dashboard. Users scan the QR code URL with their phone camera to check in, earning 75 points and a "Verified Attendee" badge. The system auto-detects active parties at the venue for the user. Venue owners see real turnout stats including total/verified check-ins and unique visitors. Tables: venue_qr_codes (venue_id, token, active). Routes at /api/qr/*. Frontend: VenueQrSection component (outside App), QrCheckinScreen (inside App). URL pattern: /checkin/:token.
+
 ## Rewards & Points System
 Users earn points for engagement: creating parties (50 pts), attending parties (25 pts), inviting friends (100 pts), and checking in at venues (75 pts). Points can be redeemed for rewards like free drinks, subscription months, merch discounts, VIP badges, and more. Backend uses transactional point deduction with SELECT FOR UPDATE for concurrency safety. Points are awarded automatically in existing party/invite flows. Check-in is available on party cards for attending members. Tables: user_points, points_history, rewards, reward_redemptions, venue_checkins. Routes at /api/rewards/*.
 

@@ -168,6 +168,14 @@ export const api = {
     redemptions: () => request('/rewards/redemptions'),
     checkin: (partyId) => request('/rewards/checkin', { method: 'POST', body: JSON.stringify({ partyId }) }),
   },
+  qr: {
+    getVenueQr: () => request('/qr/venue/qr'),
+    generateQr: () => request('/qr/venue/generate', { method: 'POST' }),
+    venueStats: () => request('/qr/venue/stats'),
+    verifyToken: (token) => request(`/qr/verify/${encodeURIComponent(token)}`),
+    scan: (token, partyId) => request('/qr/scan', { method: 'POST', body: JSON.stringify({ token, partyId }) }),
+    adminStats: () => request('/qr/admin/stats'),
+  },
   analytics: {
     overview: () => request('/analytics/overview'),
     userGrowth: (days = 30) => request(`/analytics/user-growth?days=${days}`),
