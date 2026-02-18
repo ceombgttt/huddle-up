@@ -172,6 +172,32 @@ router.post('/', requireAuth, async (req, res) => {
   }
 });
 
+router.put('/:id', requireAuth, async (req, res) => {
+  try {
+    const party = await pool.query('SELECT * FROM parties WHERE id = $1', [req.params.id]);
+    if (party.rows.length === 0) return res.status(404).json({ error: 'Party not found' });
+    if (party.rows[0].host_id !== req.session.userId) return res.status(403).json({ error: 'Only the host can edit this party' });
+
+    const { venueName, venueAddress, city, notes, maxSize, gameTime } = req.body;
+    const parsedMaxSize = maxSize && maxSize !== '' ? parseInt(maxSize) : party.rows[0].max_size;
+    await pool.query(
+      `UPDATE parties SET
+        venue_name = COALESCE($1, venue_name),
+        venue_address = COALESCE($2, venue_address),
+        city = COALESCE($3, city),
+        notes = $4,
+        max_size = $5,
+        game_time = COALESCE($6, game_time)
+      WHERE id = $7`,
+      [venueName || null, venueAddress || null, city || null, notes !== undefined ? notes : party.rows[0].notes, isNaN(parsedMaxSize) ? party.rows[0].max_size : parsedMaxSize, gameTime || null, req.params.id]
+    );
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Edit party error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 router.post('/:id/join', requireAuth, async (req, res) => {
   try {
     const result = await pool.query(

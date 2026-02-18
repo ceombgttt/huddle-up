@@ -36,6 +36,7 @@ export const api = {
     },
     mine: () => request('/parties/mine'),
     create: (data) => request('/parties', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id, data) => request(`/parties/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     join: (id) => request(`/parties/${id}/join`, { method: 'POST' }),
     leave: (id) => request(`/parties/${id}/leave`, { method: 'POST' }),
   },

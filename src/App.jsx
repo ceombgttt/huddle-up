@@ -1161,6 +1161,9 @@ const HuddleUpApp = () => {
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [qrCheckinToken, setQrCheckinToken] = useState(null);
   const [adminQrModal, setAdminQrModal] = useState(null);
+  const [editPartyModal, setEditPartyModal] = useState(null);
+  const [editPartyForm, setEditPartyForm] = useState({ venueName: '', venueAddress: '', city: '', notes: '', maxSize: '', gameTime: '' });
+  const [editPartySaving, setEditPartySaving] = useState(false);
   const [invitations, setInvitations] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [fanSearchSport, setFanSearchSport] = useState('');
@@ -1889,6 +1892,31 @@ const HuddleUpApp = () => {
       loadBadgeStats();
     } catch (error) {
       alert(error.message);
+    }
+  };
+
+  const openEditParty = (party) => {
+    setEditPartyForm({
+      venueName: party.venueName || '',
+      venueAddress: party.venueAddress || '',
+      city: party.city || '',
+      notes: party.notes || '',
+      maxSize: party.maxSize || party.capacity || '',
+      gameTime: party.customTime || party.gameTime || ''
+    });
+    setEditPartyModal(party);
+  };
+
+  const handleSaveEditParty = async () => {
+    setEditPartySaving(true);
+    try {
+      await api.parties.update(editPartyModal.id, editPartyForm);
+      await loadParties();
+      setEditPartyModal(null);
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setEditPartySaving(false);
     }
   };
 
@@ -3287,9 +3315,17 @@ const HuddleUpApp = () => {
                             )}
                             <h3 className="text-xl font-bold text-white">{party.hostName}'s Party</h3>
                             {party.hostEmail === user.email && (
-                              <span className="px-2 py-1 bg-yellow-500/20 text-yellow-300 text-xs font-bold rounded-full border border-yellow-500/30">
-                                HOST
-                              </span>
+                              <>
+                                <span className="px-2 py-1 bg-yellow-500/20 text-yellow-300 text-xs font-bold rounded-full border border-yellow-500/30">
+                                  HOST
+                                </span>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); openEditParty(party); }}
+                                  className="px-2 py-1 bg-cyan-500/20 text-cyan-300 text-xs font-bold rounded-full border border-cyan-500/30 hover:bg-cyan-500/30 transition-all"
+                                >
+                                  Edit
+                                </button>
+                              </>
                             )}
                             {venue?.verified && (
                               <span className="px-2 py-1 bg-green-500/20 text-green-300 text-xs font-bold rounded-full border border-green-500/30 flex items-center gap-1">
@@ -5162,6 +5198,7 @@ const HuddleUpApp = () => {
   const [cpUseVerifiedVenue, setCpUseVerifiedVenue] = useState(true);
   const [cpSelectedVenueId, setCpSelectedVenueId] = useState('');
   const [cpCustomLocation, setCpCustomLocation] = useState('');
+  const [cpCustomAddress, setCpCustomAddress] = useState('');
   const [cpCustomTime, setCpCustomTime] = useState('');
   const [cpCapacity, setCpCapacity] = useState('');
   const [cpNotes, setCpNotes] = useState('');
@@ -5195,7 +5232,7 @@ const HuddleUpApp = () => {
       awayTeam: selectedGame.awayTeam,
       gameTime: cpCustomTime || selectedGame.gameTime || selectedGame.startTime,
       venueName: venue ? venue.name : cpCustomLocation,
-      venueAddress: venue ? venue.address : '',
+      venueAddress: venue ? venue.address : (cpCustomAddress || ''),
       city: venue ? (venue.city || '') : '',
       title: cpSupportedTeam ? `Go ${cpSupportedTeam}!` : `${selectedGame.awayTeam} @ ${selectedGame.homeTeam}`,
       notes: cpNotes,
@@ -5339,6 +5376,17 @@ const HuddleUpApp = () => {
                   placeholder="e.g., My house, Dave's apartment, etc."
                 />
                 <p className="text-xs text-gray-500 mt-1">For home watch parties or informal meetups</p>
+                <label className="block text-sm font-medium text-gray-300 mb-2 mt-4">
+                  Address (optional)
+                </label>
+                <input
+                  type="text"
+                  value={cpCustomAddress}
+                  onChange={(e) => setCpCustomAddress(e.target.value)}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  placeholder="e.g., 123 Main St, Austin, TX"
+                />
+                <p className="text-xs text-gray-500 mt-1">Adding an address helps guests find your location and shows a map</p>
               </div>
             )}
 
@@ -7412,6 +7460,98 @@ const HuddleUpApp = () => {
       {currentScreen === 'rewards' && <RewardsScreen />}
       {currentScreen === 'invitations' && <InvitationsScreen />}
       {currentScreen === 'qrCheckin' && <QrCheckinScreen />}
+
+      {editPartyModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setEditPartyModal(null); }}>
+          <div className="bg-slate-800 rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto border border-white/10 overscroll-contain" onMouseDown={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>EDIT PARTY</h3>
+              <button onClick={() => setEditPartyModal(null)} className="text-gray-400 hover:text-white"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Location Name</label>
+                <input
+                  type="text"
+                  value={editPartyForm.venueName}
+                  onChange={e => setEditPartyForm({...editPartyForm, venueName: e.target.value})}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  placeholder="e.g., Buffalo Wild Wings, My house"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Address</label>
+                <input
+                  type="text"
+                  value={editPartyForm.venueAddress}
+                  onChange={e => setEditPartyForm({...editPartyForm, venueAddress: e.target.value})}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  placeholder="e.g., 123 Main St, Austin, TX"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">City</label>
+                <input
+                  type="text"
+                  value={editPartyForm.city}
+                  onChange={e => setEditPartyForm({...editPartyForm, city: e.target.value})}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  placeholder="e.g., Austin"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Time</label>
+                <input
+                  type="text"
+                  value={editPartyForm.gameTime}
+                  onChange={e => setEditPartyForm({...editPartyForm, gameTime: e.target.value})}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  placeholder="e.g., Meet at 5:30 PM"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Capacity</label>
+                <input
+                  type="number"
+                  value={editPartyForm.maxSize}
+                  onChange={e => setEditPartyForm({...editPartyForm, maxSize: e.target.value})}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  placeholder="Max number of people"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Notes / Description</label>
+                <textarea
+                  value={editPartyForm.notes}
+                  onChange={e => setEditPartyForm({...editPartyForm, notes: e.target.value})}
+                  rows={3}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  placeholder="Any additional details..."
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setEditPartyModal(null)}
+                className="flex-1 py-3 bg-white/10 text-white rounded-xl font-bold hover:bg-white/20 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveEditParty}
+                disabled={editPartySaving}
+                className={`flex-1 py-3 rounded-xl font-bold transition-all ${
+                  editPartySaving
+                    ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:shadow-cyan-500/30 hover:shadow-lg'
+                }`}
+              >
+                {editPartySaving ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showShareToast && (
         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 bg-emerald-500 text-white px-6 py-3 rounded-2xl shadow-lg flex items-center gap-2 animate-fade-in">
