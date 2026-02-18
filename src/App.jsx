@@ -1439,7 +1439,7 @@ const HuddleUpApp = () => {
   const activeSponsors = adminSponsors.filter(s => s.status === 'active');
 
   const formScreens = ['welcome', 'login', 'signup', 'forgotPassword', 'claimVenue', 'createParty'];
-  const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', 'qrCheckin', ...formScreens];
+  const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', 'qrCheckin', 'myParties', 'myCrew', 'fanFinder', 'invitations', 'venueDashboard', ...formScreens];
   const isFormScreen = formScreens.includes(currentScreen);
   const isPauseScreen = pauseScreens.includes(currentScreen);
 
@@ -1516,10 +1516,10 @@ const HuddleUpApp = () => {
   }, [user?.id]);
 
   useEffect(() => {
-    if (isFormScreen) return;
+    if (isPauseScreen) return;
     const gamesInterval = setInterval(loadGames, 60000);
     return () => clearInterval(gamesInterval);
-  }, [isFormScreen]);
+  }, [isPauseScreen]);
 
   useEffect(() => {
     if (isPauseScreen) return;

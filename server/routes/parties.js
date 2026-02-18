@@ -3,6 +3,7 @@ import pool from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
 import { sendSMS } from '../sms.js';
 import { awardPoints } from './rewards.js';
+import { sendPushToUser } from './push.js';
 
 const router = Router();
 
@@ -138,6 +139,16 @@ router.post('/', requireAuth, async (req, res) => {
           `INSERT INTO notifications (user_id, type, title, message, party_id) VALUES ${values}`,
           params
         );
+
+        for (const fan of fellowFans.rows) {
+          sendPushToUser(fan.id, {
+            title: `New ${sport} Watch Party!`,
+            body: `${hostName} created "${partyLabel}"${cityLabel}. Join your fellow fans!`,
+            icon: '/huddle-up-logo-2.png',
+            tag: `party-${partyId}`,
+            data: { url: '/' }
+          }).catch(() => {});
+        }
       }
 
       if (teams.length > 0 && city) {
@@ -206,6 +217,20 @@ router.post('/:id/join', requireAuth, async (req, res) => {
     );
     if (result.rows.length > 0) {
       awardPoints(req.session.userId, 'attend_party', 'Joined a watch party', req.params.id).catch(() => {});
+
+      const partyInfo = await pool.query('SELECT host_id, home_team, away_team, venue_name FROM parties WHERE id = $1', [req.params.id]);
+      const joinerInfo = await pool.query('SELECT name FROM users WHERE id = $1', [req.session.userId]);
+      if (partyInfo.rows.length > 0 && partyInfo.rows[0].host_id !== req.session.userId) {
+        const p = partyInfo.rows[0];
+        const joinerName = joinerInfo.rows[0]?.name || 'Someone';
+        sendPushToUser(p.host_id, {
+          title: 'Someone joined your party!',
+          body: `${joinerName} just joined your ${p.home_team} vs ${p.away_team} watch party${p.venue_name ? ' at ' + p.venue_name : ''}.`,
+          icon: '/huddle-up-logo-2.png',
+          tag: `join-${req.params.id}`,
+          data: { url: '/' }
+        }).catch(() => {});
+      }
     }
     res.json({ ok: true });
   } catch (error) {
