@@ -39,6 +39,7 @@ export const api = {
     update: (id, data) => request(`/parties/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     join: (id) => request(`/parties/${id}/join`, { method: 'POST' }),
     leave: (id) => request(`/parties/${id}/leave`, { method: 'POST' }),
+    delete: (id) => request(`/parties/${id}`, { method: 'DELETE' }),
   },
   venues: {
     list: () => request('/venues'),

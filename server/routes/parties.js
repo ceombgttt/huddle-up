@@ -239,6 +239,21 @@ router.post('/:id/join', requireAuth, async (req, res) => {
   }
 });
 
+router.delete('/:id', requireAuth, async (req, res) => {
+  try {
+    const party = await pool.query('SELECT * FROM parties WHERE id = $1', [req.params.id]);
+    if (party.rows.length === 0) return res.status(404).json({ error: 'Party not found' });
+    if (party.rows[0].host_id !== req.session.userId) return res.status(403).json({ error: 'Only the host can delete this party' });
+
+    await pool.query('DELETE FROM party_attendees WHERE party_id = $1', [req.params.id]);
+    await pool.query('DELETE FROM parties WHERE id = $1', [req.params.id]);
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Delete party error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 router.post('/:id/leave', requireAuth, async (req, res) => {
   try {
     await pool.query(

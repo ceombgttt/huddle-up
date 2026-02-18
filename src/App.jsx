@@ -6126,9 +6126,37 @@ const HuddleUpApp = () => {
 
 
   const MyPartiesScreen = () => {
+    const [deletingPartyId, setDeletingPartyId] = useState(null);
+    const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+    const [leavingPartyId, setLeavingPartyId] = useState(null);
     const myParties = parties.filter(party => userParties.includes(party.id));
     const hostedParties = myParties.filter(party => party.hostEmail === user.email);
     const joinedParties = myParties.filter(party => party.hostEmail !== user.email);
+
+    const handleDeleteParty = async (partyId) => {
+      setDeletingPartyId(partyId);
+      try {
+        await api.parties.delete(partyId);
+        await loadParties();
+        setConfirmDeleteId(null);
+      } catch (err) {
+        alert('Could not delete party: ' + err.message);
+      } finally {
+        setDeletingPartyId(null);
+      }
+    };
+
+    const handleLeaveParty = async (partyId) => {
+      setLeavingPartyId(partyId);
+      try {
+        await api.parties.leave(partyId);
+        await loadParties();
+      } catch (err) {
+        alert('Could not leave party: ' + err.message);
+      } finally {
+        setLeavingPartyId(null);
+      }
+    };
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -6179,12 +6207,39 @@ const HuddleUpApp = () => {
                               {party.homeTeam} vs {party.awayTeam}
                             </span>
                           </div>
-                          <button
-                            onClick={() => openEditParty(party)}
-                            className="px-3 py-1.5 bg-cyan-500/20 text-cyan-300 text-xs font-bold rounded-lg border border-cyan-500/30 hover:bg-cyan-500/30 transition-all"
-                          >
-                            Edit
-                          </button>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => openEditParty(party)}
+                              className="px-3 py-1.5 bg-cyan-500/20 text-cyan-300 text-xs font-bold rounded-lg border border-cyan-500/30 hover:bg-cyan-500/30 transition-all"
+                            >
+                              Edit
+                            </button>
+                            {confirmDeleteId === party.id ? (
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={() => handleDeleteParty(party.id)}
+                                  disabled={deletingPartyId === party.id}
+                                  className="px-3 py-1.5 bg-red-500 text-white text-xs font-bold rounded-lg hover:bg-red-600 transition-all disabled:opacity-50"
+                                >
+                                  {deletingPartyId === party.id ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Confirm'}
+                                </button>
+                                <button
+                                  onClick={() => setConfirmDeleteId(null)}
+                                  className="px-2 py-1.5 bg-white/10 text-gray-300 text-xs rounded-lg hover:bg-white/20 transition-all"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => setConfirmDeleteId(party.id)}
+                                className="px-2 py-1.5 bg-red-500/20 text-red-300 rounded-lg border border-red-500/30 hover:bg-red-500/30 transition-all"
+                                title="Delete party"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
                         </div>
                         <div className="text-sm text-gray-400 space-y-1">
                           <div className="flex items-center gap-2">
@@ -6218,8 +6273,17 @@ const HuddleUpApp = () => {
                         key={party.id}
                         className="bg-gradient-to-br from-slate-800 to-slate-900 p-5 rounded-xl border border-white/10"
                       >
-                        <div className="text-white font-bold mb-1">
-                          {party.homeTeam} vs {party.awayTeam}
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="text-white font-bold">
+                            {party.homeTeam} vs {party.awayTeam}
+                          </div>
+                          <button
+                            onClick={() => handleLeaveParty(party.id)}
+                            disabled={leavingPartyId === party.id}
+                            className="px-3 py-1.5 bg-red-500/20 text-red-300 text-xs font-bold rounded-lg border border-red-500/30 hover:bg-red-500/30 transition-all disabled:opacity-50"
+                          >
+                            {leavingPartyId === party.id ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Leave'}
+                          </button>
                         </div>
                         <div className="text-sm text-gray-400 space-y-1">
                           <div>Hosted by {party.hostName}</div>
