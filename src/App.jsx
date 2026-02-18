@@ -5283,7 +5283,7 @@ const HuddleUpApp = () => {
     );
   };
 
-  const SubscriptionSection = () => {
+  const SubscriptionSection = useCallback(() => {
     const [products, setProducts] = useState([]);
     const [subInfo, setSubInfo] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -5423,9 +5423,9 @@ const HuddleUpApp = () => {
         </div>
       </div>
     );
-  };
+  }, []);
 
-  const ReferralSection = () => {
+  const ReferralSection = useCallback(() => {
     const [referralData, setReferralData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [copied, setCopied] = useState(false);
@@ -5554,7 +5554,7 @@ const HuddleUpApp = () => {
         )}
       </div>
     );
-  };
+  }, [user?.referred_by]);
 
   const ProfileScreen = () => {
     const myParties = parties.filter(party => userParties.includes(party.id));
