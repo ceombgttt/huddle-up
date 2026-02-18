@@ -1162,7 +1162,7 @@ const HuddleUpApp = () => {
   const [qrCheckinToken, setQrCheckinToken] = useState(null);
   const [adminQrModal, setAdminQrModal] = useState(null);
   const [editPartyModal, setEditPartyModal] = useState(null);
-  const [editPartyForm, setEditPartyForm] = useState({ venueName: '', venueAddress: '', city: '', notes: '', maxSize: '', gameTime: '' });
+  const [editPartyForm, setEditPartyForm] = useState({ venueName: '', streetAddress: '', city: '', state: '', notes: '', maxSize: '', gameTime: '' });
   const [editPartySaving, setEditPartySaving] = useState(false);
   const [invitations, setInvitations] = useState([]);
   const [notifications, setNotifications] = useState([]);
@@ -1895,11 +1895,54 @@ const HuddleUpApp = () => {
     }
   };
 
+  const US_STATES = [
+    'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD',
+    'MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC',
+    'SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC'
+  ];
+  const US_STATE_NAMES = {
+    AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',
+    DE:'Delaware',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',
+    KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',
+    MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',
+    NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',
+    OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',
+    TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming',DC:'Washington DC'
+  };
+
+  const parseAddressParts = (fullAddress, city) => {
+    let streetAddress = '';
+    let parsedCity = city || '';
+    let parsedState = '';
+    if (fullAddress) {
+      const parts = fullAddress.split(',').map(p => p.trim());
+      if (parts.length >= 3) {
+        streetAddress = parts[0];
+        parsedCity = parsedCity || parts[1];
+        const stateZip = parts[2].trim().split(' ');
+        const stateCode = stateZip[0]?.toUpperCase();
+        if (US_STATES.includes(stateCode)) parsedState = stateCode;
+        else {
+          const found = Object.entries(US_STATE_NAMES).find(([, name]) => name.toLowerCase() === parts[2].trim().toLowerCase());
+          if (found) parsedState = found[0];
+        }
+      } else if (parts.length === 2) {
+        streetAddress = parts[0];
+        parsedCity = parsedCity || parts[1];
+      } else {
+        streetAddress = fullAddress;
+      }
+    }
+    return { streetAddress, city: parsedCity, state: parsedState };
+  };
+
   const openEditParty = (party) => {
+    const parsed = parseAddressParts(party.venueAddress, party.city);
     setEditPartyForm({
       venueName: party.venueName || '',
-      venueAddress: party.venueAddress || '',
-      city: party.city || '',
+      streetAddress: parsed.streetAddress,
+      city: parsed.city,
+      state: parsed.state,
       notes: party.notes || '',
       maxSize: party.maxSize || party.capacity || '',
       gameTime: party.customTime || party.gameTime || ''
@@ -1910,7 +1953,16 @@ const HuddleUpApp = () => {
   const handleSaveEditParty = async () => {
     setEditPartySaving(true);
     try {
-      await api.parties.update(editPartyModal.id, editPartyForm);
+      const parts = [editPartyForm.streetAddress, editPartyForm.city, editPartyForm.state].filter(Boolean);
+      const combinedAddress = parts.join(', ');
+      await api.parties.update(editPartyModal.id, {
+        venueName: editPartyForm.venueName,
+        venueAddress: combinedAddress,
+        city: editPartyForm.city,
+        notes: editPartyForm.notes,
+        maxSize: editPartyForm.maxSize,
+        gameTime: editPartyForm.gameTime
+      });
       await loadParties();
       setEditPartyModal(null);
     } catch (error) {
@@ -5206,6 +5258,8 @@ const HuddleUpApp = () => {
   const [cpSelectedVenueId, setCpSelectedVenueId] = useState('');
   const [cpCustomLocation, setCpCustomLocation] = useState('');
   const [cpCustomAddress, setCpCustomAddress] = useState('');
+  const [cpCustomCity, setCpCustomCity] = useState('');
+  const [cpCustomState, setCpCustomState] = useState('');
   const [cpCustomTime, setCpCustomTime] = useState('');
   const [cpCapacity, setCpCapacity] = useState('');
   const [cpNotes, setCpNotes] = useState('');
@@ -5232,6 +5286,7 @@ const HuddleUpApp = () => {
     }
 
     const venue = cpUseVerifiedVenue ? venues.find(v => v.id === cpSelectedVenueId) : null;
+    const customFullAddress = [cpCustomAddress, cpCustomCity, cpCustomState].filter(Boolean).join(', ');
     handleCreateParty({
       gameId: selectedGame.id,
       sport: selectedGame.sport,
@@ -5239,8 +5294,8 @@ const HuddleUpApp = () => {
       awayTeam: selectedGame.awayTeam,
       gameTime: cpCustomTime || selectedGame.gameTime || selectedGame.startTime,
       venueName: venue ? venue.name : cpCustomLocation,
-      venueAddress: venue ? venue.address : (cpCustomAddress || ''),
-      city: venue ? (venue.city || '') : '',
+      venueAddress: venue ? venue.address : (customFullAddress || ''),
+      city: venue ? (venue.city || '') : (cpCustomCity || ''),
       title: cpSupportedTeam ? `Go ${cpSupportedTeam}!` : `${selectedGame.awayTeam} @ ${selectedGame.homeTeam}`,
       notes: cpNotes,
       maxSize: cpCapacity ? parseInt(cpCapacity) : null,
@@ -5383,17 +5438,53 @@ const HuddleUpApp = () => {
                   placeholder="e.g., My house, Dave's apartment, etc."
                 />
                 <p className="text-xs text-gray-500 mt-1">For home watch parties or informal meetups</p>
-                <label className="block text-sm font-medium text-gray-300 mb-2 mt-4">
-                  Address (optional)
-                </label>
-                <input
-                  type="text"
-                  value={cpCustomAddress}
-                  onChange={(e) => setCpCustomAddress(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                  placeholder="e.g., 123 Main St, Austin, TX"
-                />
-                <p className="text-xs text-gray-500 mt-1">Adding an address helps guests find your location and shows a map</p>
+
+                <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3 mt-4">
+                  <div className="text-sm font-bold text-cyan-300 flex items-center gap-2">
+                    <MapPin className="w-4 h-4" /> Address Details (optional)
+                  </div>
+                  <p className="text-xs text-gray-500">Adding an address helps guests find you and shows a map</p>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-400 mb-1">Street Address</label>
+                    <input
+                      type="text"
+                      value={cpCustomAddress}
+                      onChange={(e) => setCpCustomAddress(e.target.value)}
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                      placeholder="e.g., 123 Main St"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-400 mb-1">City</label>
+                      <input
+                        type="text"
+                        value={cpCustomCity}
+                        onChange={(e) => setCpCustomCity(e.target.value)}
+                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        placeholder="e.g., Austin"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-400 mb-1">State</label>
+                      <select
+                        value={cpCustomState}
+                        onChange={(e) => setCpCustomState(e.target.value)}
+                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                      >
+                        <option value="">Select state</option>
+                        {US_STATES.map(st => (
+                          <option key={st} value={st}>{st} - {US_STATE_NAMES[st]}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  {cpCustomAddress && cpCustomCity && (
+                    <div className="text-xs text-gray-500 bg-white/5 rounded-lg p-2">
+                      Full address: {[cpCustomAddress, cpCustomCity, cpCustomState].filter(Boolean).join(', ')}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -7610,26 +7701,53 @@ const HuddleUpApp = () => {
                   placeholder="e.g., Buffalo Wild Wings, My house"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Address</label>
-                <input
-                  type="text"
-                  value={editPartyForm.venueAddress}
-                  onChange={e => setEditPartyForm({...editPartyForm, venueAddress: e.target.value})}
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                  placeholder="e.g., 123 Main St, Austin, TX"
-                />
+
+              <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3">
+                <div className="text-sm font-bold text-cyan-300 mb-1 flex items-center gap-2">
+                  <MapPin className="w-4 h-4" /> Address Details
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Street Address</label>
+                  <input
+                    type="text"
+                    value={editPartyForm.streetAddress}
+                    onChange={e => setEditPartyForm({...editPartyForm, streetAddress: e.target.value})}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    placeholder="e.g., 123 Main St"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-400 mb-1">City</label>
+                    <input
+                      type="text"
+                      value={editPartyForm.city}
+                      onChange={e => setEditPartyForm({...editPartyForm, city: e.target.value})}
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                      placeholder="e.g., Austin"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-400 mb-1">State</label>
+                    <select
+                      value={editPartyForm.state}
+                      onChange={e => setEditPartyForm({...editPartyForm, state: e.target.value})}
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    >
+                      <option value="">Select state</option>
+                      {US_STATES.map(st => (
+                        <option key={st} value={st}>{st} - {US_STATE_NAMES[st]}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                {editPartyForm.streetAddress && editPartyForm.city && (
+                  <div className="text-xs text-gray-500 bg-white/5 rounded-lg p-2 mt-1">
+                    Full address: {[editPartyForm.streetAddress, editPartyForm.city, editPartyForm.state].filter(Boolean).join(', ')}
+                  </div>
+                )}
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">City</label>
-                <input
-                  type="text"
-                  value={editPartyForm.city}
-                  onChange={e => setEditPartyForm({...editPartyForm, city: e.target.value})}
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                  placeholder="e.g., Austin"
-                />
-              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">Time</label>
                 <input
