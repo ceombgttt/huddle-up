@@ -5412,12 +5412,11 @@ const HuddleUpApp = () => {
     );
   };
 
-  const FanFinderScreen = () => {
-    const myParties = parties.filter(p =>
-      userParties.includes(p.id) || p.hostId === user?.id
-    );
+  const fanFinderMyParties = parties.filter(p =>
+    userParties.includes(p.id) || p.hostId === user?.id
+  );
 
-    return (
+  const renderFanFinderScreen = () => (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 py-4">
@@ -5477,7 +5476,7 @@ const HuddleUpApp = () => {
                 {fanResults.length} fan{fanResults.length !== 1 ? 's' : ''} found for {fanSearchTeam}
               </h2>
 
-              {myParties.length > 0 && (
+              {fanFinderMyParties.length > 0 && (
                 <div className="bg-white/5 border border-white/10 rounded-xl p-4">
                   <label className="text-sm text-gray-400 mb-2 block">Select a party to invite fans to:</label>
                   <select
@@ -5486,7 +5485,7 @@ const HuddleUpApp = () => {
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   >
                     <option value="" className="bg-slate-800">Choose a party...</option>
-                    {myParties.map(p => (
+                    {fanFinderMyParties.map(p => (
                       <option key={p.id} value={p.id} className="bg-slate-800">
                         {p.title || `${p.homeTeam} vs ${p.awayTeam}`} - {p.venueName}
                       </option>
@@ -5560,7 +5559,7 @@ const HuddleUpApp = () => {
                 );
               })}
 
-              {myParties.length === 0 && (
+              {fanFinderMyParties.length === 0 && (
                 <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 text-center">
                   <p className="text-yellow-200 text-sm">
                     Join or create a party first to invite fans.
@@ -5591,8 +5590,7 @@ const HuddleUpApp = () => {
           )}
         </div>
       </div>
-    );
-  };
+  );
 
   const InvitationsScreen = () => {
     const unreadNotifications = notifications.filter(n => !n.isRead);
@@ -6007,7 +6005,7 @@ const HuddleUpApp = () => {
       {currentScreen === 'admin' && AdminPanelScreen()}
       {currentScreen === 'venueDashboard' && <VenueAnalyticsDashboard />}
       {currentScreen === 'profile' && <ProfileScreen />}
-      {currentScreen === 'fanFinder' && <FanFinderScreen />}
+      {currentScreen === 'fanFinder' && renderFanFinderScreen()}
       {currentScreen === 'myCrew' && renderMyCrewScreen()}
       {currentScreen === 'invitations' && <InvitationsScreen />}
 
