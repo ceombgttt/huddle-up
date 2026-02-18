@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, Megaphone, MessageCircle, Gift, Award, MapPinCheck, Clock, Zap } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, Megaphone, MessageCircle, Gift, Award, Clock, Zap } from 'lucide-react';
 import { api } from './api.js';
 
 // Sample games data for different sports
@@ -2853,7 +2853,7 @@ const HuddleUpApp = () => {
                               onClick={() => handleCheckin(party.id)}
                               className="w-full mt-2 py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 text-yellow-300 border-2 border-yellow-500/30 hover:bg-yellow-500/30"
                             >
-                              <MapPinCheck className="w-4 h-4" />
+                              <MapPin className="w-4 h-4" />
                               Check In (+75 pts)
                             </button>
                           )}
@@ -6247,7 +6247,7 @@ const HuddleUpApp = () => {
       { action: 'Create a Party', points: 50, icon: <Plus className="w-5 h-5" />, color: 'from-cyan-500 to-blue-500' },
       { action: 'Attend a Party', points: 25, icon: <Users className="w-5 h-5" />, color: 'from-green-500 to-emerald-500' },
       { action: 'Invite a Friend', points: 100, icon: <Send className="w-5 h-5" />, color: 'from-purple-500 to-pink-500' },
-      { action: 'Check In at Venue', points: 75, icon: <MapPinCheck className="w-5 h-5" />, color: 'from-orange-500 to-amber-500' },
+      { action: 'Check In at Venue', points: 75, icon: <MapPin className="w-5 h-5" />, color: 'from-orange-500 to-amber-500' },
     ];
 
     return (
@@ -6432,7 +6432,7 @@ const HuddleUpApp = () => {
                       create_party: <Plus className="w-4 h-4" />,
                       attend_party: <Users className="w-4 h-4" />,
                       invite_friend: <Send className="w-4 h-4" />,
-                      venue_checkin: <MapPinCheck className="w-4 h-4" />,
+                      venue_checkin: <MapPin className="w-4 h-4" />,
                       redeem: <Gift className="w-4 h-4" />,
                     };
                     return (
