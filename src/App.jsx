@@ -492,6 +492,279 @@ const EditProfileModal = ({ user, onClose, onSave }) => {
   );
 };
 
+const SubscriptionSection = () => {
+  const [products, setProducts] = useState([]);
+  const [subInfo, setSubInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [checkoutLoading, setCheckoutLoading] = useState(null);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [prods, sub] = await Promise.all([
+          api.stripe.products(),
+          api.stripe.subscription()
+        ]);
+        setProducts(prods);
+        setSubInfo(sub);
+      } catch (err) {
+        console.error('Load subscription info:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const handleCheckout = async (priceId, tier) => {
+    setCheckoutLoading(tier);
+    try {
+      const { url } = await api.stripe.checkout(priceId);
+      if (url) window.location.href = url;
+    } catch (err) {
+      alert('Could not start checkout: ' + err.message);
+    } finally {
+      setCheckoutLoading(null);
+    }
+  };
+
+  const handlePortal = async () => {
+    try {
+      const { url } = await api.stripe.portal();
+      if (url) window.location.href = url;
+    } catch (err) {
+      alert('Could not open billing: ' + err.message);
+    }
+  };
+
+  const tierConfig = {
+    fan: { icon: '\u{1F3DF}\u{FE0F}', color: 'cyan', label: 'Fan', features: ['Join unlimited watch parties', 'Fan Finder access', 'My Crew features', 'Live scores & alerts'] },
+    venue: { icon: '\u{1F3EA}', color: 'green', label: 'Venue Owner', features: ['Claim & manage your venue', 'Upload photos & logo', 'Appear in search results', 'Analytics dashboard'] },
+    sponsor: { icon: '\u{1F4E2}', color: 'orange', label: 'Sponsor', features: ['Premium banner ads', 'All sports coverage', 'Featured placement', 'Reach analytics'] },
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-white/10 shadow-xl">
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="w-6 h-6 animate-spin text-cyan-400" />
+        </div>
+      </div>
+    );
+  }
+
+  const currentTier = subInfo?.tier || 'free';
+
+  return (
+    <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-white/10 shadow-xl">
+      <h2 className="text-2xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+        <DollarSign className="inline w-6 h-6 mr-2 text-yellow-400" />
+        MEMBERSHIP
+      </h2>
+      {currentTier !== 'free' && (
+        <div className="mb-4 p-3 bg-green-500/20 rounded-xl border border-green-500/30">
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="text-green-300 font-bold text-sm">Active: {tierConfig[currentTier]?.label || currentTier} Plan</span>
+              <p className="text-green-400/70 text-xs mt-0.5">Your subscription is active</p>
+            </div>
+            <button
+              onClick={handlePortal}
+              className="px-3 py-1.5 bg-white/10 text-white text-sm rounded-lg hover:bg-white/20 transition-colors"
+            >
+              Manage Billing
+            </button>
+          </div>
+        </div>
+      )}
+      <div className="grid gap-3">
+        {products.sort((a, b) => {
+          const orderA = parseInt(a.metadata?.order || '99');
+          const orderB = parseInt(b.metadata?.order || '99');
+          return orderA - orderB;
+        }).map(product => {
+          const tier = product.metadata?.tier || 'fan';
+          const config = tierConfig[tier] || tierConfig.fan;
+          const price = product.prices?.[0];
+          const isCurrentPlan = currentTier === tier;
+
+          return (
+            <div key={product.id} className={`p-4 rounded-xl border ${isCurrentPlan ? 'border-green-500/50 bg-green-500/10' : 'border-white/10 bg-white/5'}`}>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">{config.icon}</span>
+                  <div>
+                    <div className="text-white font-bold">{product.name}</div>
+                    {price && (
+                      <div className="text-sm text-gray-400">
+                        ${(price.unitAmount / 100).toFixed(2)}/month
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {isCurrentPlan ? (
+                  <span className="px-3 py-1 bg-green-500/20 text-green-300 text-xs font-bold rounded-full border border-green-500/30">
+                    CURRENT
+                  </span>
+                ) : price ? (
+                  <button
+                    onClick={() => handleCheckout(price.id, tier)}
+                    disabled={checkoutLoading === tier}
+                    className={`px-4 py-2 bg-gradient-to-r from-${config.color}-500 to-${config.color}-600 text-white text-sm font-bold rounded-xl hover:shadow-lg transition-all disabled:opacity-50`}
+                  >
+                    {checkoutLoading === tier ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Subscribe'}
+                  </button>
+                ) : null}
+              </div>
+              <ul className="space-y-1 mt-2">
+                {config.features.map((f, i) => (
+                  <li key={i} className="text-xs text-gray-400 flex items-center gap-1.5">
+                    <Check className="w-3 h-3 text-green-400 flex-shrink-0" /> {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
+        {products.length === 0 && (
+          <p className="text-gray-500 text-sm text-center py-4">Subscription plans coming soon!</p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const ReferralSection = ({ user }) => {
+  const [referralData, setReferralData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
+  const [applyCode, setApplyCode] = useState('');
+  const [applyMessage, setApplyMessage] = useState('');
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [codeRes, statsRes] = await Promise.all([
+          api.referrals.myCode(),
+          api.referrals.stats()
+        ]);
+        setReferralData({ ...codeRes, ...statsRes });
+      } catch (err) {
+        console.error('Load referral data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const copyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(referralData.referralCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      const input = document.createElement('input');
+      input.value = referralData.referralCode;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand('copy');
+      document.body.removeChild(input);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleApply = async () => {
+    if (!applyCode.trim()) return;
+    try {
+      const result = await api.referrals.apply(applyCode.trim());
+      setApplyMessage(result.message || 'Code applied!');
+      setApplyCode('');
+    } catch (err) {
+      setApplyMessage(err.message);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-gradient-to-br from-orange-900/30 to-slate-900 p-6 rounded-2xl border border-orange-500/20 shadow-xl">
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="w-6 h-6 animate-spin text-orange-400" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-gradient-to-br from-orange-900/30 to-slate-900 p-6 rounded-2xl border border-orange-500/20 shadow-xl">
+      <h2 className="text-2xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+        <Link className="inline w-6 h-6 mr-2 text-orange-400" />
+        AFFILIATE PROGRAM
+      </h2>
+      <p className="text-gray-400 text-sm mb-4">
+        Share your code and earn 10% commission on every subscription from your referrals!
+      </p>
+
+      {referralData?.referralCode && (
+        <div className="mb-4 p-4 bg-white/5 rounded-xl border border-white/10">
+          <div className="text-xs text-gray-400 mb-1 font-bold">YOUR REFERRAL CODE</div>
+          <div className="flex items-center gap-2">
+            <code className="flex-1 text-xl font-black text-orange-400 tracking-widest">{referralData.referralCode}</code>
+            <button
+              onClick={copyCode}
+              className="px-3 py-1.5 bg-orange-500/20 text-orange-300 rounded-lg hover:bg-orange-500/30 transition-colors text-sm font-bold flex items-center gap-1"
+            >
+              {copied ? <><Check className="w-4 h-4" /> Copied</> : <><Link className="w-4 h-4" /> Copy</>}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-3 gap-2 mb-4">
+        <div className="bg-white/5 p-3 rounded-xl text-center">
+          <div className="text-2xl font-black text-white">{referralData?.totalReferrals || 0}</div>
+          <div className="text-[10px] text-gray-400 font-bold">REFERRALS</div>
+        </div>
+        <div className="bg-white/5 p-3 rounded-xl text-center">
+          <div className="text-2xl font-black text-green-400">{referralData?.conversions || 0}</div>
+          <div className="text-[10px] text-gray-400 font-bold">CONVERSIONS</div>
+        </div>
+        <div className="bg-white/5 p-3 rounded-xl text-center">
+          <div className="text-2xl font-black text-yellow-400">${(referralData?.totalEarnings || 0).toFixed(2)}</div>
+          <div className="text-[10px] text-gray-400 font-bold">EARNINGS</div>
+        </div>
+      </div>
+
+      {!user?.referred_by && (
+        <div className="p-3 bg-white/5 rounded-xl border border-white/10">
+          <div className="text-xs text-gray-400 mb-2 font-bold">HAVE A REFERRAL CODE?</div>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={applyCode}
+              onChange={e => setApplyCode(e.target.value.toUpperCase())}
+              placeholder="Enter code (e.g., HU-ABCD1234)"
+              className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
+            />
+            <button
+              onClick={handleApply}
+              className="px-4 py-2 bg-orange-500 text-white text-sm font-bold rounded-lg hover:bg-orange-600 transition-colors"
+            >
+              Apply
+            </button>
+          </div>
+          {applyMessage && (
+            <p className={`text-xs mt-2 ${applyMessage.includes('applied') ? 'text-green-400' : 'text-red-400'}`}>
+              {applyMessage}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const HuddleUpApp = () => {
   const [currentScreen, setCurrentScreen] = useState('welcome');
   const [user, setUser] = useState(null);
@@ -5283,278 +5556,7 @@ const HuddleUpApp = () => {
     );
   };
 
-  const SubscriptionSection = useCallback(() => {
-    const [products, setProducts] = useState([]);
-    const [subInfo, setSubInfo] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [checkoutLoading, setCheckoutLoading] = useState(null);
 
-    useEffect(() => {
-      const load = async () => {
-        try {
-          const [prods, sub] = await Promise.all([
-            api.stripe.products(),
-            api.stripe.subscription()
-          ]);
-          setProducts(prods);
-          setSubInfo(sub);
-        } catch (err) {
-          console.error('Load subscription info:', err);
-        } finally {
-          setLoading(false);
-        }
-      };
-      load();
-    }, []);
-
-    const handleCheckout = async (priceId, tier) => {
-      setCheckoutLoading(tier);
-      try {
-        const { url } = await api.stripe.checkout(priceId);
-        if (url) window.location.href = url;
-      } catch (err) {
-        alert('Could not start checkout: ' + err.message);
-      } finally {
-        setCheckoutLoading(null);
-      }
-    };
-
-    const handlePortal = async () => {
-      try {
-        const { url } = await api.stripe.portal();
-        if (url) window.location.href = url;
-      } catch (err) {
-        alert('Could not open billing: ' + err.message);
-      }
-    };
-
-    const tierConfig = {
-      fan: { icon: '🏟️', color: 'cyan', label: 'Fan', features: ['Join unlimited watch parties', 'Fan Finder access', 'My Crew features', 'Live scores & alerts'] },
-      venue: { icon: '🏪', color: 'green', label: 'Venue Owner', features: ['Claim & manage your venue', 'Upload photos & logo', 'Appear in search results', 'Analytics dashboard'] },
-      sponsor: { icon: '📢', color: 'orange', label: 'Sponsor', features: ['Premium banner ads', 'All sports coverage', 'Featured placement', 'Reach analytics'] },
-    };
-
-    if (loading) {
-      return (
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-white/10 shadow-xl">
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-6 h-6 animate-spin text-cyan-400" />
-          </div>
-        </div>
-      );
-    }
-
-    const currentTier = subInfo?.tier || 'free';
-
-    return (
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-white/10 shadow-xl">
-        <h2 className="text-2xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
-          <DollarSign className="inline w-6 h-6 mr-2 text-yellow-400" />
-          MEMBERSHIP
-        </h2>
-        {currentTier !== 'free' && (
-          <div className="mb-4 p-3 bg-green-500/20 rounded-xl border border-green-500/30">
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-green-300 font-bold text-sm">Active: {tierConfig[currentTier]?.label || currentTier} Plan</span>
-                <p className="text-green-400/70 text-xs mt-0.5">Your subscription is active</p>
-              </div>
-              <button
-                onClick={handlePortal}
-                className="px-3 py-1.5 bg-white/10 text-white text-sm rounded-lg hover:bg-white/20 transition-colors"
-              >
-                Manage Billing
-              </button>
-            </div>
-          </div>
-        )}
-        <div className="grid gap-3">
-          {products.sort((a, b) => {
-            const orderA = parseInt(a.metadata?.order || '99');
-            const orderB = parseInt(b.metadata?.order || '99');
-            return orderA - orderB;
-          }).map(product => {
-            const tier = product.metadata?.tier || 'fan';
-            const config = tierConfig[tier] || tierConfig.fan;
-            const price = product.prices?.[0];
-            const isCurrentPlan = currentTier === tier;
-
-            return (
-              <div key={product.id} className={`p-4 rounded-xl border ${isCurrentPlan ? 'border-green-500/50 bg-green-500/10' : 'border-white/10 bg-white/5'}`}>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">{config.icon}</span>
-                    <div>
-                      <div className="text-white font-bold">{product.name}</div>
-                      {price && (
-                        <div className="text-sm text-gray-400">
-                          ${(price.unitAmount / 100).toFixed(2)}/month
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  {isCurrentPlan ? (
-                    <span className="px-3 py-1 bg-green-500/20 text-green-300 text-xs font-bold rounded-full border border-green-500/30">
-                      CURRENT
-                    </span>
-                  ) : price ? (
-                    <button
-                      onClick={() => handleCheckout(price.id, tier)}
-                      disabled={checkoutLoading === tier}
-                      className={`px-4 py-2 bg-gradient-to-r from-${config.color}-500 to-${config.color}-600 text-white text-sm font-bold rounded-xl hover:shadow-lg transition-all disabled:opacity-50`}
-                    >
-                      {checkoutLoading === tier ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Subscribe'}
-                    </button>
-                  ) : null}
-                </div>
-                <ul className="space-y-1 mt-2">
-                  {config.features.map((f, i) => (
-                    <li key={i} className="text-xs text-gray-400 flex items-center gap-1.5">
-                      <Check className="w-3 h-3 text-green-400 flex-shrink-0" /> {f}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            );
-          })}
-          {products.length === 0 && (
-            <p className="text-gray-500 text-sm text-center py-4">Subscription plans coming soon!</p>
-          )}
-        </div>
-      </div>
-    );
-  }, []);
-
-  const ReferralSection = useCallback(() => {
-    const [referralData, setReferralData] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [copied, setCopied] = useState(false);
-    const [applyCode, setApplyCode] = useState('');
-    const [applyMessage, setApplyMessage] = useState('');
-
-    useEffect(() => {
-      const load = async () => {
-        try {
-          const [codeRes, statsRes] = await Promise.all([
-            api.referrals.myCode(),
-            api.referrals.stats()
-          ]);
-          setReferralData({ ...codeRes, ...statsRes });
-        } catch (err) {
-          console.error('Load referral data:', err);
-        } finally {
-          setLoading(false);
-        }
-      };
-      load();
-    }, []);
-
-    const copyCode = async () => {
-      try {
-        await navigator.clipboard.writeText(referralData.referralCode);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } catch {
-        const input = document.createElement('input');
-        input.value = referralData.referralCode;
-        document.body.appendChild(input);
-        input.select();
-        document.execCommand('copy');
-        document.body.removeChild(input);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      }
-    };
-
-    const handleApply = async () => {
-      if (!applyCode.trim()) return;
-      try {
-        const result = await api.referrals.apply(applyCode.trim());
-        setApplyMessage(result.message || 'Code applied!');
-        setApplyCode('');
-      } catch (err) {
-        setApplyMessage(err.message);
-      }
-    };
-
-    if (loading) {
-      return (
-        <div className="bg-gradient-to-br from-orange-900/30 to-slate-900 p-6 rounded-2xl border border-orange-500/20 shadow-xl">
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-6 h-6 animate-spin text-orange-400" />
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="bg-gradient-to-br from-orange-900/30 to-slate-900 p-6 rounded-2xl border border-orange-500/20 shadow-xl">
-        <h2 className="text-2xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
-          <Link className="inline w-6 h-6 mr-2 text-orange-400" />
-          AFFILIATE PROGRAM
-        </h2>
-        <p className="text-gray-400 text-sm mb-4">
-          Share your code and earn 10% commission on every subscription from your referrals!
-        </p>
-
-        {referralData?.referralCode && (
-          <div className="mb-4 p-4 bg-white/5 rounded-xl border border-white/10">
-            <div className="text-xs text-gray-400 mb-1 font-bold">YOUR REFERRAL CODE</div>
-            <div className="flex items-center gap-2">
-              <code className="flex-1 text-xl font-black text-orange-400 tracking-widest">{referralData.referralCode}</code>
-              <button
-                onClick={copyCode}
-                className="px-3 py-1.5 bg-orange-500/20 text-orange-300 rounded-lg hover:bg-orange-500/30 transition-colors text-sm font-bold flex items-center gap-1"
-              >
-                {copied ? <><Check className="w-4 h-4" /> Copied</> : <><Link className="w-4 h-4" /> Copy</>}
-              </button>
-            </div>
-          </div>
-        )}
-
-        <div className="grid grid-cols-3 gap-2 mb-4">
-          <div className="bg-white/5 p-3 rounded-xl text-center">
-            <div className="text-2xl font-black text-white">{referralData?.totalReferrals || 0}</div>
-            <div className="text-[10px] text-gray-400 font-bold">REFERRALS</div>
-          </div>
-          <div className="bg-white/5 p-3 rounded-xl text-center">
-            <div className="text-2xl font-black text-green-400">{referralData?.conversions || 0}</div>
-            <div className="text-[10px] text-gray-400 font-bold">CONVERSIONS</div>
-          </div>
-          <div className="bg-white/5 p-3 rounded-xl text-center">
-            <div className="text-2xl font-black text-yellow-400">${(referralData?.totalEarnings || 0).toFixed(2)}</div>
-            <div className="text-[10px] text-gray-400 font-bold">EARNINGS</div>
-          </div>
-        </div>
-
-        {!user.referred_by && (
-          <div className="p-3 bg-white/5 rounded-xl border border-white/10">
-            <div className="text-xs text-gray-400 mb-2 font-bold">HAVE A REFERRAL CODE?</div>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={applyCode}
-                onChange={e => setApplyCode(e.target.value.toUpperCase())}
-                placeholder="Enter code (e.g., HU-ABCD1234)"
-                className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
-              />
-              <button
-                onClick={handleApply}
-                className="px-4 py-2 bg-orange-500 text-white text-sm font-bold rounded-lg hover:bg-orange-600 transition-colors"
-              >
-                Apply
-              </button>
-            </div>
-            {applyMessage && (
-              <p className={`text-xs mt-2 ${applyMessage.includes('applied') ? 'text-green-400' : 'text-red-400'}`}>
-                {applyMessage}
-              </p>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  }, [user?.referred_by]);
 
   const ProfileScreen = () => {
     const myParties = parties.filter(party => userParties.includes(party.id));
@@ -5823,7 +5825,7 @@ const HuddleUpApp = () => {
 
           <SubscriptionSection />
 
-          <ReferralSection />
+          <ReferralSection user={user} />
 
           <div className="bg-gradient-to-br from-emerald-900/40 to-slate-900 p-6 rounded-2xl border border-emerald-500/20 shadow-xl">
             <h2 className="text-2xl font-black text-white mb-3" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
