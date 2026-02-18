@@ -5834,7 +5834,7 @@ const HuddleUpApp = () => {
 
                   {friendsList.map(friend => {
                     const teamLogos = getFriendTeamLogos(friend);
-                    const badge = getBadge(friend.partiesHosted, friend.partiesAttended);
+                    const badge = getFanBadge(friend.partiesAttended, friend.partiesHosted);
                     return (
                       <div key={friend.id} className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl border border-white/10 p-5 hover:border-cyan-500/30 transition-all">
                         <div className="flex items-center gap-4">
