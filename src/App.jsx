@@ -2798,11 +2798,12 @@ const HuddleUpApp = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
         <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex-shrink-0">
               <img src="/huddle-up-logo-3-transparent.png" alt="Huddle Up" className="h-12 drop-shadow-lg" />
             </div>
-            <div className="flex gap-1.5">
+            <div className="flex-1 min-w-0 overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+              <div className="flex gap-1.5 w-max">
               {userVenue && (
                 <button
                   onClick={() => setCurrentScreen('venueDashboard')}
@@ -2889,6 +2890,7 @@ const HuddleUpApp = () => {
                 <LogOut className="w-5 h-5 text-white" />
                 <span className="text-[9px] text-gray-300 mt-0.5 leading-none">Logout</span>
               </button>
+              </div>
             </div>
           </div>
 
