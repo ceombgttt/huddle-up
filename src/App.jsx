@@ -2770,6 +2770,13 @@ const HuddleUpApp = () => {
                 </button>
               )}
               <button
+                onClick={() => setCurrentScreen('myParties')}
+                className="flex flex-col items-center px-2 py-1.5 bg-orange-500/20 rounded-xl hover:bg-orange-500/30 transition-colors border border-orange-500/30"
+              >
+                <Calendar className="w-5 h-5 text-orange-300" />
+                <span className="text-[9px] text-orange-300 mt-0.5 leading-none">Parties</span>
+              </button>
+              <button
                 onClick={shareApp}
                 className="flex flex-col items-center px-2 py-1.5 bg-emerald-500/20 rounded-xl hover:bg-emerald-500/30 transition-colors border border-emerald-500/30"
               >
@@ -6025,6 +6032,129 @@ const HuddleUpApp = () => {
 
 
 
+  const MyPartiesScreen = () => {
+    const myParties = parties.filter(party => userParties.includes(party.id));
+    const hostedParties = myParties.filter(party => party.hostEmail === user.email);
+    const joinedParties = myParties.filter(party => party.hostEmail !== user.email);
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+          <div className="max-w-4xl mx-auto px-4 py-4">
+            <button
+              onClick={() => setCurrentScreen('games')}
+              className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              Back
+            </button>
+          </div>
+        </div>
+        <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+          <h2 className="text-3xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+            MY WATCH PARTIES
+          </h2>
+
+          {myParties.length === 0 ? (
+            <div className="bg-white/5 backdrop-blur-lg p-8 rounded-2xl border border-white/10 text-center">
+              <Users className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+              <p className="text-gray-400 mb-4">You haven't joined any watch parties yet</p>
+              <button
+                onClick={() => setCurrentScreen('games')}
+                className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-xl"
+              >
+                Browse Games
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {hostedParties.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-bold text-orange-300 mb-3">Hosting ({hostedParties.length})</h3>
+                  <div className="space-y-3">
+                    {hostedParties.map(party => (
+                      <div
+                        key={party.id}
+                        className="bg-gradient-to-br from-slate-800 to-slate-900 p-5 rounded-xl border border-white/10"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="px-2 py-1 bg-yellow-500/20 text-yellow-300 text-xs font-bold rounded-full border border-yellow-500/30">
+                              HOST
+                            </span>
+                            <span className="text-white font-bold">
+                              {party.homeTeam} vs {party.awayTeam}
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => openEditParty(party)}
+                            className="px-3 py-1.5 bg-cyan-500/20 text-cyan-300 text-xs font-bold rounded-lg border border-cyan-500/30 hover:bg-cyan-500/30 transition-all"
+                          >
+                            Edit
+                          </button>
+                        </div>
+                        <div className="text-sm text-gray-400 space-y-1">
+                          <div className="flex items-center gap-2">
+                            <MapPin className="w-3 h-3" />
+                            <AddressLink address={party.venueAddress || party.venueName || party.location} />
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-3 h-3" />
+                            <span>{party.gameTime || 'TBD'}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Users className="w-3 h-3" />
+                            {party.attendees.length}{party.maxSize ? ` / ${party.maxSize}` : ''} people joined
+                          </div>
+                          {party.notes && (
+                            <p className="text-gray-500 text-xs mt-1">{party.notes}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {joinedParties.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-bold text-cyan-300 mb-3">Joined ({joinedParties.length})</h3>
+                  <div className="space-y-3">
+                    {joinedParties.map(party => (
+                      <div
+                        key={party.id}
+                        className="bg-gradient-to-br from-slate-800 to-slate-900 p-5 rounded-xl border border-white/10"
+                      >
+                        <div className="text-white font-bold mb-1">
+                          {party.homeTeam} vs {party.awayTeam}
+                        </div>
+                        <div className="text-sm text-gray-400 space-y-1">
+                          <div>Hosted by {party.hostName}</div>
+                          <div className="flex items-center gap-2">
+                            <MapPin className="w-3 h-3" />
+                            <AddressLink address={party.venueAddress || party.venueName || party.location} />
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-3 h-3" />
+                            <span>{party.gameTime || 'TBD'}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Users className="w-3 h-3" />
+                            {party.attendees.length} people joined
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const ProfileScreen = () => {
     const myParties = parties.filter(party => userParties.includes(party.id));
     const hostedParties = myParties.filter(party => party.hostEmail === user.email);
@@ -7454,6 +7584,7 @@ const HuddleUpApp = () => {
       {currentScreen === 'claimVenue' && claimVenueScreenJSX()}
       {currentScreen === 'admin' && AdminPanelScreen()}
       {currentScreen === 'venueDashboard' && <VenueAnalyticsDashboard />}
+      {currentScreen === 'myParties' && <MyPartiesScreen />}
       {currentScreen === 'profile' && <ProfileScreen />}
       {currentScreen === 'fanFinder' && renderFanFinderScreen()}
       {currentScreen === 'myCrew' && renderMyCrewScreen()}
