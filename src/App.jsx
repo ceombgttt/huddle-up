@@ -563,6 +563,8 @@ const HuddleUpApp = () => {
   const [friendsList, setFriendsList] = useState([]);
   const [friendRequests, setFriendRequests] = useState([]);
   const [friendStatuses, setFriendStatuses] = useState({});
+  const [crewTab, setCrewTab] = useState('friends');
+  const [crewInvitePartyId, setCrewInvitePartyId] = useState(null);
   const [badgeStats, setBadgeStats] = useState({ partiesHosted: 0, partiesAttended: 0 });
   const [showShareToast, setShowShareToast] = useState(false);
   const [showSignupShare, setShowSignupShare] = useState(false);
@@ -854,9 +856,14 @@ const HuddleUpApp = () => {
     loadParties();
     loadVenues();
     loadGames();
-    loadFriends();
     detectUserLocation();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      loadFriends();
+    }
+  }, [user?.id]);
 
   useEffect(() => {
     if (isFormScreen) return;
@@ -5725,20 +5732,14 @@ const HuddleUpApp = () => {
     );
   };
 
-  const MyCrewScreen = () => {
-    const [crewTab, setCrewTab] = useState('friends');
-    const [crewInvitePartyId, setCrewInvitePartyId] = useState(null);
+  const crewMyParties = parties.filter(p => userParties.includes(p.id) || p.hostId === user?.id);
 
-    useEffect(() => { loadFriends(); }, []);
+  const getFriendTeamLogos = (friend) => {
+    if (!friend.favoriteTeams) return [];
+    return Object.entries(friend.favoriteTeams).map(([sport, team]) => getTeamLogoUrl(sport, team)).filter(Boolean);
+  };
 
-    const myParties = parties.filter(p => userParties.includes(p.id) || p.hostId === user?.id);
-
-    const getFriendTeamLogos = (friend) => {
-      if (!friend.favoriteTeams) return [];
-      return Object.entries(friend.favoriteTeams).map(([sport, team]) => getTeamLogoUrl(sport, team)).filter(Boolean);
-    };
-
-    return (
+  const renderMyCrewScreen = () => (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative z-0">
         <div className="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 py-4">
@@ -5817,7 +5818,7 @@ const HuddleUpApp = () => {
                     </div>
                   )}
 
-                  {!crewInvitePartyId && myParties.length > 0 && (
+                  {!crewInvitePartyId && crewMyParties.length > 0 && (
                     <div className="bg-white/5 border border-white/10 rounded-xl p-4">
                       <label className="block text-sm font-bold text-gray-300 mb-2">Invite crew to a party:</label>
                       <select
@@ -5826,7 +5827,7 @@ const HuddleUpApp = () => {
                         className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
                       >
                         <option value="">Select a party...</option>
-                        {myParties.map(p => (
+                        {crewMyParties.map(p => (
                           <option key={p.id} value={p.id}>{p.title || `${p.homeTeam} vs ${p.awayTeam}`} - {p.venueName}</option>
                         ))}
                       </select>
@@ -5947,8 +5948,7 @@ const HuddleUpApp = () => {
           )}
         </div>
       </div>
-    );
-  };
+  );
 
   return (
     <div className="font-sans fixed inset-0 overflow-y-auto overflow-x-hidden" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'none' }}>
@@ -6008,7 +6008,7 @@ const HuddleUpApp = () => {
       {currentScreen === 'venueDashboard' && <VenueAnalyticsDashboard />}
       {currentScreen === 'profile' && <ProfileScreen />}
       {currentScreen === 'fanFinder' && <FanFinderScreen />}
-      {currentScreen === 'myCrew' && <MyCrewScreen />}
+      {currentScreen === 'myCrew' && renderMyCrewScreen()}
       {currentScreen === 'invitations' && <InvitationsScreen />}
 
       {showShareToast && (
