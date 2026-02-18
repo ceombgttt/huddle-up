@@ -3269,7 +3269,7 @@ const HuddleUpApp = () => {
                     <div className="flex items-center justify-center gap-2 mb-2">
                       <div className="flex-1 flex flex-col items-center gap-1">
                         {game.homeLogo && <img src={game.homeLogo} alt="" className="w-14 h-14 object-contain" />}
-                        <span className="text-xs font-bold text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.homeTeam}</span>
+                        <span className="text-sm font-bold text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.homeTeam}</span>
                       </div>
                       <div className="text-3xl font-black px-3 flex-shrink-0" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
                         <span className={game.homeScore > game.awayScore ? 'text-emerald-400' : 'text-white'}>{game.homeScore}</span>
@@ -3278,7 +3278,7 @@ const HuddleUpApp = () => {
                       </div>
                       <div className="flex-1 flex flex-col items-center gap-1">
                         {game.awayLogo && <img src={game.awayLogo} alt="" className="w-14 h-14 object-contain" />}
-                        <span className="text-xs font-bold text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.awayTeam}</span>
+                        <span className="text-sm font-bold text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.awayTeam}</span>
                       </div>
                     </div>
                     <span className={`px-3 py-1 text-xs font-bold rounded-full ${game.gameStatus === 'live' ? 'bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse' : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'}`}>
@@ -3289,16 +3289,16 @@ const HuddleUpApp = () => {
                   <div className="flex items-center justify-center gap-4 mb-2">
                     <div className="flex-1 flex flex-col items-center gap-1">
                       {game.homeLogo && <img src={game.homeLogo} alt="" className="w-14 h-14 object-contain" />}
-                      <span className="text-xs font-bold text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.homeTeam}</span>
+                      <span className="text-sm font-bold text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.homeTeam}</span>
                     </div>
                     <span className="text-lg font-black text-cyan-400 flex-shrink-0" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>VS</span>
                     <div className="flex-1 flex flex-col items-center gap-1">
                       {game.awayLogo && <img src={game.awayLogo} alt="" className="w-14 h-14 object-contain" />}
-                      <span className="text-xs font-bold text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.awayTeam}</span>
+                      <span className="text-sm font-bold text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.awayTeam}</span>
                     </div>
                   </div>
                 )}
-                <div className="flex items-center justify-center gap-4 text-gray-400 text-sm">
+                <div className="flex flex-col items-center gap-1 text-gray-400 text-sm">
                   <div className="flex items-center gap-1">
                     <Calendar className="w-4 h-4" />
                     {formatDateTime(game.startTime)}
@@ -3362,7 +3362,7 @@ const HuddleUpApp = () => {
                   <div className="flex items-center justify-center gap-4 mb-4">
                     <div className="flex-1 flex flex-col items-center gap-1">
                       {selectedGame.homeLogo && <img src={selectedGame.homeLogo} alt="" className="w-16 h-16 object-contain mx-auto" />}
-                      <div className="text-sm font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{selectedGame.homeTeam}</div>
+                      <div className="text-base font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{selectedGame.homeTeam}</div>
                       {selectedGame.homeRecord && <div className="text-xs text-gray-500">{selectedGame.homeRecord}</div>}
                     </div>
                     <div className="text-5xl font-black flex-shrink-0" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
@@ -3372,7 +3372,7 @@ const HuddleUpApp = () => {
                     </div>
                     <div className="flex-1 flex flex-col items-center gap-1">
                       {selectedGame.awayLogo && <img src={selectedGame.awayLogo} alt="" className="w-16 h-16 object-contain mx-auto" />}
-                      <div className="text-sm font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{selectedGame.awayTeam}</div>
+                      <div className="text-base font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{selectedGame.awayTeam}</div>
                       {selectedGame.awayRecord && <div className="text-xs text-gray-500">{selectedGame.awayRecord}</div>}
                     </div>
                   </div>
@@ -3384,12 +3384,12 @@ const HuddleUpApp = () => {
                 <div className="flex items-center justify-center gap-6 mb-4">
                   <div className="flex-1 flex flex-col items-center gap-1">
                     {selectedGame.homeLogo && <img src={selectedGame.homeLogo} alt="" className="w-16 h-16 object-contain mx-auto" />}
-                    <div className="text-sm font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{selectedGame.homeTeam}</div>
+                    <div className="text-base font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{selectedGame.homeTeam}</div>
                   </div>
                   <span className="text-2xl font-black text-cyan-400 flex-shrink-0" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>VS</span>
                   <div className="flex-1 flex flex-col items-center gap-1">
                     {selectedGame.awayLogo && <img src={selectedGame.awayLogo} alt="" className="w-16 h-16 object-contain mx-auto" />}
-                    <div className="text-sm font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{selectedGame.awayTeam}</div>
+                    <div className="text-base font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{selectedGame.awayTeam}</div>
                   </div>
                 </div>
               )}
