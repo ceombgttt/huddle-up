@@ -1460,7 +1460,7 @@ const HuddleUpApp = () => {
   const activeSponsors = adminSponsors.filter(s => s.status === 'active');
 
   const formScreens = ['welcome', 'login', 'signup', 'forgotPassword', 'claimVenue', 'createParty'];
-  const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', 'qrCheckin', 'myParties', 'myCrew', 'fanFinder', 'invitations', 'venueDashboard', 'sponsorDashboard', ...formScreens];
+  const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', 'qrCheckin', 'myParties', 'myCrew', 'fanFinder', 'invitations', 'venueDashboard', 'sponsorDashboard', 'teamChats', 'trending', 'myTickets', 'alerts', 'userProfile', ...formScreens];
   const isFormScreen = formScreens.includes(currentScreen);
   const isPauseScreen = pauseScreens.includes(currentScreen);
 
@@ -3062,6 +3062,20 @@ const HuddleUpApp = () => {
               >
                 <Trophy className="w-5 h-5 text-orange-300" />
                 <span className="text-[9px] text-orange-300 mt-0.5 leading-none">Fantasy</span>
+              </button>
+              <button
+                onClick={() => setCurrentScreen('teamChats')}
+                className="flex flex-col items-center px-2 py-1.5 bg-teal-500/20 rounded-xl hover:bg-teal-500/30 transition-colors border border-teal-500/30"
+              >
+                <MessageCircle className="w-5 h-5 text-teal-300" />
+                <span className="text-[9px] text-teal-300 mt-0.5 leading-none">Team Chat</span>
+              </button>
+              <button
+                onClick={() => setCurrentScreen('trending')}
+                className="flex flex-col items-center px-2 py-1.5 bg-pink-500/20 rounded-xl hover:bg-pink-500/30 transition-colors border border-pink-500/30"
+              >
+                <Zap className="w-5 h-5 text-pink-300" />
+                <span className="text-[9px] text-pink-300 mt-0.5 leading-none">Trending</span>
               </button>
               <button
                 onClick={() => setCurrentScreen('invitations')}
@@ -7937,6 +7951,471 @@ const HuddleUpApp = () => {
     return Object.entries(friend.favoriteTeams).map(([sport, team]) => getTeamLogoUrl(sport, team)).filter(Boolean);
   };
 
+  const [teamChatRooms, setTeamChatRooms] = useState([]);
+  const [teamChatSelectedRoom, setTeamChatSelectedRoom] = useState(null);
+  const [teamChatMessages, setTeamChatMessages] = useState([]);
+  const [teamChatInput, setTeamChatInput] = useState('');
+  const [teamChatLoading, setTeamChatLoading] = useState(false);
+  const [trendingData, setTrendingData] = useState(null);
+  const [trendingLoading, setTrendingLoading] = useState(false);
+  const [viewingUserId, setViewingUserId] = useState(null);
+  const [viewingUserProfile, setViewingUserProfile] = useState(null);
+  const [viewingUserActivity, setViewingUserActivity] = useState([]);
+  const [alertPrefs, setAlertPrefs] = useState({ teamAlerts: true, rivalryAlerts: true, suggestedParties: true, gameReminders: true });
+  const [teamAlertsList, setTeamAlertsList] = useState([]);
+  const [rivalryAlertsList, setRivalryAlertsList] = useState([]);
+  const [myTicketsList, setMyTicketsList] = useState([]);
+
+  const loadTeamChatRooms = async () => {
+    try {
+      setTeamChatLoading(true);
+      const data = await api.teamChats.getRooms();
+      setTeamChatRooms(data.rooms || []);
+    } catch (e) { console.error('Load team chat rooms error:', e); }
+    finally { setTeamChatLoading(false); }
+  };
+
+  const loadTeamChatMessages = async (roomId) => {
+    try {
+      const data = await api.teamChats.getMessages(roomId);
+      setTeamChatMessages(data.messages || []);
+    } catch (e) { console.error('Load team chat messages error:', e); }
+  };
+
+  const sendTeamChatMessage = async () => {
+    if (!teamChatInput.trim() || !teamChatSelectedRoom) return;
+    try {
+      await api.teamChats.sendMessage(teamChatSelectedRoom.id, teamChatInput.trim());
+      setTeamChatInput('');
+      loadTeamChatMessages(teamChatSelectedRoom.id);
+    } catch (e) { console.error('Send team chat message error:', e); }
+  };
+
+  const loadTrendingData = async () => {
+    try {
+      setTrendingLoading(true);
+      const data = await api.trending.feed();
+      setTrendingData(data);
+    } catch (e) { console.error('Load trending error:', e); }
+    finally { setTrendingLoading(false); }
+  };
+
+  const loadUserProfile = async (userId) => {
+    try {
+      const [profileData, activityData] = await Promise.all([
+        api.profile.getUser(userId),
+        api.profile.getActivity(userId)
+      ]);
+      setViewingUserProfile(profileData);
+      setViewingUserActivity(activityData.activity || []);
+    } catch (e) { console.error('Load user profile error:', e); }
+  };
+
+  const loadAlerts = async () => {
+    try {
+      const [prefs, teamA, rivalryA] = await Promise.all([
+        api.alerts.getPreferences(),
+        api.alerts.teamAlerts().catch(() => ({ alerts: [] })),
+        api.alerts.rivalryAlerts().catch(() => ({ alerts: [] }))
+      ]);
+      setAlertPrefs(prefs);
+      setTeamAlertsList(teamA.alerts || []);
+      setRivalryAlertsList(rivalryA.alerts || []);
+    } catch (e) { console.error('Load alerts error:', e); }
+  };
+
+  const loadMyTickets = async () => {
+    try {
+      const data = await api.tickets.myTickets();
+      setMyTicketsList(data.tickets || []);
+    } catch (e) { console.error('Load my tickets error:', e); }
+  };
+
+  const renderTeamChatsScreen = () => {
+    if (!teamChatRooms.length && !teamChatLoading && !teamChatSelectedRoom) {
+      loadTeamChatRooms();
+    }
+
+    if (teamChatSelectedRoom) {
+      return (
+        <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 pt-14">
+          <div className="sticky top-14 z-30 bg-slate-900/95 backdrop-blur-md border-b border-white/10 px-4 py-3">
+            <div className="flex items-center gap-3">
+              <button onClick={() => { setTeamChatSelectedRoom(null); setTeamChatMessages([]); }} className="text-gray-400 hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
+              {teamChatSelectedRoom.logoUrl && <img src={teamChatSelectedRoom.logoUrl} className="w-8 h-8 rounded-full" alt="" />}
+              <div>
+                <h3 className="text-white font-bold">{teamChatSelectedRoom.teamName}</h3>
+                <span className="text-xs text-gray-400">{teamChatSelectedRoom.sport}</span>
+              </div>
+            </div>
+          </div>
+          <div className="p-4 pb-24 space-y-3 max-w-2xl mx-auto">
+            {teamChatMessages.length === 0 && (
+              <div className="text-center py-12 text-gray-400">
+                <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p>No messages yet. Start the conversation!</p>
+              </div>
+            )}
+            {teamChatMessages.map(msg => (
+              <div key={msg.id} className={`flex gap-3 ${msg.userId === user?.id ? 'flex-row-reverse' : ''}`}>
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                  {msg.userName?.[0] || '?'}
+                </div>
+                <div className={`max-w-[70%] ${msg.userId === user?.id ? 'bg-teal-600/30 border-teal-500/30' : 'bg-white/10 border-white/10'} border rounded-2xl px-4 py-2`}>
+                  <p className="text-xs text-teal-300 font-medium mb-1">{msg.userName}</p>
+                  <p className="text-white text-sm">{msg.message}</p>
+                  <p className="text-xs text-gray-500 mt-1">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="fixed bottom-0 left-0 right-0 bg-slate-900/95 border-t border-white/10 p-4">
+            <div className="flex gap-2 max-w-2xl mx-auto">
+              <input value={teamChatInput} onChange={e => setTeamChatInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendTeamChatMessage()} placeholder="Type a message..." className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+              <button onClick={sendTeamChatMessage} className="px-4 py-3 bg-teal-500 hover:bg-teal-600 rounded-xl text-white"><Send className="w-5 h-5" /></button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    const groupedRooms = teamChatRooms.reduce((acc, room) => {
+      const sport = room.sport || 'Other';
+      if (!acc[sport]) acc[sport] = [];
+      acc[sport].push(room);
+      return acc;
+    }, {});
+
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 pt-14">
+        <div className="sticky top-14 z-30 bg-slate-900/95 backdrop-blur-md border-b border-white/10 px-4 py-3">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setCurrentScreen('games')} className="text-gray-400 hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
+            <MessageCircle className="w-6 h-6 text-teal-400" />
+            <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>TEAM CHAT ROOMS</h2>
+          </div>
+        </div>
+        <div className="p-4 max-w-2xl mx-auto space-y-6">
+          {teamChatLoading && (
+            <div className="text-center py-12"><Loader2 className="w-8 h-8 text-teal-400 animate-spin mx-auto" /></div>
+          )}
+          {!teamChatLoading && Object.keys(groupedRooms).length === 0 && (
+            <div className="text-center py-12 text-gray-400">
+              <MessageCircle className="w-16 h-16 mx-auto mb-4 opacity-30" />
+              <p className="text-lg font-bold mb-2">No Chat Rooms Yet</p>
+              <p className="text-sm">Chat rooms are created as fans start conversations about their teams.</p>
+            </div>
+          )}
+          {Object.entries(groupedRooms).map(([sport, rooms]) => (
+            <div key={sport}>
+              <h3 className="text-sm font-bold text-teal-400 uppercase tracking-wider mb-3">{sport}</h3>
+              <div className="space-y-2">
+                {rooms.map(room => (
+                  <button key={room.id} onClick={() => { setTeamChatSelectedRoom(room); loadTeamChatMessages(room.id); }} className="w-full flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition-colors text-left">
+                    {room.logoUrl ? <img src={room.logoUrl} className="w-10 h-10 rounded-full" alt="" /> : <div className="w-10 h-10 rounded-full bg-teal-500/30 flex items-center justify-center text-teal-300 text-sm font-bold">{room.teamAbbrev || room.teamName?.[0]}</div>}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-medium truncate">{room.teamName}</p>
+                      <p className="text-xs text-gray-400">{room.messageCount || 0} messages</p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-gray-500" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderTrendingScreen = () => {
+    if (!trendingData && !trendingLoading) {
+      loadTrendingData();
+    }
+
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 pt-14">
+        <div className="sticky top-14 z-30 bg-slate-900/95 backdrop-blur-md border-b border-white/10 px-4 py-3">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setCurrentScreen('games')} className="text-gray-400 hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
+            <Zap className="w-6 h-6 text-pink-400" />
+            <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>TRENDING</h2>
+          </div>
+        </div>
+        <div className="p-4 max-w-2xl mx-auto space-y-6">
+          {trendingLoading && (
+            <div className="text-center py-12"><Loader2 className="w-8 h-8 text-pink-400 animate-spin mx-auto" /></div>
+          )}
+          {trendingData && (
+            <>
+              {trendingData.trendingParties?.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-bold text-pink-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <Zap className="w-4 h-4" /> Hot Parties
+                  </h3>
+                  <div className="space-y-3">
+                    {trendingData.trendingParties.map(party => (
+                      <div key={party.id} className="p-4 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="text-white font-bold">{party.homeTeam || party.sport} {party.awayTeam ? `vs ${party.awayTeam}` : ''}</p>
+                            <p className="text-sm text-gray-400 flex items-center gap-1"><MapPin className="w-3 h-3" /> {party.venueName}</p>
+                            <p className="text-sm text-gray-400 flex items-center gap-1"><Calendar className="w-3 h-3" /> {new Date(party.gameTime).toLocaleDateString()}</p>
+                          </div>
+                          <div className="flex items-center gap-1 text-pink-400 bg-pink-500/20 px-2 py-1 rounded-full text-sm">
+                            <Users className="w-3 h-3" /> {party.attendeeCount || 0}
+                          </div>
+                        </div>
+                        {party.hostName && <p className="text-xs text-gray-500 mt-2">Hosted by {party.hostName}</p>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {trendingData.hotVenues?.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <Building2 className="w-4 h-4" /> Hot Venues
+                  </h3>
+                  <div className="space-y-2">
+                    {trendingData.hotVenues.map(venue => (
+                      <div key={venue.id} className="p-3 bg-white/5 rounded-xl border border-white/10 flex items-center justify-between">
+                        <div>
+                          <p className="text-white font-medium">{venue.name}</p>
+                          <p className="text-xs text-gray-400">{venue.city}</p>
+                        </div>
+                        <span className="text-orange-400 text-sm font-bold">{venue.partyCount || venue.party_count} parties</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {!trendingData.trendingParties?.length && !trendingData.hotVenues?.length && (
+                <div className="text-center py-12 text-gray-400">
+                  <Zap className="w-16 h-16 mx-auto mb-4 opacity-30" />
+                  <p className="text-lg font-bold mb-2">Nothing Trending Yet</p>
+                  <p className="text-sm">Check back when more parties are happening!</p>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderUserProfileScreen = () => {
+    const profileUserId = viewingUserId;
+    if (profileUserId && !viewingUserProfile) {
+      loadUserProfile(profileUserId);
+    }
+    if (!viewingUserProfile) {
+      return (
+        <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 pt-14">
+          <div className="sticky top-14 z-30 bg-slate-900/95 backdrop-blur-md border-b border-white/10 px-4 py-3">
+            <div className="flex items-center gap-3">
+              <button onClick={() => { setCurrentScreen('games'); setViewingUserId(null); setViewingUserProfile(null); }} className="text-gray-400 hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
+              <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>FAN PROFILE</h2>
+            </div>
+          </div>
+          <div className="text-center py-12"><Loader2 className="w-8 h-8 text-cyan-400 animate-spin mx-auto" /></div>
+        </div>
+      );
+    }
+    const p = viewingUserProfile;
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 pt-14">
+        <div className="sticky top-14 z-30 bg-slate-900/95 backdrop-blur-md border-b border-white/10 px-4 py-3">
+          <div className="flex items-center gap-3">
+            <button onClick={() => { setCurrentScreen('games'); setViewingUserId(null); setViewingUserProfile(null); }} className="text-gray-400 hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
+            <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>FAN PROFILE</h2>
+          </div>
+        </div>
+        <div className="p-4 max-w-2xl mx-auto space-y-6">
+          <div className="text-center">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 mx-auto flex items-center justify-center text-white text-3xl font-bold mb-3">
+              {p.profilePicture ? <img src={p.profilePicture} className="w-20 h-20 rounded-full object-cover" alt="" /> : (p.name?.[0] || '?')}
+            </div>
+            <h3 className="text-2xl font-black text-white">{p.name}</h3>
+            {p.bio && <p className="text-gray-400 text-sm mt-1">{p.bio}</p>}
+            <p className="text-xs text-gray-500 mt-1">Joined {new Date(p.createdAt || p.created_at).toLocaleDateString()}</p>
+          </div>
+          <div className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-xl p-4 border border-cyan-500/30 text-center">
+            <p className="text-4xl font-black text-cyan-400">{p.fanScore || 0}</p>
+            <p className="text-sm text-gray-300">Fan Score</p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="bg-white/5 rounded-xl p-3 text-center border border-white/10">
+              <p className="text-xl font-bold text-white">{p.partiesHosted || 0}</p>
+              <p className="text-xs text-gray-400">Hosted</p>
+            </div>
+            <div className="bg-white/5 rounded-xl p-3 text-center border border-white/10">
+              <p className="text-xl font-bold text-white">{p.partiesAttended || 0}</p>
+              <p className="text-xs text-gray-400">Attended</p>
+            </div>
+            <div className="bg-white/5 rounded-xl p-3 text-center border border-white/10">
+              <p className="text-xl font-bold text-white">{p.reviewsGiven || 0}</p>
+              <p className="text-xs text-gray-400">Reviews</p>
+            </div>
+            <div className="bg-white/5 rounded-xl p-3 text-center border border-white/10">
+              <p className="text-xl font-bold text-white">{p.friendsCount || 0}</p>
+              <p className="text-xs text-gray-400">Friends</p>
+            </div>
+          </div>
+          {p.badges?.length > 0 && (
+            <div>
+              <h4 className="text-sm font-bold text-yellow-400 uppercase tracking-wider mb-3">Badges</h4>
+              <div className="flex flex-wrap gap-2">
+                {p.badges.filter(b => b.earned).map(badge => (
+                  <span key={badge.name} className="px-3 py-1.5 bg-yellow-500/20 border border-yellow-500/30 rounded-full text-sm text-yellow-300 flex items-center gap-1">
+                    <span>{badge.icon}</span> {badge.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          {viewingUserActivity.length > 0 && (
+            <div>
+              <h4 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-3">Recent Activity</h4>
+              <div className="space-y-2">
+                {viewingUserActivity.slice(0, 10).map((item, i) => (
+                  <div key={i} className="p-3 bg-white/5 rounded-xl border border-white/10">
+                    <p className="text-white text-sm">{item.description}</p>
+                    <p className="text-xs text-gray-500 mt-1">{new Date(item.date).toLocaleDateString()}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderAlertsScreen = () => {
+    if (!teamAlertsList.length && !rivalryAlertsList.length) {
+      loadAlerts();
+    }
+
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 pt-14">
+        <div className="sticky top-14 z-30 bg-slate-900/95 backdrop-blur-md border-b border-white/10 px-4 py-3">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setCurrentScreen('games')} className="text-gray-400 hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
+            <Bell className="w-6 h-6 text-amber-400" />
+            <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>GAME ALERTS</h2>
+          </div>
+        </div>
+        <div className="p-4 max-w-2xl mx-auto space-y-6">
+          <div className="bg-white/5 rounded-xl p-4 border border-white/10 space-y-3">
+            <h3 className="text-white font-bold flex items-center gap-2"><Settings className="w-4 h-4 text-gray-400" /> Alert Preferences</h3>
+            {[
+              { key: 'teamAlerts', label: 'Team Playing Alerts', desc: 'Get notified when your favorite teams play' },
+              { key: 'rivalryAlerts', label: 'Rivalry Game Alerts', desc: 'Big rivalry matchups happening soon' },
+              { key: 'suggestedParties', label: 'Suggested Parties', desc: 'Parties you might be interested in' },
+              { key: 'gameReminders', label: 'Game Reminders', desc: 'Reminders before games start' },
+            ].map(pref => (
+              <div key={pref.key} className="flex items-center justify-between py-2">
+                <div>
+                  <p className="text-white text-sm font-medium">{pref.label}</p>
+                  <p className="text-xs text-gray-400">{pref.desc}</p>
+                </div>
+                <button onClick={async () => {
+                  const updated = { ...alertPrefs, [pref.key]: !alertPrefs[pref.key] };
+                  setAlertPrefs(updated);
+                  try { await api.alerts.updatePreferences(updated); } catch (e) { console.error(e); }
+                }} className={`w-10 h-6 rounded-full transition-colors ${alertPrefs[pref.key] ? 'bg-amber-500' : 'bg-gray-600'} relative`}>
+                  <div className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${alertPrefs[pref.key] ? 'translate-x-5' : 'translate-x-1'}`} />
+                </button>
+              </div>
+            ))}
+          </div>
+          {teamAlertsList.length > 0 && (
+            <div>
+              <h3 className="text-sm font-bold text-green-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <Zap className="w-4 h-4" /> Your Teams Playing Soon
+              </h3>
+              <div className="space-y-2">
+                {teamAlertsList.map((alert, i) => (
+                  <div key={i} className="p-3 bg-green-500/10 rounded-xl border border-green-500/20">
+                    <p className="text-white font-medium">{alert.team} vs {alert.opponent}</p>
+                    <p className="text-xs text-gray-400">{alert.sport} - {new Date(alert.gameDate || alert.game_date).toLocaleDateString()}</p>
+                    {alert.partiesNearby > 0 && <p className="text-xs text-green-400 mt-1">{alert.partiesNearby} parties nearby!</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {rivalryAlertsList.length > 0 && (
+            <div>
+              <h3 className="text-sm font-bold text-red-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <Crown className="w-4 h-4" /> Rivalry Games
+              </h3>
+              <div className="space-y-2">
+                {rivalryAlertsList.map((alert, i) => (
+                  <div key={i} className="p-3 bg-red-500/10 rounded-xl border border-red-500/20">
+                    <p className="text-white font-medium">{alert.teamA || alert.team_a} vs {alert.teamB || alert.team_b}</p>
+                    <p className="text-xs text-gray-400">{alert.sport} - Intensity: {'🔥'.repeat(alert.intensity || 1)}</p>
+                    {alert.partiesCount > 0 && <p className="text-xs text-red-400 mt-1">{alert.partiesCount} watch parties!</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {!teamAlertsList.length && !rivalryAlertsList.length && (
+            <div className="text-center py-8 text-gray-400">
+              <Bell className="w-12 h-12 mx-auto mb-3 opacity-30" />
+              <p className="font-bold">No Alerts Right Now</p>
+              <p className="text-sm mt-1">Add favorite teams to get notified when they play!</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderMyTicketsScreen = () => {
+    if (!myTicketsList.length) {
+      loadMyTickets();
+    }
+
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 pt-14">
+        <div className="sticky top-14 z-30 bg-slate-900/95 backdrop-blur-md border-b border-white/10 px-4 py-3">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setCurrentScreen('games')} className="text-gray-400 hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
+            <Award className="w-6 h-6 text-purple-400" />
+            <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>MY TICKETS</h2>
+          </div>
+        </div>
+        <div className="p-4 max-w-2xl mx-auto space-y-4">
+          {myTicketsList.length === 0 && (
+            <div className="text-center py-12 text-gray-400">
+              <Award className="w-16 h-16 mx-auto mb-4 opacity-30" />
+              <p className="text-lg font-bold mb-2">No Tickets Yet</p>
+              <p className="text-sm">Purchase tickets to watch parties to see them here.</p>
+            </div>
+          )}
+          {myTicketsList.map(ticket => (
+            <div key={ticket.id} className="p-4 bg-white/5 rounded-xl border border-white/10">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-white font-bold">{ticket.partyName || ticket.party_name || 'Watch Party'}</p>
+                  <p className="text-sm text-gray-400">{ticket.venueName || ticket.venue_name}</p>
+                  <p className="text-sm text-gray-400">{new Date(ticket.gameDate || ticket.game_date || ticket.purchasedAt || ticket.purchased_at).toLocaleDateString()}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-bold text-purple-400">${((ticket.amountCents || ticket.amount_cents || 0) / 100).toFixed(2)}</p>
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${ticket.status === 'completed' ? 'bg-green-500/20 text-green-300' : 'bg-gray-500/20 text-gray-300'}`}>{ticket.status}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   const renderFantasyScreen = () => {
     const platformColors = { espn: 'bg-red-500', yahoo: 'bg-purple-500', sleeper: 'bg-green-500', other: 'bg-gray-500' };
     const platformLabels = { espn: 'ESPN', yahoo: 'Yahoo', sleeper: 'Sleeper', other: 'Other' };
@@ -8667,6 +9146,11 @@ const HuddleUpApp = () => {
       {currentScreen === 'invitations' && <InvitationsScreen />}
       {currentScreen === 'qrCheckin' && <QrCheckinScreen />}
       {currentScreen === 'fantasy' && renderFantasyScreen()}
+      {currentScreen === 'teamChats' && renderTeamChatsScreen()}
+      {currentScreen === 'trending' && renderTrendingScreen()}
+      {currentScreen === 'userProfile' && renderUserProfileScreen()}
+      {currentScreen === 'alerts' && renderAlertsScreen()}
+      {currentScreen === 'myTickets' && renderMyTicketsScreen()}
 
       {editPartyModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setEditPartyModal(null); }}>

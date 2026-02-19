@@ -181,6 +181,7 @@ export async function initDB() {
       ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_tier TEXT DEFAULT 'free';
       ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_code TEXT UNIQUE;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT;
       ALTER TABLE venues ADD COLUMN IF NOT EXISTS logo TEXT;
       ALTER TABLE venues ADD COLUMN IF NOT EXISTS picture TEXT;
 

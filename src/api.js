@@ -200,6 +200,49 @@ export const api = {
     partyLeaderboard: (partyId) => request(`/fantasy/parties/${partyId}/leaderboard`),
     partySharedPlayers: (partyId) => request(`/fantasy/parties/${partyId}/shared-players`),
   },
+  reviews: {
+    getPartyReviews: (partyId) => request(`/reviews/parties/${partyId}/reviews`),
+    submitReview: (partyId, data) => request(`/reviews/parties/${partyId}/reviews`, { method: 'POST', body: JSON.stringify(data) }),
+    deleteReview: (partyId) => request(`/reviews/parties/${partyId}/reviews`, { method: 'DELETE' }),
+  },
+  teamChats: {
+    getRooms: () => request('/team-chats/rooms'),
+    getMessages: (roomId, before) => {
+      const params = before ? `?before=${encodeURIComponent(before)}` : '';
+      return request(`/team-chats/rooms/${roomId}/messages${params}`);
+    },
+    sendMessage: (roomId, message) => request(`/team-chats/rooms/${roomId}/messages`, { method: 'POST', body: JSON.stringify({ message }) }),
+    createRoom: (data) => request('/team-chats/rooms', { method: 'POST', body: JSON.stringify(data) }),
+    searchRooms: (q) => request(`/team-chats/rooms/search?q=${encodeURIComponent(q)}`),
+  },
+  trending: {
+    feed: () => request('/trending/feed'),
+    suggested: () => request('/trending/suggested'),
+    getHighlights: (partyId) => request(`/trending/highlights/${partyId}`),
+    listHighlights: () => request('/trending/highlights'),
+    createHighlight: (partyId, data) => request(`/trending/highlights/${partyId}`, { method: 'POST', body: JSON.stringify(data) }),
+  },
+  tickets: {
+    setup: (partyId, data) => request(`/tickets/parties/${partyId}/tickets/setup`, { method: 'POST', body: JSON.stringify(data) }),
+    getInfo: (partyId) => request(`/tickets/parties/${partyId}/tickets`),
+    purchase: (partyId) => request(`/tickets/parties/${partyId}/tickets/purchase`, { method: 'POST' }),
+    myTickets: () => request('/tickets/my-tickets'),
+    promote: (partyId, data) => request(`/tickets/parties/${partyId}/promote`, { method: 'POST', body: JSON.stringify(data) }),
+    promoted: () => request('/tickets/promoted'),
+    cancelPromotion: (partyId) => request(`/tickets/parties/${partyId}/promote`, { method: 'DELETE' }),
+  },
+  alerts: {
+    getPreferences: () => request('/alerts/preferences'),
+    updatePreferences: (data) => request('/alerts/preferences', { method: 'PUT', body: JSON.stringify(data) }),
+    teamAlerts: () => request('/alerts/team-alerts'),
+    rivalryAlerts: () => request('/alerts/rivalry-alerts'),
+    rivalryPairs: () => request('/alerts/rivalry-pairs'),
+  },
+  profile: {
+    getUser: (userId) => request(`/profile/users/${userId}`),
+    getActivity: (userId) => request(`/profile/users/${userId}/activity`),
+    myStats: () => request('/profile/me/stats'),
+  },
   analytics: {
     overview: () => request('/analytics/overview'),
     userGrowth: (days = 30) => request(`/analytics/user-growth?days=${days}`),

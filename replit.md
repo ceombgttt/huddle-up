@@ -26,6 +26,30 @@ The Main Sponsor is the most premium placement - a fixed orange/amber banner at 
 ## Fantasy League Integration
 Manual fantasy league tracking system integrated into the platform. Users can create and join fantasy leagues for any sport (NFL, NBA, MLB, NHL, Soccer) across platforms (ESPN, Yahoo, Sleeper, Other). Features include: league creation with auto-generated invite codes, team management, player roster tracking (name, position, NFL team, starter status), standings/leaderboard with W-L records and points, commissioner controls (delete league), and party integration via party_fantasy_links table. Chat includes "Trash Talk" mode (message_type='fantasy') with special orange/red gradient styling and trophy icon toggle. Fantasy Hub accessible via orange Trophy button in main nav bar. Tables: fantasy_leagues, fantasy_teams, fantasy_players, party_fantasy_links. Routes at /api/fantasy/*. Frontend: renderFantasyScreen function in App.jsx. Platform badge colors: ESPN=red, Yahoo=purple, Sleeper=green, Other=gray. Access control enforces league membership for viewing details.
 
+## Community & Engagement Features (New)
+Several new community features have been added:
+
+### Party Reviews & Ratings
+Users can rate parties on atmosphere, food/drinks, and crowd energy (1-5 stars). Reviews include text comments. Backend: server/routes/reviews.js. Routes at /api/reviews/*. Tables: party_reviews (party_id, user_id, atmosphere, food_drinks, crowd_energy, comment).
+
+### Team Chat Rooms
+Team-specific chat rooms grouped by sport. Users can join rooms for their favorite teams and chat with other fans. Backend: server/routes/teamchat.js. Routes at /api/team-chats/*. Tables: team_chat_rooms, team_chat_messages. Frontend: renderTeamChatsScreen in App.jsx. Accessible via teal "Team Chat" button in nav bar.
+
+### User Profiles with Stats
+Public user profiles showing fan score, badges, stats (parties hosted/attended, reviews given, friends count), and activity timeline. Fan score = (parties_hosted*10) + (parties_attended*5) + (reviews_given*3) + (friends_count*2) + (total_points/10). 8 badge types: Party Starter, Social Butterfly, Regular, Superfan, Critic, Popular, VIP, Pioneer. Backend: server/routes/profile.js. Routes at /api/profile/*.
+
+### Trending Feed
+Shows hot parties (most attendees in next 7 days), hot venues (most parties in last 30 days), and popular sports. Promoted parties appear at top. Backend: server/routes/trending.js. Routes at /api/trending/*. Frontend: renderTrendingScreen in App.jsx. Accessible via pink "Trending" button in nav bar.
+
+### Game Alerts & Rivalry Alerts
+Notification preferences for team alerts, rivalry alerts, suggested parties, and game reminders. Team alerts notify when favorite teams play soon. Rivalry alerts for classic matchups (e.g., Yankees vs Red Sox, Lakers vs Celtics). Seeded with 11 default rivalry pairs. Backend: server/routes/alerts.js. Routes at /api/alerts/*. Tables: notification_preferences, rivalry_pairs.
+
+### Event Tickets & Promoted Parties
+Hosts can set up ticketing (price, capacity) and promote parties. Users can purchase tickets (simplified MVP without Stripe). My Tickets screen shows purchased tickets. Backend: server/routes/tickets.js. Routes at /api/tickets/*. Tables: party_tickets, ticket_purchases, promoted_parties.
+
+### Party Highlights/Recaps
+Hosts can create highlights/recaps for past parties with text and photos. Recent highlights appear in the trending feed. Backend: server/routes/trending.js (highlights endpoints). Table: party_highlights.
+
 ## External Dependencies
 - **PostgreSQL**: Primary database for all application data.
 - **Express**: Backend web framework.

@@ -24,6 +24,12 @@ import photoRoutes from './routes/photos.js';
 import rewardsRoutes from './routes/rewards.js';
 import qrCheckinRoutes from './routes/qrcheckin.js';
 import fantasyRoutes from './routes/fantasy.js';
+import profileRoutes from './routes/profile.js';
+import reviewRoutes from './routes/reviews.js';
+import teamchatRoutes from './routes/teamchat.js';
+import trendingRoutes from './routes/trending.js';
+import ticketRoutes from './routes/tickets.js';
+import alertRoutes from './routes/alerts.js';
 import { startScoreChecker } from './scoreChecker.js';
 import { WebhookHandlers } from './stripe/webhookHandlers.js';
 import { initStripe } from './stripe/init.js';
@@ -95,6 +101,12 @@ app.use('/api/photos', photoRoutes);
 app.use('/api/rewards', rewardsRoutes);
 app.use('/api/qr', qrCheckinRoutes);
 app.use('/api/fantasy', fantasyRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/team-chats', teamchatRoutes);
+app.use('/api/trending', trendingRoutes);
+app.use('/api/tickets', ticketRoutes);
+app.use('/api/alerts', alertRoutes);
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
