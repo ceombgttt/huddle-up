@@ -2687,11 +2687,11 @@ const HuddleUpApp = () => {
 
  const WelcomeScreen = () => (
  <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: 'radial-gradient(ellipse at center, #161A22 0%, #0F1115 70%)' }}>
- <div className="max-w-md w-full text-center flex-1 flex flex-col justify-center" style={{ gap: '48px' }}>
+ <div className="w-full text-center flex-1 flex flex-col items-center justify-center" style={{ gap: '48px', maxWidth: '720px' }}>
  <div className="space-y-6">
- <img src="/huddle-up-logo.png" alt="Huddle Up - Find Your Crew. Watch The Game!" className="mx-auto" style={{ width: '540px' }} />
+ <img src="/huddle-up-logo.png" alt="Huddle Up - Find Your Crew. Watch The Game!" className="mx-auto" style={{ width: '716px' }} />
  </div>
- <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+ <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%', maxWidth: '448px' }}>
  <button
  onClick={() => setCurrentScreen('login')}
  className="w-full py-4 text-white font-bold text-lg transition-colors duration-200 hover:opacity-90"
