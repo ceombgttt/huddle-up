@@ -1,0 +1,60 @@
+Add social media sharing integration to the Huddle Up app with the following features:
+
+1. Import these icons at the top:
+   - Share2, Copy, Check from 'lucide-react'
+
+2. Add these state variables:
+   - showShareMenu (boolean)
+   - shareParty (object or null)
+   - linkCopied (boolean)
+
+3. Add these functions:
+
+   a) generatePartyLink(party) - returns party URL using window.location.origin + /party/ + party.id
+
+   b) generateShareText(party) - creates formatted text with:
+      - Game teams from the games array
+      - Venue name
+      - Date
+      - "Join the party on Huddle Up!" message
+
+   c) shareToSocial(party, platform) - handles sharing to:
+      - Twitter (with #HuddleUp hashtag)
+      - Facebook
+      - WhatsApp
+      - Instagram (opens app)
+      - Native share (if navigator.share is available)
+      Opens sharing URLs in new window
+
+   d) copyPartyLink(party) - copies party URL to clipboard with fallback for older browsers, shows "Link Copied!" confirmation for 2 seconds
+
+4. Create ShareMenu component that displays:
+   - Modal with dark gradient background (slate-800 to slate-900)
+   - Close button with X icon
+   - Share buttons for each platform with brand colors:
+     * Native share (cyan-to-blue gradient) - only if navigator.share exists
+     * Twitter button (#1DA1F2 background) with Twitter icon
+     * Facebook button (#1877F2 background) with Facebook icon
+     * WhatsApp button (#25D366 background) with WhatsApp icon
+     * Instagram button (purple-pink-orange gradient) with Instagram icon
+   - "Copy Link" button at bottom (white/10 background)
+   - Shows "Link Copied!" with green check icon when link is copied
+
+5. Add ShareMenu component to main render with conditional display when showShareMenu is true
+
+6. Add "Share" button to party cards that:
+   - Shows Share2 icon
+   - Sets shareParty and opens share menu
+   - Uses stopPropagation to prevent card click
+
+7. After party creation success, automatically open share menu with the new party
+
+Use the existing app styling with:
+- Dark theme (slate backgrounds)
+- Cyan/blue gradients for primary actions
+- White/10 for secondary buttons
+- Rounded-xl for all buttons
+- Border border-white/10 for containers
+- Hover effects with opacity-90 or bg-white/20
+
+Make sure all social share URLs are properly encoded and include party details.
