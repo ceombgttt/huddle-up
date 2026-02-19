@@ -7956,6 +7956,9 @@ const HuddleUpApp = () => {
   const [teamChatMessages, setTeamChatMessages] = useState([]);
   const [teamChatInput, setTeamChatInput] = useState('');
   const [teamChatLoading, setTeamChatLoading] = useState(false);
+  const [teamChatShowCreate, setTeamChatShowCreate] = useState(false);
+  const [teamChatNewSport, setTeamChatNewSport] = useState('NFL');
+  const [teamChatNewTeam, setTeamChatNewTeam] = useState('');
   const [trendingData, setTrendingData] = useState(null);
   const [trendingLoading, setTrendingLoading] = useState(false);
   const [trendingError, setTrendingError] = useState(false);
@@ -7982,6 +7985,17 @@ const HuddleUpApp = () => {
       const data = await api.teamChats.getMessages(roomId);
       setTeamChatMessages(data.messages || []);
     } catch (e) { console.error('Load team chat messages error:', e); }
+  };
+
+  const createTeamChatRoom = async () => {
+    if (!teamChatNewTeam.trim()) return;
+    try {
+      await api.teamChats.createRoom({ sport: teamChatNewSport, teamName: teamChatNewTeam.trim() });
+      setTeamChatNewTeam('');
+      setTeamChatShowCreate(false);
+      setTeamChatError(false);
+      loadTeamChatRooms();
+    } catch (e) { console.error('Create room error:', e); }
   };
 
   const sendTeamChatMessage = async () => {
@@ -8095,17 +8109,34 @@ const HuddleUpApp = () => {
             <button onClick={() => setCurrentScreen('games')} className="text-gray-400 hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
             <MessageCircle className="w-6 h-6 text-teal-400" />
             <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>TEAM CHAT ROOMS</h2>
+            <button onClick={() => setTeamChatShowCreate(!teamChatShowCreate)} className="ml-auto px-3 py-1.5 bg-teal-500 hover:bg-teal-600 rounded-lg text-white text-sm font-medium flex items-center gap-1"><Plus className="w-4 h-4" /> New</button>
           </div>
         </div>
         <div className="p-4 max-w-2xl mx-auto space-y-6">
+          {teamChatShowCreate && (
+            <div className="bg-white/10 border border-teal-500/30 rounded-xl p-4 space-y-3">
+              <h3 className="text-white font-bold text-sm">Create a Team Chat Room</h3>
+              <select value={teamChatNewSport} onChange={e => setTeamChatNewSport(e.target.value)} className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-teal-500">
+                {['NFL', 'NBA', 'MLB', 'NHL', 'MLS', 'NWSL', 'Champions League', 'Premier League', 'La Liga', 'Serie A', 'College Football', 'College Basketball', 'WNBA', 'UFC', 'Boxing'].map(s => (
+                  <option key={s} value={s} className="bg-slate-800">{s}</option>
+                ))}
+              </select>
+              <input value={teamChatNewTeam} onChange={e => setTeamChatNewTeam(e.target.value)} onKeyDown={e => e.key === 'Enter' && createTeamChatRoom()} placeholder="Team name (e.g. Dallas Cowboys)" className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+              <div className="flex gap-2">
+                <button onClick={createTeamChatRoom} className="px-4 py-2 bg-teal-500 hover:bg-teal-600 rounded-lg text-white text-sm font-medium">Create Room</button>
+                <button onClick={() => setTeamChatShowCreate(false)} className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-gray-300 text-sm">Cancel</button>
+              </div>
+            </div>
+          )}
           {teamChatLoading && (
             <div className="text-center py-12"><Loader2 className="w-8 h-8 text-teal-400 animate-spin mx-auto" /></div>
           )}
-          {!teamChatLoading && Object.keys(groupedRooms).length === 0 && (
+          {!teamChatLoading && !teamChatShowCreate && Object.keys(groupedRooms).length === 0 && (
             <div className="text-center py-12 text-gray-400">
               <MessageCircle className="w-16 h-16 mx-auto mb-4 opacity-30" />
               <p className="text-lg font-bold mb-2">No Chat Rooms Yet</p>
-              <p className="text-sm">Chat rooms are created as fans start conversations about their teams.</p>
+              <p className="text-sm mb-4">Be the first to start a conversation about your favorite team!</p>
+              <button onClick={() => setTeamChatShowCreate(true)} className="px-6 py-2 bg-teal-500 hover:bg-teal-600 rounded-lg text-white font-medium">Create First Room</button>
             </div>
           )}
           {Object.entries(groupedRooms).map(([sport, rooms]) => (
