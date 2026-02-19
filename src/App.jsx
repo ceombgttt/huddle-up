@@ -243,11 +243,11 @@ const MainSponsorBanner = ({ mainSponsor, onAdvertise }) => {
       className={`w-full h-14 bg-gradient-to-r from-blue-800 via-blue-700 to-blue-800 ${sponsor.url && sponsor.url !== '#' ? 'cursor-pointer' : ''}`}
     >
       <div className="max-w-4xl mx-auto px-4 h-full flex items-center justify-center gap-3">
-        <div className="flex-shrink-0 h-10 min-w-[120px] max-w-[180px] rounded-lg overflow-hidden bg-white/10 flex items-center justify-center px-2">
+        <div className="flex-shrink-0 h-12 min-w-[140px] max-w-[220px] rounded-lg overflow-hidden bg-white/15 flex items-center justify-center px-3">
           {sponsor.logoUrl ? (
-            <img src={sponsor.logoUrl} alt={sponsor.name} className="h-full w-auto max-w-full object-contain" />
+            <img src={sponsor.logoUrl} alt={sponsor.name} className="h-10 w-auto max-w-full object-contain" />
           ) : (
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
+            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
           )}
         </div>
         <div className="flex items-center gap-2 min-w-0">
