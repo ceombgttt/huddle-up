@@ -2689,7 +2689,7 @@ const HuddleUpApp = () => {
  <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: 'radial-gradient(ellipse at center, #161A22 0%, #0F1115 70%)' }}>
  <div className="max-w-md w-full text-center flex-1 flex flex-col justify-center" style={{ gap: '48px' }}>
  <div className="space-y-6">
- <img src="/huddle-up-logo.png" alt="Huddle Up - Find Your Crew. Watch The Game!" className="mx-auto" style={{ width: '358px' }} />
+ <img src="/huddle-up-logo.png" alt="Huddle Up - Find Your Crew. Watch The Game!" className="mx-auto" style={{ width: '540px' }} />
  </div>
  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
  <button
