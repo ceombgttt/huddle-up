@@ -1201,6 +1201,9 @@ const HuddleUpApp = () => {
  const [rewardsRedemptions, setRewardsRedemptions] = useState([]);
  const [rewardsTab, setRewardsTab] = useState('earn');
  const [redeemingReward, setRedeemingReward] = useState(null);
+ const [raffles, setRaffles] = useState([]);
+ const [raffleEntryCount, setRaffleEntryCount] = useState({});
+ const [enteringRaffle, setEnteringRaffle] = useState(null);
  const [photoUploading, setPhotoUploading] = useState(false);
  const [photoCaption, setPhotoCaption] = useState('');
  const [selectedPhoto, setSelectedPhoto] = useState(null);
@@ -1889,16 +1892,18 @@ const HuddleUpApp = () => {
  const loadRewards = async () => {
  if (!user) return;
  try {
- const [balance, history, catalog, redemptions] = await Promise.all([
+ const [balance, history, catalog, redemptions, raffleData] = await Promise.all([
  api.rewards.balance(),
  api.rewards.history(),
  api.rewards.catalog(),
  api.rewards.redemptions(),
+ api.raffles.list().catch(() => []),
  ]);
  setRewardsBalance(balance);
  setRewardsHistory(history);
  setRewardsCatalog(catalog);
  setRewardsRedemptions(redemptions);
+ setRaffles(raffleData);
  } catch (e) {
  console.log('Rewards load error:', e);
  }
@@ -1928,6 +1933,21 @@ const HuddleUpApp = () => {
  alert(e.message || 'Redemption failed');
  } finally {
  setRedeemingReward(null);
+ }
+ };
+
+ const handleEnterRaffle = async (raffleId) => {
+ const entries = raffleEntryCount[raffleId] || 1;
+ setEnteringRaffle(raffleId);
+ try {
+ const result = await api.raffles.enter(raffleId, entries);
+ alert(`Entered! You now have ${result.totalEntries} entries. ${result.pointsSpent} points spent.`);
+ setRaffleEntryCount(prev => ({ ...prev, [raffleId]: 1 }));
+ loadRewards();
+ } catch (e) {
+ alert(e.message || 'Entry failed');
+ } finally {
+ setEnteringRaffle(null);
  }
  };
 
@@ -7730,6 +7750,7 @@ const HuddleUpApp = () => {
  { action: 'Attend a Party', points: 25, icon: <Users className="w-5 h-5" />, color: 'from-green-500 to-emerald-500' },
  { action: 'Invite a Friend', points: 100, icon: <Send className="w-5 h-5" />, color: 'from-purple-500 to-pink-500' },
  { action: 'Check In at Venue', points: 75, icon: <MapPin className="w-5 h-5" />, color: 'from-orange-500 to-amber-500' },
+ { action: 'Referral Bonus', points: 50, icon: <Gift className="w-5 h-5" />, color: 'from-yellow-500 to-amber-500' },
  ];
 
  return (
@@ -7763,7 +7784,7 @@ const HuddleUpApp = () => {
  <div className="flex gap-2 bg-[#151A22]/50 rounded-2xl p-1 border border-[#222A36]">
  {[
  { key: 'earn', label: 'Earn', icon: <Zap className="w-4 h-4" /> },
- { key: 'redeem', label: 'Redeem', icon: <Gift className="w-4 h-4" /> },
+ { key: 'raffles', label: 'Raffles', icon: <Star className="w-4 h-4" /> },
  { key: 'history', label: 'History', icon: <Clock className="w-4 h-4" /> },
  ].map(tab => (
  <button
@@ -7824,46 +7845,93 @@ const HuddleUpApp = () => {
  </div>
  )}
 
- {rewardsTab === 'redeem' && (
+ {rewardsTab === 'raffles' && (
  <div className="space-y-4">
  <h3 className="text-lg font-bold text-white flex items-center gap-2">
- <Gift className="w-5 h-5 text-yellow-400" /> Rewards Store
+ <Star className="w-5 h-5 text-yellow-400" /> Grand Prize Raffles
  </h3>
- {rewardsCatalog.length === 0 ? (
+ <p className="text-[#A0A4AB] text-sm">Spend your points to enter raffles for incredible prizes. More entries = better odds!</p>
+ {raffles.filter(r => r.status === 'active').length === 0 ? (
  <div className="text-center py-8 text-[#A0A4AB]">
- <Gift className="w-12 h-12 mx-auto mb-3 opacity-50" />
- <p>No rewards available right now</p>
+ <Star className="w-12 h-12 mx-auto mb-3 opacity-50" />
+ <p>No active raffles right now</p>
+ <p className="text-xs mt-1">Check back soon for new prizes!</p>
  </div>
  ) : (
- <div className="space-y-3">
- {rewardsCatalog.map(reward => {
- const canAfford = rewardsBalance.totalPoints >= reward.points_cost;
+ <div className="space-y-4">
+ {raffles.filter(r => r.status === 'active').map(raffle => {
+ const daysLeft = Math.max(0, Math.ceil((new Date(raffle.end_date) - new Date()) / (1000 * 60 * 60 * 24)));
+ const myEntries = parseInt(raffle.my_entries) || 0;
+ const totalEntries = parseInt(raffle.total_entries) || 0;
+ const maxEntries = raffle.max_entries_per_user;
+ const canEnterMore = myEntries < maxEntries;
+ const entryCount = raffleEntryCount[raffle.id] || 1;
+ const entryCost = raffle.points_per_entry * entryCount;
+ const canAfford = rewardsBalance.totalPoints >= entryCost;
  return (
- <div key={reward.id} className="bg-[#151A22]/80 rounded-2xl border border-[#222A36] p-4">
+ <div key={raffle.id} className="bg-gradient-to-br from-[#151A22] to-[#1a1f2e] rounded-2xl border border-[#222A36] overflow-hidden">
+ <div className="bg-gradient-to-r from-yellow-500/20 via-amber-500/10 to-orange-500/20 p-4 border-b border-[#222A36]">
  <div className="flex items-start gap-3">
- <div className="w-12 h-12 bg-gradient-to-br from-yellow-500/30 to-amber-500/30 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0">
- {reward.icon}
+ <div className="w-14 h-14 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 shadow-lg shadow-orange-500/20">
+ {raffle.prize_icon}
  </div>
  <div className="flex-1 min-w-0">
- <div className="text-white font-bold">{reward.name}</div>
- <div className="text-[#A0A4AB] text-xs mt-0.5">{reward.description}</div>
- <div className="flex items-center justify-between mt-2">
- <span className="text-yellow-400 font-black text-sm">{reward.points_cost.toLocaleString()} pts</span>
+ <div className="text-white font-black text-lg">{raffle.title}</div>
+ <div className="text-yellow-300/80 text-xs font-medium mt-0.5">{raffle.prize_description}</div>
+ </div>
+ </div>
+ </div>
+ <div className="p-4 space-y-3">
+ <div className="flex items-center justify-between text-sm">
+ <div className="flex items-center gap-4">
+ <span className="text-[#A0A4AB]"><Clock className="w-3.5 h-3.5 inline mr-1" />{daysLeft} days left</span>
+ <span className="text-[#A0A4AB]"><Users className="w-3.5 h-3.5 inline mr-1" />{totalEntries} entries</span>
+ </div>
+ <span className="text-yellow-400 font-bold">{raffle.points_per_entry} pts/entry</span>
+ </div>
+ {myEntries > 0 && (
+ <div className="bg-green-500/10 border border-green-500/20 rounded-xl px-3 py-2 flex items-center justify-between">
+ <span className="text-green-400 text-sm font-medium flex items-center gap-1.5">
+ <CheckCircle className="w-4 h-4" /> You have {myEntries} {myEntries === 1 ? 'entry' : 'entries'}
+ </span>
+ <span className="text-[#A0A4AB] text-xs">{myEntries}/{maxEntries} max</span>
+ </div>
+ )}
+ {canEnterMore && (
+ <div className="flex items-center gap-2">
+ <div className="flex items-center bg-[#0F1115] rounded-xl border border-[#222A36] overflow-hidden">
  <button
- onClick={() => handleRedeemReward(reward.id)}
- disabled={!canAfford || redeemingReward === reward.id}
- className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${
+ onClick={() => setRaffleEntryCount(prev => ({ ...prev, [raffle.id]: Math.max(1, (prev[raffle.id] || 1) - 1) }))}
+ className="px-3 py-2 text-white hover:bg-[#222A36] transition-colors"
+ >-</button>
+ <span className="px-3 py-2 text-white font-bold min-w-[40px] text-center">{entryCount}</span>
+ <button
+ onClick={() => setRaffleEntryCount(prev => ({ ...prev, [raffle.id]: Math.min(maxEntries - myEntries, (prev[raffle.id] || 1) + 1) }))}
+ className="px-3 py-2 text-white hover:bg-[#222A36] transition-colors"
+ >+</button>
+ </div>
+ <button
+ onClick={() => handleEnterRaffle(raffle.id)}
+ disabled={!canAfford || enteringRaffle === raffle.id}
+ className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-all ${
  canAfford
- ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white hover:shadow-yellow-500/30'
+ ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white hover:shadow-lg hover:shadow-yellow-500/20'
  : 'bg-gray-700 text-[#A0A4AB]/70 cursor-not-allowed'
  }`}
  >
- {redeemingReward === reward.id ? (
- <Loader2 className="w-4 h-4 animate-spin" />
- ) : canAfford ? 'Redeem' : `Need ${(reward.points_cost - rewardsBalance.totalPoints).toLocaleString()} more`}
+ {enteringRaffle === raffle.id ? (
+ <Loader2 className="w-4 h-4 animate-spin inline" />
+ ) : canAfford ? (
+ `Enter (${entryCost} pts)`
+ ) : (
+ `Need ${(entryCost - rewardsBalance.totalPoints).toLocaleString()} more pts`
+ )}
  </button>
  </div>
- </div>
+ )}
+ {!canEnterMore && myEntries > 0 && (
+ <div className="text-center text-[#A0A4AB] text-sm py-1">Maximum entries reached</div>
+ )}
  </div>
  </div>
  );
@@ -7871,22 +7939,24 @@ const HuddleUpApp = () => {
  </div>
  )}
 
- {rewardsRedemptions.length > 0 && (
+ {raffles.filter(r => r.status === 'ended').length > 0 && (
  <div className="mt-6">
- <h4 className="text-sm font-bold text-[#A0A4AB] mb-3">YOUR REDEMPTIONS</h4>
+ <h4 className="text-sm font-bold text-[#A0A4AB] mb-3">PAST RAFFLES</h4>
  <div className="space-y-2">
- {rewardsRedemptions.map(r => (
- <div key={r.id} className="bg-[#151A22]/60 rounded-xl border border-white/5 p-3 flex items-center gap-3">
- <span className="text-xl">{r.reward_icon}</span>
+ {raffles.filter(r => r.status === 'ended').map(raffle => (
+ <div key={raffle.id} className="bg-[#151A22]/60 rounded-xl border border-white/5 p-3 flex items-center gap-3">
+ <span className="text-xl">{raffle.prize_icon}</span>
  <div className="flex-1 min-w-0">
- <div className="text-white text-sm font-medium">{r.reward_name}</div>
- <div className="text-[#A0A4AB]/70 text-xs">{new Date(r.redeemed_at).toLocaleDateString()}</div>
+ <div className="text-white text-sm font-medium">{raffle.title}</div>
+ <div className="text-[#A0A4AB]/70 text-xs">
+ {raffle.winner_name ? `Winner: ${raffle.winner_name}` : 'Drawing pending'}
  </div>
- <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
- r.status === 'redeemed' ? 'bg-green-500/20 text-green-400' :
- r.status === 'used' ? 'bg-gray-500/20 text-[#A0A4AB]' :
- 'bg-red-500/20 text-red-400'
- }`}>{r.status}</span>
+ </div>
+ {parseInt(raffle.my_entries) > 0 && (
+ <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-yellow-500/20 text-yellow-400">
+ {raffle.my_entries} entries
+ </span>
+ )}
  </div>
  ))}
  </div>
@@ -7916,6 +7986,8 @@ const HuddleUpApp = () => {
  invite_friend: <Send className="w-4 h-4" />,
  venue_checkin: <MapPin className="w-4 h-4" />,
  redeem: <Gift className="w-4 h-4" />,
+ welcome_bonus: <Gift className="w-4 h-4" />,
+ raffle_entry: <Star className="w-4 h-4" />,
  };
  return (
  <div key={entry.id} className="bg-[#151A22]/60 rounded-xl border border-white/5 p-3 flex items-center gap-3">

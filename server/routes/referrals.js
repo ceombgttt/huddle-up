@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import pool from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
+import { awardPoints } from './rewards.js';
 import crypto from 'crypto';
 
 const router = Router();
@@ -28,30 +29,47 @@ router.get('/my-code', requireAuth, async (req, res) => {
 });
 
 router.post('/apply', requireAuth, async (req, res) => {
+  const client = await pool.connect();
   try {
     const { referralCode } = req.body;
     const userId = req.session.userId;
 
     if (!referralCode) {
+      client.release();
       return res.status(400).json({ error: 'Referral code required' });
     }
 
-    const userResult = await pool.query('SELECT referred_by FROM users WHERE id = $1', [userId]);
+    await client.query('BEGIN');
+
+    const userResult = await client.query('SELECT referred_by FROM users WHERE id = $1', [userId]);
     if (userResult.rows[0]?.referred_by) {
+      await client.query('ROLLBACK');
+      client.release();
       return res.status(400).json({ error: 'You already have a referral code applied' });
     }
 
-    const referrerResult = await pool.query(
+    const referrerResult = await client.query(
       'SELECT id FROM users WHERE referral_code = $1 AND id != $2',
       [referralCode.toUpperCase(), userId]
     );
     if (referrerResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      client.release();
       return res.status(400).json({ error: 'Invalid referral code' });
     }
 
-    await pool.query('UPDATE users SET referred_by = $1 WHERE id = $2', [referralCode.toUpperCase(), userId]);
-    res.json({ success: true, message: 'Referral code applied!' });
+    await client.query('UPDATE users SET referred_by = $1 WHERE id = $2', [referralCode.toUpperCase(), userId]);
+
+    await client.query('COMMIT');
+    client.release();
+
+    awardPoints(userId, 'welcome_bonus', 'Welcome bonus for using a referral code').catch(e => console.error('Welcome bonus error:', e));
+    awardPoints(referrerResult.rows[0].id, 'invite_friend', 'Friend used your referral code').catch(e => console.error('Referrer bonus error:', e));
+
+    res.json({ success: true, message: 'Referral code applied! You earned 50 welcome bonus points!' });
   } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
+    client.release();
     console.error('Apply referral error:', error);
     res.status(500).json({ error: 'Server error' });
   }

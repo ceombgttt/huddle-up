@@ -9,6 +9,7 @@ const POINT_VALUES = {
   attend_party: 25,
   invite_friend: 100,
   venue_checkin: 75,
+  welcome_bonus: 50,
 };
 
 async function awardPoints(userId, action, description, referenceId = null) {

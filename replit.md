@@ -50,6 +50,9 @@ Hosts can set up ticketing (price, capacity) and promote parties. Users can purc
 ### Party Highlights/Recaps
 Hosts can create highlights/recaps for past parties with text and photos. Recent highlights appear in the trending feed. Backend: server/routes/trending.js (highlights endpoints). Table: party_highlights.
 
+## Raffle-Based Rewards System
+Points system focuses on raffle entries instead of merchandise/venue redemptions. Users earn points through engagement (create party 50pts, attend party 25pts, invite friend 100pts, venue check-in 75pts, referral welcome bonus 50pts). Points are spent to enter raffles for grand prizes (game tickets, signed memorabilia, electronics). Each raffle has configurable points-per-entry cost and max entries per user. Backend: server/routes/raffles.js. Routes at /api/raffles/*. Tables: raffles, raffle_entries. Frontend: Raffles tab in RewardsScreen (replaces old Redeem tab). Welcome bonus: 50 points awarded when a new user applies a referral code; referrer gets 100 points.
+
 ## External Dependencies
 - **PostgreSQL**: Primary database for all application data.
 - **Express**: Backend web framework.

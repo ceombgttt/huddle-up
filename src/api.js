@@ -174,6 +174,11 @@ export const api = {
     redemptions: () => request('/rewards/redemptions'),
     checkin: (partyId) => request('/rewards/checkin', { method: 'POST', body: JSON.stringify({ partyId }) }),
   },
+  raffles: {
+    list: () => request('/raffles'),
+    enter: (raffleId, entries) => request(`/raffles/${raffleId}/enter`, { method: 'POST', body: JSON.stringify({ entries }) }),
+    myEntries: () => request('/raffles/my-entries'),
+  },
   qr: {
     getVenueQr: () => request('/qr/venue/qr'),
     generateQr: () => request('/qr/venue/generate', { method: 'POST' }),
