@@ -2689,7 +2689,7 @@ const HuddleUpApp = () => {
  <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: 'radial-gradient(ellipse at center, #161A22 0%, #0F1115 70%)' }}>
  <div className="max-w-md w-full text-center flex-1 flex flex-col justify-center" style={{ gap: '48px' }}>
  <div className="space-y-6">
- <img src="/huddle-up-logo-3-transparent.png" alt="Huddle Up - Find Your Crew. Watch The Game!" className="mx-auto" style={{ width: '358px' }} />
+ <img src="/huddle-up-logo.png" alt="Huddle Up - Find Your Crew. Watch The Game!" className="mx-auto" style={{ width: '358px' }} />
  </div>
  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
  <button
@@ -2994,7 +2994,7 @@ const HuddleUpApp = () => {
  <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: 'radial-gradient(ellipse at center, #161A22 0%, #0F1115 70%)' }}>
  <div className="max-w-md w-full space-y-8 flex-1 flex flex-col justify-center">
  <div className="text-center">
- <img src="/huddle-up-logo-3-transparent.png" alt="Huddle Up" className="h-16 mx-auto mb-4" />
+ <img src="/huddle-up-logo.png" alt="Huddle Up" className="h-16 mx-auto mb-4" />
  <h2 className="text-4xl font-extrabold text-white mb-2" style={{ fontFamily: "'Inter', 'Montserrat', sans-serif" }}>
  JOIN THE CREW
  </h2>
@@ -3161,7 +3161,7 @@ const HuddleUpApp = () => {
  <div className="max-w-4xl mx-auto px-4 py-4">
  <div className="flex items-center gap-3 mb-4">
  <div className="flex-shrink-0">
- <img src="/huddle-up-logo-3-transparent.png" alt="Huddle Up" className="h-12 drop-shadow-sm" />
+ <img src="/huddle-up-logo.png" alt="Huddle Up" className="h-12 drop-shadow-sm" />
  </div>
  <div className="flex-1 min-w-0 overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
  <div className="flex gap-1.5 w-max">
@@ -8696,7 +8696,7 @@ const HuddleUpApp = () => {
  {fantasySelectedLeague.season && <span className="text-xs text-slate-400">• {fantasySelectedLeague.season}</span>}
  </div>
  </div>
- <img src="/huddle-up-logo-3-transparent.png" alt="Huddle Up" className="w-10 h-10 object-contain" />
+ <img src="/huddle-up-logo.png" alt="Huddle Up" className="w-10 h-10 object-contain" />
  </div>
  </div>
  </div>
@@ -8893,7 +8893,7 @@ const HuddleUpApp = () => {
  FANTASY LEAGUES
  </h1>
  <div className="ml-auto">
- <img src="/huddle-up-logo-3-transparent.png" alt="Huddle Up" className="w-10 h-10 object-contain" />
+ <img src="/huddle-up-logo.png" alt="Huddle Up" className="w-10 h-10 object-contain" />
  </div>
  </div>
  </div>
