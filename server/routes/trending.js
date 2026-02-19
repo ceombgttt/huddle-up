@@ -6,12 +6,8 @@ const router = Router();
 
 router.get('/feed', async (req, res) => {
   try {
-    const today = new Date();
-    const sevenDaysLater = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-    const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-
     const promotedResult = await pool.query(
-      `SELECT p.id, p.host_id, p.venue_name, p.game_time, p.sport, p.home_team, p.away_team, p.city, p.state,
+      `SELECT p.id, p.host_id, p.venue_name, p.game_time, p.sport, p.home_team, p.away_team, p.city, p.title,
         (SELECT COUNT(*) FROM party_attendees WHERE party_id = p.id) as attendee_count,
         u.name as host_name, u.profile_picture as host_picture
        FROM parties p
@@ -23,15 +19,14 @@ router.get('/feed', async (req, res) => {
     );
 
     const trendingResult = await pool.query(
-      `SELECT p.id, p.host_id, p.venue_name, p.game_time, p.sport, p.home_team, p.away_team, p.city, p.state,
+      `SELECT p.id, p.host_id, p.venue_name, p.game_time, p.sport, p.home_team, p.away_team, p.city, p.title,
         (SELECT COUNT(*) FROM party_attendees WHERE party_id = p.id) as attendee_count,
         u.name as host_name, u.profile_picture as host_picture
        FROM parties p
        JOIN users u ON p.host_id = u.id
-       WHERE p.game_time >= NOW() AND p.game_time <= $1
+       WHERE p.created_at >= NOW() - INTERVAL '7 days'
        ORDER BY attendee_count DESC, p.created_at DESC
-       LIMIT 10`,
-      [sevenDaysLater]
+       LIMIT 10`
     );
 
     const trending_parties = [
@@ -43,12 +38,12 @@ router.get('/feed', async (req, res) => {
       `SELECT v.id, v.name, v.address, v.city, v.verified, v.featured, v.logo, v.picture,
         COUNT(p.id) as party_count
        FROM venues v
-       LEFT JOIN parties p ON LOWER(v.name) = LOWER(p.venue_name) AND LOWER(v.city) = LOWER(p.city)
-       WHERE p.created_at >= $1
+       LEFT JOIN parties p ON LOWER(v.name) = LOWER(p.venue_name)
+       WHERE p.created_at >= NOW() - INTERVAL '30 days'
        GROUP BY v.id, v.name, v.address, v.city, v.verified, v.featured, v.logo, v.picture
+       HAVING COUNT(p.id) > 0
        ORDER BY party_count DESC
-       LIMIT 5`,
-      [thirtyDaysAgo]
+       LIMIT 5`
     );
 
     const hot_venues = venuesResult.rows;
@@ -56,13 +51,13 @@ router.get('/feed', async (req, res) => {
     const sportsResult = await pool.query(
       `SELECT sport, COUNT(*) as party_count
        FROM parties
-       WHERE game_time >= NOW() AND game_time <= $1
+       WHERE created_at >= NOW() - INTERVAL '7 days'
        GROUP BY sport
-       ORDER BY party_count DESC`,
-      [sevenDaysLater]
+       ORDER BY party_count DESC
+       LIMIT 5`
     );
 
-    const popular_games = sportsResult.rows.slice(0, 5);
+    const popular_games = sportsResult.rows;
 
     res.json({
       trendingParties: trending_parties.map(p => ({
@@ -76,7 +71,7 @@ router.get('/feed', async (req, res) => {
         awayTeam: p.away_team,
         gameTime: p.game_time,
         city: p.city,
-        state: p.state,
+        title: p.title,
         attendeeCount: parseInt(p.attendee_count)
       })),
       hotVenues: hot_venues.map(v => ({
@@ -106,7 +101,7 @@ router.get('/suggested', requireAuth, async (req, res) => {
     const userId = req.session.userId;
 
     const userResult = await pool.query(
-      `SELECT city FROM users WHERE id = $1`,
+      `SELECT user_city FROM users WHERE id = $1`,
       [userId]
     );
 
@@ -114,7 +109,7 @@ router.get('/suggested', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const userCity = userResult.rows[0].city;
+    const userCity = userResult.rows[0].user_city;
 
     const friendsResult = await pool.query(
       `SELECT friend_id FROM friendships 
@@ -136,7 +131,7 @@ router.get('/suggested', requireAuth, async (req, res) => {
 
     let query = `
       WITH party_scores AS (
-        SELECT DISTINCT p.id, p.host_id, p.venue_name, p.game_time, p.sport, p.home_team, p.away_team, p.city, p.state,
+        SELECT DISTINCT p.id, p.host_id, p.venue_name, p.game_time, p.sport, p.home_team, p.away_team, p.city, p.title,
           (SELECT COUNT(*) FROM party_attendees WHERE party_id = p.id) as attendee_count,
           u.name as host_name, u.profile_picture as host_picture,
           CASE 
@@ -148,16 +143,16 @@ router.get('/suggested', requireAuth, async (req, res) => {
             ELSE 0
           END +
           CASE 
-            WHEN p.city = $3 THEN 1
+            WHEN LOWER(p.city) = LOWER($3) THEN 1
             ELSE 0
           END as relevance_score
         FROM parties p
         JOIN users u ON p.host_id = u.id
-        WHERE p.game_time >= NOW()
+        WHERE p.created_at >= NOW() - INTERVAL '30 days'
         AND p.host_id != $4
         AND NOT EXISTS (SELECT 1 FROM party_attendees WHERE party_id = p.id AND user_id = $4)
       )
-      SELECT id, host_id, venue_name, game_time, sport, home_team, away_team, city, state,
+      SELECT id, host_id, venue_name, game_time, sport, home_team, away_team, city, title,
         attendee_count, host_name, host_picture, relevance_score
       FROM party_scores
       WHERE relevance_score > 0
@@ -180,7 +175,7 @@ router.get('/suggested', requireAuth, async (req, res) => {
       awayTeam: p.away_team,
       gameTime: p.game_time,
       city: p.city,
-      state: p.state,
+      title: p.title,
       attendeeCount: parseInt(p.attendee_count),
       relevanceScore: parseInt(p.relevance_score)
     }));

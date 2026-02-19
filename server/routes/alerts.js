@@ -80,10 +80,8 @@ router.get('/team-alerts', requireAuth, async (req, res) => {
          FROM parties p
          WHERE p.sport = $1
          AND (LOWER(p.home_team) = LOWER($2) OR LOWER(p.away_team) = LOWER($2))
-         AND p.game_time IS NOT NULL
-         AND TO_TIMESTAMP(p.game_time, 'YYYY-MM-DD HH24:MI:SS') > NOW()
-         AND TO_TIMESTAMP(p.game_time, 'YYYY-MM-DD HH24:MI:SS') <= NOW() + INTERVAL '48 hours'
-         ORDER BY p.game_time ASC`,
+         AND p.created_at >= NOW() - INTERVAL '7 days'
+         ORDER BY p.created_at DESC`,
         [favTeam.sport, favTeam.team]
       );
 
@@ -132,13 +130,11 @@ router.get('/rivalry-alerts', requireAuth, async (req, res) => {
          FROM parties p
          WHERE p.sport = $1
          AND (
-           (LOWER(p.home_team) = LOWER($2) AND LOWER(p.away_team) = LOWER($3))
-           OR (LOWER(p.home_team) = LOWER($3) AND LOWER(p.away_team) = LOWER($2))
+           (LOWER(p.home_team) LIKE '%' || LOWER($2) || '%' AND LOWER(p.away_team) LIKE '%' || LOWER($3) || '%')
+           OR (LOWER(p.home_team) LIKE '%' || LOWER($3) || '%' AND LOWER(p.away_team) LIKE '%' || LOWER($2) || '%')
          )
-         AND p.game_time IS NOT NULL
-         AND TO_TIMESTAMP(p.game_time, 'YYYY-MM-DD HH24:MI:SS') > NOW()
-         AND TO_TIMESTAMP(p.game_time, 'YYYY-MM-DD HH24:MI:SS') <= NOW() + INTERVAL '48 hours'
-         ORDER BY p.game_time ASC`,
+         AND p.created_at >= NOW() - INTERVAL '7 days'
+         ORDER BY p.created_at DESC`,
         [rivalry.sport, rivalry.team_a, rivalry.team_b]
       );
 

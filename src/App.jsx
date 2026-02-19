@@ -7958,6 +7958,8 @@ const HuddleUpApp = () => {
   const [teamChatLoading, setTeamChatLoading] = useState(false);
   const [trendingData, setTrendingData] = useState(null);
   const [trendingLoading, setTrendingLoading] = useState(false);
+  const [trendingError, setTrendingError] = useState(false);
+  const [teamChatError, setTeamChatError] = useState(false);
   const [viewingUserId, setViewingUserId] = useState(null);
   const [viewingUserProfile, setViewingUserProfile] = useState(null);
   const [viewingUserActivity, setViewingUserActivity] = useState([]);
@@ -7971,7 +7973,7 @@ const HuddleUpApp = () => {
       setTeamChatLoading(true);
       const data = await api.teamChats.getRooms();
       setTeamChatRooms(data.rooms || []);
-    } catch (e) { console.error('Load team chat rooms error:', e); }
+    } catch (e) { console.error('Load team chat rooms error:', e); setTeamChatError(true); }
     finally { setTeamChatLoading(false); }
   };
 
@@ -7996,7 +7998,7 @@ const HuddleUpApp = () => {
       setTrendingLoading(true);
       const data = await api.trending.feed();
       setTrendingData(data);
-    } catch (e) { console.error('Load trending error:', e); }
+    } catch (e) { console.error('Load trending error:', e); setTrendingError(true); }
     finally { setTrendingLoading(false); }
   };
 
@@ -8032,7 +8034,7 @@ const HuddleUpApp = () => {
   };
 
   const renderTeamChatsScreen = () => {
-    if (!teamChatRooms.length && !teamChatLoading && !teamChatSelectedRoom) {
+    if (!teamChatRooms.length && !teamChatLoading && !teamChatSelectedRoom && !teamChatError) {
       loadTeamChatRooms();
     }
 
@@ -8129,7 +8131,7 @@ const HuddleUpApp = () => {
   };
 
   const renderTrendingScreen = () => {
-    if (!trendingData && !trendingLoading) {
+    if (!trendingData && !trendingLoading && !trendingError) {
       loadTrendingData();
     }
 
