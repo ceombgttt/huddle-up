@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, Megaphone, MessageCircle, Gift, Award, Clock, Zap, Crown, Copy, Shield, ChevronRight } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, Megaphone, MessageCircle, Gift, Award, Clock, Zap, Crown, Copy, Shield, ChevronRight, Info } from 'lucide-react';
 import { api } from './api.js';
 
 // Sample games data for different sports
@@ -1155,6 +1155,9 @@ const HuddleUpApp = () => {
  const [adminEditVenue, setAdminEditVenue] = useState(null);
  const [adminEditForm, setAdminEditForm] = useState({});
  const [adminSavingVenue, setAdminSavingVenue] = useState(false);
+ const [adminRaffles, setAdminRaffles] = useState([]);
+ const [adminRaffleForm, setAdminRaffleForm] = useState(null);
+ const [adminRaffleSaving, setAdminRaffleSaving] = useState(false);
  const [totalUsers, setTotalUsersCount] = useState(0);
  const [adminTab, setAdminTab] = useState('analytics');
  const [analyticsData, setAnalyticsData] = useState(null);
@@ -1440,6 +1443,7 @@ const HuddleUpApp = () => {
  loadSponsors();
  loadAnalytics();
  api.users.stats().then(s => setTotalUsersCount(s.totalUsers)).catch(() => {});
+ api.raffles.adminAll().then(d => setAdminRaffles(d)).catch(() => {});
  }
  if (currentScreen === 'rewards' && user) {
  loadRewards();
@@ -4687,6 +4691,7 @@ const HuddleUpApp = () => {
  {[
  { id: 'analytics', label: 'Analytics', icon: BarChart3 },
  { id: 'management', label: 'Management', icon: Settings },
+ { id: 'rewards', label: 'Rewards', icon: Gift },
  ].map(tab => (
  <button key={tab.id} onClick={() => setAdminTab(tab.id)}
  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
@@ -5789,6 +5794,185 @@ const HuddleUpApp = () => {
  </div>
  </div>
  )}
+ </>
+ )}
+
+ {adminTab === 'rewards' && (
+ <>
+ <div className="bg-[#151A22] rounded-2xl border border-[#222A36] p-6">
+ <div className="flex items-center justify-between mb-6">
+ <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+ <Gift className="inline w-5 h-5 mr-2 text-yellow-400" /> RAFFLE MANAGEMENT
+ </h2>
+ <button
+ onClick={() => setAdminRaffleForm({ title: '', description: '', prizeDescription: '', prizeIcon: '🎟️', pointsPerEntry: 100, maxEntriesPerUser: 10, endDate: '' })}
+ className="px-4 py-2 bg-gradient-to-r from-yellow-500 to-amber-500 text-white font-bold rounded-xl text-sm hover:shadow-yellow-500/30 transition-all"
+ >
+ <Plus className="w-4 h-4 inline mr-1" /> New Raffle
+ </button>
+ </div>
+
+ {adminRaffleForm && (
+ <div className="bg-[#0F1115] rounded-xl border border-[#222A36] p-5 mb-6 space-y-4">
+ <h3 className="text-white font-bold text-sm">{adminRaffleForm.id ? 'EDIT RAFFLE' : 'CREATE NEW RAFFLE'}</h3>
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Title *</label>
+ <input value={adminRaffleForm.title} onChange={e => setAdminRaffleForm(f => ({ ...f, title: e.target.value }))}
+ className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" placeholder="e.g. Super Bowl Tickets" />
+ </div>
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Prize Icon</label>
+ <input value={adminRaffleForm.prizeIcon} onChange={e => setAdminRaffleForm(f => ({ ...f, prizeIcon: e.target.value }))}
+ className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" placeholder="🎟️" />
+ </div>
+ <div className="sm:col-span-2">
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Prize Description *</label>
+ <input value={adminRaffleForm.prizeDescription} onChange={e => setAdminRaffleForm(f => ({ ...f, prizeDescription: e.target.value }))}
+ className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" placeholder="e.g. 2x Super Bowl LX Tickets" />
+ </div>
+ <div className="sm:col-span-2">
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Description</label>
+ <textarea value={adminRaffleForm.description} onChange={e => setAdminRaffleForm(f => ({ ...f, description: e.target.value }))}
+ rows={2} className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" placeholder="Optional details..." />
+ </div>
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Points Per Entry</label>
+ <input type="number" value={adminRaffleForm.pointsPerEntry} onChange={e => setAdminRaffleForm(f => ({ ...f, pointsPerEntry: parseInt(e.target.value) || 0 }))}
+ className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" />
+ </div>
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Max Entries Per User</label>
+ <input type="number" value={adminRaffleForm.maxEntriesPerUser} onChange={e => setAdminRaffleForm(f => ({ ...f, maxEntriesPerUser: parseInt(e.target.value) || 0 }))}
+ className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" />
+ </div>
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">End Date *</label>
+ <input type="datetime-local" value={adminRaffleForm.endDate ? adminRaffleForm.endDate.slice(0, 16) : ''} onChange={e => setAdminRaffleForm(f => ({ ...f, endDate: e.target.value }))}
+ className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" />
+ </div>
+ {adminRaffleForm.id && (
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Status</label>
+ <select value={adminRaffleForm.status || 'active'} onChange={e => setAdminRaffleForm(f => ({ ...f, status: e.target.value }))}
+ className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[#1E90FF]">
+ <option value="active">Active</option>
+ <option value="ended">Ended</option>
+ <option value="cancelled">Cancelled</option>
+ </select>
+ </div>
+ )}
+ </div>
+ <div className="flex gap-3 pt-2">
+ <button
+ disabled={adminRaffleSaving || !adminRaffleForm.title || !adminRaffleForm.prizeDescription || !adminRaffleForm.endDate}
+ onClick={async () => {
+ setAdminRaffleSaving(true);
+ try {
+ if (adminRaffleForm.id) {
+ await api.raffles.adminUpdate(adminRaffleForm.id, adminRaffleForm);
+ } else {
+ await api.raffles.adminCreate(adminRaffleForm);
+ }
+ setAdminRaffleForm(null);
+ const data = await api.raffles.adminAll();
+ setAdminRaffles(data);
+ } catch (e) { alert(e.message || 'Save failed'); }
+ finally { setAdminRaffleSaving(false); }
+ }}
+ className={`flex-1 py-2.5 font-bold rounded-xl text-sm transition-all ${
+ adminRaffleSaving || !adminRaffleForm.title || !adminRaffleForm.prizeDescription || !adminRaffleForm.endDate
+ ? 'bg-gray-600 text-[#A0A4AB] cursor-not-allowed'
+ : 'bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:shadow-green-500/30'
+ }`}
+ >
+ {adminRaffleSaving ? 'Saving...' : adminRaffleForm.id ? 'Update Raffle' : 'Create Raffle'}
+ </button>
+ <button onClick={() => setAdminRaffleForm(null)} className="px-6 py-2.5 bg-[#151A22] text-[#A0A4AB] font-bold rounded-xl hover:bg-[#222A36] text-sm">Cancel</button>
+ </div>
+ </div>
+ )}
+
+ {adminRaffles.length === 0 ? (
+ <div className="text-center py-8 text-[#A0A4AB]">
+ <Star className="w-12 h-12 mx-auto mb-3 opacity-50" />
+ <p className="font-bold mb-1">No raffles yet</p>
+ <p className="text-sm">Create a raffle to let users spend their points on grand prizes.</p>
+ </div>
+ ) : (
+ <div className="space-y-3">
+ {adminRaffles.map(raffle => {
+ const daysLeft = Math.max(0, Math.ceil((new Date(raffle.end_date) - new Date()) / (1000 * 60 * 60 * 24)));
+ const totalEntries = parseInt(raffle.total_entries) || 0;
+ const uniqueEntrants = parseInt(raffle.unique_entrants) || 0;
+ return (
+ <div key={raffle.id} className={`bg-[#0F1115] rounded-xl border p-4 ${
+ raffle.status === 'active' ? 'border-green-500/20' : raffle.status === 'ended' ? 'border-yellow-500/20' : 'border-red-500/20'
+ }`}>
+ <div className="flex items-start gap-3">
+ <span className="text-2xl">{raffle.prize_icon}</span>
+ <div className="flex-1 min-w-0">
+ <div className="flex items-center gap-2 flex-wrap">
+ <span className="text-white font-bold">{raffle.title}</span>
+ <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${
+ raffle.status === 'active' ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+ : raffle.status === 'ended' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+ : 'bg-red-500/20 text-red-400 border border-red-500/30'
+ }`}>{raffle.status.toUpperCase()}</span>
+ </div>
+ <div className="text-[#A0A4AB] text-xs mt-1">{raffle.prize_description}</div>
+ <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm text-[#A0A4AB]">
+ <span>{totalEntries} entries</span>
+ <span>{uniqueEntrants} users</span>
+ <span>{raffle.points_per_entry} pts/entry</span>
+ <span>{raffle.status === 'active' ? `${daysLeft} days left` : `Ended ${new Date(raffle.end_date).toLocaleDateString()}`}</span>
+ </div>
+ {raffle.winner_name && (
+ <div className="mt-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg px-3 py-1.5 text-sm">
+ <Trophy className="w-3.5 h-3.5 inline mr-1 text-yellow-400" /> Winner: <span className="text-yellow-300 font-bold">{raffle.winner_name}</span>
+ </div>
+ )}
+ </div>
+ <div className="flex flex-col gap-2 flex-shrink-0">
+ <button onClick={() => setAdminRaffleForm({
+ id: raffle.id, title: raffle.title, description: raffle.description || '',
+ prizeDescription: raffle.prize_description, prizeIcon: raffle.prize_icon,
+ pointsPerEntry: raffle.points_per_entry, maxEntriesPerUser: raffle.max_entries_per_user,
+ endDate: raffle.end_date, status: raffle.status,
+ })} className="p-2 bg-[#151A22] rounded-lg hover:bg-[#222A36] text-[#A0A4AB] hover:text-white" title="Edit">
+ <Pencil className="w-4 h-4" />
+ </button>
+ {raffle.status === 'active' && !raffle.winner_id && totalEntries > 0 && (
+ <button onClick={async () => {
+ if (!confirm(`Draw a random winner for "${raffle.title}"? This cannot be undone.`)) return;
+ try {
+ const result = await api.raffles.adminDrawWinner(raffle.id);
+ alert(`Winner: ${result.winner.name} (${result.winner.email}) out of ${result.totalEntries} entries!`);
+ const data = await api.raffles.adminAll();
+ setAdminRaffles(data);
+ } catch (e) { alert(e.message || 'Draw failed'); }
+ }} className="p-2 bg-yellow-500/10 rounded-lg hover:bg-yellow-500/20 text-yellow-400 hover:text-yellow-300" title="Draw Winner">
+ <Trophy className="w-4 h-4" />
+ </button>
+ )}
+ <button onClick={async () => {
+ if (!confirm(`Delete/cancel raffle "${raffle.title}"?`)) return;
+ try {
+ await api.raffles.adminDelete(raffle.id);
+ const data = await api.raffles.adminAll();
+ setAdminRaffles(data);
+ } catch (e) { alert(e.message || 'Delete failed'); }
+ }} className="p-2 bg-red-500/10 rounded-lg hover:bg-red-500/20 text-red-400 hover:text-red-300" title="Delete">
+ <Trash2 className="w-4 h-4" />
+ </button>
+ </div>
+ </div>
+ </div>
+ );
+ })}
+ </div>
+ )}
+ </div>
  </>
  )}
 
@@ -7779,6 +7963,30 @@ const HuddleUpApp = () => {
  </div>
  <div className="text-yellow-300 text-sm font-bold">AVAILABLE POINTS</div>
  <div className="text-[#A0A4AB] text-xs mt-1">Lifetime earned: {rewardsBalance.lifetimePoints.toLocaleString()} pts</div>
+ </div>
+
+ <div className="bg-[#151A22]/80 rounded-2xl border border-[#222A36] p-4">
+ <h3 className="text-white font-bold text-sm mb-3 flex items-center gap-2">
+ <Info className="w-4 h-4 text-[#1E90FF]" /> How the Points System Works
+ </h3>
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+ <div className="flex items-center gap-2 text-[#A0A4AB]">
+ <div className="w-2 h-2 rounded-full bg-[#1E90FF] flex-shrink-0" />
+ Earn points by creating parties, attending events, inviting friends, and checking in at venues
+ </div>
+ <div className="flex items-center gap-2 text-[#A0A4AB]">
+ <div className="w-2 h-2 rounded-full bg-yellow-400 flex-shrink-0" />
+ Spend points to enter raffles for grand prizes like game tickets and signed memorabilia
+ </div>
+ <div className="flex items-center gap-2 text-[#A0A4AB]">
+ <div className="w-2 h-2 rounded-full bg-green-400 flex-shrink-0" />
+ More entries in a raffle = better odds of winning
+ </div>
+ <div className="flex items-center gap-2 text-[#A0A4AB]">
+ <div className="w-2 h-2 rounded-full bg-purple-400 flex-shrink-0" />
+ New users get 50 bonus points when applying a referral code
+ </div>
+ </div>
  </div>
 
  <div className="flex gap-2 bg-[#151A22]/50 rounded-2xl p-1 border border-[#222A36]">

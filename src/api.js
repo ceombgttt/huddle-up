@@ -178,6 +178,11 @@ export const api = {
     list: () => request('/raffles'),
     enter: (raffleId, entries) => request(`/raffles/${raffleId}/enter`, { method: 'POST', body: JSON.stringify({ entries }) }),
     myEntries: () => request('/raffles/my-entries'),
+    adminAll: () => request('/raffles/admin/all'),
+    adminCreate: (data) => request('/raffles/admin/create', { method: 'POST', body: JSON.stringify(data) }),
+    adminUpdate: (id, data) => request(`/raffles/admin/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    adminDelete: (id) => request(`/raffles/admin/${id}`, { method: 'DELETE' }),
+    adminDrawWinner: (id) => request(`/raffles/admin/${id}/draw-winner`, { method: 'POST' }),
   },
   qr: {
     getVenueQr: () => request('/qr/venue/qr'),

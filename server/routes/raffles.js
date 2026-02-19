@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import pool from '../db.js';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, requireAdmin } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -146,6 +146,118 @@ router.get('/my-entries', requireAuth, async (req, res) => {
     res.json(result.rows);
   } catch (error) {
     console.error('Get my entries error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.get('/admin/all', requireAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT r.*,
+        (SELECT COUNT(*) FROM raffle_entries WHERE raffle_id = r.id) as total_entries,
+        (SELECT COUNT(DISTINCT user_id) FROM raffle_entries WHERE raffle_id = r.id) as unique_entrants,
+        (SELECT name FROM users WHERE id = r.winner_id) as winner_name
+       FROM raffles r
+       ORDER BY r.created_at DESC`
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Admin get raffles error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/admin/create', requireAdmin, async (req, res) => {
+  try {
+    const { title, description, prizeDescription, prizeIcon, pointsPerEntry, maxEntriesPerUser, endDate } = req.body;
+    if (!title || !prizeDescription || !endDate) {
+      return res.status(400).json({ error: 'Title, prize description, and end date are required' });
+    }
+    const result = await pool.query(
+      `INSERT INTO raffles (title, description, prize_description, prize_icon, points_per_entry, max_entries_per_user, end_date)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [title, description || null, prizeDescription, prizeIcon || '🎟️', pointsPerEntry || 100, maxEntriesPerUser || 10, endDate]
+    );
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Admin create raffle error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.put('/admin/:id', requireAdmin, async (req, res) => {
+  try {
+    const { title, description, prizeDescription, prizeIcon, pointsPerEntry, maxEntriesPerUser, endDate, status } = req.body;
+    const result = await pool.query(
+      `UPDATE raffles SET
+        title = COALESCE($1, title),
+        description = COALESCE($2, description),
+        prize_description = COALESCE($3, prize_description),
+        prize_icon = COALESCE($4, prize_icon),
+        points_per_entry = COALESCE($5, points_per_entry),
+        max_entries_per_user = COALESCE($6, max_entries_per_user),
+        end_date = COALESCE($7, end_date),
+        status = COALESCE($8, status)
+       WHERE id = $9 RETURNING *`,
+      [title, description, prizeDescription, prizeIcon, pointsPerEntry, maxEntriesPerUser, endDate, status, req.params.id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Raffle not found' });
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Admin update raffle error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.delete('/admin/:id', requireAdmin, async (req, res) => {
+  try {
+    const entries = await pool.query('SELECT COUNT(*) as count FROM raffle_entries WHERE raffle_id = $1', [req.params.id]);
+    if (parseInt(entries.rows[0].count) > 0) {
+      await pool.query("UPDATE raffles SET status = 'cancelled' WHERE id = $1", [req.params.id]);
+      return res.json({ ok: true, message: 'Raffle cancelled (has entries)' });
+    }
+    await pool.query('DELETE FROM raffles WHERE id = $1', [req.params.id]);
+    res.json({ ok: true, message: 'Raffle deleted' });
+  } catch (error) {
+    console.error('Admin delete raffle error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/admin/:id/draw-winner', requireAdmin, async (req, res) => {
+  try {
+    const raffle = await pool.query('SELECT * FROM raffles WHERE id = $1', [req.params.id]);
+    if (raffle.rows.length === 0) {
+      return res.status(404).json({ error: 'Raffle not found' });
+    }
+    if (raffle.rows[0].winner_id) {
+      return res.status(400).json({ error: 'Winner already drawn' });
+    }
+    const entries = await pool.query(
+      'SELECT user_id FROM raffle_entries WHERE raffle_id = $1',
+      [req.params.id]
+    );
+    if (entries.rows.length === 0) {
+      return res.status(400).json({ error: 'No entries in this raffle' });
+    }
+    const winnerIndex = Math.floor(Math.random() * entries.rows.length);
+    const winnerId = entries.rows[winnerIndex].user_id;
+    const result = await pool.query(
+      `UPDATE raffles SET winner_id = $1, winner_announced_at = NOW(), status = 'ended'
+       WHERE id = $2 RETURNING *`,
+      [winnerId, req.params.id]
+    );
+    const winner = await pool.query('SELECT name, email FROM users WHERE id = $1', [winnerId]);
+    res.json({
+      ok: true,
+      raffle: result.rows[0],
+      winner: winner.rows[0],
+      totalEntries: entries.rows.length,
+    });
+  } catch (error) {
+    console.error('Draw winner error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
