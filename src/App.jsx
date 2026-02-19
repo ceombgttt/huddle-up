@@ -8320,6 +8320,65 @@ const HuddleUpApp = () => {
           )}
         </div>
 
+        <div className="max-w-4xl mx-auto px-4 pb-8 mt-6">
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-5">
+            <h3 className="text-lg font-black text-white mb-3 flex items-center gap-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+              <Star className="w-5 h-5 text-yellow-400" /> NEW TO FANTASY SPORTS?
+            </h3>
+            <p className="text-slate-300 text-sm mb-4">Fantasy sports let you build your own dream team of real players and compete against friends based on how those players perform in real games.</p>
+            <div className="space-y-3">
+              <div className="flex gap-3">
+                <div className="w-7 h-7 rounded-full bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-cyan-300 text-xs font-bold">1</span>
+                </div>
+                <div>
+                  <h4 className="text-white font-bold text-sm">Join or Create a League</h4>
+                  <p className="text-slate-400 text-xs">Create a league and invite your friends with the invite code, or join an existing one. Pick which platform you play on (ESPN, Yahoo, Sleeper, etc.).</p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <div className="w-7 h-7 rounded-full bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-cyan-300 text-xs font-bold">2</span>
+                </div>
+                <div>
+                  <h4 className="text-white font-bold text-sm">Draft Your Team</h4>
+                  <p className="text-slate-400 text-xs">Each person in the league picks real players for their roster. You take turns choosing so everyone gets a fair shot at the best players.</p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <div className="w-7 h-7 rounded-full bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-cyan-300 text-xs font-bold">3</span>
+                </div>
+                <div>
+                  <h4 className="text-white font-bold text-sm">Set Your Lineup</h4>
+                  <p className="text-slate-400 text-xs">Each week, choose which players on your roster are starters vs. on the bench. Starters earn you points based on their real-game stats (touchdowns, yards, goals, etc.).</p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <div className="w-7 h-7 rounded-full bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-cyan-300 text-xs font-bold">4</span>
+                </div>
+                <div>
+                  <h4 className="text-white font-bold text-sm">Compete Weekly</h4>
+                  <p className="text-slate-400 text-xs">You go head-to-head against someone in your league each week. The team with the most total points from their starters wins that matchup.</p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <div className="w-7 h-7 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Trophy className="w-3.5 h-3.5 text-orange-300" />
+                </div>
+                <div>
+                  <h4 className="text-white font-bold text-sm">Talk Trash & Have Fun</h4>
+                  <p className="text-slate-400 text-xs">Use the Trash Talk feature in party chats to brag about your team or roast your friends. The best part of fantasy is the friendly competition!</p>
+                </div>
+              </div>
+            </div>
+            <div className="mt-4 p-3 bg-cyan-500/10 border border-cyan-500/20 rounded-xl">
+              <p className="text-cyan-300 text-xs"><span className="font-bold">Tip:</span> Track your leagues here on Huddle Up, but set your actual lineups on your fantasy platform (ESPN, Yahoo, Sleeper). This is your hub to see standings, manage rosters, and trash talk with your crew!</p>
+            </div>
+          </div>
+        </div>
+
         {fantasyLoading && (
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
             <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
