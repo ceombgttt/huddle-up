@@ -2517,11 +2517,11 @@ const HuddleUpApp = () => {
     const trialEndDate = user?.trialEndsAt ? new Date(user.trialEndsAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : null;
     return (
       <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-[70] flex items-center justify-center p-4 overflow-y-auto">
-        <div className="bg-gradient-to-br from-slate-800 via-purple-900/50 to-slate-900 rounded-3xl p-6 sm:p-8 max-w-lg w-full border-2 border-cyan-500/30 shadow-2xl my-4">
+        <div className="rounded-2xl p-6 sm:p-8 max-w-lg w-full shadow-2xl my-4" style={{ backgroundColor: '#161A22', border: '2px solid rgba(30, 144, 255, 0.3)' }}>
           <div className="text-center mb-6">
             <div className="text-5xl mb-3">🎉</div>
-            <h2 className="text-3xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>Welcome to Huddle Up!</h2>
-            <p className="text-cyan-300 text-sm font-medium">Find Your Crew. Watch The Game.</p>
+            <h2 className="text-3xl font-extrabold text-white mb-2" style={{ fontFamily: "'Inter', 'Montserrat', sans-serif" }}>Welcome to Huddle Up!</h2>
+            <p className="text-sm font-semibold" style={{ color: '#F5B400' }}>Find Your Crew. Watch The Game.</p>
             {trialEndDate && (
               <div className="mt-3 inline-block px-4 py-1.5 bg-green-500/20 border border-green-500/30 rounded-full">
                 <span className="text-green-300 text-xs font-bold">FREE TRIAL until {trialEndDate}</span>
@@ -2540,7 +2540,7 @@ const HuddleUpApp = () => {
               </div>
             ))}
           </div>
-          <button onClick={() => { setShowWelcomePopup(false); setShowOnboarding(true); setOnboardingStep(0); }} className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-cyan-500/50 transition-all text-lg">
+          <button onClick={() => { setShowWelcomePopup(false); setShowOnboarding(true); setOnboardingStep(0); }} className="w-full py-3 text-white font-bold transition-colors text-lg hover:opacity-90" style={{ backgroundColor: '#1E90FF', borderRadius: '12px' }}>
             Get Started
           </button>
           <button onClick={() => setShowWelcomePopup(false)} className="w-full py-2 text-gray-400 hover:text-white text-sm mt-2 transition-colors">
@@ -2697,21 +2697,23 @@ const HuddleUpApp = () => {
   );
 
   const WelcomeScreen = () => (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col items-center justify-center p-4">
-      <div className="max-w-md w-full text-center space-y-8 animate-fade-in flex-1 flex flex-col justify-center">
-        <div className="space-y-4">
-          <img src="/huddle-up-logo-3-transparent.png" alt="Huddle Up - Find Your Crew. Watch The Game!" className="mx-auto animate-logo-pop" style={{ width: '358px' }} />
+    <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: 'radial-gradient(ellipse at center, #161A22 0%, #0F1115 70%)' }}>
+      <div className="max-w-md w-full text-center flex-1 flex flex-col justify-center" style={{ gap: '48px' }}>
+        <div className="space-y-6">
+          <img src="/huddle-up-logo-3-transparent.png" alt="Huddle Up - Find Your Crew. Watch The Game!" className="mx-auto" style={{ width: '358px' }} />
         </div>
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <button
             onClick={() => setCurrentScreen('login')}
-            className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-cyan-500/50 transform hover:scale-105 transition-all duration-200"
+            className="w-full py-4 text-white font-bold text-lg transition-colors duration-200 hover:opacity-90"
+            style={{ backgroundColor: '#1E90FF', borderRadius: '12px' }}
           >
             LOG IN
           </button>
           <button
             onClick={() => setCurrentScreen('signup')}
-            className="w-full py-4 bg-white/10 backdrop-blur-sm text-white font-bold text-lg rounded-2xl border-2 border-white/20 hover:bg-white/20 transform hover:scale-105 transition-all duration-200"
+            className="w-full py-4 font-bold text-lg transition-colors duration-200 hover:opacity-80"
+            style={{ backgroundColor: 'transparent', border: '2px solid #1E90FF', color: '#1E90FF', borderRadius: '12px' }}
           >
             SIGN UP
           </button>
@@ -2727,41 +2729,44 @@ const HuddleUpApp = () => {
   const [loginRememberMe, setLoginRememberMe] = useState(true);
 
   const loginScreenJSX = (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: 'radial-gradient(ellipse at center, #161A22 0%, #0F1115 70%)' }}>
         <div className="max-w-md w-full space-y-8 flex-1 flex flex-col justify-center">
           <div className="text-center">
-            <h2 className="text-4xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+            <h2 className="text-4xl font-extrabold text-white mb-2" style={{ fontFamily: "'Inter', 'Montserrat', sans-serif" }}>
               WELCOME BACK
             </h2>
-            <p className="text-gray-400">Log in to find watch parties</p>
+            <p style={{ color: '#A0A4AB' }}>Log in to find watch parties</p>
           </div>
           
-          <div className="bg-white/5 backdrop-blur-lg p-8 rounded-3xl space-y-6 border border-white/10">
+          <div className="p-8 space-y-6" style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)' }}>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
+              <label className="block text-sm font-medium mb-2" style={{ color: '#A0A4AB' }}>Email</label>
               <input
                 type="email"
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                className="w-full px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2"
+                style={{ backgroundColor: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '12px', focusRingColor: '#1E90FF' }}
                 placeholder="your@email.com"
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
+              <label className="block text-sm font-medium mb-2" style={{ color: '#A0A4AB' }}>Password</label>
               <div className="relative">
                 <input
                   type={loginShowPassword ? 'text' : 'password'}
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
-                  className="w-full px-4 py-3 pr-12 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  className="w-full px-4 py-3 pr-12 text-white placeholder-gray-500 focus:outline-none focus:ring-2"
+                  style={{ backgroundColor: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '12px' }}
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setLoginShowPassword(!loginShowPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 hover:text-white transition-colors p-1"
+                  style={{ color: '#A0A4AB' }}
                 >
                   {loginShowPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -2773,28 +2778,32 @@ const HuddleUpApp = () => {
                 type="checkbox"
                 checked={loginRememberMe}
                 onChange={(e) => setLoginRememberMe(e.target.checked)}
-                className="w-4 h-4 rounded border-gray-600 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-0 bg-white/10"
+                className="w-4 h-4 rounded border-gray-600 bg-white/10"
+                style={{ accentColor: '#1E90FF' }}
               />
-              <span className="text-sm text-gray-300">Remember me</span>
+              <span className="text-sm" style={{ color: '#A0A4AB' }}>Remember me</span>
             </label>
 
             <button
               onClick={() => handleLogin(loginEmail, loginPassword, loginRememberMe)}
-              className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-cyan-500/50 transform hover:scale-105 transition-all duration-200"
+              className="w-full py-4 text-white font-bold text-lg transition-colors duration-200 hover:opacity-90"
+              style={{ backgroundColor: '#1E90FF', borderRadius: '12px' }}
             >
               LOG IN
             </button>
 
             <button
               onClick={() => setCurrentScreen('forgotPassword')}
-              className="w-full py-2 text-cyan-400 hover:text-cyan-300 text-sm font-medium transition-colors"
+              className="w-full py-2 text-sm font-medium transition-colors hover:opacity-80"
+              style={{ color: '#1E90FF' }}
             >
               Forgot your password?
             </button>
 
             <button
               onClick={() => setCurrentScreen('welcome')}
-              className="w-full py-3 text-gray-400 hover:text-white transition-colors"
+              className="w-full py-3 transition-colors"
+              style={{ color: '#A0A4AB' }}
             >
               ← Back
             </button>
@@ -2843,10 +2852,10 @@ const HuddleUpApp = () => {
   };
 
   const forgotPasswordScreenJSX = (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'radial-gradient(ellipse at center, #161A22 0%, #0F1115 70%)' }}>
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
-            <h2 className="text-4xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+            <h2 className="text-4xl font-extrabold text-white mb-2" style={{ fontFamily: "'Inter', 'Montserrat', sans-serif" }}>
               {fpStep === 3 ? 'PASSWORD RESET' : 'RESET PASSWORD'}
             </h2>
             <p className="text-gray-400">
@@ -2993,17 +3002,17 @@ const HuddleUpApp = () => {
   };
 
   const signUpScreenJSX = (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: 'radial-gradient(ellipse at center, #161A22 0%, #0F1115 70%)' }}>
         <div className="max-w-md w-full space-y-8 flex-1 flex flex-col justify-center">
           <div className="text-center">
-            <img src="/huddle-up-logo-3-transparent.png" alt="Huddle Up" className="h-16 mx-auto mb-4 drop-shadow-lg" />
-            <h2 className="text-4xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+            <img src="/huddle-up-logo-3-transparent.png" alt="Huddle Up" className="h-16 mx-auto mb-4" />
+            <h2 className="text-4xl font-extrabold text-white mb-2" style={{ fontFamily: "'Inter', 'Montserrat', sans-serif" }}>
               JOIN THE CREW
             </h2>
-            <p className="text-gray-400">Create your account</p>
+            <p style={{ color: '#A0A4AB' }}>Create your account</p>
           </div>
           
-          <div className="bg-white/5 backdrop-blur-lg p-8 rounded-3xl space-y-6 border border-white/10">
+          <div className="p-8 space-y-6" style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)' }}>
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">Name</label>
               <input
@@ -3135,11 +3144,12 @@ const HuddleUpApp = () => {
             <button
               onClick={handleSignupSubmit}
               disabled={!signupAcceptedTerms || !signupAgeConfirmed}
-              className={`w-full py-4 text-white font-bold text-lg rounded-2xl shadow-lg transform transition-all duration-200 ${
+              className={`w-full py-4 text-white font-bold text-lg transition-colors duration-200 ${
                 signupAcceptedTerms && signupAgeConfirmed
-                  ? 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:shadow-cyan-500/50 hover:scale-105'
-                  : 'bg-gray-500 cursor-not-allowed opacity-50'
+                  ? 'hover:opacity-90'
+                  : 'cursor-not-allowed opacity-50'
               }`}
+              style={{ backgroundColor: signupAcceptedTerms && signupAgeConfirmed ? '#1E90FF' : '#4B5563', borderRadius: '12px' }}
             >
               SIGN UP
             </button>
