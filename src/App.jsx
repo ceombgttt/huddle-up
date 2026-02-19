@@ -230,6 +230,7 @@ const DEMO_MAIN_SPONSOR = {
   name: 'Victory Sports Drink',
   tagline: 'Fuel the Fans. Own the Moment.',
   logoUrl: '/demo-sponsors/victory-sports-main.png',
+  bannerUrl: '/demo-sponsors/main-sponsor-placeholder.png',
   url: '#',
   isDemo: true,
 };
@@ -237,33 +238,21 @@ const DEMO_MAIN_SPONSOR = {
 const MainSponsorBanner = ({ mainSponsor, onAdvertise }) => {
   const sponsor = mainSponsor || DEMO_MAIN_SPONSOR;
   const isExample = !mainSponsor;
+  const bannerSrc = sponsor.bannerUrl || sponsor.logoUrl;
   return (
     <div
       onClick={() => sponsor.url && sponsor.url !== '#' && window.open(sponsor.url, '_blank')}
       className={`w-full h-20 relative overflow-hidden ${sponsor.url && sponsor.url !== '#' ? 'cursor-pointer' : ''}`}
     >
-      {sponsor.logoUrl ? (
-        <img src={sponsor.logoUrl} alt={sponsor.name} className="absolute inset-0 w-full h-full object-cover" />
-      ) : (
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-800 via-blue-700 to-blue-800" />
+      <img src={bannerSrc} alt={sponsor.name} className="absolute inset-0 w-full h-full object-cover" />
+      {isExample && onAdvertise && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onAdvertise(); }}
+          className="absolute right-4 top-1/2 -translate-y-1/2 flex-shrink-0 px-4 py-1.5 bg-white/20 hover:bg-white/30 border border-white/30 rounded-full text-white text-xs font-bold transition-all whitespace-nowrap"
+        >
+          Advertise Here
+        </button>
       )}
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-blue-800/60 to-blue-900/80" />
-      <div className="relative max-w-4xl mx-auto px-6 h-full flex items-center justify-center gap-4">
-        <div className="flex items-center gap-3 min-w-0">
-          <span className="text-cyan-200 font-black text-sm sm:text-lg uppercase tracking-wider whitespace-nowrap">MAIN SPONSOR</span>
-          <span className="text-white/60 hidden sm:inline">—</span>
-          <span className="text-white font-bold text-base sm:text-xl truncate">{sponsor.name}</span>
-          <span className="text-white/70 text-sm sm:text-base truncate hidden sm:inline">{sponsor.tagline}</span>
-        </div>
-        {isExample && onAdvertise && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onAdvertise(); }}
-            className="flex-shrink-0 px-3 py-1 bg-white/20 hover:bg-white/30 border border-white/30 rounded-full text-white text-xs font-bold transition-all whitespace-nowrap"
-          >
-            Advertise
-          </button>
-        )}
-      </div>
     </div>
   );
 };
