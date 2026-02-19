@@ -5951,43 +5951,41 @@ const HuddleUpApp = () => {
                     <img src={`/api/uploads/serve/${userVenue.picture.replace('/objects/', '')}`} alt={userVenue.name} className="w-full h-48 object-cover" />
                   </div>
                 )}
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-4">
-                    {userVenue.logo && (
-                      <img src={`/api/uploads/serve/${userVenue.logo.replace('/objects/', '')}`} alt="Logo" className="w-16 h-16 rounded-xl object-cover border border-white/20" />
-                    )}
-                    <div>
-                      <h1 className="text-4xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
-                        {userVenue.name}
-                      </h1>
-                      <p className="text-gray-400 mb-1"><AddressLink address={userVenue.address} /></p>
-                      {userVenue.city && <p className="text-gray-400 text-sm mb-1">{userVenue.city}</p>}
-                      <p className="text-sm text-gray-500">{userVenue.type}</p>
-                      <div className="flex flex-wrap gap-3 mt-3 text-sm text-gray-400">
-                        {userVenue.phone && <span>Phone: {userVenue.phone}</span>}
-                        {userVenue.website && <span>Web: {userVenue.website}</span>}
-                        {userVenue.capacity && <span>Seats: {userVenue.capacity}</span>}
-                      </div>
-                      {userVenue.description && (
-                        <p className="text-gray-400 text-sm mt-3 italic">"{userVenue.description}"</p>
-                      )}
-                    </div>
+                <div className="flex items-start gap-3 mb-3">
+                  {userVenue.logo && (
+                    <img src={`/api/uploads/serve/${userVenue.logo.replace('/objects/', '')}`} alt="Logo" className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover border border-white/20 flex-shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h1 className="text-2xl sm:text-4xl font-black text-white mb-1 break-words" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                      {userVenue.name}
+                    </h1>
                   </div>
-                  <div className="flex flex-col items-end gap-3">
-                    <div className="text-right">
-                      <div className="text-sm text-gray-400 mb-1">Your Plan</div>
-                      <div className="text-2xl font-black text-cyan-400">
-                        {userVenue.featured ? 'FEATURED' : 'FREE'}
-                      </div>
-                    </div>
-                    <button
-                      onClick={startEditing}
-                      className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white rounded-xl hover:bg-white/20 transition-all text-sm font-bold border border-white/20"
-                    >
-                      <Settings className="w-4 h-4" />
-                      Edit Details
-                    </button>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  <div className="px-3 py-1 bg-cyan-500/20 border border-cyan-500/30 rounded-lg">
+                    <span className="text-xs text-gray-400">Plan: </span>
+                    <span className="text-sm font-black text-cyan-400">{userVenue.featured ? 'FEATURED' : 'FREE'}</span>
                   </div>
+                  <button
+                    onClick={startEditing}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-all text-sm font-bold border border-white/20"
+                  >
+                    <Settings className="w-4 h-4" />
+                    Edit Details
+                  </button>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-gray-400 text-sm"><AddressLink address={userVenue.address} /></p>
+                  {userVenue.city && <p className="text-gray-400 text-sm">{userVenue.city}</p>}
+                  <p className="text-sm text-gray-500">{userVenue.type}</p>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm text-gray-400">
+                    {userVenue.phone && <span>Phone: {userVenue.phone}</span>}
+                    {userVenue.website && <span className="break-all">Web: {userVenue.website}</span>}
+                    {userVenue.capacity && <span>Seats: {userVenue.capacity}</span>}
+                  </div>
+                  {userVenue.description && (
+                    <p className="text-gray-400 text-sm mt-2 italic">"{userVenue.description}"</p>
+                  )}
                 </div>
               </>
             ) : (
