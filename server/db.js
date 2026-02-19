@@ -318,6 +318,103 @@ export async function initDB() {
 
       ALTER TABLE party_messages ADD COLUMN IF NOT EXISTS message_type TEXT DEFAULT 'text';
       ALTER TABLE party_messages ADD COLUMN IF NOT EXISTS fantasy_context JSONB;
+
+      CREATE TABLE IF NOT EXISTS party_reviews (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        party_id UUID REFERENCES parties(id) ON DELETE CASCADE,
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        atmosphere INTEGER CHECK (atmosphere >= 1 AND atmosphere <= 5),
+        food INTEGER CHECK (food >= 1 AND food <= 5),
+        crowd_energy INTEGER CHECK (crowd_energy >= 1 AND crowd_energy <= 5),
+        overall INTEGER CHECK (overall >= 1 AND overall <= 5),
+        comment TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(party_id, user_id)
+      );
+
+      CREATE TABLE IF NOT EXISTS team_chat_rooms (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        sport TEXT NOT NULL,
+        team_name TEXT NOT NULL,
+        team_abbrev TEXT,
+        logo_url TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(sport, team_name)
+      );
+
+      CREATE TABLE IF NOT EXISTS team_chat_messages (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        room_id UUID REFERENCES team_chat_rooms(id) ON DELETE CASCADE,
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        message TEXT NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_team_chat_messages_room ON team_chat_messages(room_id, created_at DESC);
+
+      CREATE TABLE IF NOT EXISTS party_highlights (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        party_id UUID REFERENCES parties(id) ON DELETE CASCADE,
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        recap_text TEXT,
+        photos TEXT[] DEFAULT '{}',
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(party_id)
+      );
+
+      CREATE TABLE IF NOT EXISTS promoted_parties (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        party_id UUID REFERENCES parties(id) ON DELETE CASCADE,
+        venue_id UUID REFERENCES venues(id) ON DELETE SET NULL,
+        tier TEXT DEFAULT 'standard',
+        start_at TIMESTAMPTZ DEFAULT NOW(),
+        end_at TIMESTAMPTZ,
+        stripe_session_id TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS party_tickets (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        party_id UUID REFERENCES parties(id) ON DELETE CASCADE,
+        price_cents INTEGER NOT NULL DEFAULT 0,
+        capacity INTEGER,
+        enabled BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(party_id)
+      );
+
+      CREATE TABLE IF NOT EXISTS ticket_purchases (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        party_id UUID REFERENCES parties(id) ON DELETE CASCADE,
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        amount_cents INTEGER NOT NULL,
+        stripe_payment_intent TEXT,
+        status TEXT DEFAULT 'pending',
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(party_id, user_id)
+      );
+
+      CREATE TABLE IF NOT EXISTS notification_preferences (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE UNIQUE,
+        team_alerts BOOLEAN DEFAULT TRUE,
+        rivalry_alerts BOOLEAN DEFAULT TRUE,
+        suggested_parties BOOLEAN DEFAULT TRUE,
+        game_reminders BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS rivalry_pairs (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        sport TEXT NOT NULL,
+        team_a TEXT NOT NULL,
+        team_b TEXT NOT NULL,
+        intensity TEXT DEFAULT 'high',
+        UNIQUE(sport, team_a, team_b)
+      );
+
+      ALTER TABLE parties ADD COLUMN IF NOT EXISTS ticket_price_cents INTEGER DEFAULT 0;
+      ALTER TABLE parties ADD COLUMN IF NOT EXISTS is_promoted BOOLEAN DEFAULT FALSE;
+      ALTER TABLE parties ADD COLUMN IF NOT EXISTS has_recap BOOLEAN DEFAULT FALSE;
     `);
 
     const adminCheck = await client.query("SELECT id FROM users WHERE email = 'admin@huddleupusa.com'");
