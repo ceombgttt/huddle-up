@@ -240,7 +240,7 @@ const MainSponsorBanner = ({ mainSponsor, onAdvertise }) => {
   return (
     <div
       onClick={() => sponsor.url && sponsor.url !== '#' && window.open(sponsor.url, '_blank')}
-      className={`w-full h-14 relative overflow-hidden ${sponsor.url && sponsor.url !== '#' ? 'cursor-pointer' : ''}`}
+      className={`w-full h-20 relative overflow-hidden ${sponsor.url && sponsor.url !== '#' ? 'cursor-pointer' : ''}`}
     >
       {sponsor.logoUrl ? (
         <img src={sponsor.logoUrl} alt={sponsor.name} className="absolute inset-0 w-full h-full object-cover" />
@@ -248,12 +248,12 @@ const MainSponsorBanner = ({ mainSponsor, onAdvertise }) => {
         <div className="absolute inset-0 bg-gradient-to-r from-blue-800 via-blue-700 to-blue-800" />
       )}
       <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-blue-800/60 to-blue-900/80" />
-      <div className="relative max-w-4xl mx-auto px-4 h-full flex items-center justify-center gap-3">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="text-cyan-200 font-black text-xs sm:text-sm uppercase tracking-wider whitespace-nowrap">MAIN SPONSOR</span>
+      <div className="relative max-w-4xl mx-auto px-6 h-full flex items-center justify-center gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="text-cyan-200 font-black text-sm sm:text-lg uppercase tracking-wider whitespace-nowrap">MAIN SPONSOR</span>
           <span className="text-white/60 hidden sm:inline">—</span>
-          <span className="text-white font-bold text-sm sm:text-base truncate">{sponsor.name}</span>
-          <span className="text-white/70 text-xs sm:text-sm truncate hidden sm:inline">{sponsor.tagline}</span>
+          <span className="text-white font-bold text-base sm:text-xl truncate">{sponsor.name}</span>
+          <span className="text-white/70 text-sm sm:text-base truncate hidden sm:inline">{sponsor.tagline}</span>
         </div>
         {isExample && onAdvertise && (
           <button
@@ -1117,8 +1117,11 @@ const HuddleUpApp = () => {
   const [userCoords, setUserCoords] = useState(null);
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationDetected, setLocationDetected] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false); // Onboarding tutorial
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(0);
+  const [showWelcomePopup, setShowWelcomePopup] = useState(false);
+  const [showQA, setShowQA] = useState(false);
+  const [qaExpandedIndex, setQaExpandedIndex] = useState(null);
   const [myTeamsOnly, setMyTeamsOnly] = useState(false); // Filter by favorite teams
   const [venues, setVenues] = useState(SAMPLE_VENUES);
   const [venueClaims, setVenueClaims] = useState([]);
@@ -1701,7 +1704,8 @@ const HuddleUpApp = () => {
     try {
       const userData = await api.auth.signup(email, password, name, gender, dateOfBirth, rememberMe, referralCode);
       setUser(userData);
-      setShowOnboarding(true);
+      setShowWelcomePopup(true);
+      setShowOnboarding(false);
       setOnboardingStep(0);
       setShowSignupShare(true);
       setCurrentScreen('games');
@@ -2498,6 +2502,168 @@ const HuddleUpApp = () => {
     );
   };
 
+  const WelcomePopup = () => {
+    if (!showWelcomePopup) return null;
+    const features = [
+      { icon: '🏈', title: 'Find Watch Parties', desc: 'Discover parties for NFL, NBA, MLB, NHL, Soccer, and 10+ more sports near you' },
+      { icon: '🎉', title: 'Host Your Own', desc: 'Create watch parties at your favorite venues and invite friends' },
+      { icon: '📊', title: 'Live Scores', desc: 'Get real-time game scores and updates right in the app' },
+      { icon: '👥', title: 'Find Fans', desc: 'Connect with fans of your favorite teams in your area' },
+      { icon: '💬', title: 'Team Chat Rooms', desc: 'Chat with other fans about your teams in dedicated chat rooms' },
+      { icon: '🏆', title: 'Earn Rewards', desc: 'Get points for hosting, attending, and engaging - redeem for prizes' },
+      { icon: '📍', title: 'Discover Venues', desc: 'Find sports bars and venues hosting game day events near you' },
+      { icon: '🔥', title: 'Trending Feed', desc: 'See the hottest parties and most popular venues in your area' },
+    ];
+    const trialEndDate = user?.trialEndsAt ? new Date(user.trialEndsAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : null;
+    return (
+      <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-[70] flex items-center justify-center p-4 overflow-y-auto">
+        <div className="bg-gradient-to-br from-slate-800 via-purple-900/50 to-slate-900 rounded-3xl p-6 sm:p-8 max-w-lg w-full border-2 border-cyan-500/30 shadow-2xl my-4">
+          <div className="text-center mb-6">
+            <div className="text-5xl mb-3">🎉</div>
+            <h2 className="text-3xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>Welcome to Huddle Up!</h2>
+            <p className="text-cyan-300 text-sm font-medium">Find Your Crew. Watch The Game.</p>
+            {trialEndDate && (
+              <div className="mt-3 inline-block px-4 py-1.5 bg-green-500/20 border border-green-500/30 rounded-full">
+                <span className="text-green-300 text-xs font-bold">FREE TRIAL until {trialEndDate}</span>
+              </div>
+            )}
+          </div>
+          <div className="space-y-3 mb-6 max-h-[45vh] overflow-y-auto pr-1">
+            <p className="text-gray-300 text-sm font-medium text-center mb-2">Here's what you can do:</p>
+            {features.map((f, i) => (
+              <div key={i} className="flex items-start gap-3 bg-white/5 rounded-xl p-3 border border-white/10">
+                <span className="text-2xl flex-shrink-0">{f.icon}</span>
+                <div>
+                  <p className="text-white font-bold text-sm">{f.title}</p>
+                  <p className="text-gray-400 text-xs">{f.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <button onClick={() => { setShowWelcomePopup(false); setShowOnboarding(true); setOnboardingStep(0); }} className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-cyan-500/50 transition-all text-lg">
+            Get Started
+          </button>
+          <button onClick={() => setShowWelcomePopup(false)} className="w-full py-2 text-gray-400 hover:text-white text-sm mt-2 transition-colors">
+            Skip Tour
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  const QA_ITEMS = [
+    { q: 'What is Huddle Up?', a: 'Huddle Up is the #1 app for finding and creating sports watch parties. We connect fans with local venues, other fans, and events for 15+ sports leagues including NFL, NBA, MLB, NHL, MLS, Premier League, and more.' },
+    { q: 'Is Huddle Up free to use?', a: 'Yes! All new users get a 6-month free trial with full access to all features. After the trial, the subscription is just $4.99/month to keep all premium features.' },
+    { q: 'How do I create a watch party?', a: 'Tap any game on the schedule, then tap "Create Watch Party." Choose a venue, add details about your party, and invite friends. It\'s that simple!' },
+    { q: 'How do I find parties near me?', a: 'Use the search bar to type your city name, or enable location services and we\'ll show you parties nearby automatically.' },
+    { q: 'What are badges and how do I earn them?', a: 'Badges are achievements you earn by participating! Host parties to earn "Party Starter," attend 5+ to get "Social Butterfly," leave reviews for "Critic," and more. Your fan score goes up with every activity.' },
+    { q: 'How do rewards and points work?', a: 'You earn points for creating parties (50 pts), attending (25 pts), inviting friends (100 pts), and checking in at venues (75 pts). Redeem points for rewards like free drinks, merch discounts, and VIP status.' },
+    { q: 'Can I claim my venue on Huddle Up?', a: 'Yes! If you own or manage a venue, you can claim it on the platform. This lets you manage your venue\'s profile, upload photos, and see which parties are happening at your location.' },
+    { q: 'How do Team Chat Rooms work?', a: 'Team Chat Rooms let you chat with other fans of your favorite team. Find or create a room for any team, and start talking game day strategy, trash talk, and more!' },
+    { q: 'What sports does Huddle Up cover?', a: 'We cover NFL, NBA, MLB, NHL, MLS, NWSL, Premier League, La Liga, Serie A, Champions League, College Football, College Basketball, WNBA, UFC, Boxing, and more!' },
+    { q: 'How do I become a sponsor?', a: 'Huddle Up offers sponsorship opportunities for businesses. Visit the Sponsor section in the app or contact us at sponsor@huddleupusa.com for partnership details.' },
+  ];
+
+  const QAScreen = () => (
+    <div className="min-h-screen pt-20 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
+      <div className="sticky top-20 z-30 bg-slate-900/95 backdrop-blur-md border-b border-white/10 px-4 py-3">
+        <div className="flex items-center gap-3">
+          <button onClick={() => setShowQA(false)} className="text-gray-400 hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
+          <Shield className="w-6 h-6 text-cyan-400" />
+          <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>Q & A</h2>
+        </div>
+      </div>
+      <div className="p-4 max-w-2xl mx-auto space-y-3">
+        <p className="text-gray-400 text-sm mb-4">Frequently asked questions about Huddle Up</p>
+        {QA_ITEMS.map((item, i) => (
+          <div key={i} className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+            <button onClick={() => setQaExpandedIndex(qaExpandedIndex === i ? null : i)} className="w-full flex items-center justify-between p-4 text-left">
+              <span className="text-white font-medium text-sm pr-4">{item.q}</span>
+              <ChevronDown className={`w-5 h-5 text-gray-400 flex-shrink-0 transition-transform ${qaExpandedIndex === i ? 'rotate-180' : ''}`} />
+            </button>
+            {qaExpandedIndex === i && (
+              <div className="px-4 pb-4 text-gray-300 text-sm leading-relaxed border-t border-white/5 pt-3">
+                {item.a}
+              </div>
+            )}
+          </div>
+        ))}
+        <div className="mt-8 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 rounded-xl p-6 text-center">
+          <h3 className="text-white font-bold mb-2">Still have questions?</h3>
+          <p className="text-gray-400 text-sm mb-4">We'd love to hear from you</p>
+          <a href="mailto:support@huddleupusa.com" className="inline-block px-6 py-2 bg-cyan-500 hover:bg-cyan-600 text-white font-bold rounded-lg transition-colors">
+            Email Support
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+
+  const ContactUsScreen = () => (
+    <div className="min-h-screen pt-20 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
+      <div className="sticky top-20 z-30 bg-slate-900/95 backdrop-blur-md border-b border-white/10 px-4 py-3">
+        <div className="flex items-center gap-3">
+          <button onClick={() => setCurrentScreen('profile')} className="text-gray-400 hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
+          <Send className="w-6 h-6 text-cyan-400" />
+          <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>CONTACT US</h2>
+        </div>
+      </div>
+      <div className="p-4 max-w-2xl mx-auto space-y-4">
+        <div className="bg-gradient-to-br from-orange-500/10 to-amber-500/10 border border-orange-500/20 rounded-xl p-6">
+          <div className="flex items-center gap-3 mb-3">
+            <Megaphone className="w-8 h-8 text-orange-400" />
+            <div>
+              <h3 className="text-white font-bold text-lg">Partnerships & Sponsorships</h3>
+              <p className="text-gray-400 text-sm">Get your brand in front of millions of sports fans</p>
+            </div>
+          </div>
+          <p className="text-gray-300 text-sm mb-4">Interested in sponsoring Huddle Up? We offer main sponsor placement, per-sport banner ads, and custom sponsorship packages.</p>
+          <a href="mailto:sponsor@huddleupusa.com" className="inline-block px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-lg transition-colors">
+            sponsor@huddleupusa.com
+          </a>
+        </div>
+        <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-xl p-6">
+          <div className="flex items-center gap-3 mb-3">
+            <Calendar className="w-8 h-8 text-purple-400" />
+            <div>
+              <h3 className="text-white font-bold text-lg">Special Events</h3>
+              <p className="text-gray-400 text-sm">Host a major event on Huddle Up</p>
+            </div>
+          </div>
+          <p className="text-gray-300 text-sm mb-4">Planning a Super Bowl party, championship viewing, or large-scale sports event? We can help promote and manage your event.</p>
+          <a href="mailto:events@huddleupusa.com" className="inline-block px-6 py-2 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-lg transition-colors">
+            events@huddleupusa.com
+          </a>
+        </div>
+        <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 rounded-xl p-6">
+          <div className="flex items-center gap-3 mb-3">
+            <Building2 className="w-8 h-8 text-cyan-400" />
+            <div>
+              <h3 className="text-white font-bold text-lg">Venue Partnerships</h3>
+              <p className="text-gray-400 text-sm">List your venue on Huddle Up</p>
+            </div>
+          </div>
+          <p className="text-gray-300 text-sm mb-4">Own a sports bar or restaurant? Claim your venue to get featured placement, manage your profile, and attract more fans on game day.</p>
+          <a href="mailto:venues@huddleupusa.com" className="inline-block px-6 py-2 bg-cyan-500 hover:bg-cyan-600 text-white font-bold rounded-lg transition-colors">
+            venues@huddleupusa.com
+          </a>
+        </div>
+        <div className="bg-white/5 border border-white/10 rounded-xl p-6">
+          <div className="flex items-center gap-3 mb-3">
+            <MessageCircle className="w-8 h-8 text-gray-400" />
+            <div>
+              <h3 className="text-white font-bold text-lg">General Support</h3>
+              <p className="text-gray-400 text-sm">Questions, feedback, or need help?</p>
+            </div>
+          </div>
+          <a href="mailto:support@huddleupusa.com" className="inline-block px-6 py-2 bg-white/10 hover:bg-white/20 text-white font-bold rounded-lg transition-colors border border-white/20">
+            support@huddleupusa.com
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+
   // FEATURE 4: EMPTY PARTY STATE - When no parties exist for a game
   const EmptyPartyState = ({ gameName, onCreateParty }) => (
     <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-2 border-purple-500/30 rounded-2xl p-8 text-center">
@@ -2991,8 +3157,8 @@ const HuddleUpApp = () => {
   );
 
   const gamesScreenJSX = () => (
-    <div className="min-h-screen pt-14 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <div className="sticky top-14 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+    <div className="min-h-screen pt-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <div className="sticky top-20 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3 mb-4">
             <div className="flex-shrink-0">
@@ -3076,6 +3242,13 @@ const HuddleUpApp = () => {
               >
                 <Zap className="w-5 h-5 text-pink-300" />
                 <span className="text-[9px] text-pink-300 mt-0.5 leading-none">Trending</span>
+              </button>
+              <button
+                onClick={() => setShowQA(true)}
+                className="flex flex-col items-center px-2 py-1.5 bg-indigo-500/20 rounded-xl hover:bg-indigo-500/30 transition-colors border border-indigo-500/30"
+              >
+                <Shield className="w-5 h-5 text-indigo-300" />
+                <span className="text-[9px] text-indigo-300 mt-0.5 leading-none">Q&A</span>
               </button>
               <button
                 onClick={() => setCurrentScreen('invitations')}
@@ -3451,8 +3624,8 @@ const HuddleUpApp = () => {
     const gameParties = getPartiesForGame(selectedGame.id);
 
     return (
-      <div className="min-h-screen pt-14 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="sticky top-14 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+      <div className="min-h-screen pt-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="sticky top-20 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 py-4">
             <button
               onClick={() => setCurrentScreen('games')}
@@ -4103,8 +4276,8 @@ const HuddleUpApp = () => {
   };
 
   const claimVenueScreenJSX = () => (
-      <div className="min-h-screen pt-14 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="sticky top-14 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+      <div className="min-h-screen pt-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="sticky top-20 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 py-4">
             <button
               onClick={() => setCurrentScreen('createParty')}
@@ -4393,8 +4566,8 @@ const HuddleUpApp = () => {
     const a = analyticsData;
 
     return (
-      <div className="min-h-screen pt-14 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="sticky top-14 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+      <div className="min-h-screen pt-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="sticky top-20 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-7xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <h1 className="text-3xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
@@ -5573,8 +5746,8 @@ const HuddleUpApp = () => {
   };
 
   const createPartyScreenJSX = () => selectedGame ? (
-      <div className="min-h-screen pt-14 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="sticky top-14 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+      <div className="min-h-screen pt-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="sticky top-20 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 py-4">
             <button
               onClick={() => setCurrentScreen('gameDetail')}
@@ -5887,7 +6060,7 @@ const HuddleUpApp = () => {
 
     if (!userVenue) {
       return (
-        <div className="min-h-screen pt-14 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+        <div className="min-h-screen pt-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
           <div className="text-center">
             <Building2 className="w-16 h-16 text-gray-600 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-white mb-2">No Venue Found</h2>
@@ -5926,8 +6099,8 @@ const HuddleUpApp = () => {
       .slice(0, 5);
 
     return (
-      <div className="min-h-screen pt-14 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="sticky top-14 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+      <div className="min-h-screen pt-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="sticky top-20 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-6xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <button
@@ -6423,8 +6596,8 @@ const HuddleUpApp = () => {
     };
 
     return (
-      <div className="min-h-screen pt-14 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="sticky top-14 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+      <div className="min-h-screen pt-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="sticky top-20 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 py-4">
             <button
               onClick={() => setCurrentScreen('games')}
@@ -6639,14 +6812,14 @@ const HuddleUpApp = () => {
     };
 
     if (loading) return (
-      <div className="min-h-screen pt-14 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen pt-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-orange-400" />
       </div>
     );
 
     return (
-      <div className="min-h-screen pt-14 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="sticky top-14 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+      <div className="min-h-screen pt-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="sticky top-20 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 py-4">
             <button onClick={() => setCurrentScreen('profile')} className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
               <ArrowLeft className="w-5 h-5" /> Back to Profile
@@ -6762,8 +6935,8 @@ const HuddleUpApp = () => {
     const joinedParties = myParties.filter(party => party.hostEmail !== user.email);
 
     return (
-      <div className="min-h-screen pt-14 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="sticky top-14 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+      <div className="min-h-screen pt-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="sticky top-20 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <button
@@ -7242,6 +7415,54 @@ const HuddleUpApp = () => {
             </div>
           </div>
 
+          {user?.subscriptionStatus && (
+            <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-white/10 shadow-xl">
+              <h3 className="text-lg font-bold text-white mb-3">Subscription</h3>
+              {user.subscriptionStatus === 'trial' && user.trialEndsAt && (
+                <div className="flex items-center gap-3 p-3 bg-green-500/10 border border-green-500/20 rounded-xl">
+                  <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center"><Crown className="w-5 h-5 text-green-400" /></div>
+                  <div>
+                    <p className="text-green-300 font-bold text-sm">Free Trial Active</p>
+                    <p className="text-gray-400 text-xs">Expires {new Date(user.trialEndsAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                  </div>
+                </div>
+              )}
+              {user.subscriptionStatus === 'active' && (
+                <div className="flex items-center gap-3 p-3 bg-cyan-500/10 border border-cyan-500/20 rounded-xl">
+                  <div className="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center"><Crown className="w-5 h-5 text-cyan-400" /></div>
+                  <div>
+                    <p className="text-cyan-300 font-bold text-sm">Premium Member</p>
+                    <p className="text-gray-400 text-xs">$4.99/month - Full access to all features</p>
+                  </div>
+                </div>
+              )}
+              {user.subscriptionStatus === 'expired' && (
+                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+                  <p className="text-red-300 font-bold text-sm mb-1">Trial Expired</p>
+                  <p className="text-gray-400 text-xs mb-3">Subscribe for $4.99/month to unlock all premium features</p>
+                  <button onClick={() => setCurrentScreen('subscription')} className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-lg text-sm">
+                    Subscribe Now - $4.99/mo
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-white/10 shadow-xl space-y-3">
+            <h3 className="text-lg font-bold text-white mb-1">Help & Info</h3>
+            <button onClick={() => setShowQA(true)} className="w-full flex items-center gap-3 p-3 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 rounded-xl transition-colors text-left">
+              <Shield className="w-5 h-5 text-indigo-400" />
+              <span className="text-white font-medium text-sm">Q & A</span>
+              <ChevronRight className="w-4 h-4 text-gray-500 ml-auto" />
+            </button>
+            <button onClick={() => setCurrentScreen('contactUs')} className="w-full flex items-center gap-3 p-3 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 rounded-xl transition-colors text-left">
+              <Send className="w-5 h-5 text-orange-400" />
+              <span className="text-white font-medium text-sm">Contact Us</span>
+              <span className="text-gray-500 text-xs ml-1">Partnerships, Sponsorships, Events</span>
+              <ChevronRight className="w-4 h-4 text-gray-500 ml-auto" />
+            </button>
+          </div>
+
         </div>
       </div>
     );
@@ -7252,8 +7473,8 @@ const HuddleUpApp = () => {
   );
 
   const renderFanFinderScreen = () => (
-      <div className="min-h-screen pt-14 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="sticky top-14 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+      <div className="min-h-screen pt-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="sticky top-20 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 py-4">
             <div className="flex items-center gap-3">
               <button type="button" onClick={() => setCurrentScreen('games')} className="p-2 bg-white/10 rounded-xl hover:bg-white/20 active:bg-white/30 cursor-pointer">
@@ -7442,8 +7663,8 @@ const HuddleUpApp = () => {
     ];
 
     return (
-      <div className="min-h-screen pt-14 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="sticky top-14 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+      <div className="min-h-screen pt-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="sticky top-20 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 py-4">
             <div className="flex items-center gap-3">
               <button onClick={() => setCurrentScreen('games')} className="p-2 bg-white/10 rounded-xl hover:bg-white/20">
@@ -7655,8 +7876,8 @@ const HuddleUpApp = () => {
   const InvitationsScreen = () => {
     const unreadNotifications = notifications.filter(n => !n.isRead);
     return (
-    <div className="min-h-screen pt-14 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <div className="sticky top-14 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+    <div className="min-h-screen pt-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <div className="sticky top-20 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
             <button onClick={() => setCurrentScreen('games')} className="p-2 bg-white/10 rounded-xl hover:bg-white/20">
@@ -7847,7 +8068,7 @@ const HuddleUpApp = () => {
     };
 
     return (
-      <div className="min-h-screen pt-14 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+      <div className="min-h-screen pt-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
         <div className="max-w-md w-full">
           {checkinStatus === 'loading' && (
             <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl border border-white/10 p-8 text-center">
@@ -8054,8 +8275,8 @@ const HuddleUpApp = () => {
 
     if (teamChatSelectedRoom) {
       return (
-        <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 pt-14">
-          <div className="sticky top-14 z-30 bg-slate-900/95 backdrop-blur-md border-b border-white/10 px-4 py-3">
+        <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 pt-20">
+          <div className="sticky top-20 z-30 bg-slate-900/95 backdrop-blur-md border-b border-white/10 px-4 py-3">
             <div className="flex items-center gap-3">
               <button onClick={() => { setTeamChatSelectedRoom(null); setTeamChatMessages([]); }} className="text-gray-400 hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
               {teamChatSelectedRoom.logoUrl && <img src={teamChatSelectedRoom.logoUrl} className="w-8 h-8 rounded-full" alt="" />}
@@ -8103,8 +8324,8 @@ const HuddleUpApp = () => {
     }, {});
 
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 pt-14">
-        <div className="sticky top-14 z-30 bg-slate-900/95 backdrop-blur-md border-b border-white/10 px-4 py-3">
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 pt-20">
+        <div className="sticky top-20 z-30 bg-slate-900/95 backdrop-blur-md border-b border-white/10 px-4 py-3">
           <div className="flex items-center gap-3">
             <button onClick={() => setCurrentScreen('games')} className="text-gray-400 hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
             <MessageCircle className="w-6 h-6 text-teal-400" />
@@ -8167,8 +8388,8 @@ const HuddleUpApp = () => {
     }
 
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 pt-14">
-        <div className="sticky top-14 z-30 bg-slate-900/95 backdrop-blur-md border-b border-white/10 px-4 py-3">
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 pt-20">
+        <div className="sticky top-20 z-30 bg-slate-900/95 backdrop-blur-md border-b border-white/10 px-4 py-3">
           <div className="flex items-center gap-3">
             <button onClick={() => setCurrentScreen('games')} className="text-gray-400 hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
             <Zap className="w-6 h-6 text-pink-400" />
@@ -8244,8 +8465,8 @@ const HuddleUpApp = () => {
     }
     if (!viewingUserProfile) {
       return (
-        <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 pt-14">
-          <div className="sticky top-14 z-30 bg-slate-900/95 backdrop-blur-md border-b border-white/10 px-4 py-3">
+        <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 pt-20">
+          <div className="sticky top-20 z-30 bg-slate-900/95 backdrop-blur-md border-b border-white/10 px-4 py-3">
             <div className="flex items-center gap-3">
               <button onClick={() => { setCurrentScreen('games'); setViewingUserId(null); setViewingUserProfile(null); }} className="text-gray-400 hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
               <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>FAN PROFILE</h2>
@@ -8257,8 +8478,8 @@ const HuddleUpApp = () => {
     }
     const p = viewingUserProfile;
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 pt-14">
-        <div className="sticky top-14 z-30 bg-slate-900/95 backdrop-blur-md border-b border-white/10 px-4 py-3">
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 pt-20">
+        <div className="sticky top-20 z-30 bg-slate-900/95 backdrop-blur-md border-b border-white/10 px-4 py-3">
           <div className="flex items-center gap-3">
             <button onClick={() => { setCurrentScreen('games'); setViewingUserId(null); setViewingUserProfile(null); }} className="text-gray-400 hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
             <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>FAN PROFILE</h2>
@@ -8331,8 +8552,8 @@ const HuddleUpApp = () => {
     }
 
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 pt-14">
-        <div className="sticky top-14 z-30 bg-slate-900/95 backdrop-blur-md border-b border-white/10 px-4 py-3">
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 pt-20">
+        <div className="sticky top-20 z-30 bg-slate-900/95 backdrop-blur-md border-b border-white/10 px-4 py-3">
           <div className="flex items-center gap-3">
             <button onClick={() => setCurrentScreen('games')} className="text-gray-400 hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
             <Bell className="w-6 h-6 text-amber-400" />
@@ -8413,8 +8634,8 @@ const HuddleUpApp = () => {
     }
 
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 pt-14">
-        <div className="sticky top-14 z-30 bg-slate-900/95 backdrop-blur-md border-b border-white/10 px-4 py-3">
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 pt-20">
+        <div className="sticky top-20 z-30 bg-slate-900/95 backdrop-blur-md border-b border-white/10 px-4 py-3">
           <div className="flex items-center gap-3">
             <button onClick={() => setCurrentScreen('games')} className="text-gray-400 hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
             <Award className="w-6 h-6 text-purple-400" />
@@ -8457,8 +8678,8 @@ const HuddleUpApp = () => {
 
     if (fantasySelectedLeague) {
       return (
-        <div className="min-h-screen pt-14 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative z-0">
-          <div className="sticky top-14 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+        <div className="min-h-screen pt-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative z-0">
+          <div className="sticky top-20 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
             <div className="max-w-4xl mx-auto px-4 py-4">
               <div className="flex items-center gap-3">
                 <button onClick={() => setFantasySelectedLeague(null)} className="p-2 bg-white/10 rounded-xl hover:bg-white/20 active:bg-white/30 cursor-pointer" type="button">
@@ -8661,8 +8882,8 @@ const HuddleUpApp = () => {
     }
 
     return (
-      <div className="min-h-screen pt-14 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative z-0">
-        <div className="sticky top-14 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+      <div className="min-h-screen pt-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative z-0">
+        <div className="sticky top-20 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 py-4">
             <div className="flex items-center gap-3">
               <button onClick={() => setCurrentScreen('games')} className="p-2 bg-white/10 rounded-xl hover:bg-white/20 active:bg-white/30 cursor-pointer" type="button">
@@ -8898,8 +9119,8 @@ const HuddleUpApp = () => {
   };
 
   const renderMyCrewScreen = () => (
-      <div className="min-h-screen pt-14 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative z-0">
-        <div className="sticky top-14 z-30 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+      <div className="min-h-screen pt-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative z-0">
+        <div className="sticky top-20 z-30 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 py-4">
             <div className="flex items-center gap-3">
               <button onClick={() => setCurrentScreen('games')} className="p-2 bg-white/10 rounded-xl hover:bg-white/20 active:bg-white/30 cursor-pointer" type="button">
@@ -9184,6 +9405,21 @@ const HuddleUpApp = () => {
       {currentScreen === 'userProfile' && renderUserProfileScreen()}
       {currentScreen === 'alerts' && renderAlertsScreen()}
       {currentScreen === 'myTickets' && renderMyTicketsScreen()}
+      {currentScreen === 'contactUs' && <ContactUsScreen />}
+
+      {showQA && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setShowQA(false); }}>
+          <div className="bg-slate-900 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-white/10 overscroll-contain" onMouseDown={e => e.stopPropagation()}>
+            <div className="sticky top-0 bg-slate-900 p-4 border-b border-white/10 flex items-center justify-between z-10">
+              <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>Q & A</h2>
+              <button onClick={() => setShowQA(false)} className="text-gray-400 hover:text-white"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="p-4">
+              <QAScreen />
+            </div>
+          </div>
+        </div>
+      )}
 
       {editPartyModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setEditPartyModal(null); }}>

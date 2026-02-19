@@ -222,14 +222,14 @@ router.post('/sync-subscription', requireAuth, async (req, res) => {
       const metadata = typeof sub.metadata === 'string' ? JSON.parse(sub.metadata) : sub.metadata || {};
       const tier = metadata.tier || 'fan';
       await pool.query(
-        'UPDATE users SET stripe_subscription_id = $1, subscription_tier = $2 WHERE id = $3',
-        [sub.id, tier, userId]
+        'UPDATE users SET stripe_subscription_id = $1, subscription_tier = $2, subscription_status = $3 WHERE id = $4',
+        [sub.id, tier, 'active', userId]
       );
-      return res.json({ tier, subscriptionId: sub.id });
+      return res.json({ tier, subscriptionId: sub.id, status: 'active' });
     }
 
     await pool.query(
-      "UPDATE users SET stripe_subscription_id = NULL, subscription_tier = 'free' WHERE id = $1",
+      "UPDATE users SET stripe_subscription_id = NULL, subscription_tier = 'free', subscription_status = CASE WHEN trial_ends_at > NOW() THEN 'trial' ELSE 'expired' END WHERE id = $1",
       [userId]
     );
     res.json({ tier: 'free' });

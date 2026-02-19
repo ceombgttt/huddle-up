@@ -35,7 +35,9 @@ router.post('/signup', async (req, res) => {
 
     const passwordHash = await bcrypt.hash(password, 10);
     const result = await pool.query(
-      'INSERT INTO users (email, password_hash, name, gender, date_of_birth, referred_by) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, email, name, gender, country, profile_picture, date_of_birth, is_admin, joined_at, notifications_enabled, phone_number, user_city, sms_notifications',
+      `INSERT INTO users (email, password_hash, name, gender, date_of_birth, referred_by, subscription_tier, subscription_status, trial_ends_at) 
+       VALUES ($1, $2, $3, $4, $5, $6, 'free', 'trial', NOW() + INTERVAL '6 months') 
+       RETURNING id, email, name, gender, country, profile_picture, date_of_birth, is_admin, joined_at, notifications_enabled, phone_number, user_city, sms_notifications, subscription_tier, subscription_status, trial_ends_at`,
       [email, passwordHash, name, gender, dateOfBirth, validReferral]
     );
 
@@ -203,11 +205,19 @@ router.get('/me', async (req, res) => {
     return res.json(null);
   }
   try {
-    const result = await pool.query('SELECT id, email, name, gender, country, profile_picture, date_of_birth, is_admin, joined_at, notifications_enabled, phone_number, user_city, sms_notifications FROM users WHERE id = $1', [req.session.userId]);
+    const result = await pool.query('SELECT id, email, name, gender, country, profile_picture, date_of_birth, is_admin, joined_at, notifications_enabled, phone_number, user_city, sms_notifications, subscription_tier, subscription_status, trial_ends_at FROM users WHERE id = $1', [req.session.userId]);
     if (result.rows.length === 0) {
       return res.json(null);
     }
     const user = result.rows[0];
+
+    const trialEndsAt = user.trial_ends_at ? new Date(user.trial_ends_at) : null;
+    const now = new Date();
+    let subscriptionStatus = user.subscription_status || 'trial';
+    if (subscriptionStatus === 'trial' && trialEndsAt && trialEndsAt < now) {
+      subscriptionStatus = 'expired';
+      await pool.query('UPDATE users SET subscription_status = $1 WHERE id = $2', ['expired', user.id]);
+    }
 
     const favResult = await pool.query('SELECT sport, team FROM user_favorite_teams WHERE user_id = $1', [user.id]);
     const favoriteTeams = {};
@@ -227,7 +237,10 @@ router.get('/me', async (req, res) => {
       phoneNumber: user.phone_number,
       userCity: user.user_city,
       smsNotifications: user.sms_notifications,
-      favoriteTeams
+      favoriteTeams,
+      subscriptionTier: user.subscription_tier || 'free',
+      subscriptionStatus: subscriptionStatus,
+      trialEndsAt: user.trial_ends_at
     });
   } catch (error) {
     console.error('Auth me error:', error);
