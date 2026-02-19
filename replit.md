@@ -23,6 +23,9 @@ Users earn points for engagement: creating parties (50 pts), attending parties (
 ## Main Sponsor (Top Banner)
 The Main Sponsor is the most premium placement - a fixed orange/amber banner at the very top of all pages (above navigation) for logged-in users. Shows sponsor logo (w-10 h-10), name, tagline, and "MAIN SPONSOR" label. Only one Main Sponsor at a time across the entire platform. When no real main sponsor is active, a demo example (Victory Sports Drink) is shown with an "Advertise" button. The MainSponsorBanner component is defined at the top level and rendered via fixed positioning (z-60). Banner height is h-14 (56px). All screen containers have pt-14 and sticky headers use top-14 to account for the banner height. Demo logo: public/demo-sponsors/victory-sports-main.png.
 
+## Fantasy League Integration
+Manual fantasy league tracking system integrated into the platform. Users can create and join fantasy leagues for any sport (NFL, NBA, MLB, NHL, Soccer) across platforms (ESPN, Yahoo, Sleeper, Other). Features include: league creation with auto-generated invite codes, team management, player roster tracking (name, position, NFL team, starter status), standings/leaderboard with W-L records and points, commissioner controls (delete league), and party integration via party_fantasy_links table. Chat includes "Trash Talk" mode (message_type='fantasy') with special orange/red gradient styling and trophy icon toggle. Fantasy Hub accessible via orange Trophy button in main nav bar. Tables: fantasy_leagues, fantasy_teams, fantasy_players, party_fantasy_links. Routes at /api/fantasy/*. Frontend: renderFantasyScreen function in App.jsx. Platform badge colors: ESPN=red, Yahoo=purple, Sleeper=green, Other=gray. Access control enforces league membership for viewing details.
+
 ## External Dependencies
 - **PostgreSQL**: Primary database for all application data.
 - **Express**: Backend web framework.

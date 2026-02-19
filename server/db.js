@@ -270,6 +270,54 @@ export async function initDB() {
         last_rotated_at TIMESTAMPTZ DEFAULT NOW()
       );
       CREATE INDEX IF NOT EXISTS idx_venue_qr_token ON venue_qr_codes(token) WHERE active = TRUE;
+
+      CREATE TABLE IF NOT EXISTS fantasy_leagues (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name TEXT NOT NULL,
+        platform TEXT NOT NULL DEFAULT 'espn',
+        sport TEXT NOT NULL DEFAULT 'NFL',
+        season TEXT,
+        commissioner_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        invite_code TEXT UNIQUE DEFAULT substr(md5(random()::text), 1, 8),
+        settings JSONB DEFAULT '{}',
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS fantasy_teams (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        league_id UUID REFERENCES fantasy_leagues(id) ON DELETE CASCADE,
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        team_name TEXT NOT NULL,
+        wins INTEGER DEFAULT 0,
+        losses INTEGER DEFAULT 0,
+        points NUMERIC(10,2) DEFAULT 0,
+        rank INTEGER,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(league_id, user_id)
+      );
+
+      CREATE TABLE IF NOT EXISTS fantasy_players (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        team_id UUID REFERENCES fantasy_teams(id) ON DELETE CASCADE,
+        player_name TEXT NOT NULL,
+        position TEXT,
+        nfl_team TEXT,
+        points NUMERIC(10,2) DEFAULT 0,
+        is_starter BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS party_fantasy_links (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        party_id UUID REFERENCES parties(id) ON DELETE CASCADE,
+        league_id UUID REFERENCES fantasy_leagues(id) ON DELETE CASCADE,
+        linked_by UUID REFERENCES users(id) ON DELETE CASCADE,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(party_id, league_id)
+      );
+
+      ALTER TABLE party_messages ADD COLUMN IF NOT EXISTS message_type TEXT DEFAULT 'text';
+      ALTER TABLE party_messages ADD COLUMN IF NOT EXISTS fantasy_context JSONB;
     `);
 
     const adminCheck = await client.query("SELECT id FROM users WHERE email = 'admin@huddleupusa.com'");

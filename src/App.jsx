@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, Megaphone, MessageCircle, Gift, Award, Clock, Zap } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, Megaphone, MessageCircle, Gift, Award, Clock, Zap, Crown, Copy, Shield, ChevronRight } from 'lucide-react';
 import { api } from './api.js';
 
 // Sample games data for different sports
@@ -1195,6 +1195,7 @@ const HuddleUpApp = () => {
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
   const [chatSending, setChatSending] = useState(false);
+  const [chatTrashTalk, setChatTrashTalk] = useState(false);
   const chatEndRef = useRef(null);
   const chatPollRef = useRef(null);
   const [openPhotoPartyId, setOpenPhotoPartyId] = useState(null);
@@ -1211,6 +1212,18 @@ const HuddleUpApp = () => {
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [tagMenuPhotoId, setTagMenuPhotoId] = useState(null);
   const photoInputRef = useRef(null);
+
+  const [fantasyLeagues, setFantasyLeagues] = useState([]);
+  const [fantasySelectedLeague, setFantasySelectedLeague] = useState(null);
+  const [fantasyTab, setFantasyTab] = useState('leagues');
+  const [showCreateLeague, setShowCreateLeague] = useState(false);
+  const [showJoinLeague, setShowJoinLeague] = useState(false);
+  const [fantasyNewLeague, setFantasyNewLeague] = useState({ name: '', platform: 'espn', sport: 'NFL', season: '2025-26', teamName: '' });
+  const [fantasyJoinCode, setFantasyJoinCode] = useState('');
+  const [fantasyJoinTeamName, setFantasyJoinTeamName] = useState('');
+  const [fantasyAddPlayerForm, setFantasyAddPlayerForm] = useState({ playerName: '', position: 'QB', nflTeam: '', isStarter: true });
+  const [showAddPlayer, setShowAddPlayer] = useState(false);
+  const [fantasyLoading, setFantasyLoading] = useState(false);
 
   const shareApp = async () => {
     const shareUrl = window.location.origin;
@@ -1365,6 +1378,9 @@ const HuddleUpApp = () => {
     }
     if (currentScreen === 'rewards' && user) {
       loadRewards();
+    }
+    if (currentScreen === 'fantasy' && user) {
+      loadFantasyLeagues();
     }
   }, [currentScreen, user?.isAdmin, loadSponsors]);
 
@@ -1852,6 +1868,100 @@ const HuddleUpApp = () => {
     }
   };
 
+  const loadFantasyLeagues = async () => {
+    if (!user) return;
+    try {
+      const leagues = await api.fantasy.leagues();
+      setFantasyLeagues(leagues);
+    } catch (e) {
+      console.log('Fantasy load error:', e);
+    }
+  };
+
+  const loadFantasyLeague = async (id) => {
+    try {
+      setFantasyLoading(true);
+      const league = await api.fantasy.getLeague(id);
+      setFantasySelectedLeague(league);
+    } catch (e) {
+      alert(e.message || 'Failed to load league');
+    } finally {
+      setFantasyLoading(false);
+    }
+  };
+
+  const handleCreateFantasyLeague = async () => {
+    if (!fantasyNewLeague.name || !fantasyNewLeague.teamName) {
+      alert('Please enter a league name and your team name');
+      return;
+    }
+    try {
+      setFantasyLoading(true);
+      await api.fantasy.createLeague(fantasyNewLeague);
+      setShowCreateLeague(false);
+      setFantasyNewLeague({ name: '', platform: 'espn', sport: 'NFL', season: '2025-26', teamName: '' });
+      await loadFantasyLeagues();
+    } catch (e) {
+      alert(e.message || 'Failed to create league');
+    } finally {
+      setFantasyLoading(false);
+    }
+  };
+
+  const handleJoinFantasyByCode = async () => {
+    if (!fantasyJoinCode || !fantasyJoinTeamName) {
+      alert('Please enter an invite code and your team name');
+      return;
+    }
+    try {
+      setFantasyLoading(true);
+      await api.fantasy.joinByCode({ inviteCode: fantasyJoinCode, teamName: fantasyJoinTeamName });
+      setShowJoinLeague(false);
+      setFantasyJoinCode('');
+      setFantasyJoinTeamName('');
+      await loadFantasyLeagues();
+    } catch (e) {
+      alert(e.message || 'Failed to join league');
+    } finally {
+      setFantasyLoading(false);
+    }
+  };
+
+  const handleAddFantasyPlayer = async (teamId) => {
+    if (!fantasyAddPlayerForm.playerName) {
+      alert('Player name is required');
+      return;
+    }
+    try {
+      await api.fantasy.addPlayer(teamId, fantasyAddPlayerForm);
+      setFantasyAddPlayerForm({ playerName: '', position: 'QB', nflTeam: '', isStarter: true });
+      setShowAddPlayer(false);
+      if (fantasySelectedLeague) await loadFantasyLeague(fantasySelectedLeague.id);
+    } catch (e) {
+      alert(e.message || 'Failed to add player');
+    }
+  };
+
+  const handleRemoveFantasyPlayer = async (playerId) => {
+    try {
+      await api.fantasy.removePlayer(playerId);
+      if (fantasySelectedLeague) await loadFantasyLeague(fantasySelectedLeague.id);
+    } catch (e) {
+      alert(e.message || 'Failed to remove player');
+    }
+  };
+
+  const handleDeleteFantasyLeague = async (leagueId) => {
+    if (!confirm('Delete this fantasy league? This cannot be undone.')) return;
+    try {
+      await api.fantasy.deleteLeague(leagueId);
+      setFantasySelectedLeague(null);
+      await loadFantasyLeagues();
+    } catch (e) {
+      alert(e.message || 'Failed to delete league');
+    }
+  };
+
   const sendFriendRequest = async (userId) => {
     try {
       await api.friends.sendRequest(userId);
@@ -2090,9 +2200,10 @@ const HuddleUpApp = () => {
     if (!chatInput.trim() || chatSending) return;
     setChatSending(true);
     try {
-      const msg = await api.chat.sendMessage(partyId, chatInput.trim());
+      const msg = await api.chat.sendMessage(partyId, chatInput.trim(), chatTrashTalk ? 'fantasy' : 'text');
       setChatMessages(prev => [...prev, msg]);
       setChatInput('');
+      setChatTrashTalk(false);
       setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
     } catch (e) {
       alert(e.message);
@@ -2945,6 +3056,13 @@ const HuddleUpApp = () => {
               >
                 <UserPlus className="w-5 h-5 text-blue-300" />
                 <span className="text-[9px] text-blue-300 mt-0.5 leading-none">Find Fans</span>
+              </button>
+              <button
+                onClick={() => setCurrentScreen('fantasy')}
+                className="flex flex-col items-center px-2 py-1.5 bg-orange-500/20 rounded-xl hover:bg-orange-500/30 transition-colors border border-orange-500/30"
+              >
+                <Trophy className="w-5 h-5 text-orange-300" />
+                <span className="text-[9px] text-orange-300 mt-0.5 leading-none">Fantasy</span>
               </button>
               <button
                 onClick={() => setCurrentScreen('invitations')}
@@ -3859,6 +3977,7 @@ const HuddleUpApp = () => {
                                 ) : (
                                   chatMessages.map((msg) => {
                                     const isMe = msg.user_id === user.id;
+                                    const isFantasy = msg.message_type === 'fantasy';
                                     return (
                                       <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                                         <div className={`max-w-[80%] ${isMe ? 'order-2' : ''}`}>
@@ -3868,10 +3987,17 @@ const HuddleUpApp = () => {
                                               <span className="text-xs text-gray-400 font-medium">{msg.user_name}</span>
                                             </div>
                                           )}
+                                          {isFantasy && (
+                                            <div className="flex items-center gap-1 mb-0.5">
+                                              <span className="text-[10px] font-bold text-orange-400 uppercase tracking-wider">🏈 Trash Talk</span>
+                                            </div>
+                                          )}
                                           <div className={`px-3 py-2 rounded-2xl text-sm ${
-                                            isMe
-                                              ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-br-md'
-                                              : 'bg-white/10 text-gray-200 rounded-bl-md'
+                                            isFantasy
+                                              ? 'bg-gradient-to-r from-orange-500/30 to-red-500/30 text-orange-100 border border-orange-500/40 rounded-br-md'
+                                              : isMe
+                                                ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-br-md'
+                                                : 'bg-white/10 text-gray-200 rounded-bl-md'
                                           }`}>
                                             {msg.message}
                                           </div>
@@ -3885,23 +4011,40 @@ const HuddleUpApp = () => {
                                 )}
                                 <div ref={chatEndRef} />
                               </div>
-                              <div className="p-3 border-t border-white/10 flex gap-2">
-                                <input
-                                  type="text"
-                                  value={chatInput}
-                                  onChange={(e) => setChatInput(e.target.value)}
-                                  onKeyDown={(e) => e.key === 'Enter' && sendChatMessage(party.id)}
-                                  placeholder="Type a message..."
-                                  maxLength={500}
-                                  className="flex-1 bg-white/10 border border-white/20 rounded-full px-4 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-purple-500/50"
-                                />
-                                <button
-                                  onClick={() => sendChatMessage(party.id)}
-                                  disabled={!chatInput.trim() || chatSending}
-                                  className="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-2 rounded-full hover:opacity-90 transition-all disabled:opacity-50"
-                                >
-                                  <Send className="w-4 h-4" />
-                                </button>
+                              <div className="p-3 border-t border-white/10">
+                                {chatTrashTalk && (
+                                  <div className="mb-2 px-2 py-1 bg-orange-500/20 border border-orange-500/30 rounded-lg flex items-center gap-1">
+                                    <span className="text-[10px] text-orange-400 font-bold">🏈 TRASH TALK MODE</span>
+                                    <button onClick={() => setChatTrashTalk(false)} className="ml-auto text-orange-400 hover:text-orange-300">
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                )}
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => setChatTrashTalk(!chatTrashTalk)}
+                                    className={`p-2 rounded-full transition-all ${chatTrashTalk ? 'bg-orange-500 text-white' : 'bg-white/10 text-gray-400 hover:text-orange-400'}`}
+                                    title="Fantasy Trash Talk"
+                                  >
+                                    <Trophy className="w-4 h-4" />
+                                  </button>
+                                  <input
+                                    type="text"
+                                    value={chatInput}
+                                    onChange={(e) => setChatInput(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && sendChatMessage(party.id)}
+                                    placeholder={chatTrashTalk ? "Talk trash about their fantasy team..." : "Type a message..."}
+                                    maxLength={500}
+                                    className={`flex-1 bg-white/10 border rounded-full px-4 py-2 text-white text-sm placeholder-gray-500 focus:outline-none ${chatTrashTalk ? 'border-orange-500/50 focus:border-orange-500' : 'border-white/20 focus:border-purple-500/50'}`}
+                                  />
+                                  <button
+                                    onClick={() => sendChatMessage(party.id)}
+                                    disabled={!chatInput.trim() || chatSending}
+                                    className={`text-white p-2 rounded-full hover:opacity-90 transition-all disabled:opacity-50 ${chatTrashTalk ? 'bg-gradient-to-r from-orange-500 to-red-500' : 'bg-gradient-to-r from-purple-500 to-pink-500'}`}
+                                  >
+                                    <Send className="w-4 h-4" />
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           )}
@@ -7797,6 +7940,395 @@ const HuddleUpApp = () => {
     return Object.entries(friend.favoriteTeams).map(([sport, team]) => getTeamLogoUrl(sport, team)).filter(Boolean);
   };
 
+  const renderFantasyScreen = () => {
+    const platformColors = { espn: 'bg-red-500', yahoo: 'bg-purple-500', sleeper: 'bg-green-500', other: 'bg-gray-500' };
+    const platformLabels = { espn: 'ESPN', yahoo: 'Yahoo', sleeper: 'Sleeper', other: 'Other' };
+
+    const myTeam = fantasySelectedLeague?.teams?.find(t => t.user_id === user?.id);
+
+    if (fantasySelectedLeague) {
+      return (
+        <div className="min-h-screen pt-14 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative z-0">
+          <div className="sticky top-14 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+            <div className="max-w-4xl mx-auto px-4 py-4">
+              <div className="flex items-center gap-3">
+                <button onClick={() => setFantasySelectedLeague(null)} className="p-2 bg-white/10 rounded-xl hover:bg-white/20 active:bg-white/30 cursor-pointer" type="button">
+                  <ArrowLeft className="w-5 h-5 text-white" />
+                </button>
+                <div className="flex-1">
+                  <h1 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                    {fantasySelectedLeague.name}
+                  </h1>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-bold text-white ${platformColors[fantasySelectedLeague.platform] || platformColors.other}`}>
+                      {platformLabels[fantasySelectedLeague.platform] || fantasySelectedLeague.platform}
+                    </span>
+                    <span className="text-xs text-slate-400">{fantasySelectedLeague.sport}</span>
+                    {fantasySelectedLeague.season && <span className="text-xs text-slate-400">• {fantasySelectedLeague.season}</span>}
+                  </div>
+                </div>
+                <img src="/huddle-up-logo-3-transparent.png" alt="Huddle Up" className="w-10 h-10 object-contain" />
+              </div>
+            </div>
+          </div>
+
+          <div className="max-w-4xl mx-auto px-4 py-4 space-y-4">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-cyan-400" />
+                  <span className="text-sm text-slate-300">Invite Code:</span>
+                  <span className="font-mono text-cyan-400 font-bold">{fantasySelectedLeague.invite_code}</span>
+                </div>
+                <button
+                  onClick={() => { navigator.clipboard.writeText(fantasySelectedLeague.invite_code); alert('Invite code copied!'); }}
+                  className="p-2 bg-white/10 rounded-lg hover:bg-white/20 cursor-pointer"
+                  type="button"
+                >
+                  <Copy className="w-4 h-4 text-white" />
+                </button>
+              </div>
+              {fantasySelectedLeague.commissioner_name && (
+                <div className="flex items-center gap-2 mt-2 text-sm text-slate-400">
+                  <Crown className="w-4 h-4 text-amber-400" />
+                  <span>Commissioner: {fantasySelectedLeague.commissioner_name}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+              <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-amber-400" />
+                Standings
+              </h3>
+              {fantasySelectedLeague.teams?.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-slate-400 border-b border-white/10">
+                        <th className="text-left py-2 px-2">#</th>
+                        <th className="text-left py-2 px-2">Team</th>
+                        <th className="text-left py-2 px-2">Owner</th>
+                        <th className="text-center py-2 px-2">W-L</th>
+                        <th className="text-right py-2 px-2">Pts</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {fantasySelectedLeague.teams.map((team, idx) => (
+                        <tr key={team.id} className={`border-b border-white/5 ${team.user_id === user?.id ? 'bg-cyan-500/10' : ''}`}>
+                          <td className="py-2 px-2 text-slate-400 font-bold">{idx + 1}</td>
+                          <td className="py-2 px-2 text-white font-semibold">{team.team_name}</td>
+                          <td className="py-2 px-2 text-slate-300">{team.owner_name || 'Unknown'}</td>
+                          <td className="py-2 px-2 text-center text-slate-300">{team.wins}-{team.losses}</td>
+                          <td className="py-2 px-2 text-right text-amber-400 font-bold">{Number(team.points || 0).toFixed(1)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-slate-400 text-sm text-center py-4">No teams yet</p>
+              )}
+            </div>
+
+            {myTeam && (
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                    <Star className="w-5 h-5 text-cyan-400" />
+                    Your Roster - {myTeam.team_name}
+                  </h3>
+                  <button
+                    onClick={() => setShowAddPlayer(true)}
+                    className="px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-xs font-bold rounded-lg hover:shadow-lg active:scale-95 transition-all flex items-center gap-1 cursor-pointer"
+                    type="button"
+                  >
+                    <Plus className="w-3 h-3" /> Add Player
+                  </button>
+                </div>
+
+                {showAddPlayer && (
+                  <div className="bg-slate-800/80 border border-white/10 rounded-xl p-4 mb-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-bold text-white">Add Player</h4>
+                      <button onClick={() => setShowAddPlayer(false)} className="p-1 hover:bg-white/10 rounded-lg cursor-pointer" type="button">
+                        <X className="w-4 h-4 text-slate-400" />
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Player Name"
+                      value={fantasyAddPlayerForm.playerName}
+                      onChange={e => setFantasyAddPlayerForm(p => ({ ...p, playerName: e.target.value }))}
+                      className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <select
+                        value={fantasyAddPlayerForm.position}
+                        onChange={e => setFantasyAddPlayerForm(p => ({ ...p, position: e.target.value }))}
+                        className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-cyan-500"
+                      >
+                        {['QB', 'RB', 'WR', 'TE', 'K', 'DEF', 'FLEX', 'PG', 'SG', 'SF', 'PF', 'C', 'UTIL'].map(pos => (
+                          <option key={pos} value={pos} className="bg-slate-800">{pos}</option>
+                        ))}
+                      </select>
+                      <input
+                        type="text"
+                        placeholder="NFL Team"
+                        value={fantasyAddPlayerForm.nflTeam}
+                        onChange={e => setFantasyAddPlayerForm(p => ({ ...p, nflTeam: e.target.value }))}
+                        className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                      />
+                    </div>
+                    <label className="flex items-center gap-2 text-sm text-slate-300">
+                      <input
+                        type="checkbox"
+                        checked={fantasyAddPlayerForm.isStarter}
+                        onChange={e => setFantasyAddPlayerForm(p => ({ ...p, isStarter: e.target.checked }))}
+                        className="rounded"
+                      />
+                      Starter
+                    </label>
+                    <button
+                      onClick={() => handleAddFantasyPlayer(myTeam.id)}
+                      className="w-full py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-lg hover:shadow-lg active:scale-95 transition-all cursor-pointer"
+                      type="button"
+                    >
+                      Add Player
+                    </button>
+                  </div>
+                )}
+
+                {myTeam.players?.length > 0 ? (
+                  <div className="space-y-2">
+                    {myTeam.players.map(player => (
+                      <div key={player.id} className="flex items-center justify-between bg-white/5 rounded-xl p-3">
+                        <div className="flex items-center gap-3">
+                          <span className={`px-2 py-0.5 rounded text-xs font-bold ${player.is_starter ? 'bg-cyan-500/20 text-cyan-400' : 'bg-slate-600/30 text-slate-400'}`}>
+                            {player.position}
+                          </span>
+                          <div>
+                            <p className="text-white text-sm font-semibold">{player.player_name}</p>
+                            {player.nfl_team && <p className="text-slate-400 text-xs">{player.nfl_team}</p>}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-amber-400 text-sm font-bold">{Number(player.points || 0).toFixed(1)} pts</span>
+                          <button
+                            onClick={() => handleRemoveFantasyPlayer(player.id)}
+                            className="p-1.5 hover:bg-red-500/20 rounded-lg cursor-pointer"
+                            type="button"
+                          >
+                            <Trash2 className="w-4 h-4 text-red-400" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-slate-400 text-sm text-center py-4">No players added yet</p>
+                )}
+              </div>
+            )}
+
+            {fantasySelectedLeague.commissioner_id === user?.id && (
+              <button
+                onClick={() => handleDeleteFantasyLeague(fantasySelectedLeague.id)}
+                className="w-full py-3 bg-red-500/10 border border-red-500/30 text-red-400 font-bold rounded-xl hover:bg-red-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                type="button"
+              >
+                <Trash2 className="w-4 h-4" /> Delete League
+              </button>
+            )}
+          </div>
+
+          {fantasyLoading && (
+            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+              <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className="min-h-screen pt-14 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative z-0">
+        <div className="sticky top-14 z-10 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
+          <div className="max-w-4xl mx-auto px-4 py-4">
+            <div className="flex items-center gap-3">
+              <button onClick={() => setCurrentScreen('games')} className="p-2 bg-white/10 rounded-xl hover:bg-white/20 active:bg-white/30 cursor-pointer" type="button">
+                <ArrowLeft className="w-5 h-5 text-white" />
+              </button>
+              <h1 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                <Trophy className="inline w-6 h-6 mr-2 text-amber-400" />
+                FANTASY LEAGUES
+              </h1>
+              <div className="ml-auto">
+                <img src="/huddle-up-logo-3-transparent.png" alt="Huddle Up" className="w-10 h-10 object-contain" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-4xl mx-auto px-4 py-4 space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => setShowCreateLeague(true)}
+              className="py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-xl hover:shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              type="button"
+            >
+              <Plus className="w-5 h-5" /> Create League
+            </button>
+            <button
+              onClick={() => setShowJoinLeague(true)}
+              className="py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-xl hover:shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              type="button"
+            >
+              <Users className="w-5 h-5" /> Join League
+            </button>
+          </div>
+
+          {showCreateLeague && (
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-white">Create League</h3>
+                <button onClick={() => setShowCreateLeague(false)} className="p-1 hover:bg-white/10 rounded-lg cursor-pointer" type="button">
+                  <X className="w-5 h-5 text-slate-400" />
+                </button>
+              </div>
+              <input
+                type="text"
+                placeholder="League Name"
+                value={fantasyNewLeague.name}
+                onChange={e => setFantasyNewLeague(p => ({ ...p, name: e.target.value }))}
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+              />
+              <select
+                value={fantasyNewLeague.platform}
+                onChange={e => setFantasyNewLeague(p => ({ ...p, platform: e.target.value }))}
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-cyan-500"
+              >
+                <option value="espn" className="bg-slate-800">ESPN</option>
+                <option value="yahoo" className="bg-slate-800">Yahoo</option>
+                <option value="sleeper" className="bg-slate-800">Sleeper</option>
+                <option value="other" className="bg-slate-800">Other</option>
+              </select>
+              <select
+                value={fantasyNewLeague.sport}
+                onChange={e => setFantasyNewLeague(p => ({ ...p, sport: e.target.value }))}
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-cyan-500"
+              >
+                <option value="NFL" className="bg-slate-800">NFL</option>
+                <option value="NBA" className="bg-slate-800">NBA</option>
+                <option value="MLB" className="bg-slate-800">MLB</option>
+                <option value="NHL" className="bg-slate-800">NHL</option>
+                <option value="Soccer" className="bg-slate-800">Soccer</option>
+              </select>
+              <input
+                type="text"
+                placeholder="Season (e.g. 2025-26)"
+                value={fantasyNewLeague.season}
+                onChange={e => setFantasyNewLeague(p => ({ ...p, season: e.target.value }))}
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+              />
+              <input
+                type="text"
+                placeholder="Your Team Name"
+                value={fantasyNewLeague.teamName}
+                onChange={e => setFantasyNewLeague(p => ({ ...p, teamName: e.target.value }))}
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+              />
+              <button
+                onClick={handleCreateFantasyLeague}
+                disabled={fantasyLoading}
+                className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-xl hover:shadow-lg active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
+                type="button"
+              >
+                {fantasyLoading ? 'Creating...' : 'Create League'}
+              </button>
+            </div>
+          )}
+
+          {showJoinLeague && (
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-white">Join League</h3>
+                <button onClick={() => setShowJoinLeague(false)} className="p-1 hover:bg-white/10 rounded-lg cursor-pointer" type="button">
+                  <X className="w-5 h-5 text-slate-400" />
+                </button>
+              </div>
+              <input
+                type="text"
+                placeholder="Invite Code"
+                value={fantasyJoinCode}
+                onChange={e => setFantasyJoinCode(e.target.value)}
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono"
+              />
+              <input
+                type="text"
+                placeholder="Your Team Name"
+                value={fantasyJoinTeamName}
+                onChange={e => setFantasyJoinTeamName(e.target.value)}
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+              />
+              <button
+                onClick={handleJoinFantasyByCode}
+                disabled={fantasyLoading}
+                className="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-xl hover:shadow-lg active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
+                type="button"
+              >
+                {fantasyLoading ? 'Joining...' : 'Join League'}
+              </button>
+            </div>
+          )}
+
+          {fantasyLeagues.length > 0 ? (
+            <div className="space-y-3">
+              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Your Leagues</h3>
+              {fantasyLeagues.map(league => (
+                <button
+                  key={league.id}
+                  onClick={() => loadFantasyLeague(league.id)}
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 hover:bg-white/10 active:scale-[0.98] transition-all text-left cursor-pointer"
+                  type="button"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="text-white font-bold">{league.name}</h4>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-bold text-white ${platformColors[league.platform] || platformColors.other}`}>
+                          {platformLabels[league.platform] || league.platform}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 text-sm text-slate-400">
+                        <span>{league.sport}</span>
+                        <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {league.team_count || 0} teams</span>
+                        <span className="font-mono text-xs text-cyan-400">{league.invite_code}</span>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-slate-500" />
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <Trophy className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-white mb-2">No Fantasy Leagues Yet</h3>
+              <p className="text-slate-400">Create a new league or join one with an invite code</p>
+            </div>
+          )}
+        </div>
+
+        {fantasyLoading && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+            <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderMyCrewScreen = () => (
       <div className="min-h-screen pt-14 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative z-0">
         <div className="sticky top-14 z-30 bg-slate-900/95 backdrop-blur-lg border-b border-white/10">
@@ -8078,6 +8610,7 @@ const HuddleUpApp = () => {
       {currentScreen === 'rewards' && <RewardsScreen />}
       {currentScreen === 'invitations' && <InvitationsScreen />}
       {currentScreen === 'qrCheckin' && <QrCheckinScreen />}
+      {currentScreen === 'fantasy' && renderFantasyScreen()}
 
       {editPartyModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setEditPartyModal(null); }}>

@@ -23,6 +23,7 @@ import referralRoutes from './routes/referrals.js';
 import photoRoutes from './routes/photos.js';
 import rewardsRoutes from './routes/rewards.js';
 import qrCheckinRoutes from './routes/qrcheckin.js';
+import fantasyRoutes from './routes/fantasy.js';
 import { startScoreChecker } from './scoreChecker.js';
 import { WebhookHandlers } from './stripe/webhookHandlers.js';
 import { initStripe } from './stripe/init.js';
@@ -93,6 +94,7 @@ app.use('/api/referrals', referralRoutes);
 app.use('/api/photos', photoRoutes);
 app.use('/api/rewards', rewardsRoutes);
 app.use('/api/qr', qrCheckinRoutes);
+app.use('/api/fantasy', fantasyRoutes);
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 

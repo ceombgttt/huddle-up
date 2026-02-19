@@ -22,7 +22,7 @@ router.get('/parties/:partyId/messages', requireAuth, async (req, res) => {
     }
 
     let query = `
-      SELECT pm.id, pm.message, pm.created_at,
+      SELECT pm.id, pm.message, pm.created_at, pm.message_type, pm.fantasy_context,
         u.id as user_id, u.name as user_name, u.profile_picture
       FROM party_messages pm
       JOIN users u ON pm.user_id = u.id
@@ -48,7 +48,8 @@ router.get('/parties/:partyId/messages', requireAuth, async (req, res) => {
 router.post('/parties/:partyId/messages', requireAuth, async (req, res) => {
   try {
     const { partyId } = req.params;
-    const { message } = req.body;
+    const { message, message_type, messageType, fantasyContext } = req.body;
+    const msgType = message_type || messageType || 'text';
 
     if (!message || !message.trim()) {
       return res.status(400).json({ error: 'Message cannot be empty' });
@@ -67,9 +68,9 @@ router.post('/parties/:partyId/messages', requireAuth, async (req, res) => {
     }
 
     const result = await pool.query(
-      `INSERT INTO party_messages (party_id, user_id, message) VALUES ($1, $2, $3)
-       RETURNING id, message, created_at`,
-      [partyId, req.session.userId, message.trim()]
+      `INSERT INTO party_messages (party_id, user_id, message, message_type, fantasy_context) VALUES ($1, $2, $3, $4, $5)
+       RETURNING id, message, message_type, fantasy_context, created_at`,
+      [partyId, req.session.userId, message.trim(), msgType, fantasyContext ? JSON.stringify(fantasyContext) : null]
     );
 
     const user = await pool.query('SELECT name, profile_picture FROM users WHERE id = $1', [req.session.userId]);

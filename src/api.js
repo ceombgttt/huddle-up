@@ -127,8 +127,8 @@ export const api = {
       const params = before ? `?before=${encodeURIComponent(before)}` : '';
       return request(`/chat/parties/${partyId}/messages${params}`);
     },
-    sendMessage: (partyId, message) =>
-      request(`/chat/parties/${partyId}/messages`, { method: 'POST', body: JSON.stringify({ message }) }),
+    sendMessage: (partyId, message, messageType = 'chat') =>
+      request(`/chat/parties/${partyId}/messages`, { method: 'POST', body: JSON.stringify({ message, message_type: messageType }) }),
   },
   stripe: {
     products: () => request('/stripe/products'),
@@ -183,6 +183,22 @@ export const api = {
     adminStats: () => request('/qr/admin/stats'),
     adminGenerateQr: (venueId) => request(`/qr/admin/generate/${venueId}`, { method: 'POST' }),
     adminGetVenueQr: (venueId) => request(`/qr/admin/venue/${venueId}/qr`),
+  },
+  fantasy: {
+    leagues: () => request('/fantasy/leagues'),
+    createLeague: (data) => request('/fantasy/leagues', { method: 'POST', body: JSON.stringify(data) }),
+    getLeague: (id) => request(`/fantasy/leagues/${id}`),
+    deleteLeague: (id) => request(`/fantasy/leagues/${id}`, { method: 'DELETE' }),
+    joinLeague: (id, data) => request(`/fantasy/leagues/${id}/join`, { method: 'POST', body: JSON.stringify(data) }),
+    joinByCode: (data) => request('/fantasy/leagues/join-by-code', { method: 'POST', body: JSON.stringify(data) }),
+    updateTeam: (id, data) => request(`/fantasy/teams/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    addPlayer: (teamId, data) => request(`/fantasy/teams/${teamId}/players`, { method: 'POST', body: JSON.stringify(data) }),
+    removePlayer: (playerId) => request(`/fantasy/players/${playerId}`, { method: 'DELETE' }),
+    partyLeagues: (partyId) => request(`/fantasy/parties/${partyId}/leagues`),
+    linkPartyLeague: (partyId, leagueId) => request(`/fantasy/parties/${partyId}/leagues`, { method: 'POST', body: JSON.stringify({ leagueId }) }),
+    unlinkPartyLeague: (partyId, leagueId) => request(`/fantasy/parties/${partyId}/leagues/${leagueId}`, { method: 'DELETE' }),
+    partyLeaderboard: (partyId) => request(`/fantasy/parties/${partyId}/leaderboard`),
+    partySharedPlayers: (partyId) => request(`/fantasy/parties/${partyId}/shared-players`),
   },
   analytics: {
     overview: () => request('/analytics/overview'),
