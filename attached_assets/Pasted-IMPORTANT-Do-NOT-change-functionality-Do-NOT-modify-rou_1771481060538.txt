@@ -1,0 +1,174 @@
+IMPORTANT: Do NOT change functionality.
+Do NOT modify routing, navigation, authentication, API calls, state management, data models, business logic, or file structure.
+
+Only update visual styling: colors, typography, spacing, button styles, shadows, borders, and component styling.
+Keep all existing screens and flows exactly the same.
+
+If a change risks breaking functionality, skip it.
+
+🎯 GOAL
+
+Upgrade the existing UI to feel like a premium, scalable sports-tech platform (think modern NFL / ESPN / fintech polish).
+Clean, confident, minimal. No playful gradients. No neon.
+
+🎨 BRAND THEME (GLOBAL)
+
+Set up a consistent theme and apply it across the app:
+
+Colors
+
+Background: #0F1115 (deep charcoal)
+
+Surface/card: #151A22 (slightly lighter charcoal)
+
+Divider/border: #222A36
+
+Primary (electric blue): #1E90FF
+
+Accent (athletic gold): #F5B400
+
+Text primary: #FFFFFF
+
+Text secondary: #A0A4AB
+
+Error: keep existing or use a clean red tone if needed
+
+Rules
+
+Use electric blue for primary actions.
+
+Use gold only as an accent (highlights, badges, small emphasis), not as the main CTA.
+
+Avoid gradients except a very subtle background radial fade (optional).
+
+🔤 TYPOGRAPHY SYSTEM (GLOBAL)
+
+Use a modern, bold sans-serif (prefer Inter if available; otherwise keep current font but apply weights/sizing consistently).
+
+Create consistent type styles:
+
+H1 / Screen Title: 28–32px, extra bold, tight line-height
+
+H2 / Section Title: 18–20px, bold
+
+Body: 15–16px, regular
+
+Caption: 12–13px, medium, secondary color
+
+Buttons: 16px, bold, all caps optional depending on existing style
+
+Keep existing text content unchanged.
+
+📐 SPACING + LAYOUT RULES (GLOBAL)
+
+Standardize spacing using an 8pt system:
+
+Small: 8
+
+Medium: 16
+
+Large: 24
+
+XL: 32
+
+Add consistent padding on screens (16–24).
+Increase whitespace and alignment consistency.
+Keep layouts the same—only improve spacing.
+
+🔘 BUTTON SYSTEM (GLOBAL)
+
+Do NOT change button actions—only styling.
+
+Primary Button
+
+Background: #1E90FF
+
+Text: white
+
+Radius: 12
+
+Height: 48–52
+
+No heavy shadow; optional subtle shadow at 10–15% opacity
+
+Secondary Button
+
+Background: transparent
+
+Border: 2px #1E90FF
+
+Text: #1E90FF
+
+Radius: 12
+
+Height: 48–52
+
+Disabled State
+
+Background: #2A3342
+
+Text: #A0A4AB
+
+Border: none or #222A36
+
+🧱 CARDS / CONTAINERS (GLOBAL)
+
+Wherever the app uses cards, modals, or sections:
+
+Background: #151A22
+
+Border: 1px #222A36
+
+Radius: 16
+
+Subtle shadow optional (very minimal)
+
+🧩 INPUTS / FORMS (GLOBAL)
+
+Only style changes:
+
+Input background: #151A22
+
+Border: 1px #222A36
+
+Focus border: #1E90FF
+
+Placeholder: #A0A4AB
+
+Radius: 12
+
+Height: consistent
+
+🧭 NAVIGATION / HEADERS (GLOBAL)
+
+If there are headers/top bars:
+
+Background: #0F1115
+
+Title in white, bold
+
+Use subtle divider line #222A36
+
+Do not change navigation logic—only appearance.
+
+🏷️ BADGES / HIGHLIGHTS (OPTIONAL)
+
+Use gold sparingly:
+
+Badges (e.g., “LIVE”, “TOP PICK”): gold text or gold outline
+
+Small accent lines or icons
+Do not flood the UI with gold.
+
+🌀 ANIMATIONS (OPTIONAL, SAFE ONLY)
+
+Only if it’s already in place and easy:
+
+Subtle button press states
+
+Smooth transitions
+No heavy motion. No flashy effects.
+
+✅ OUTPUT REQUIREMENT
+
+Make styling consistent across the entire app using these rules, without breaking any existing functionality.
