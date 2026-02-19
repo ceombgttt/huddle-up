@@ -405,7 +405,9 @@ const EditProfileModal = ({ user, onClose, onSave }) => {
  const emailChanged = editEmail.trim().toLowerCase() !== (user.email || '').toLowerCase();
 
  const calcAge = (dobStr) => {
- const dob = new Date(dobStr);
+ if (!dobStr || dobStr.length < 10) return null;
+ const dob = new Date(dobStr + 'T00:00:00');
+ if (isNaN(dob.getTime())) return null;
  const today = new Date();
  let age = today.getFullYear() - dob.getFullYear();
  const m = today.getMonth() - dob.getMonth();
@@ -420,7 +422,8 @@ const EditProfileModal = ({ user, onClose, onSave }) => {
  if (!editEmail.trim() || !editEmail.includes('@')) { setError('Valid email is required'); return; }
  if (emailChanged && !currentPassword) { setError('Enter your current password to change email'); return; }
  if (editDob && !ageConfirmed) { setError('You must confirm you are 21 years of age or older'); return; }
- if (editDob && calcAge(editDob) < 21) { setError('You must be 21 years of age or older'); return; }
+ const computedAge = editDob ? calcAge(editDob) : null;
+ if (editDob && computedAge !== null && computedAge < 21) { setError('You must be 21 years of age or older'); return; }
  setSaving(true);
  try {
  const data = {
@@ -521,7 +524,7 @@ const EditProfileModal = ({ user, onClose, onSave }) => {
  max={new Date().toISOString().split('T')[0]}
  className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
  />
- {editDob && (
+ {editDob && calcAge(editDob) !== null && (
  <p className="text-[#A0A4AB] text-sm mt-1">Age: {calcAge(editDob)}</p>
  )}
  </div>
@@ -7188,18 +7191,6 @@ const HuddleUpApp = () => {
  </div>
  </div>
 
- {editProfileOpen && (
- <EditProfileModal
- user={user}
- onClose={() => setEditProfileOpen(false)}
- onSave={async (data) => {
- const updatedUser = await api.users.updateProfile(data);
- setUser(updatedUser);
- setEditProfileOpen(false);
- }}
- />
- )}
-
  <div>
  <h2 className="text-2xl font-black text-white mb-4" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
  My Watch Parties
@@ -9485,6 +9476,18 @@ const HuddleUpApp = () => {
  {currentScreen === 'alerts' && renderAlertsScreen()}
  {currentScreen === 'myTickets' && renderMyTicketsScreen()}
  {currentScreen === 'contactUs' && <ContactUsScreen />}
+
+ {editProfileOpen && (
+ <EditProfileModal
+ user={user}
+ onClose={() => setEditProfileOpen(false)}
+ onSave={async (data) => {
+ const updatedUser = await api.users.updateProfile(data);
+ setUser(updatedUser);
+ setEditProfileOpen(false);
+ }}
+ />
+ )}
 
  {showQA && (
  <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setShowQA(false); }}>
