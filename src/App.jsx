@@ -2687,10 +2687,8 @@ const HuddleUpApp = () => {
 
  const WelcomeScreen = () => (
  <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: 'radial-gradient(ellipse at center, #161A22 0%, #0F1115 70%)' }}>
- <div className="w-full text-center flex-1 flex flex-col items-center justify-center" style={{ gap: '48px', maxWidth: '720px' }}>
- <div className="space-y-6">
+ <div className="w-full text-center flex-1 flex flex-col items-center justify-center" style={{ gap: '24px', maxWidth: '720px' }}>
  <img src="/huddle-up-logo.png" alt="Huddle Up - Find Your Crew. Watch The Game!" className="mx-auto" style={{ width: '716px' }} />
- </div>
  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%', maxWidth: '448px' }}>
  <button
  onClick={() => setCurrentScreen('login')}
@@ -6642,7 +6640,6 @@ const HuddleUpApp = () => {
  <span className="text-white font-bold">
  {party.homeTeam} vs {party.awayTeam}
  </span>
- </div>
  <div className="flex items-center gap-1.5">
  <button
  onClick={() => openEditParty(party)}
@@ -6838,7 +6835,6 @@ const HuddleUpApp = () => {
  <p className="text-[#A0A4AB]/70 text-sm">Subscribe to the Sponsor plan to manage your banner ad.</p>
  </div>
  ) : (
- <div className="space-y-6">
  <div className="bg-gradient-to-br from-orange-500/10 to-amber-500/10 p-6 rounded-2xl border border-orange-500/30">
  <h3 className="text-lg font-bold text-orange-300 mb-4">Your Banner Ad</h3>
  <div className="space-y-4">
@@ -6847,7 +6843,6 @@ const HuddleUpApp = () => {
  <input type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
  className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
  placeholder="Your Business Name" />
- </div>
  <div>
  <label className="block text-sm text-[#A0A4AB] mb-1">Tagline / Message</label>
  <input type="text" value={form.tagline} onChange={e => setForm(f => ({ ...f, tagline: e.target.value }))}
@@ -7137,7 +7132,6 @@ const HuddleUpApp = () => {
  </button>
  </div>
  ) : (
- <div className="space-y-6">
  {hostedParties.length > 0 && (
  <div>
  <h3 className="text-lg font-bold text-[#A0A4AB] mb-3">Hosting ({hostedParties.length})</h3>
@@ -7153,7 +7147,6 @@ const HuddleUpApp = () => {
  <span className="px-2 py-1 bg-yellow-500/20 text-yellow-300 text-xs font-bold rounded-full border border-yellow-500/30">
  HOST
  </span>
- </div>
  <div className="text-white font-bold mb-1">
  {party.homeTeam || SAMPLE_GAMES.find(g => g.id === party.gameId)?.homeTeam} vs{' '}
  {party.awayTeam || SAMPLE_GAMES.find(g => g.id === party.gameId)?.awayTeam}
