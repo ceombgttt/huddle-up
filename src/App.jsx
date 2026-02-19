@@ -2747,12 +2747,12 @@ const HuddleUpApp = () => {
 
  // Screen Components
  const CopyrightFooter = ({ light }) => (
- <div className={`text-center py-4 ${light ? 'text-[#A0A4AB]/70' : 'text-[#A0A4AB]/70/70'} text-xs`}>
- <p>&copy; {new Date().getFullYear()} Huddle Up USA. All rights reserved.</p>
- <p className="mt-1">
- <a href="/terms" target="_blank" className="hover:text-[#A0A4AB] underline">Terms of Service</a>
+ <div className="text-center py-4 text-xs">
+ <p className="text-[#F5B400]">&copy; {new Date().getFullYear()} Huddle Up USA. All rights reserved.</p>
+ <p className="mt-1 text-[#F5B400]">
+ <a href="/terms" target="_blank" className="hover:text-[#F5B400]/80 underline">Terms of Service</a>
  {' | '}
- <a href="/privacy" target="_blank" className="hover:text-[#A0A4AB] underline">Privacy Policy</a>
+ <a href="/privacy" target="_blank" className="hover:text-[#F5B400]/80 underline">Privacy Policy</a>
  </p>
  </div>
  );
