@@ -1,6 +1,5 @@
 const CACHE_NAME = 'huddle-up-v1';
 const STATIC_ASSETS = [
-  '/',
   '/huddle-up-logo.png',
   '/pwa-icon-192.png',
   '/pwa-icon-512.png',
@@ -31,33 +30,25 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(event.request.url);
 
-  if (url.pathname.startsWith('/api/')) {
+  if (url.pathname.startsWith('/api/') ||
+      url.pathname.startsWith('/@') ||
+      url.pathname.startsWith('/node_modules/') ||
+      url.pathname.startsWith('/src/') ||
+      url.pathname.includes('__vite') ||
+      url.pathname.includes('hot-update') ||
+      url.protocol === 'ws:' ||
+      url.protocol === 'wss:') {
+    return;
+  }
+
+  if (STATIC_ASSETS.includes(url.pathname)) {
     event.respondWith(
-      fetch(event.request).catch(() => {
-        return new Response(JSON.stringify({ error: 'You are offline' }), {
-          headers: { 'Content-Type': 'application/json' },
-          status: 503
-        });
+      caches.match(event.request).then((cached) => {
+        return cached || fetch(event.request);
       })
     );
     return;
   }
-
-  event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, clone);
-        });
-        return response;
-      })
-      .catch(() => {
-        return caches.match(event.request).then((cached) => {
-          return cached || caches.match('/');
-        });
-      })
-  );
 });
 
 self.addEventListener('push', (event) => {
