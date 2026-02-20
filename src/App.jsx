@@ -1338,12 +1338,12 @@ const HuddleUpApp = () => {
  const enablePush = useCallback(async () => {
  try {
  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
- alert('Push notifications are not supported in this browser');
+ console.log('Push notifications not supported in this browser - using in-app notifications instead');
  return;
  }
  const reg = await navigator.serviceWorker.ready;
  const { publicKey } = await api.push.getVapidKey();
- if (!publicKey) { alert('Push notifications not configured'); return; }
+ if (!publicKey) { console.log('Push notifications not configured on server'); return; }
  const sub = await reg.pushManager.subscribe({
  userVisibleOnly: true,
  applicationServerKey: publicKey
@@ -1353,9 +1353,6 @@ const HuddleUpApp = () => {
  setPushEnabled(true);
  } catch (err) {
  console.error('Enable push error:', err);
- if (err.name === 'NotAllowedError') {
- alert('Please allow notifications in your browser settings');
- }
  }
  }, []);
 
