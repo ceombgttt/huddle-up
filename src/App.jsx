@@ -1109,6 +1109,10 @@ const HuddleUpApp = () => {
  const [showWelcomePopup, setShowWelcomePopup] = useState(false);
  const [showQA, setShowQA] = useState(false);
  const [qaExpandedIndex, setQaExpandedIndex] = useState(null);
+ const [showTourGuide, setShowTourGuide] = useState(false);
+ const [tourTab, setTourTab] = useState('fans');
+ const [showInviteReminder, setShowInviteReminder] = useState(false);
+ const inviteReminderShown = useRef(false);
  const [myTeamsOnly, setMyTeamsOnly] = useState(false); // Filter by favorite teams
  const [venues, setVenues] = useState(SAMPLE_VENUES);
  const [venueClaims, setVenueClaims] = useState([]);
@@ -1455,6 +1459,20 @@ const HuddleUpApp = () => {
  loadFantasyLeagues();
  }
  }, [currentScreen, user?.isAdmin, loadSponsors]);
+
+ useEffect(() => {
+ if (!user || inviteReminderShown.current) return;
+ const lastReminder = localStorage.getItem('lastInviteReminder');
+ const threeDays = 3 * 24 * 60 * 60 * 1000;
+ if (lastReminder && (Date.now() - parseInt(lastReminder)) < threeDays) return;
+ const timer = setTimeout(() => {
+ if (!inviteReminderShown.current) {
+ inviteReminderShown.current = true;
+ setShowInviteReminder(true);
+ }
+ }, 45000);
+ return () => clearTimeout(timer);
+ }, [user]);
 
  const resetSponsorForm = () => {
  setSponsorName(''); setSponsorContactName(''); setSponsorContactEmail('');
@@ -2602,6 +2620,150 @@ const HuddleUpApp = () => {
  </button>
  </div>
  <div className="text-center mt-4 text-sm text-[#A0A4AB]/70">Step {onboardingStep + 1} of {steps.length}</div>
+ </div>
+ </div>
+ );
+ };
+
+ const TourGuidePopup = () => {
+ if (!showTourGuide) return null;
+ const fanSteps = [
+ { icon: '🏈', title: 'Browse Games', desc: 'Scroll through upcoming games across 15+ sports. Tap any game to see details or create a watch party.' },
+ { icon: '📍', title: 'Search by City', desc: 'Use the location search bar to find parties in any city. Traveling? Just type the city name!' },
+ { icon: '🎉', title: 'Join or Create Parties', desc: 'Tap a game, then join an existing party or create your own. Pick a venue, set a time, invite friends!' },
+ { icon: '⭐', title: 'Set Favorite Teams', desc: 'Go to your Profile and add your favorite teams. Use "Show My Teams Only" to filter games you care about.' },
+ { icon: '👥', title: 'Find Fans & Build Your Crew', desc: 'Use Fan Finder to search by team, name, or phone number. Add friends to build your crew!' },
+ { icon: '💬', title: 'Team Chat Rooms', desc: 'Join chat rooms for your favorite teams. Talk trash, share highlights, and connect with fans.' },
+ { icon: '🏆', title: 'Earn Points & Rewards', desc: 'Get points for hosting, attending, inviting friends, and checking in. Enter raffles for prizes!' },
+ { icon: '📱', title: 'Install the App', desc: 'Add Huddle Up to your home screen for the best experience. Tap Share > Add to Home Screen.' },
+ { icon: '🔔', title: 'Stay in the Loop', desc: 'Turn on notifications in your Profile to get alerts about games, parties, and score updates.' },
+ { icon: '📸', title: 'Share the Fun', desc: 'Share parties with friends using the share button. Post party highlights and recaps after the game!' },
+ ];
+ const venueSteps = [
+ { icon: '🏪', title: 'Claim Your Venue', desc: 'Go to any game detail and create a party at your venue. Then go to Profile > Claim a Venue to register it.' },
+ { icon: '📊', title: 'Venue Dashboard', desc: 'Once approved, access your Venue Dashboard to see analytics, visitor stats, and party history.' },
+ { icon: '📱', title: 'QR Code Check-In', desc: 'Generate a unique QR code for your venue. Customers scan it to check in and earn rewards.' },
+ { icon: '🎯', title: 'Host Game Day Events', desc: 'Create watch parties at your venue for big games. Fans will find you through the app!' },
+ { icon: '💰', title: 'Promote Your Venue', desc: 'Promoted parties appear at the top of search results. Set up ticketing for special events.' },
+ { icon: '📢', title: 'Become a Sponsor', desc: 'Get premium visibility with sponsored banners. Your brand seen by thousands of sports fans!' },
+ { icon: '🏅', title: 'Build Your Reputation', desc: 'Earn venue badges based on parties hosted and check-ins. Higher badges = more visibility!' },
+ { icon: '📈', title: 'Track Performance', desc: 'See real-time stats: total check-ins, unique visitors, popular game days, and more.' },
+ ];
+ const steps = tourTab === 'fans' ? fanSteps : venueSteps;
+ return (
+ <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-[70] flex items-center justify-center p-4 overflow-y-auto" onMouseDown={(e) => { if (e.target === e.currentTarget) setShowTourGuide(false); }}>
+ <div className="bg-[#151A22] rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto border-2 border-[#1E90FF]/30 shadow-2xl my-4 overscroll-contain" onMouseDown={e => e.stopPropagation()}>
+ <div className="sticky top-0 bg-[#151A22] p-5 border-b border-[#222A36] z-10">
+ <div className="flex items-center justify-between mb-4">
+ <h2 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+ <Map className="inline w-6 h-6 mr-2 text-[#1E90FF]" />
+ TAKE A TOUR
+ </h2>
+ <button onClick={() => setShowTourGuide(false)} className="p-1 text-[#A0A4AB] hover:text-white"><X className="w-5 h-5" /></button>
+ </div>
+ <div className="flex gap-2">
+ <button onClick={() => setTourTab('fans')} className={`flex-1 py-2 rounded-xl font-bold text-sm transition-all ${tourTab === 'fans' ? 'bg-[#1E90FF] text-white' : 'bg-[#0F1115] text-[#A0A4AB] border border-[#222A36]'}`}>
+ For Fans
+ </button>
+ <button onClick={() => setTourTab('venues')} className={`flex-1 py-2 rounded-xl font-bold text-sm transition-all ${tourTab === 'venues' ? 'bg-green-500 text-white' : 'bg-[#0F1115] text-[#A0A4AB] border border-[#222A36]'}`}>
+ For Venues
+ </button>
+ </div>
+ </div>
+ <div className="p-5 space-y-3">
+ {steps.map((step, i) => (
+ <div key={i} className="flex gap-4 items-start p-4 bg-[#0F1115] rounded-xl border border-[#222A36] hover:border-[#1E90FF]/30 transition-all">
+ <div className="text-3xl flex-shrink-0 mt-0.5">{step.icon}</div>
+ <div>
+ <h3 className="text-white font-bold text-sm mb-1">{step.title}</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">{step.desc}</p>
+ </div>
+ </div>
+ ))}
+ </div>
+ <div className="sticky bottom-0 bg-[#151A22] p-4 border-t border-[#222A36]">
+ <button onClick={() => setShowTourGuide(false)} className="w-full py-3 bg-[#1E90FF] text-white font-bold rounded-xl hover:opacity-90 transition-all text-lg">
+ Got It!
+ </button>
+ </div>
+ </div>
+ </div>
+ );
+ };
+
+ const InviteReminderPopup = () => {
+ if (!showInviteReminder) return null;
+ const shareApp = async () => {
+ const shareData = { title: 'Huddle Up - Find Watch Parties', text: 'Join me on Huddle Up! Find watch parties for every sport near you.', url: 'https://huddleupusa.com' };
+ try {
+ if (navigator.share) {
+ await navigator.share(shareData);
+ } else {
+ await navigator.clipboard.writeText('Join me on Huddle Up! Find watch parties for every sport near you. https://huddleupusa.com');
+ alert('Link copied to clipboard!');
+ }
+ } catch (err) {}
+ };
+ const isVenue = user?.subscriptionTier === 'venue';
+ return (
+ <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[70] flex items-center justify-center p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) { setShowInviteReminder(false); localStorage.setItem('lastInviteReminder', Date.now().toString()); } }}>
+ <div className="bg-[#151A22] rounded-2xl p-6 max-w-md w-full border-2 border-[#1E90FF]/30 shadow-2xl" onMouseDown={e => e.stopPropagation()}>
+ <div className="text-center mb-5">
+ <div className="text-5xl mb-3">{isVenue ? '🏪' : '🎉'}</div>
+ <h2 className="text-2xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+ {isVenue ? 'BRING MORE FANS IN!' : 'THE MORE THE MERRIER!'}
+ </h2>
+ <p className="text-[#A0A4AB] leading-relaxed">
+ {isVenue
+ ? 'Invite your customers and regulars to join Huddle Up! More fans on the app means more people finding your venue for watch parties.'
+ : 'Watch parties are better with friends! Invite your friends and family to Huddle Up and earn 100 bonus points for each invite.'}
+ </p>
+ </div>
+ <div className="space-y-3 mb-5">
+ {isVenue ? (
+ <>
+ <div className="flex items-center gap-3 p-3 bg-green-500/10 rounded-xl border border-green-500/20">
+ <div className="text-2xl">📱</div>
+ <div>
+ <p className="text-white text-sm font-semibold">Share with your customers</p>
+ <p className="text-[#A0A4AB] text-xs">Put up a sign or share the link on social media</p>
+ </div>
+ </div>
+ <div className="flex items-center gap-3 p-3 bg-green-500/10 rounded-xl border border-green-500/20">
+ <div className="text-2xl">📊</div>
+ <div>
+ <p className="text-white text-sm font-semibold">More visibility for your venue</p>
+ <p className="text-[#A0A4AB] text-xs">More users = more people discovering your watch parties</p>
+ </div>
+ </div>
+ </>
+ ) : (
+ <>
+ <div className="flex items-center gap-3 p-3 bg-[#1E90FF]/10 rounded-xl border border-[#1E90FF]/20">
+ <div className="text-2xl">👥</div>
+ <div>
+ <p className="text-white text-sm font-semibold">Build your crew</p>
+ <p className="text-[#A0A4AB] text-xs">Invite friends to join and find watch parties together</p>
+ </div>
+ </div>
+ <div className="flex items-center gap-3 p-3 bg-purple-500/10 rounded-xl border border-purple-500/20">
+ <div className="text-2xl">🏆</div>
+ <div>
+ <p className="text-white text-sm font-semibold">Earn 100 points per invite</p>
+ <p className="text-[#A0A4AB] text-xs">Rack up points and enter raffles for awesome prizes</p>
+ </div>
+ </div>
+ </>
+ )}
+ </div>
+ <div className="space-y-2">
+ <button onClick={shareApp} className="w-full py-3 bg-gradient-to-r from-[#1E90FF] to-purple-500 text-white font-bold rounded-xl hover:opacity-90 transition-all flex items-center justify-center gap-2">
+ <Share2 className="w-5 h-5" /> Share Huddle Up
+ </button>
+ <button onClick={() => { setShowInviteReminder(false); localStorage.setItem('lastInviteReminder', Date.now().toString()); }} className="w-full py-2.5 bg-[#0F1115] text-[#A0A4AB] rounded-xl hover:text-white transition-all text-sm">
+ Maybe Later
+ </button>
+ </div>
  </div>
  </div>
  );
@@ -8075,6 +8237,18 @@ const HuddleUpApp = () => {
 
  <div className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36] shadow-xl space-y-3">
  <h3 className="text-lg font-bold text-white mb-1">Help & Info</h3>
+ <button onClick={() => { setShowTourGuide(true); setTourTab('fans'); }} className="w-full flex items-center gap-3 p-3 bg-[#1E90FF]/10 hover:bg-[#1E90FF]/20 border border-[#1E90FF]/20 rounded-xl transition-colors text-left">
+ <Map className="w-5 h-5 text-[#1E90FF]" />
+ <span className="text-white font-medium text-sm">Take a Tour</span>
+ <span className="text-[#A0A4AB]/70 text-xs ml-1">Learn how to use the app</span>
+ <ChevronRight className="w-4 h-4 text-[#A0A4AB]/70 ml-auto" />
+ </button>
+ <button onClick={() => setShowInviteReminder(true)} className="w-full flex items-center gap-3 p-3 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 rounded-xl transition-colors text-left">
+ <Share2 className="w-5 h-5 text-purple-400" />
+ <span className="text-white font-medium text-sm">Invite Friends</span>
+ <span className="text-[#A0A4AB]/70 text-xs ml-1">Share the app & earn points</span>
+ <ChevronRight className="w-4 h-4 text-[#A0A4AB]/70 ml-auto" />
+ </button>
  <button onClick={() => setShowQA(true)} className="w-full flex items-center gap-3 p-3 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 rounded-xl transition-colors text-left">
  <Shield className="w-5 h-5 text-indigo-400" />
  <span className="text-white font-medium text-sm">Q & A</span>
@@ -10202,6 +10376,8 @@ const HuddleUpApp = () => {
 
  {/* FEATURE 1: Onboarding Tutorial Overlay */}
  {showOnboarding && <OnboardingOverlay />}
+ {showTourGuide && <TourGuidePopup />}
+ {showInviteReminder && <InviteReminderPopup />}
 
  {user && !['welcome', 'login', 'signup', 'forgotPassword'].includes(currentScreen) && (
  <div className="fixed top-0 left-0 right-0 z-[60]">
