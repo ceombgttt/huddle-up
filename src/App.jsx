@@ -5999,7 +5999,7 @@ const HuddleUpApp = () => {
  </button>
  </div>
 
- {adminAffiliateForm && !adminAffiliateDetail && (
+ {adminAffiliateForm && (
  <div className="bg-[#0F1115] rounded-xl border border-[#222A36] p-5 mb-6 space-y-4">
  <h3 className="text-white font-bold text-sm">{adminAffiliateForm.id ? 'EDIT AFFILIATE' : 'ADD NEW AFFILIATE'}</h3>
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -6090,7 +6090,7 @@ const HuddleUpApp = () => {
  >
  {adminAffiliateSaving ? 'Saving...' : adminAffiliateForm.id ? 'Update Affiliate' : 'Add Affiliate'}
  </button>
- <button onClick={() => setAdminAffiliateForm(null)} className="px-6 py-2.5 bg-[#151A22] text-[#A0A4AB] font-bold rounded-xl hover:bg-[#222A36] text-sm">Cancel</button>
+ <button onClick={() => { setAdminAffiliateForm(null); setAdminAffiliateDetail(null); }} className="px-6 py-2.5 bg-[#151A22] text-[#A0A4AB] font-bold rounded-xl hover:bg-[#222A36] text-sm">Cancel</button>
  </div>
  </div>
  )}
@@ -6259,17 +6259,19 @@ const HuddleUpApp = () => {
  </div>
  <div className="flex flex-col gap-2 flex-shrink-0">
  <button onClick={async () => {
+ setAdminAffiliateForm(null);
  setAdminAffiliateDetail(aff);
+ setAdminPayoutForm(null);
  try { const refs = await api.affiliates.adminReferrals(aff.id); setAdminAffiliateReferrals(refs); } catch (e) { setAdminAffiliateReferrals([]); }
  }} className="p-2 bg-[#151A22] rounded-lg hover:bg-[#222A36] text-[#A0A4AB] hover:text-white" title="View Details">
  <Eye className="w-4 h-4" />
  </button>
- <button onClick={() => setAdminAffiliateForm({
+ <button onClick={() => { setAdminAffiliateDetail(null); setAdminAffiliateForm({
  id: aff.id, name: aff.name, email: aff.email, code: aff.code,
  commissionType: aff.commission_type, commissionAmountCents: aff.commission_amount_cents,
  paymentMethod: aff.payment_method, paymentDetails: aff.payment_details || '',
  notes: aff.notes || '', status: aff.status,
- })} className="p-2 bg-[#151A22] rounded-lg hover:bg-[#222A36] text-[#A0A4AB] hover:text-white" title="Edit">
+ }); }} className="p-2 bg-[#151A22] rounded-lg hover:bg-[#222A36] text-[#A0A4AB] hover:text-white" title="Edit">
  <Pencil className="w-4 h-4" />
  </button>
  <button onClick={async () => {
