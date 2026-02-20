@@ -1774,7 +1774,7 @@ const HuddleUpApp = () => {
  setShowOnboarding(false);
  setOnboardingStep(0);
  setShowSignupShare(true);
- setCurrentScreen('games');
+ setCurrentScreen('profile');
  loadParties();
  loadVenues();
  loadVenueClaims();
