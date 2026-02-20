@@ -241,17 +241,20 @@ const MainSponsorBanner = ({ mainSponsor, onAdvertise }) => {
  const bannerSrc = sponsor.bannerUrl || sponsor.logoUrl;
  return (
  <div
- onClick={() => sponsor.url && sponsor.url !== '#' && window.open(sponsor.url, '_blank')}
- className={`w-full h-20 relative overflow-hidden ${sponsor.url && sponsor.url !== '#' ? 'cursor-pointer' : ''}`}
+ onClick={() => {
+ if (isExample && onAdvertise) {
+ onAdvertise();
+ } else if (sponsor.url && sponsor.url !== '#') {
+ window.open(sponsor.url, '_blank');
+ }
+ }}
+ className={`w-full h-20 relative overflow-hidden ${(isExample || (sponsor.url && sponsor.url !== '#')) ? 'cursor-pointer' : ''}`}
  >
  <img src={bannerSrc} alt={sponsor.name} className="absolute inset-0 w-full h-full object-cover" />
- {isExample && onAdvertise && (
- <button
- onClick={(e) => { e.stopPropagation(); onAdvertise(); }}
- className="absolute right-4 top-1/2 -translate-y-1/2 flex-shrink-0 px-4 py-1.5 bg-[#222A36] hover:bg-[#222A36]/80 border border-white/30 rounded-full text-white text-xs font-bold transition-all whitespace-nowrap"
- >
+ {isExample && (
+ <div className="absolute right-4 top-1/2 -translate-y-1/2 flex-shrink-0 px-4 py-1.5 bg-[#222A36] hover:bg-[#222A36]/80 border border-white/30 rounded-full text-white text-xs font-bold transition-all whitespace-nowrap pointer-events-none">
  Advertise Here
- </button>
+ </div>
  )}
  </div>
  );
