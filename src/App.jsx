@@ -235,27 +235,19 @@ const DEMO_MAIN_SPONSOR = {
  isDemo: true,
 };
 
-const MainSponsorBanner = ({ mainSponsor, onAdvertise }) => {
+const MainSponsorBanner = ({ mainSponsor }) => {
  const sponsor = mainSponsor || DEMO_MAIN_SPONSOR;
- const isExample = !mainSponsor;
  const bannerSrc = sponsor.bannerUrl || sponsor.logoUrl;
  return (
  <div
  onClick={() => {
- if (isExample && onAdvertise) {
- onAdvertise();
- } else if (sponsor.url && sponsor.url !== '#') {
+ if (sponsor.url && sponsor.url !== '#') {
  window.open(sponsor.url, '_blank');
  }
  }}
- className={`w-full h-20 relative overflow-hidden ${(isExample || (sponsor.url && sponsor.url !== '#')) ? 'cursor-pointer' : ''}`}
+ className={`w-full h-20 relative overflow-hidden ${sponsor.url && sponsor.url !== '#' ? 'cursor-pointer' : ''}`}
  >
  <img src={bannerSrc} alt={sponsor.name} className="absolute inset-0 w-full h-full object-cover" />
- {isExample && (
- <div className="absolute right-4 top-1/2 -translate-y-1/2 flex-shrink-0 px-4 py-1.5 bg-[#222A36] hover:bg-[#222A36]/80 border border-white/30 rounded-full text-white text-xs font-bold transition-all whitespace-nowrap pointer-events-none">
- Advertise Here
- </div>
- )}
  </div>
  );
 };
@@ -10052,7 +10044,7 @@ const HuddleUpApp = () => {
 
  {user && !['welcome', 'login', 'signup', 'forgotPassword'].includes(currentScreen) && (
  <div className="fixed top-0 left-0 right-0 z-[60]">
- <MainSponsorBanner onAdvertise={() => setCurrentScreen('sponsorDashboard')} />
+ <MainSponsorBanner />
  </div>
  )}
 
