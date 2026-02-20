@@ -3391,8 +3391,7 @@ const HuddleUpApp = () => {
  </div>
  </div>
 
- <div className="sticky top-14 z-10 bg-[#0F1115] border-b border-[#222A36] pb-3">
- <div className="max-w-4xl mx-auto px-4 pt-3">
+ <div className="max-w-4xl mx-auto px-4">
 
  {/* LOCATION SEARCH */}
  <div className="relative mb-3">
@@ -3510,7 +3509,6 @@ const HuddleUpApp = () => {
  </svg>
  Refresh scores
  </button>
- </div>
  </div>
 
  {/* MAIN SPONSOR BANNER - 5 slots per sport */}
@@ -10048,22 +10046,6 @@ const HuddleUpApp = () => {
  }
  `}</style>
 
- {!['welcome', 'login', 'signup', 'forgotPassword'].includes(currentScreen) && !showOnboarding && (
- <div className="relative z-40 bg-gradient-to-r from-amber-600 via-orange-500 to-amber-600 shadow-sm shadow-orange-500/20">
- <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-center gap-3">
- <Megaphone className="w-4 h-4 text-white flex-shrink-0" />
- <span className="text-white text-xs sm:text-sm font-bold tracking-wide">
- MAIN SPONSOR — <span className="font-normal opacity-90">Your brand here! Premium placement across all pages.</span>
- </span>
- <a
- href="mailto:sponsor@huddleupusa.com"
- className="px-3 py-1 bg-[#222A36] hover:bg-[#222A36]/80 text-white text-xs font-bold rounded-full border border-white/30 transition-colors flex-shrink-0"
- >
- Advertise
- </a>
- </div>
- </div>
- )}
 
  {/* FEATURE 1: Onboarding Tutorial Overlay */}
  {showOnboarding && <OnboardingOverlay />}
