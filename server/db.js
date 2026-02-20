@@ -413,6 +413,45 @@ export async function initDB() {
         UNIQUE(sport, team_a, team_b)
       );
 
+      CREATE TABLE IF NOT EXISTS affiliates (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name TEXT NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        code TEXT UNIQUE NOT NULL,
+        commission_type TEXT DEFAULT 'per_signup',
+        commission_amount_cents INTEGER DEFAULT 500,
+        status TEXT DEFAULT 'active',
+        payment_method TEXT DEFAULT 'paypal',
+        payment_details TEXT,
+        notes TEXT,
+        total_earned_cents INTEGER DEFAULT 0,
+        total_paid_cents INTEGER DEFAULT 0,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS affiliate_referrals (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        affiliate_id UUID REFERENCES affiliates(id) ON DELETE CASCADE,
+        user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+        user_email TEXT,
+        commission_cents INTEGER DEFAULT 0,
+        status TEXT DEFAULT 'pending',
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS affiliate_payouts (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        affiliate_id UUID REFERENCES affiliates(id) ON DELETE CASCADE,
+        amount_cents INTEGER NOT NULL,
+        payment_method TEXT,
+        payment_reference TEXT,
+        notes TEXT,
+        status TEXT DEFAULT 'completed',
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS affiliate_code TEXT;
+
       ALTER TABLE parties ADD COLUMN IF NOT EXISTS ticket_price_cents INTEGER DEFAULT 0;
       ALTER TABLE parties ADD COLUMN IF NOT EXISTS is_promoted BOOLEAN DEFAULT FALSE;
       ALTER TABLE parties ADD COLUMN IF NOT EXISTS has_recap BOOLEAN DEFAULT FALSE;
