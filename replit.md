@@ -53,6 +53,9 @@ Hosts can create highlights/recaps for past parties with text and photos. Recent
 ## Raffle-Based Rewards System
 Points system focuses on raffle entries instead of merchandise/venue redemptions. Users earn points through engagement (create party 50pts, attend party 25pts, invite friend 100pts, venue check-in 75pts, referral welcome bonus 50pts). Points are spent to enter raffles for grand prizes (game tickets, signed memorabilia, electronics). Each raffle has configurable points-per-entry cost and max entries per user. Backend: server/routes/raffles.js. Routes at /api/raffles/*. Tables: raffles, raffle_entries. Frontend: Raffles tab in RewardsScreen (replaces old Redeem tab). Welcome bonus: 50 points awarded when a new user applies a referral code; referrer gets 100 points.
 
+## Affiliate Program
+Paid affiliate program for partners/influencers who promote Huddle Up. Affiliates earn real money (commissions) for each signup they generate. Admin manages everything: create affiliates with unique codes, set commission rates (per signup, per subscription, or percentage), choose payment methods (PayPal, Venmo, Zelle, check, bank transfer). When users sign up with an affiliate code, a referral is tracked automatically as "pending". Admin reviews and approves/rejects each referral. Approved referrals add to the affiliate's earned balance. Admin processes payouts when ready, recording payment references. This is separate from the existing user referral system (which only awards points). Tables: affiliates, affiliate_referrals, affiliate_payouts. Users table has affiliate_code column. Routes at /api/affiliates/*. Frontend: Affiliates tab in Admin Panel.
+
 ## External Dependencies
 - **PostgreSQL**: Primary database for all application data.
 - **Express**: Backend web framework.

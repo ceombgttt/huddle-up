@@ -6,7 +6,7 @@ const router = Router();
 
 router.post('/signup', async (req, res) => {
   try {
-    const { email, password, name, gender, dateOfBirth, rememberMe = true, referralCode = '' } = req.body;
+    const { email, password, name, gender, dateOfBirth, rememberMe = true, referralCode = '', affiliateCode = '' } = req.body;
     if (!email || !password || !name || !gender || !dateOfBirth) {
       return res.status(400).json({ error: 'All fields are required' });
     }
@@ -42,6 +42,24 @@ router.post('/signup', async (req, res) => {
     );
 
     const user = result.rows[0];
+
+    const affCode = affiliateCode?.trim().toUpperCase() || referralCode?.trim().toUpperCase() || '';
+    if (affCode) {
+      try {
+        const affCheck = await pool.query('SELECT id, commission_amount_cents FROM affiliates WHERE code = $1 AND status = $2', [affCode, 'active']);
+        if (affCheck.rows.length > 0) {
+          const aff = affCheck.rows[0];
+          await pool.query('UPDATE users SET affiliate_code = $1 WHERE id = $2', [affCode, user.id]);
+          await pool.query(
+            `INSERT INTO affiliate_referrals (affiliate_id, user_id, user_email, commission_cents, status) VALUES ($1, $2, $3, $4, $5)`,
+            [aff.id, user.id, email, aff.commission_amount_cents, 'pending']
+          );
+        }
+      } catch (affErr) {
+        console.error('Affiliate tracking error (non-fatal):', affErr);
+      }
+    }
+
     req.session.userId = user.id;
     req.session.isAdmin = user.is_admin;
 

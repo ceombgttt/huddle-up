@@ -1158,6 +1158,12 @@ const HuddleUpApp = () => {
  const [adminRaffles, setAdminRaffles] = useState([]);
  const [adminRaffleForm, setAdminRaffleForm] = useState(null);
  const [adminRaffleSaving, setAdminRaffleSaving] = useState(false);
+ const [adminAffiliates, setAdminAffiliates] = useState([]);
+ const [adminAffiliateForm, setAdminAffiliateForm] = useState(null);
+ const [adminAffiliateSaving, setAdminAffiliateSaving] = useState(false);
+ const [adminAffiliateDetail, setAdminAffiliateDetail] = useState(null);
+ const [adminAffiliateReferrals, setAdminAffiliateReferrals] = useState([]);
+ const [adminPayoutForm, setAdminPayoutForm] = useState(null);
  const [totalUsers, setTotalUsersCount] = useState(0);
  const [adminTab, setAdminTab] = useState('analytics');
  const [analyticsData, setAnalyticsData] = useState(null);
@@ -1444,6 +1450,7 @@ const HuddleUpApp = () => {
  loadAnalytics();
  api.users.stats().then(s => setTotalUsersCount(s.totalUsers)).catch(() => {});
  api.raffles.adminAll().then(d => setAdminRaffles(d)).catch(() => {});
+ api.affiliates.adminAll().then(d => setAdminAffiliates(d)).catch(() => {});
  }
  if (currentScreen === 'rewards' && user) {
  loadRewards();
@@ -4692,6 +4699,7 @@ const HuddleUpApp = () => {
  { id: 'analytics', label: 'Analytics', icon: BarChart3 },
  { id: 'management', label: 'Management', icon: Settings },
  { id: 'rewards', label: 'Rewards', icon: Gift },
+ { id: 'affiliates', label: 'Affiliates', icon: Users },
  ].map(tab => (
  <button key={tab.id} onClick={() => setAdminTab(tab.id)}
  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
@@ -5972,6 +5980,334 @@ const HuddleUpApp = () => {
  })}
  </div>
  )}
+ </div>
+ </>
+ )}
+
+ {adminTab === 'affiliates' && (
+ <>
+ <div className="bg-[#151A22] rounded-2xl border border-[#222A36] p-6">
+ <div className="flex items-center justify-between mb-6">
+ <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+ <Users className="inline w-5 h-5 mr-2 text-green-400" /> AFFILIATE PROGRAM
+ </h2>
+ <button
+ onClick={() => setAdminAffiliateForm({ name: '', email: '', code: '', commissionType: 'per_signup', commissionAmountCents: 500, paymentMethod: 'paypal', paymentDetails: '', notes: '' })}
+ className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold rounded-xl text-sm hover:shadow-green-500/30 transition-all"
+ >
+ <Plus className="w-4 h-4 inline mr-1" /> Add Affiliate
+ </button>
+ </div>
+
+ {adminAffiliateForm && !adminAffiliateDetail && (
+ <div className="bg-[#0F1115] rounded-xl border border-[#222A36] p-5 mb-6 space-y-4">
+ <h3 className="text-white font-bold text-sm">{adminAffiliateForm.id ? 'EDIT AFFILIATE' : 'ADD NEW AFFILIATE'}</h3>
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Name *</label>
+ <input value={adminAffiliateForm.name} onChange={e => setAdminAffiliateForm(f => ({ ...f, name: e.target.value }))}
+ className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" placeholder="e.g. John Smith" />
+ </div>
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Email *</label>
+ <input value={adminAffiliateForm.email} onChange={e => setAdminAffiliateForm(f => ({ ...f, email: e.target.value }))}
+ className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" placeholder="affiliate@example.com" />
+ </div>
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Affiliate Code *</label>
+ <input value={adminAffiliateForm.code} onChange={e => setAdminAffiliateForm(f => ({ ...f, code: e.target.value.toUpperCase() }))}
+ className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF] uppercase" placeholder="e.g. JOHN2025" />
+ </div>
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Commission Type</label>
+ <select value={adminAffiliateForm.commissionType} onChange={e => setAdminAffiliateForm(f => ({ ...f, commissionType: e.target.value }))}
+ className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[#1E90FF]">
+ <option value="per_signup">Per Signup (flat fee)</option>
+ <option value="per_subscription">Per Subscription (flat fee)</option>
+ <option value="percentage">Percentage of Revenue</option>
+ </select>
+ </div>
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Commission Amount ($)</label>
+ <input type="number" step="0.01" value={(adminAffiliateForm.commissionAmountCents / 100).toFixed(2)} onChange={e => setAdminAffiliateForm(f => ({ ...f, commissionAmountCents: Math.round(parseFloat(e.target.value || 0) * 100) }))}
+ className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" />
+ </div>
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Payment Method</label>
+ <select value={adminAffiliateForm.paymentMethod} onChange={e => setAdminAffiliateForm(f => ({ ...f, paymentMethod: e.target.value }))}
+ className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[#1E90FF]">
+ <option value="paypal">PayPal</option>
+ <option value="venmo">Venmo</option>
+ <option value="zelle">Zelle</option>
+ <option value="check">Check</option>
+ <option value="bank_transfer">Bank Transfer</option>
+ </select>
+ </div>
+ <div className="sm:col-span-2">
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Payment Details</label>
+ <input value={adminAffiliateForm.paymentDetails} onChange={e => setAdminAffiliateForm(f => ({ ...f, paymentDetails: e.target.value }))}
+ className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" placeholder="PayPal email, Venmo handle, etc." />
+ </div>
+ <div className="sm:col-span-2">
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Notes</label>
+ <textarea value={adminAffiliateForm.notes} onChange={e => setAdminAffiliateForm(f => ({ ...f, notes: e.target.value }))}
+ rows={2} className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" placeholder="Optional notes..." />
+ </div>
+ {adminAffiliateForm.id && (
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Status</label>
+ <select value={adminAffiliateForm.status || 'active'} onChange={e => setAdminAffiliateForm(f => ({ ...f, status: e.target.value }))}
+ className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[#1E90FF]">
+ <option value="active">Active</option>
+ <option value="paused">Paused</option>
+ <option value="terminated">Terminated</option>
+ </select>
+ </div>
+ )}
+ </div>
+ <div className="flex gap-3 pt-2">
+ <button
+ disabled={adminAffiliateSaving || !adminAffiliateForm.name || !adminAffiliateForm.email || !adminAffiliateForm.code}
+ onClick={async () => {
+ setAdminAffiliateSaving(true);
+ try {
+ if (adminAffiliateForm.id) {
+ await api.affiliates.adminUpdate(adminAffiliateForm.id, adminAffiliateForm);
+ } else {
+ await api.affiliates.adminCreate(adminAffiliateForm);
+ }
+ setAdminAffiliateForm(null);
+ const data = await api.affiliates.adminAll();
+ setAdminAffiliates(data);
+ } catch (e) { alert(e.message || 'Save failed'); }
+ finally { setAdminAffiliateSaving(false); }
+ }}
+ className={`flex-1 py-2.5 font-bold rounded-xl text-sm transition-all ${
+ adminAffiliateSaving || !adminAffiliateForm.name || !adminAffiliateForm.email || !adminAffiliateForm.code
+ ? 'bg-gray-600 text-[#A0A4AB] cursor-not-allowed'
+ : 'bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:shadow-green-500/30'
+ }`}
+ >
+ {adminAffiliateSaving ? 'Saving...' : adminAffiliateForm.id ? 'Update Affiliate' : 'Add Affiliate'}
+ </button>
+ <button onClick={() => setAdminAffiliateForm(null)} className="px-6 py-2.5 bg-[#151A22] text-[#A0A4AB] font-bold rounded-xl hover:bg-[#222A36] text-sm">Cancel</button>
+ </div>
+ </div>
+ )}
+
+ {adminAffiliateDetail && (
+ <div className="bg-[#0F1115] rounded-xl border border-[#222A36] p-5 mb-6">
+ <div className="flex items-center justify-between mb-4">
+ <h3 className="text-white font-bold text-sm">
+ <Users className="w-4 h-4 inline mr-1" /> {adminAffiliateDetail.name} — REFERRALS & PAYOUTS
+ </h3>
+ <button onClick={() => { setAdminAffiliateDetail(null); setAdminAffiliateReferrals([]); setAdminPayoutForm(null); }}
+ className="text-[#A0A4AB] hover:text-white text-sm font-bold">Close</button>
+ </div>
+
+ <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+ <div className="bg-[#151A22] rounded-lg p-3 text-center">
+ <div className="text-lg font-bold text-white">{adminAffiliateDetail.total_referrals}</div>
+ <div className="text-xs text-[#A0A4AB]">Total Referrals</div>
+ </div>
+ <div className="bg-[#151A22] rounded-lg p-3 text-center">
+ <div className="text-lg font-bold text-green-400">${((adminAffiliateDetail.total_earned_cents || 0) / 100).toFixed(2)}</div>
+ <div className="text-xs text-[#A0A4AB]">Total Earned</div>
+ </div>
+ <div className="bg-[#151A22] rounded-lg p-3 text-center">
+ <div className="text-lg font-bold text-blue-400">${((adminAffiliateDetail.total_paid_cents || 0) / 100).toFixed(2)}</div>
+ <div className="text-xs text-[#A0A4AB]">Total Paid</div>
+ </div>
+ <div className="bg-[#151A22] rounded-lg p-3 text-center">
+ <div className="text-lg font-bold text-yellow-400">${(((adminAffiliateDetail.total_earned_cents || 0) - (adminAffiliateDetail.total_paid_cents || 0)) / 100).toFixed(2)}</div>
+ <div className="text-xs text-[#A0A4AB]">Unpaid Balance</div>
+ </div>
+ </div>
+
+ {!adminPayoutForm && ((adminAffiliateDetail.total_earned_cents || 0) - (adminAffiliateDetail.total_paid_cents || 0)) > 0 && (
+ <button onClick={() => setAdminPayoutForm({ amountCents: (adminAffiliateDetail.total_earned_cents || 0) - (adminAffiliateDetail.total_paid_cents || 0), paymentMethod: adminAffiliateDetail.payment_method, paymentReference: '', notes: '' })}
+ className="w-full mb-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold rounded-xl text-sm hover:shadow-green-500/30 transition-all">
+ <DollarSign className="w-4 h-4 inline mr-1" /> Process Payout
+ </button>
+ )}
+
+ {adminPayoutForm && (
+ <div className="bg-[#151A22] rounded-lg border border-green-500/20 p-4 mb-4 space-y-3">
+ <h4 className="text-green-400 font-bold text-sm">PROCESS PAYOUT</h4>
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+ <div>
+ <label className="block text-xs text-[#A0A4AB] mb-1">Amount ($)</label>
+ <input type="number" step="0.01" value={(adminPayoutForm.amountCents / 100).toFixed(2)}
+ onChange={e => setAdminPayoutForm(f => ({ ...f, amountCents: Math.round(parseFloat(e.target.value || 0) * 100) }))}
+ className="w-full px-3 py-2 bg-[#0F1115] border border-[#222A36] rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+ </div>
+ <div>
+ <label className="block text-xs text-[#A0A4AB] mb-1">Payment Method</label>
+ <input value={adminPayoutForm.paymentMethod} onChange={e => setAdminPayoutForm(f => ({ ...f, paymentMethod: e.target.value }))}
+ className="w-full px-3 py-2 bg-[#0F1115] border border-[#222A36] rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+ </div>
+ <div>
+ <label className="block text-xs text-[#A0A4AB] mb-1">Payment Reference</label>
+ <input value={adminPayoutForm.paymentReference} onChange={e => setAdminPayoutForm(f => ({ ...f, paymentReference: e.target.value }))}
+ placeholder="Transaction ID, check #, etc." className="w-full px-3 py-2 bg-[#0F1115] border border-[#222A36] rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500" />
+ </div>
+ <div>
+ <label className="block text-xs text-[#A0A4AB] mb-1">Notes</label>
+ <input value={adminPayoutForm.notes} onChange={e => setAdminPayoutForm(f => ({ ...f, notes: e.target.value }))}
+ placeholder="Optional" className="w-full px-3 py-2 bg-[#0F1115] border border-[#222A36] rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500" />
+ </div>
+ </div>
+ <div className="flex gap-2">
+ <button disabled={!adminPayoutForm.amountCents} onClick={async () => {
+ if (!confirm(`Pay $${(adminPayoutForm.amountCents / 100).toFixed(2)} to ${adminAffiliateDetail.name}?`)) return;
+ try {
+ await api.affiliates.adminPayout(adminAffiliateDetail.id, adminPayoutForm);
+ setAdminPayoutForm(null);
+ const data = await api.affiliates.adminAll();
+ setAdminAffiliates(data);
+ const updated = data.find(a => a.id === adminAffiliateDetail.id);
+ if (updated) setAdminAffiliateDetail(updated);
+ alert('Payout recorded successfully!');
+ } catch (e) { alert(e.message || 'Payout failed'); }
+ }} className="flex-1 py-2 bg-green-500 text-white font-bold rounded-lg text-sm hover:bg-green-600">Confirm Payout</button>
+ <button onClick={() => setAdminPayoutForm(null)} className="px-4 py-2 bg-[#0F1115] text-[#A0A4AB] rounded-lg text-sm hover:bg-[#222A36]">Cancel</button>
+ </div>
+ </div>
+ )}
+
+ <div className="mb-3">
+ <h4 className="text-[#A0A4AB] font-bold text-xs mb-2">REFERRALS</h4>
+ {adminAffiliateReferrals.length === 0 ? (
+ <p className="text-[#A0A4AB] text-sm">No referrals yet.</p>
+ ) : (
+ <div className="space-y-2 max-h-64 overflow-y-auto">
+ {adminAffiliateReferrals.map(ref => (
+ <div key={ref.id} className="flex items-center justify-between bg-[#151A22] rounded-lg px-3 py-2">
+ <div>
+ <span className="text-white text-sm font-medium">{ref.user_name || ref.user_email}</span>
+ <span className="text-[#A0A4AB] text-xs ml-2">${(ref.commission_cents / 100).toFixed(2)} commission</span>
+ <span className="text-[#A0A4AB] text-xs ml-2">{new Date(ref.created_at).toLocaleDateString()}</span>
+ </div>
+ <div className="flex items-center gap-2">
+ <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${
+ ref.status === 'approved' ? 'bg-green-500/20 text-green-400' : ref.status === 'rejected' ? 'bg-red-500/20 text-red-400' : 'bg-yellow-500/20 text-yellow-400'
+ }`}>{ref.status}</span>
+ {ref.status === 'pending' && (
+ <>
+ <button onClick={async () => {
+ try { await api.affiliates.adminApproveReferral(ref.id);
+ const refs = await api.affiliates.adminReferrals(adminAffiliateDetail.id); setAdminAffiliateReferrals(refs);
+ const data = await api.affiliates.adminAll(); setAdminAffiliates(data);
+ const updated = data.find(a => a.id === adminAffiliateDetail.id); if (updated) setAdminAffiliateDetail(updated);
+ } catch (e) { alert(e.message); }
+ }} className="p-1 bg-green-500/10 rounded hover:bg-green-500/20 text-green-400" title="Approve">
+ <Check className="w-3.5 h-3.5" />
+ </button>
+ <button onClick={async () => {
+ try { await api.affiliates.adminRejectReferral(ref.id);
+ const refs = await api.affiliates.adminReferrals(adminAffiliateDetail.id); setAdminAffiliateReferrals(refs);
+ } catch (e) { alert(e.message); }
+ }} className="p-1 bg-red-500/10 rounded hover:bg-red-500/20 text-red-400" title="Reject">
+ <X className="w-3.5 h-3.5" />
+ </button>
+ </>
+ )}
+ </div>
+ </div>
+ ))}
+ </div>
+ )}
+ </div>
+ </div>
+ )}
+
+ {adminAffiliates.length === 0 && !adminAffiliateForm ? (
+ <div className="text-center py-8 text-[#A0A4AB]">
+ <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
+ <p className="font-bold mb-1">No affiliates yet</p>
+ <p className="text-sm">Add affiliates who promote Huddle Up and earn commissions for each signup they generate.</p>
+ </div>
+ ) : (
+ <div className="space-y-3">
+ {adminAffiliates.map(aff => {
+ const unpaidCents = (aff.total_earned_cents || 0) - (aff.total_paid_cents || 0);
+ return (
+ <div key={aff.id} className={`bg-[#0F1115] rounded-xl border p-4 ${
+ aff.status === 'active' ? 'border-green-500/20' : aff.status === 'paused' ? 'border-yellow-500/20' : 'border-red-500/20'
+ }`}>
+ <div className="flex items-start gap-3">
+ <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+ {aff.name.charAt(0).toUpperCase()}
+ </div>
+ <div className="flex-1 min-w-0">
+ <div className="flex items-center gap-2 flex-wrap">
+ <span className="text-white font-bold">{aff.name}</span>
+ <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${
+ aff.status === 'active' ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+ : aff.status === 'paused' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+ : 'bg-red-500/20 text-red-400 border border-red-500/30'
+ }`}>{aff.status.toUpperCase()}</span>
+ <span className="bg-[#151A22] text-[#1E90FF] px-2 py-0.5 text-xs font-mono rounded border border-[#222A36]">{aff.code}</span>
+ </div>
+ <div className="text-[#A0A4AB] text-xs mt-1">{aff.email} · {aff.payment_method} · ${(aff.commission_amount_cents / 100).toFixed(2)}/{aff.commission_type.replace('_', ' ')}</div>
+ <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm">
+ <span className="text-[#A0A4AB]">{aff.total_referrals || 0} referrals</span>
+ <span className="text-green-400 font-medium">${((aff.total_earned_cents || 0) / 100).toFixed(2)} earned</span>
+ <span className="text-blue-400">${((aff.total_paid_cents || 0) / 100).toFixed(2)} paid</span>
+ {unpaidCents > 0 && <span className="text-yellow-400 font-medium">${(unpaidCents / 100).toFixed(2)} unpaid</span>}
+ </div>
+ </div>
+ <div className="flex flex-col gap-2 flex-shrink-0">
+ <button onClick={async () => {
+ setAdminAffiliateDetail(aff);
+ try { const refs = await api.affiliates.adminReferrals(aff.id); setAdminAffiliateReferrals(refs); } catch (e) { setAdminAffiliateReferrals([]); }
+ }} className="p-2 bg-[#151A22] rounded-lg hover:bg-[#222A36] text-[#A0A4AB] hover:text-white" title="View Details">
+ <Eye className="w-4 h-4" />
+ </button>
+ <button onClick={() => setAdminAffiliateForm({
+ id: aff.id, name: aff.name, email: aff.email, code: aff.code,
+ commissionType: aff.commission_type, commissionAmountCents: aff.commission_amount_cents,
+ paymentMethod: aff.payment_method, paymentDetails: aff.payment_details || '',
+ notes: aff.notes || '', status: aff.status,
+ })} className="p-2 bg-[#151A22] rounded-lg hover:bg-[#222A36] text-[#A0A4AB] hover:text-white" title="Edit">
+ <Pencil className="w-4 h-4" />
+ </button>
+ <button onClick={async () => {
+ if (!confirm(`Delete affiliate "${aff.name}"? This will also remove their referral tracking history.`)) return;
+ try { await api.affiliates.adminDelete(aff.id);
+ const data = await api.affiliates.adminAll(); setAdminAffiliates(data);
+ } catch (e) { alert(e.message || 'Delete failed'); }
+ }} className="p-2 bg-red-500/10 rounded-lg hover:bg-red-500/20 text-red-400 hover:text-red-300" title="Delete">
+ <Trash2 className="w-4 h-4" />
+ </button>
+ </div>
+ </div>
+ </div>
+ );
+ })}
+ </div>
+ )}
+ </div>
+
+ <div className="bg-[#151A22] rounded-2xl border border-[#222A36] p-6">
+ <h3 className="text-lg font-bold text-white mb-3">How It Works</h3>
+ <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+ <div className="bg-[#0F1115] rounded-xl p-4 border border-[#222A36]">
+ <div className="text-2xl mb-2">1️⃣</div>
+ <div className="text-white font-bold mb-1">Add Affiliates</div>
+ <div className="text-[#A0A4AB]">Create affiliate accounts with unique codes, set commission rates and payment preferences.</div>
+ </div>
+ <div className="bg-[#0F1115] rounded-xl p-4 border border-[#222A36]">
+ <div className="text-2xl mb-2">2️⃣</div>
+ <div className="text-white font-bold mb-1">Track Signups</div>
+ <div className="text-[#A0A4AB]">When new users sign up with an affiliate's code, the referral is tracked automatically. Review and approve each referral.</div>
+ </div>
+ <div className="bg-[#0F1115] rounded-xl p-4 border border-[#222A36]">
+ <div className="text-2xl mb-2">3️⃣</div>
+ <div className="text-white font-bold mb-1">Process Payouts</div>
+ <div className="text-[#A0A4AB]">When you're ready, process payouts via their preferred method (PayPal, Venmo, Zelle, etc.) and record the transaction.</div>
+ </div>
+ </div>
  </div>
  </>
  )}

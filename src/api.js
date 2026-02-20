@@ -253,6 +253,17 @@ export const api = {
     getActivity: (userId) => request(`/profile/users/${userId}/activity`),
     myStats: () => request('/profile/me/stats'),
   },
+  affiliates: {
+    adminAll: () => request('/affiliates/admin/all'),
+    adminCreate: (data) => request('/affiliates/admin/create', { method: 'POST', body: JSON.stringify(data) }),
+    adminUpdate: (id, data) => request(`/affiliates/admin/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    adminDelete: (id) => request(`/affiliates/admin/${id}`, { method: 'DELETE' }),
+    adminReferrals: (id) => request(`/affiliates/admin/${id}/referrals`),
+    adminApproveReferral: (id) => request(`/affiliates/admin/referral/${id}/approve`, { method: 'PUT' }),
+    adminRejectReferral: (id) => request(`/affiliates/admin/referral/${id}/reject`, { method: 'PUT' }),
+    adminPayout: (id, data) => request(`/affiliates/admin/${id}/payout`, { method: 'POST', body: JSON.stringify(data) }),
+    adminPayouts: (id) => request(`/affiliates/admin/${id}/payouts`),
+  },
   analytics: {
     overview: () => request('/analytics/overview'),
     userGrowth: (days = 30) => request(`/analytics/user-growth?days=${days}`),

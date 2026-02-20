@@ -31,6 +31,7 @@ import trendingRoutes from './routes/trending.js';
 import ticketRoutes from './routes/tickets.js';
 import alertRoutes from './routes/alerts.js';
 import raffleRoutes from './routes/raffles.js';
+import affiliateRoutes from './routes/affiliates.js';
 import { startScoreChecker } from './scoreChecker.js';
 import { WebhookHandlers } from './stripe/webhookHandlers.js';
 import { initStripe } from './stripe/init.js';
@@ -109,6 +110,7 @@ app.use('/api/trending', trendingRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/alerts', alertRoutes);
 app.use('/api/raffles', raffleRoutes);
+app.use('/api/affiliates', affiliateRoutes);
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
