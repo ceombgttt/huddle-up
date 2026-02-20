@@ -107,6 +107,7 @@ export const api = {
       const params = new URLSearchParams({ sport, team });
       return request(`/fans/by-team?${params}`);
     },
+    search: (q) => request(`/fans/search?q=${encodeURIComponent(q)}`),
     invite: (partyId, toUserId) =>
       request('/fans/invite', { method: 'POST', body: JSON.stringify({ partyId, toUserId }) }),
     invitations: () => request('/fans/invitations'),

@@ -5,6 +5,79 @@ import { awardPoints } from './rewards.js';
 
 const router = Router();
 
+router.get('/search', requireAuth, async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.trim().length < 2) {
+      return res.status(400).json({ error: 'Search query must be at least 2 characters' });
+    }
+
+    const searchTerm = q.trim();
+    const isPhoneSearch = /^[\d\s\-\+\(\)]+$/.test(searchTerm) && searchTerm.replace(/\D/g, '').length >= 4;
+
+    let result;
+    if (isPhoneSearch) {
+      const digits = searchTerm.replace(/\D/g, '');
+      result = await pool.query(
+        `SELECT u.id, u.name, u.gender, u.profile_picture, u.joined_at, u.subscription_tier,
+          COALESCE((SELECT json_agg(DISTINCT jsonb_build_object('sport', ft.sport, 'team', ft.team)) FROM user_favorite_teams ft WHERE ft.user_id = u.id), '[]') as favorite_teams,
+          (SELECT COUNT(*) FROM parties WHERE host_id = u.id) as parties_hosted,
+          (SELECT COUNT(*) FROM party_attendees WHERE user_id = u.id) as parties_attended
+         FROM users u
+         WHERE REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(u.phone_number, '-', ''), ' ', ''), '(', ''), ')', ''), '+', '') LIKE $1
+         AND u.id != $2
+         ORDER BY u.name
+         LIMIT 50`,
+        [`%${digits}%`, req.session.userId]
+      );
+    } else {
+      const nameParts = searchTerm.split(/\s+/);
+      if (nameParts.length >= 2) {
+        result = await pool.query(
+          `SELECT u.id, u.name, u.gender, u.profile_picture, u.joined_at, u.subscription_tier,
+            COALESCE((SELECT json_agg(DISTINCT jsonb_build_object('sport', ft.sport, 'team', ft.team)) FROM user_favorite_teams ft WHERE ft.user_id = u.id), '[]') as favorite_teams,
+            (SELECT COUNT(*) FROM parties WHERE host_id = u.id) as parties_hosted,
+            (SELECT COUNT(*) FROM party_attendees WHERE user_id = u.id) as parties_attended
+           FROM users u
+           WHERE (LOWER(u.name) LIKE LOWER($1) OR (LOWER(u.name) LIKE LOWER($2) AND LOWER(u.name) LIKE LOWER($3)))
+           AND u.id != $4
+           ORDER BY u.name
+           LIMIT 50`,
+          [`%${searchTerm}%`, `%${nameParts[0]}%`, `%${nameParts[nameParts.length - 1]}%`, req.session.userId]
+        );
+      } else {
+        result = await pool.query(
+          `SELECT u.id, u.name, u.gender, u.profile_picture, u.joined_at, u.subscription_tier,
+            COALESCE((SELECT json_agg(DISTINCT jsonb_build_object('sport', ft.sport, 'team', ft.team)) FROM user_favorite_teams ft WHERE ft.user_id = u.id), '[]') as favorite_teams,
+            (SELECT COUNT(*) FROM parties WHERE host_id = u.id) as parties_hosted,
+            (SELECT COUNT(*) FROM party_attendees WHERE user_id = u.id) as parties_attended
+           FROM users u
+           WHERE LOWER(u.name) LIKE LOWER($1)
+           AND u.id != $2
+           ORDER BY u.name
+           LIMIT 50`,
+          [`%${searchTerm}%`, req.session.userId]
+        );
+      }
+    }
+
+    res.json(result.rows.map(r => ({
+      id: r.id,
+      name: r.name,
+      gender: r.gender,
+      profilePicture: r.profile_picture,
+      joinedAt: r.joined_at,
+      subscriptionTier: r.subscription_tier || 'free',
+      favoriteTeams: r.favorite_teams,
+      partiesHosted: parseInt(r.parties_hosted),
+      partiesAttended: parseInt(r.parties_attended)
+    })));
+  } catch (error) {
+    console.error('Fan search by name/phone error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 router.get('/by-team', requireAuth, async (req, res) => {
   try {
     const { sport, team } = req.query;

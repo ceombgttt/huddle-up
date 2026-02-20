@@ -1174,6 +1174,10 @@ const HuddleUpApp = () => {
  const [fanSearchTeam, setFanSearchTeam] = useState('');
  const [fanResults, setFanResults] = useState([]);
  const [fanSearchLoading, setFanSearchLoading] = useState(false);
+ const [fanNameQuery, setFanNameQuery] = useState('');
+ const [fanNameResults, setFanNameResults] = useState([]);
+ const [fanNameSearchLoading, setFanNameSearchLoading] = useState(false);
+ const [fanSearchTab, setFanSearchTab] = useState('team');
  const [invitePartyId, setInvitePartyId] = useState(null);
  const [inviteSending, setInviteSending] = useState({});
  const [friendsList, setFriendsList] = useState([]);
@@ -2097,6 +2101,20 @@ const HuddleUpApp = () => {
  setFanResults([]);
  } finally {
  setFanSearchLoading(false);
+ }
+ };
+
+ const searchFansByName = async () => {
+ if (!fanNameQuery || fanNameQuery.trim().length < 2) return;
+ setFanNameSearchLoading(true);
+ try {
+ const data = await api.fans.search(fanNameQuery.trim());
+ setFanNameResults(data);
+ } catch (error) {
+ console.error('Fan name search error:', error);
+ setFanNameResults([]);
+ } finally {
+ setFanNameSearchLoading(false);
  }
  };
 
@@ -8096,6 +8114,43 @@ const HuddleUpApp = () => {
  </div>
 
  <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+ <div className="flex gap-2 mb-2">
+ <button onClick={() => setFanSearchTab('team')} className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-all ${fanSearchTab === 'team' ? 'bg-[#1E90FF] text-white' : 'bg-[#151A22] text-[#A0A4AB] border border-[#222A36]'}`}>
+ Search by Team
+ </button>
+ <button onClick={() => setFanSearchTab('name')} className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-all ${fanSearchTab === 'name' ? 'bg-[#1E90FF] text-white' : 'bg-[#151A22] text-[#A0A4AB] border border-[#222A36]'}`}>
+ Search by Name / Phone
+ </button>
+ </div>
+
+ {fanSearchTab === 'name' && (
+ <div className="bg-gradient-to-br from-purple-500/10 to-[#1E90FF]/10 border border-purple-500/30 rounded-2xl p-6">
+ <h2 className="text-lg font-bold text-white mb-2">Find by Name or Phone</h2>
+ <p className="text-[#A0A4AB] text-sm mb-4">Search by first name, last name, full name, or phone number.</p>
+ <div className="space-y-3">
+ <div className="relative">
+ <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A0A4AB]" />
+ <input
+ type="text"
+ value={fanNameQuery}
+ onChange={(e) => setFanNameQuery(e.target.value)}
+ onKeyDown={(e) => e.key === 'Enter' && searchFansByName()}
+ placeholder='e.g. "John Smith" or "555-1234"'
+ className="w-full pl-10 pr-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-[#555] focus:outline-none focus:ring-2 focus:ring-purple-500"
+ />
+ </div>
+ <button
+ onClick={searchFansByName}
+ disabled={!fanNameQuery || fanNameQuery.trim().length < 2 || fanNameSearchLoading}
+ className="w-full py-3 bg-gradient-to-r from-purple-500 to-[#1E90FF] text-white font-bold rounded-xl hover:opacity-90 transition-all disabled:opacity-50"
+ >
+ {fanNameSearchLoading ? 'Searching...' : 'Search'}
+ </button>
+ </div>
+ </div>
+ )}
+
+ {fanSearchTab === 'team' && (
  <div className="bg-gradient-to-br from-cyan-500/10 to-[#1E90FF]/10 border border-[#1E90FF]/30 rounded-2xl p-6">
  <h2 className="text-lg font-bold text-white mb-4">Search by Team</h2>
  <div className="space-y-3">
@@ -8132,8 +8187,9 @@ const HuddleUpApp = () => {
  </button>
  </div>
  </div>
+ )}
 
- {fanResults.length > 0 && (
+ {fanSearchTab === 'team' && fanResults.length > 0 && (
  <div className="space-y-3">
  <h2 className="text-lg font-bold text-white">
  {fanResults.length} fan{fanResults.length !== 1 ? 's' : ''} found for {fanSearchTeam}
@@ -8244,17 +8300,122 @@ const HuddleUpApp = () => {
  </div>
  )}
 
- {fanResults.length === 0 && fanSearchTeam && !fanSearchLoading && (
+ {fanSearchTab === 'team' && fanResults.length === 0 && fanSearchTeam && !fanSearchLoading && (
  <div className="text-center py-8">
  <div className="text-4xl mb-3">🔍</div>
  <p className="text-[#A0A4AB]">No fans found for {fanSearchTeam} yet. Be the first to set them as your favorite!</p>
  </div>
  )}
 
- {!fanSearchTeam && (
+ {fanSearchTab === 'team' && !fanSearchTeam && (
  <div className="text-center py-8">
  <div className="text-4xl mb-3">👥</div>
  <p className="text-[#A0A4AB]">Select a sport and team above to find other fans and invite them to your watch parties.</p>
+ </div>
+ )}
+
+ {fanSearchTab === 'name' && fanNameResults.length > 0 && (
+ <div className="space-y-3">
+ <h2 className="text-lg font-bold text-white">
+ {fanNameResults.length} result{fanNameResults.length !== 1 ? 's' : ''} found
+ </h2>
+
+ {fanFinderMyParties.length > 0 && (
+ <div className="bg-[#151A22] border border-[#222A36] rounded-xl p-4">
+ <label className="text-sm text-[#A0A4AB] mb-2 block">Select a party to invite fans to:</label>
+ <select
+ value={invitePartyId || ''}
+ onChange={(e) => setInvitePartyId(e.target.value || null)}
+ className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
+ >
+ <option value="" className="bg-[#151A22]">Choose a party...</option>
+ {fanFinderMyParties.map(p => (
+ <option key={p.id} value={p.id} className="bg-[#151A22]">
+ {p.title || `${p.homeTeam} vs ${p.awayTeam}`} - {p.venueName}
+ </option>
+ ))}
+ </select>
+ </div>
+ )}
+
+ {fanNameResults.map(fan => {
+ const isFriend = friendsList.some(f => f.id === fan.id);
+ const requestSent = friendStatuses[fan.id] === 'sent';
+ return (
+ <div key={fan.id} className="bg-[#151A22] border border-[#222A36] rounded-xl p-4">
+ <div className="flex items-center gap-3">
+ <ProfileAvatar src={fan.profilePicture} name={fan.name} size="md" />
+ <div className="flex-1 min-w-0">
+ <div className="flex items-center gap-2 flex-wrap">
+ <span className="text-white font-semibold">{fan.name}</span>
+ <BadgeDisplay attended={fan.partiesAttended || 0} hosted={fan.partiesHosted || 0} size="sm" />
+ {isFriend && (
+ <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 text-xs rounded-full border border-emerald-500/30">
+ <Users className="w-3 h-3 inline mr-1" />In Your Crew
+ </span>
+ )}
+ </div>
+ <div className="text-[#A0A4AB] text-sm flex flex-wrap gap-1 mt-1">
+ {fan.favoriteTeams && fan.favoriteTeams.map((ft, i) => (
+ <span key={i} className="px-2 py-0.5 bg-purple-500/20 text-purple-300 rounded-full text-xs">
+ {ft.team}
+ </span>
+ ))}
+ </div>
+ </div>
+ <div className="flex gap-2 flex-shrink-0">
+ {!isFriend && !requestSent && (
+ <button
+ onClick={() => sendFriendRequest(fan.id)}
+ className="px-3 py-2 bg-gradient-to-r from-emerald-500 to-green-500 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1"
+ >
+ <Heart className="w-3 h-3" /> Add
+ </button>
+ )}
+ {requestSent && (
+ <span className="px-3 py-2 bg-[#151A22] text-[#A0A4AB] text-xs font-bold rounded-xl">Sent</span>
+ )}
+ </div>
+ </div>
+
+ {invitePartyId && (
+ <div className="mt-3 pl-12">
+ <button
+ onClick={() => handleInviteFan(fan.id, invitePartyId)}
+ disabled={inviteSending[`${fan.id}-${invitePartyId}`] === true || inviteSending[`${fan.id}-${invitePartyId}`] === 'sent'}
+ className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 ${
+ inviteSending[`${fan.id}-${invitePartyId}`] === 'sent'
+ ? 'bg-green-500/20 text-green-300 border border-green-500/30'
+ : 'bg-[#1E90FF] text-white hover:opacity-90'
+ } disabled:opacity-60`}
+ >
+ {inviteSending[`${fan.id}-${invitePartyId}`] === 'sent' ? (
+ <><CheckCircle className="w-4 h-4" /> Invited</>
+ ) : inviteSending[`${fan.id}-${invitePartyId}`] === true ? (
+ 'Sending...'
+ ) : (
+ <><Send className="w-4 h-4" /> Invite to Party</>
+ )}
+ </button>
+ </div>
+ )}
+ </div>
+ );
+ })}
+ </div>
+ )}
+
+ {fanSearchTab === 'name' && fanNameResults.length === 0 && fanNameQuery.trim().length >= 2 && !fanNameSearchLoading && (
+ <div className="text-center py-8">
+ <div className="text-4xl mb-3">🔍</div>
+ <p className="text-[#A0A4AB]">No users found matching "{fanNameQuery}". Try a different name or phone number.</p>
+ </div>
+ )}
+
+ {fanSearchTab === 'name' && fanNameQuery.trim().length < 2 && (
+ <div className="text-center py-8">
+ <div className="text-4xl mb-3">🔎</div>
+ <p className="text-[#A0A4AB]">Enter a name or phone number above to find fans you know.</p>
  </div>
  )}
  </div>
