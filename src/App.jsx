@@ -3263,9 +3263,9 @@ const HuddleUpApp = () => {
 
  const gamesScreenJSX = () => (
  <div className="min-h-screen pt-20 bg-[#0F1115]">
- <div className="sticky top-20 z-10 bg-[#0F1115] border-b border-[#222A36]">
- <div className="max-w-4xl mx-auto px-4 py-4">
- <div className="flex items-center gap-3 mb-4">
+ <div className="bg-[#0F1115]">
+ <div className="max-w-4xl mx-auto px-4 pt-4 pb-2">
+ <div className="flex items-center gap-3 mb-2">
  <div className="flex-shrink-0">
  <img src="/huddle-up-logo.png" alt="Huddle Up" className="h-12 drop-shadow-sm" />
  </div>
@@ -3388,6 +3388,11 @@ const HuddleUpApp = () => {
  </div>
  </div>
  </div>
+ </div>
+ </div>
+
+ <div className="sticky top-14 z-10 bg-[#0F1115] border-b border-[#222A36] pb-3">
+ <div className="max-w-4xl mx-auto px-4 pt-3">
 
  {/* LOCATION SEARCH */}
  <div className="relative mb-3">
@@ -3485,7 +3490,7 @@ const HuddleUpApp = () => {
  sportsScrollRef.current.scrollBy({ left: 200, behavior: 'smooth' });
  }
  }}
- className="absolute right-0 top-0 bottom-2 w-12 flex items-center justify-end bg-gradient-to-l from-[#0F1115] via-[#0F1115]/90 to-transparent pr-1"
+ className="absolute right-0 top-0 bottom-2 w-12 flex items-center justify-end bg-gradient-to-l from-[#0F1115] via-[#0F1115]/95 to-transparent pr-1"
  >
  <span className="w-8 h-8 rounded-full bg-[#1E90FF]/30 border border-cyan-400/60 flex items-center justify-center animate-scroll-glow">
  <svg className="w-4 h-4 text-[#1E90FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
