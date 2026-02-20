@@ -1113,6 +1113,7 @@ const HuddleUpApp = () => {
  const [tourTab, setTourTab] = useState('fans');
  const [showInviteReminder, setShowInviteReminder] = useState(false);
  const inviteReminderShown = useRef(false);
+ const [showTrialExpired, setShowTrialExpired] = useState(false);
  const [myTeamsOnly, setMyTeamsOnly] = useState(false); // Filter by favorite teams
  const [venues, setVenues] = useState(SAMPLE_VENUES);
  const [venueClaims, setVenueClaims] = useState([]);
@@ -1459,6 +1460,16 @@ const HuddleUpApp = () => {
  loadFantasyLeagues();
  }
  }, [currentScreen, user?.isAdmin, loadSponsors]);
+
+ useEffect(() => {
+ if (user && user.subscriptionStatus === 'expired') {
+ const lastExpiredShown = localStorage.getItem('lastTrialExpiredShown');
+ const oneDay = 24 * 60 * 60 * 1000;
+ if (!lastExpiredShown || (Date.now() - parseInt(lastExpiredShown)) > oneDay) {
+ setTimeout(() => setShowTrialExpired(true), 2000);
+ }
+ }
+ }, [user?.subscriptionStatus]);
 
  useEffect(() => {
  if (!user || inviteReminderShown.current) return;
@@ -2769,6 +2780,56 @@ const HuddleUpApp = () => {
  );
  };
 
+ const TrialExpiredPopup = () => {
+ if (!showTrialExpired) return null;
+ const dismissExpired = () => {
+ setShowTrialExpired(false);
+ localStorage.setItem('lastTrialExpiredShown', Date.now().toString());
+ };
+ return (
+ <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-[75] flex items-center justify-center p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) dismissExpired(); }}>
+ <div className="bg-[#151A22] rounded-2xl p-6 max-w-md w-full border-2 border-amber-500/30 shadow-2xl" onMouseDown={e => e.stopPropagation()}>
+ <div className="text-center mb-5">
+ <div className="text-5xl mb-3">⏰</div>
+ <h2 className="text-2xl font-black text-white mb-2">Your Free Trial Has Ended</h2>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">We hope you've been enjoying Huddle Up! Your 4-month free trial has wrapped up.</p>
+ </div>
+ <div className="mb-5 p-4 bg-gradient-to-br from-amber-500/15 to-orange-500/10 border border-amber-500/25 rounded-2xl text-center">
+ <p className="text-white font-bold text-lg mb-1">Keep the party going!</p>
+ <p className="text-amber-200 text-sm mb-3">Subscribe now for full access to everything</p>
+ <div className="flex items-center justify-center gap-2 mb-2">
+ <span className="text-4xl font-black text-white">$2.99</span>
+ <span className="text-[#A0A4AB] text-sm">/month</span>
+ </div>
+ <p className="text-[#A0A4AB] text-xs">Cancel anytime. No contracts.</p>
+ </div>
+ <div className="space-y-2 mb-5">
+ <div className="flex items-center gap-3 p-2.5 bg-[#1E90FF]/10 rounded-xl border border-[#1E90FF]/15">
+ <span className="text-xl">🏈</span>
+ <p className="text-white text-sm">Watch parties for 15+ sports leagues</p>
+ </div>
+ <div className="flex items-center gap-3 p-2.5 bg-green-500/10 rounded-xl border border-green-500/15">
+ <span className="text-xl">📊</span>
+ <p className="text-white text-sm">Live scores, team chats, and fan finder</p>
+ </div>
+ <div className="flex items-center gap-3 p-2.5 bg-purple-500/10 rounded-xl border border-purple-500/15">
+ <span className="text-xl">🏆</span>
+ <p className="text-white text-sm">Rewards, raffles, and exclusive badges</p>
+ </div>
+ </div>
+ <div className="space-y-2">
+ <button onClick={() => { dismissExpired(); setCurrentScreen('subscription'); }} className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold rounded-xl hover:opacity-90 transition-all text-lg">
+ Subscribe Now - $2.99/mo
+ </button>
+ <button onClick={dismissExpired} className="w-full py-2.5 bg-[#0F1115] text-[#A0A4AB] rounded-xl hover:text-white transition-all text-sm">
+ Maybe Later
+ </button>
+ </div>
+ </div>
+ </div>
+ );
+ };
+
  const WelcomePopup = () => {
  if (!showWelcomePopup) return null;
  const features = [
@@ -2785,18 +2846,27 @@ const HuddleUpApp = () => {
  return (
  <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-[70] flex items-center justify-center p-4 overflow-y-auto">
  <div className="rounded-2xl p-6 sm:p-8 max-w-lg w-full shadow-2xl my-4" style={{ backgroundColor: '#161A22', border: '2px solid rgba(30, 144, 255, 0.3)' }}>
- <div className="text-center mb-6">
+ <div className="text-center mb-5">
  <div className="text-5xl mb-3">🎉</div>
- <h2 className="text-3xl font-extrabold text-white mb-2" style={{ fontFamily: "'Inter', 'Montserrat', sans-serif" }}>Welcome to Huddle Up!</h2>
+ <h2 className="text-3xl font-extrabold text-white mb-2" style={{ fontFamily: "'Inter', 'Montserrat', sans-serif" }}>Welcome to Huddle Up USA!</h2>
  <p className="text-sm font-semibold" style={{ color: '#F5B400' }}>Find Your Crew. Watch The Game.</p>
+ </div>
+ <div className="mb-5 p-4 bg-gradient-to-br from-green-500/15 to-emerald-500/10 border border-green-500/30 rounded-2xl text-center">
+ <p className="text-white font-bold text-lg mb-1">We want you to have the best experience!</p>
+ <p className="text-green-300 text-sm mb-3">That's why we're offering your first <span className="font-black text-green-200 text-base">4 months completely FREE</span></p>
+ <div className="flex items-center justify-center gap-2 mb-2">
+ <span className="text-3xl font-black text-white">$0</span>
+ <span className="text-[#A0A4AB] text-sm">for 4 months</span>
+ </div>
+ <p className="text-[#A0A4AB] text-xs">Then only <span className="text-white font-bold">$2.99/month</span> to keep all premium features</p>
  {trialEndDate && (
  <div className="mt-3 inline-block px-4 py-1.5 bg-green-500/20 border border-green-500/30 rounded-full">
- <span className="text-green-300 text-xs font-bold">FREE TRIAL until {trialEndDate}</span>
+ <span className="text-green-300 text-xs font-bold">FREE until {trialEndDate}</span>
  </div>
  )}
  </div>
- <div className="space-y-3 mb-6 max-h-[45vh] overflow-y-auto pr-1">
- <p className="text-[#A0A4AB] text-sm font-medium text-center mb-2">Here's what you can do:</p>
+ <div className="space-y-2 mb-5 max-h-[35vh] overflow-y-auto pr-1">
+ <p className="text-[#A0A4AB] text-sm font-medium text-center mb-2">Everything you get access to:</p>
  {features.map((f, i) => (
  <div key={i} className="flex items-start gap-3 bg-[#151A22] rounded-xl p-3 border border-[#222A36]">
  <span className="text-2xl flex-shrink-0">{f.icon}</span>
@@ -2808,11 +2878,12 @@ const HuddleUpApp = () => {
  ))}
  </div>
  <button onClick={() => { setShowWelcomePopup(false); setShowOnboarding(true); setOnboardingStep(0); }} className="w-full py-3 text-white font-bold transition-colors text-lg hover:opacity-90" style={{ backgroundColor: '#1E90FF', borderRadius: '12px' }}>
- Get Started
+ Start My Free Trial
  </button>
  <button onClick={() => setShowWelcomePopup(false)} className="w-full py-2 text-[#A0A4AB] hover:text-white text-sm mt-2 transition-colors">
  Skip Tour
  </button>
+ <p className="text-center text-[#A0A4AB]/50 text-xs mt-3">By continuing, you acknowledge that after your 4-month free trial, your membership will be $2.99/month. You can cancel anytime.</p>
  </div>
  </div>
  );
@@ -2820,7 +2891,7 @@ const HuddleUpApp = () => {
 
  const QA_ITEMS = [
  { q: 'What is Huddle Up?', a: 'Huddle Up is the #1 app for finding and creating sports watch parties. We connect fans with local venues, other fans, and events for 15+ sports leagues including NFL, NBA, MLB, NHL, MLS, Premier League, and more.' },
- { q: 'Is Huddle Up free to use?', a: 'Yes! All new users get a 6-month free trial with full access to all features. After the trial, the subscription is just $4.99/month to keep all premium features.' },
+ { q: 'Is Huddle Up free to use?', a: 'Yes! All new users get a 4-month free trial with full access to all features. After the trial, the subscription is just $2.99/month to keep all premium features.' },
  { q: 'How do I create a watch party?', a: 'Tap any game on the schedule, then tap "Create Watch Party." Choose a venue, add details about your party, and invite friends. It\'s that simple!' },
  { q: 'How do I find parties near me?', a: 'Use the search bar to type your city name, or enable location services and we\'ll show you parties nearby automatically.' },
  { q: 'What are badges and how do I earn them?', a: 'Badges are achievements you earn by participating! Host parties to earn "Party Starter," attend 5+ to get "Social Butterfly," leave reviews for "Critic," and more. Your fan score goes up with every activity.' },
@@ -8219,16 +8290,17 @@ const HuddleUpApp = () => {
  <div className="w-10 h-10 rounded-full bg-[#1E90FF]/20 flex items-center justify-center"><Crown className="w-5 h-5 text-[#1E90FF]" /></div>
  <div>
  <p className="text-[#1E90FF] font-bold text-sm">Premium Member</p>
- <p className="text-[#A0A4AB] text-xs">$4.99/month - Full access to all features</p>
+ <p className="text-[#A0A4AB] text-xs">$2.99/month - Full access to all features</p>
  </div>
  </div>
  )}
  {user.subscriptionStatus === 'expired' && (
  <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
- <p className="text-red-300 font-bold text-sm mb-1">Trial Expired</p>
- <p className="text-[#A0A4AB] text-xs mb-3">Subscribe for $4.99/month to unlock all premium features</p>
- <button onClick={() => setCurrentScreen('subscription')} className="px-4 py-2 bg-[#1E90FF] text-white font-bold rounded-lg text-sm">
- Subscribe Now - $4.99/mo
+ <p className="text-red-300 font-bold text-sm mb-1">Free Trial Ended</p>
+ <p className="text-[#A0A4AB] text-xs mb-2">Your 4-month free trial has ended. Subscribe now to keep enjoying all premium features!</p>
+ <p className="text-white text-sm font-bold mb-3">Only $2.99/month - that's less than a cup of coffee!</p>
+ <button onClick={() => setCurrentScreen('subscription')} className="px-4 py-2 bg-gradient-to-r from-[#1E90FF] to-purple-500 text-white font-bold rounded-lg text-sm">
+ Subscribe Now - $2.99/mo
  </button>
  </div>
  )}
@@ -10378,6 +10450,7 @@ const HuddleUpApp = () => {
  {showOnboarding && <OnboardingOverlay />}
  {showTourGuide && <TourGuidePopup />}
  {showInviteReminder && <InviteReminderPopup />}
+ {showTrialExpired && <TrialExpiredPopup />}
 
  {user && !['welcome', 'login', 'signup', 'forgotPassword'].includes(currentScreen) && (
  <div className="fixed top-0 left-0 right-0 z-[60]">

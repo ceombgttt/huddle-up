@@ -36,7 +36,7 @@ router.post('/signup', async (req, res) => {
     const passwordHash = await bcrypt.hash(password, 10);
     const result = await pool.query(
       `INSERT INTO users (email, password_hash, name, gender, date_of_birth, referred_by, subscription_tier, subscription_status, trial_ends_at) 
-       VALUES ($1, $2, $3, $4, $5, $6, 'free', 'trial', NOW() + INTERVAL '6 months') 
+       VALUES ($1, $2, $3, $4, $5, $6, 'free', 'trial', NOW() + INTERVAL '4 months') 
        RETURNING id, email, name, gender, country, profile_picture, date_of_birth, is_admin, joined_at, notifications_enabled, phone_number, user_city, sms_notifications, subscription_tier, subscription_status, trial_ends_at`,
       [email, passwordHash, name, gender, dateOfBirth, validReferral]
     );
@@ -83,7 +83,10 @@ router.post('/signup', async (req, res) => {
       phoneNumber: user.phone_number,
       userCity: user.user_city,
       smsNotifications: user.sms_notifications,
-      favoriteTeams: {}
+      favoriteTeams: {},
+      subscriptionTier: user.subscription_tier || 'free',
+      subscriptionStatus: user.subscription_status || 'trial',
+      trialEndsAt: user.trial_ends_at
     });
   } catch (error) {
     console.error('Signup error:', error);
@@ -122,6 +125,14 @@ router.post('/login', async (req, res) => {
     const favoriteTeams = {};
     favResult.rows.forEach(row => { favoriteTeams[row.sport] = row.team; });
 
+    const trialEndsAt = user.trial_ends_at ? new Date(user.trial_ends_at) : null;
+    const now = new Date();
+    let subscriptionStatus = user.subscription_status || 'trial';
+    if (subscriptionStatus === 'trial' && trialEndsAt && trialEndsAt < now) {
+      subscriptionStatus = 'expired';
+      await pool.query('UPDATE users SET subscription_status = $1 WHERE id = $2', ['expired', user.id]);
+    }
+
     res.json({
       id: user.id,
       email: user.email,
@@ -136,7 +147,10 @@ router.post('/login', async (req, res) => {
       phoneNumber: user.phone_number,
       userCity: user.user_city,
       smsNotifications: user.sms_notifications,
-      favoriteTeams
+      favoriteTeams,
+      subscriptionTier: user.subscription_tier || 'free',
+      subscriptionStatus: subscriptionStatus,
+      trialEndsAt: user.trial_ends_at
     });
   } catch (error) {
     console.error('Login error:', error);
