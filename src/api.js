@@ -290,4 +290,10 @@ export const api = {
     getVenuePromotions: (venueId) => request(`/venue-hub/venue/${venueId}/promotions`),
     getVenueDeals: (venueId) => request(`/venue-hub/venue/${venueId}/deals`),
   },
+  dm: {
+    conversations: () => request('/dm/conversations'),
+    messages: (userId) => request(`/dm/messages/${userId}`),
+    send: (userId, message) => request(`/dm/messages/${userId}`, { method: 'POST', body: JSON.stringify({ message }) }),
+    unreadCount: () => request('/dm/unread-count'),
+  },
 };

@@ -1215,6 +1215,13 @@ const HuddleUpApp = () => {
  const [friendStatuses, setFriendStatuses] = useState({});
  const [crewTab, setCrewTab] = useState('friends');
  const [crewInvitePartyId, setCrewInvitePartyId] = useState(null);
+ const [dmChatUser, setDmChatUser] = useState(null);
+ const [dmMessages, setDmMessages] = useState([]);
+ const [dmNewMsg, setDmNewMsg] = useState('');
+ const [dmSending, setDmSending] = useState(false);
+ const [dmUnreadCount, setDmUnreadCount] = useState(0);
+ const [dmConversations, setDmConversations] = useState([]);
+ const dmEndRef = useRef(null);
  const [badgeStats, setBadgeStats] = useState({ partiesHosted: 0, partiesAttended: 0 });
  const [showShareToast, setShowShareToast] = useState(false);
  const [showSignupShare, setShowSignupShare] = useState(false);
@@ -1587,7 +1594,7 @@ const HuddleUpApp = () => {
  const activeSponsors = adminSponsors.filter(s => s.status === 'active');
 
  const formScreens = ['welcome', 'login', 'signup', 'forgotPassword', 'claimVenue', 'createParty'];
- const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', 'qrCheckin', 'myParties', 'myCrew', 'fanFinder', 'invitations', 'venueDashboard', 'sponsorDashboard', 'teamChats', 'trending', 'myTickets', 'alerts', 'userProfile', ...formScreens];
+ const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', 'qrCheckin', 'myParties', 'myCrew', 'fanFinder', 'invitations', 'venueDashboard', 'sponsorDashboard', 'teamChats', 'trending', 'myTickets', 'alerts', 'userProfile', 'dmChat', ...formScreens];
  const isFormScreen = formScreens.includes(currentScreen);
  const isPauseScreen = pauseScreens.includes(currentScreen);
 
@@ -1661,6 +1668,7 @@ const HuddleUpApp = () => {
  useEffect(() => {
  if (user) {
  loadFriends();
+ loadDmUnread();
  }
  }, [user?.id]);
 
@@ -1959,6 +1967,45 @@ const HuddleUpApp = () => {
  } catch (e) {
  console.log('Friends load error:', e);
  }
+ };
+
+ const openDmChat = async (friend) => {
+   setDmChatUser(friend);
+   setDmMessages([]);
+   setDmNewMsg('');
+   setCurrentScreen('dmChat');
+   window.scrollTo(0, 0);
+   try {
+     const msgs = await api.dm.messages(friend.id);
+     setDmMessages(msgs);
+     const unread = await api.dm.unreadCount();
+     setDmUnreadCount(unread.count);
+     setTimeout(() => dmEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+   } catch (e) {
+     console.error('Load DM error:', e);
+   }
+ };
+
+ const sendDm = async () => {
+   if (!dmNewMsg.trim() || dmSending || !dmChatUser) return;
+   setDmSending(true);
+   try {
+     const msg = await api.dm.send(dmChatUser.id, dmNewMsg.trim());
+     setDmMessages(prev => [...prev, msg]);
+     setDmNewMsg('');
+     setTimeout(() => dmEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
+   } catch (e) {
+     alert(e.message || 'Failed to send message');
+   }
+   setDmSending(false);
+ };
+
+ const loadDmUnread = async () => {
+   if (!user) return;
+   try {
+     const { count } = await api.dm.unreadCount();
+     setDmUnreadCount(count);
+   } catch (e) {}
  };
 
  const loadRewards = async () => {
@@ -10737,6 +10784,94 @@ const HuddleUpApp = () => {
  );
  };
 
+ const renderDmChatScreen = () => {
+   if (!dmChatUser) return null;
+   const formatTime = (ts) => {
+     const d = new Date(ts);
+     const now = new Date();
+     const isToday = d.toDateString() === now.toDateString();
+     const yesterday = new Date(now); yesterday.setDate(yesterday.getDate() - 1);
+     const isYesterday = d.toDateString() === yesterday.toDateString();
+     const time = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+     if (isToday) return time;
+     if (isYesterday) return `Yesterday ${time}`;
+     return `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })} ${time}`;
+   };
+   return (
+     <div className="min-h-screen pt-20 bg-[#0F1115] flex flex-col">
+       <div className="sticky top-14 z-10 bg-[#0F1115] border-b border-[#222A36]">
+         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
+           <button onClick={() => setCurrentScreen('myCrew')} className="p-2 bg-[#151A22] rounded-xl hover:bg-[#222A36]">
+             <ArrowLeft className="w-5 h-5 text-white" />
+           </button>
+           <ProfileAvatar src={dmChatUser.profilePicture} name={dmChatUser.name} size="sm" />
+           <div className="flex-1 min-w-0">
+             <h2 className="text-white font-bold text-lg truncate">{dmChatUser.name}</h2>
+             <span className="text-[#A0A4AB] text-xs">Crew Member</span>
+           </div>
+         </div>
+       </div>
+
+       <div className="flex-1 max-w-4xl mx-auto w-full px-4 py-4 space-y-3 overflow-y-auto" style={{ paddingBottom: '100px' }}>
+         {dmMessages.length === 0 && (
+           <div className="text-center py-12">
+             <MessageCircle className="w-12 h-12 text-[#1E90FF]/30 mx-auto mb-3" />
+             <p className="text-[#A0A4AB] text-sm">No messages yet. Say hi to {dmChatUser.name}!</p>
+           </div>
+         )}
+         {dmMessages.map((msg, i) => {
+           const isMe = msg.senderId === user?.id;
+           const showDate = i === 0 || new Date(msg.createdAt).toDateString() !== new Date(dmMessages[i-1].createdAt).toDateString();
+           return (
+             <div key={msg.id}>
+               {showDate && (
+                 <div className="text-center my-4">
+                   <span className="px-3 py-1 bg-[#222A36] text-[#A0A4AB] text-xs rounded-full">
+                     {new Date(msg.createdAt).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}
+                   </span>
+                 </div>
+               )}
+               <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                 <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl ${
+                   isMe
+                     ? 'bg-[#1E90FF] text-white rounded-br-md'
+                     : 'bg-[#222A36] text-white rounded-bl-md'
+                 }`}>
+                   <p className="text-sm whitespace-pre-wrap break-words">{msg.message}</p>
+                   <p className={`text-[10px] mt-1 ${isMe ? 'text-white/60' : 'text-[#A0A4AB]/60'}`}>
+                     {formatTime(msg.createdAt)}
+                   </p>
+                 </div>
+               </div>
+             </div>
+           );
+         })}
+         <div ref={dmEndRef} />
+       </div>
+
+       <div className="fixed bottom-0 left-0 right-0 bg-[#0F1115] border-t border-[#222A36] p-3 z-20">
+         <div className="max-w-4xl mx-auto flex gap-2">
+           <input
+             type="text"
+             value={dmNewMsg}
+             onChange={(e) => setDmNewMsg(e.target.value)}
+             onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendDm()}
+             placeholder={`Message ${dmChatUser.name}...`}
+             className="flex-1 px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-2xl text-white placeholder-[#A0A4AB]/50 focus:outline-none focus:ring-2 focus:ring-[#1E90FF] text-sm"
+           />
+           <button
+             onClick={sendDm}
+             disabled={!dmNewMsg.trim() || dmSending}
+             className="px-4 py-3 bg-[#1E90FF] text-white rounded-2xl font-bold disabled:opacity-50 active:scale-95 transition-all"
+           >
+             {dmSending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+           </button>
+         </div>
+       </div>
+     </div>
+   );
+ };
+
  const renderMyCrewScreen = () => (
  <div className="min-h-screen pt-20 bg-[#0F1115] relative z-0">
  <div className="sticky top-20 z-30 bg-[#0F1115] border-b border-[#222A36]">
@@ -10767,6 +10902,16 @@ const HuddleUpApp = () => {
  className={`flex-1 py-2 rounded-xl font-bold text-sm transition-all active:scale-95 cursor-pointer ${crewTab === 'friends' ? 'bg-[#1E90FF] text-white' : 'bg-[#151A22] text-[#A0A4AB]'}`}
  >
  My Crew ({friendsList.length})
+ </button>
+ <button
+ onClick={() => { setCrewTab('messages'); api.dm.conversations().then(c => setDmConversations(c)).catch(() => {}); }}
+ type="button"
+ className={`flex-1 py-2 rounded-xl font-bold text-sm transition-all active:scale-95 cursor-pointer relative ${crewTab === 'messages' ? 'bg-[#1E90FF] text-white' : 'bg-[#151A22] text-[#A0A4AB]'}`}
+ >
+ Messages
+ {dmUnreadCount > 0 && (
+ <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-white text-xs flex items-center justify-center font-bold">{dmUnreadCount}</span>
+ )}
  </button>
  <button
  onClick={() => setCrewTab('requests')}
@@ -10881,6 +11026,13 @@ const HuddleUpApp = () => {
  </button>
  )}
  <button
+ onClick={(e) => { e.preventDefault(); e.stopPropagation(); openDmChat(friend); }}
+ className="p-2 bg-[#1E90FF]/20 hover:bg-[#1E90FF]/30 text-[#1E90FF] rounded-xl transition-all active:scale-95"
+ title={`Message ${friend.name}`}
+ >
+ <MessageCircle className="w-4 h-4" />
+ </button>
+ <button
  onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeFriend(friend.id); }}
  className="p-2 bg-[#151A22] hover:bg-red-500/20 active:bg-red-500/30 text-[#A0A4AB]/70 hover:text-red-400 rounded-xl transition-all"
  title="Remove from crew"
@@ -10893,6 +11045,48 @@ const HuddleUpApp = () => {
  );
  })}
  </>
+ )}
+ </>
+ )}
+
+ {crewTab === 'messages' && (
+ <>
+ {dmConversations.length === 0 ? (
+ <div className="text-center py-16">
+ <MessageCircle className="w-16 h-16 text-[#1E90FF]/20 mx-auto mb-4" />
+ <h3 className="text-xl font-bold text-white mb-2">No Messages Yet</h3>
+ <p className="text-[#A0A4AB] mb-4 max-w-sm mx-auto">Tap the message icon on any crew member to start a conversation.</p>
+ <button type="button" onClick={() => setCrewTab('friends')} className="px-6 py-3 bg-[#1E90FF] text-white font-bold rounded-xl active:scale-95 transition-all">
+ View My Crew
+ </button>
+ </div>
+ ) : (
+ dmConversations.map(convo => (
+ <button
+ key={convo.userId}
+ onClick={() => openDmChat({ id: convo.userId, name: convo.name, profilePicture: convo.profilePicture })}
+ className="w-full bg-[#151A22] rounded-2xl border border-[#222A36] p-4 hover:border-[#1E90FF]/30 transition-all text-left flex items-center gap-3"
+ >
+ <div className="relative flex-shrink-0">
+ <ProfileAvatar src={convo.profilePicture} name={convo.name} size="lg" />
+ {convo.unreadCount > 0 && (
+ <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-white text-xs flex items-center justify-center font-bold">{convo.unreadCount}</span>
+ )}
+ </div>
+ <div className="flex-1 min-w-0">
+ <div className="flex items-center justify-between mb-0.5">
+ <span className={`font-bold truncate ${convo.unreadCount > 0 ? 'text-white' : 'text-[#A0A4AB]'}`}>{convo.name}</span>
+ <span className="text-[#A0A4AB]/60 text-xs flex-shrink-0 ml-2">
+ {convo.lastMessageAt ? new Date(convo.lastMessageAt).toLocaleDateString([], { month: 'short', day: 'numeric' }) : ''}
+ </span>
+ </div>
+ <p className={`text-sm truncate ${convo.unreadCount > 0 ? 'text-white/80 font-medium' : 'text-[#A0A4AB]/70'}`}>
+ {convo.lastSenderId === user?.id ? 'You: ' : ''}{convo.lastMessage || 'No messages'}
+ </p>
+ </div>
+ <ChevronRight className="w-4 h-4 text-[#A0A4AB]/40 flex-shrink-0" />
+ </button>
+ ))
  )}
  </>
  )}
@@ -11033,6 +11227,7 @@ const HuddleUpApp = () => {
  {currentScreen === 'profile' && <ProfileScreen />}
  {currentScreen === 'fanFinder' && renderFanFinderScreen()}
  {currentScreen === 'myCrew' && renderMyCrewScreen()}
+ {currentScreen === 'dmChat' && renderDmChatScreen()}
  {currentScreen === 'rewards' && <RewardsScreen />}
  {currentScreen === 'invitations' && <InvitationsScreen />}
  {currentScreen === 'qrCheckin' && <QrCheckinScreen />}

@@ -333,6 +333,17 @@ export async function initDB() {
         UNIQUE(party_id, user_id)
       );
 
+      CREATE TABLE IF NOT EXISTS direct_messages (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        sender_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        receiver_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        message TEXT NOT NULL,
+        is_read BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_dm_participants ON direct_messages(sender_id, receiver_id, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_dm_receiver_unread ON direct_messages(receiver_id, is_read) WHERE is_read = FALSE;
+
       CREATE TABLE IF NOT EXISTS team_chat_rooms (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         sport TEXT NOT NULL,
