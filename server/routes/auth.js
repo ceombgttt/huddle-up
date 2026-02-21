@@ -6,18 +6,27 @@ const router = Router();
 
 router.post('/signup', async (req, res) => {
   try {
-    const { email, password, name, gender, dateOfBirth, rememberMe = true, referralCode = '', affiliateCode = '' } = req.body;
-    if (!email || !password || !name || !gender || !dateOfBirth) {
+    const { email, password, name, gender, dateOfBirth, rememberMe = true, referralCode = '', affiliateCode = '', userType = 'fan', venueName = '', venueAddress = '' } = req.body;
+    const validUserType = ['fan', 'venue'].includes(userType) ? userType : 'fan';
+    if (!email || !password || !name) {
       return res.status(400).json({ error: 'All fields are required' });
     }
+    if (validUserType === 'fan' && (!gender || !dateOfBirth)) {
+      return res.status(400).json({ error: 'All fields are required for fan accounts' });
+    }
+    if (validUserType === 'venue' && !venueName?.trim()) {
+      return res.status(400).json({ error: 'Venue name is required for venue accounts' });
+    }
 
-    const dob = new Date(dateOfBirth);
-    const today = new Date();
-    let age = today.getFullYear() - dob.getFullYear();
-    const m = today.getMonth() - dob.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
-    if (age < 21) {
-      return res.status(400).json({ error: 'You must be 21 or older to join Huddle Up' });
+    if (validUserType === 'fan' && dateOfBirth) {
+      const dob = new Date(dateOfBirth);
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+      const m = today.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+      if (age < 21) {
+        return res.status(400).json({ error: 'You must be 21 or older to join Huddle Up' });
+      }
     }
 
     const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
@@ -35,10 +44,10 @@ router.post('/signup', async (req, res) => {
 
     const passwordHash = await bcrypt.hash(password, 10);
     const result = await pool.query(
-      `INSERT INTO users (email, password_hash, name, gender, date_of_birth, referred_by, subscription_tier, subscription_status, trial_ends_at) 
-       VALUES ($1, $2, $3, $4, $5, $6, 'free', 'trial', NOW() + INTERVAL '4 months') 
-       RETURNING id, email, name, gender, country, profile_picture, date_of_birth, is_admin, joined_at, notifications_enabled, phone_number, user_city, sms_notifications, subscription_tier, subscription_status, trial_ends_at`,
-      [email, passwordHash, name, gender, dateOfBirth, validReferral]
+      `INSERT INTO users (email, password_hash, name, gender, date_of_birth, referred_by, subscription_tier, subscription_status, trial_ends_at, user_type) 
+       VALUES ($1, $2, $3, $4, $5, $6, 'free', 'trial', NOW() + INTERVAL '4 months', $7) 
+       RETURNING id, email, name, gender, country, profile_picture, date_of_birth, is_admin, joined_at, notifications_enabled, phone_number, user_city, sms_notifications, subscription_tier, subscription_status, trial_ends_at, user_type`,
+      [email, passwordHash, name, gender || null, dateOfBirth || null, validReferral, validUserType]
     );
 
     const user = result.rows[0];
@@ -69,6 +78,20 @@ router.post('/signup', async (req, res) => {
       req.session.cookie.maxAge = null;
     }
 
+    if (validUserType === 'venue' && venueName) {
+      try {
+        const existingVenue = await pool.query('SELECT id FROM venues WHERE LOWER(name) = LOWER($1)', [venueName.trim()]);
+        if (existingVenue.rows.length === 0) {
+          await pool.query(
+            'INSERT INTO venues (name, address, claimed_by) VALUES ($1, $2, $3)',
+            [venueName.trim(), venueAddress?.trim() || '', user.id]
+          );
+        }
+      } catch (venueErr) {
+        console.error('Auto venue creation error (non-fatal):', venueErr);
+      }
+    }
+
     res.json({
       id: user.id,
       email: user.email,
@@ -84,6 +107,7 @@ router.post('/signup', async (req, res) => {
       userCity: user.user_city,
       smsNotifications: user.sms_notifications,
       favoriteTeams: {},
+      userType: user.user_type || 'fan',
       subscriptionTier: user.subscription_tier || 'free',
       subscriptionStatus: user.subscription_status || 'trial',
       trialEndsAt: user.trial_ends_at
@@ -148,6 +172,7 @@ router.post('/login', async (req, res) => {
       userCity: user.user_city,
       smsNotifications: user.sms_notifications,
       favoriteTeams,
+      userType: user.user_type || 'fan',
       subscriptionTier: user.subscription_tier || 'free',
       subscriptionStatus: subscriptionStatus,
       trialEndsAt: user.trial_ends_at
@@ -237,7 +262,7 @@ router.get('/me', async (req, res) => {
     return res.json(null);
   }
   try {
-    const result = await pool.query('SELECT id, email, name, gender, country, profile_picture, date_of_birth, is_admin, joined_at, notifications_enabled, phone_number, user_city, sms_notifications, subscription_tier, subscription_status, trial_ends_at FROM users WHERE id = $1', [req.session.userId]);
+    const result = await pool.query('SELECT id, email, name, gender, country, profile_picture, date_of_birth, is_admin, joined_at, notifications_enabled, phone_number, user_city, sms_notifications, subscription_tier, subscription_status, trial_ends_at, user_type FROM users WHERE id = $1', [req.session.userId]);
     if (result.rows.length === 0) {
       return res.json(null);
     }
@@ -270,6 +295,7 @@ router.get('/me', async (req, res) => {
       userCity: user.user_city,
       smsNotifications: user.sms_notifications,
       favoriteTeams,
+      userType: user.user_type || 'fan',
       subscriptionTier: user.subscription_tier || 'free',
       subscriptionStatus: subscriptionStatus,
       trialEndsAt: user.trial_ends_at

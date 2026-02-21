@@ -1744,9 +1744,12 @@ const HuddleUpApp = () => {
  if (userData) {
  setUser(userData);
  setCurrentScreen(prev => {
- const authScreens = ['welcome', 'login', 'signup', 'forgotPassword'];
+ const authScreens = ['welcome', 'login', 'signup', 'signupType', 'forgotPassword'];
  if (qrCheckinToken) return 'qrCheckin';
- return authScreens.includes(prev) ? 'games' : prev;
+ if (authScreens.includes(prev)) {
+ return userData.userType === 'venue' ? 'venueDashboard' : 'games';
+ }
+ return prev;
  });
  loadUserParties();
  loadVenueClaims();
@@ -1799,15 +1802,19 @@ const HuddleUpApp = () => {
  }
  };
 
- const handleSignUp = async (email, password, name, gender, dateOfBirth, rememberMe = true, referralCode = '') => {
+ const handleSignUp = async (email, password, name, gender, dateOfBirth, rememberMe = true, referralCode = '', userType = 'fan', venueName = '', venueAddress = '') => {
  try {
- const userData = await api.auth.signup(email, password, name, gender, dateOfBirth, rememberMe, referralCode);
+ const userData = await api.auth.signup(email, password, name, gender, dateOfBirth, rememberMe, referralCode, userType, venueName, venueAddress);
  setUser(userData);
  setShowWelcomePopup(true);
  setShowOnboarding(false);
  setOnboardingStep(0);
  setShowSignupShare(true);
+ if (userType === 'venue') {
+ setCurrentScreen('venueDashboard');
+ } else {
  setCurrentScreen('profile');
+ }
  loadParties();
  loadVenues();
  loadVenueClaims();
@@ -1832,7 +1839,11 @@ const HuddleUpApp = () => {
  loadNotifications();
  loadBadgeStats();
  loadFriends();
+ if (userData.userType === 'venue') {
+ setCurrentScreen('venueDashboard');
+ } else {
  setCurrentScreen('games');
+ }
  } catch (error) {
  alert(error.message);
  }
@@ -3092,13 +3103,69 @@ const HuddleUpApp = () => {
  LOG IN
  </button>
  <button
- onClick={() => setCurrentScreen('signup')}
+ onClick={() => setCurrentScreen('signupType')}
  className="w-full py-4 font-bold text-lg transition-colors duration-200 hover:opacity-80"
  style={{ backgroundColor: 'transparent', border: '2px solid #1E90FF', color: '#1E90FF', borderRadius: '12px' }}
  >
  SIGN UP
  </button>
  </div>
+ </div>
+ <CopyrightFooter />
+ </div>
+ );
+
+ const signupTypeScreenJSX = (
+ <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: 'radial-gradient(ellipse at center, #161A22 0%, #0F1115 70%)' }}>
+ <div className="max-w-md w-full space-y-8 flex-1 flex flex-col justify-center">
+ <div className="text-center">
+ <img src="/huddle-up-logo.png" alt="Huddle Up" className="h-16 mx-auto mb-4" />
+ <h2 className="text-4xl font-extrabold text-white mb-2" style={{ fontFamily: "'Inter', 'Montserrat', sans-serif" }}>
+ HOW WILL YOU USE HUDDLE UP?
+ </h2>
+ <p style={{ color: '#A0A4AB' }}>Select your account type to get started</p>
+ </div>
+
+ <div className="space-y-4">
+ <button
+ onClick={() => { setSignupUserType('fan'); setCurrentScreen('signup'); }}
+ className="w-full p-6 rounded-2xl border-2 transition-all duration-200 hover:scale-[1.02] text-left"
+ style={{ backgroundColor: 'rgba(30,144,255,0.08)', borderColor: 'rgba(30,144,255,0.3)' }}
+ >
+ <div className="flex items-center gap-4">
+ <div className="w-16 h-16 rounded-2xl bg-[#1E90FF]/20 flex items-center justify-center flex-shrink-0">
+ <Users className="w-8 h-8 text-[#1E90FF]" />
+ </div>
+ <div>
+ <h3 className="text-xl font-bold text-white mb-1">I'm a Fan</h3>
+ <p className="text-sm text-[#A0A4AB]">Find watch parties, connect with other fans, and join the action at local venues</p>
+ </div>
+ </div>
+ </button>
+
+ <button
+ onClick={() => { setSignupUserType('venue'); setCurrentScreen('signup'); }}
+ className="w-full p-6 rounded-2xl border-2 transition-all duration-200 hover:scale-[1.02] text-left"
+ style={{ backgroundColor: 'rgba(34,197,94,0.08)', borderColor: 'rgba(34,197,94,0.3)' }}
+ >
+ <div className="flex items-center gap-4">
+ <div className="w-16 h-16 rounded-2xl bg-green-500/20 flex items-center justify-center flex-shrink-0">
+ <Building2 className="w-8 h-8 text-green-400" />
+ </div>
+ <div>
+ <h3 className="text-xl font-bold text-white mb-1">I'm a Venue</h3>
+ <p className="text-sm text-[#A0A4AB]">List your venue, promote games, create deals, and attract sports fans to your location</p>
+ </div>
+ </div>
+ </button>
+ </div>
+
+ <button
+ onClick={() => setCurrentScreen('welcome')}
+ className="w-full py-3 text-[#A0A4AB] hover:text-white transition-colors"
+ >
+ &larr; Back
+ </button>
  </div>
  <CopyrightFooter />
  </div>
@@ -3346,6 +3413,9 @@ const HuddleUpApp = () => {
  </div>
  );
 
+ const [signupUserType, setSignupUserType] = useState('');
+ const [signupVenueName, setSignupVenueName] = useState('');
+ const [signupVenueAddress, setSignupVenueAddress] = useState('');
  const [signupEmail, setSignupEmail] = useState('');
  const [signupPassword, setSignupPassword] = useState('');
  const [signupShowPassword, setSignupShowPassword] = useState(false);
@@ -3358,15 +3428,25 @@ const HuddleUpApp = () => {
  const [signupReferralCode, setSignupReferralCode] = useState('');
 
  const handleSignupSubmit = () => {
+ if (!signupUserType || !['fan', 'venue'].includes(signupUserType)) {
+ alert('Please select an account type first.');
+ setCurrentScreen('signupType');
+ return;
+ }
  if (!signupAcceptedTerms) {
  alert('You must accept the Terms of Service and Privacy Policy to sign up.');
  return;
  }
+ if (!signupEmail || !signupPassword || !signupName) {
+ alert('Please fill in all fields.');
+ return;
+ }
+ if (signupUserType === 'fan') {
  if (!signupAgeConfirmed) {
  alert('You must confirm you are 21 years of age or older.');
  return;
  }
- if (!signupEmail || !signupPassword || !signupName || !signupGender || !signupDateOfBirth) {
+ if (!signupGender || !signupDateOfBirth) {
  alert('Please fill in all fields.');
  return;
  }
@@ -3379,7 +3459,12 @@ const HuddleUpApp = () => {
  alert('You must be 21 or older to join Huddle Up.');
  return;
  }
- handleSignUp(signupEmail, signupPassword, signupName, signupGender, signupDateOfBirth, signupRememberMe, signupReferralCode);
+ }
+ if (signupUserType === 'venue' && !signupVenueName) {
+ alert('Please enter your venue name.');
+ return;
+ }
+ handleSignUp(signupEmail, signupPassword, signupName, signupGender, signupDateOfBirth, signupRememberMe, signupReferralCode, signupUserType, signupVenueName, signupVenueAddress);
  };
 
  const signUpScreenJSX = (
@@ -3388,23 +3473,55 @@ const HuddleUpApp = () => {
  <div className="text-center">
  <img src="/huddle-up-logo.png" alt="Huddle Up" className="h-16 mx-auto mb-4" />
  <h2 className="text-4xl font-extrabold text-white mb-2" style={{ fontFamily: "'Inter', 'Montserrat', sans-serif" }}>
- JOIN THE CREW
+ {signupUserType === 'venue' ? 'REGISTER YOUR VENUE' : 'JOIN THE CREW'}
  </h2>
- <p style={{ color: '#A0A4AB' }}>Create your account</p>
+ <p style={{ color: '#A0A4AB' }}>
+ {signupUserType === 'venue' ? 'Set up your venue account' : 'Create your fan account'}
+ </p>
+ <div className="mt-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold" style={{ backgroundColor: signupUserType === 'venue' ? 'rgba(34,197,94,0.15)' : 'rgba(30,144,255,0.15)', color: signupUserType === 'venue' ? '#4ade80' : '#1E90FF', border: `1px solid ${signupUserType === 'venue' ? 'rgba(34,197,94,0.3)' : 'rgba(30,144,255,0.3)'}` }}>
+ {signupUserType === 'venue' ? <><Building2 className="w-3 h-3" /> VENUE ACCOUNT</> : <><Users className="w-3 h-3" /> FAN ACCOUNT</>}
+ </div>
  </div>
  
  <div className="p-8 space-y-6" style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)' }}>
+ {signupUserType === 'venue' && (
+ <>
  <div>
- <label className="block text-sm font-medium text-[#A0A4AB] mb-2">Name</label>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-2">Venue Name</label>
+ <input
+ type="text"
+ value={signupVenueName}
+ onChange={(e) => setSignupVenueName(e.target.value)}
+ className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+ placeholder="e.g., The Sports Bar & Grill"
+ />
+ </div>
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-2">Venue Address</label>
+ <input
+ type="text"
+ value={signupVenueAddress}
+ onChange={(e) => setSignupVenueAddress(e.target.value)}
+ className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+ placeholder="123 Main St, City, State"
+ />
+ </div>
+ </>
+ )}
+
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-2">{signupUserType === 'venue' ? 'Contact Name' : 'Name'}</label>
  <input
  type="text"
  value={signupName}
  onChange={(e) => setSignupName(e.target.value)}
  className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
- placeholder="Your name"
+ placeholder={signupUserType === 'venue' ? 'Your name or manager name' : 'Your name'}
  />
  </div>
 
+ {signupUserType === 'fan' && (
+ <>
  <div>
  <label className="block text-sm font-medium text-[#A0A4AB] mb-2">Gender (shown to other attendees)</label>
  <select
@@ -3430,6 +3547,8 @@ const HuddleUpApp = () => {
  />
  <p className="text-xs text-amber-400 mt-1 font-semibold">You must be 21 or older to attend watch parties</p>
  </div>
+ </>
+ )}
 
  <div>
  <label className="block text-sm font-medium text-[#A0A4AB] mb-2">Email</label>
@@ -3494,6 +3613,7 @@ const HuddleUpApp = () => {
  </label>
  </div>
 
+ {signupUserType === 'fan' && (
  <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
  <label className="flex items-start gap-3 cursor-pointer">
  <input
@@ -3510,6 +3630,7 @@ const HuddleUpApp = () => {
  </div>
  </label>
  </div>
+ )}
 
  <div>
  <label className="block text-sm font-semibold text-[#A0A4AB] mb-1">Referral Code (optional)</label>
@@ -3524,22 +3645,22 @@ const HuddleUpApp = () => {
 
  <button
  onClick={handleSignupSubmit}
- disabled={!signupAcceptedTerms || !signupAgeConfirmed}
+ disabled={!signupAcceptedTerms || (signupUserType === 'fan' && !signupAgeConfirmed)}
  className={`w-full py-4 text-white font-bold text-lg transition-colors duration-200 ${
- signupAcceptedTerms && signupAgeConfirmed
+ signupAcceptedTerms && (signupUserType === 'venue' || signupAgeConfirmed)
  ? 'hover:opacity-90'
  : 'cursor-not-allowed opacity-50'
  }`}
- style={{ backgroundColor: signupAcceptedTerms && signupAgeConfirmed ? '#1E90FF' : '#4B5563', borderRadius: '12px' }}
+ style={{ backgroundColor: signupAcceptedTerms && (signupUserType === 'venue' || signupAgeConfirmed) ? (signupUserType === 'venue' ? '#22c55e' : '#1E90FF') : '#4B5563', borderRadius: '12px' }}
  >
- SIGN UP
+ {signupUserType === 'venue' ? 'REGISTER VENUE' : 'SIGN UP'}
  </button>
 
  <button
- onClick={() => setCurrentScreen('welcome')}
+ onClick={() => setCurrentScreen('signupType')}
  className="w-full py-3 text-[#A0A4AB] hover:text-white transition-colors"
  >
- ← Back
+ &larr; Back
  </button>
  </div>
  </div>
@@ -10812,6 +10933,7 @@ const HuddleUpApp = () => {
 
  {currentScreen === 'welcome' && <WelcomeScreen />}
  {currentScreen === 'login' && loginScreenJSX}
+ {currentScreen === 'signupType' && signupTypeScreenJSX}
  {currentScreen === 'signup' && signUpScreenJSX}
  {currentScreen === 'forgotPassword' && forgotPasswordScreenJSX}
  {currentScreen === 'games' && gamesScreenJSX()}

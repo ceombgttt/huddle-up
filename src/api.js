@@ -16,8 +16,8 @@ async function request(path, options = {}) {
 export const api = {
   auth: {
     me: () => request('/auth/me'),
-    signup: (email, password, name, gender, dateOfBirth, rememberMe = true, referralCode = '') =>
-      request('/auth/signup', { method: 'POST', body: JSON.stringify({ email, password, name, gender, dateOfBirth, rememberMe, referralCode }) }),
+    signup: (email, password, name, gender, dateOfBirth, rememberMe = true, referralCode = '', userType = 'fan', venueName = '', venueAddress = '') =>
+      request('/auth/signup', { method: 'POST', body: JSON.stringify({ email, password, name, gender, dateOfBirth, rememberMe, referralCode, userType, venueName, venueAddress }) }),
     login: (email, password, rememberMe = true) =>
       request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password, rememberMe }) }),
     logout: () => request('/auth/logout', { method: 'POST' }),
