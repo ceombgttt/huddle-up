@@ -4616,10 +4616,7 @@ const HuddleUpApp = () => {
  </h2>
  
  {gameParties.length === 0 ? (
- <EmptyPartyState 
- gameName={`${selectedGame.homeTeam} vs ${selectedGame.awayTeam}`}
- onCreateParty={() => setCurrentScreen('createParty')}
- />
+ <p className="text-[#A0A4AB] text-sm text-center py-3">No watch parties yet. Be the first to create one!</p>
  ) : (
  <div className="space-y-4">
  {gameParties.map(party => {
