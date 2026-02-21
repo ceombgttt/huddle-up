@@ -745,7 +745,7 @@ const VenueQrSection = ({ userVenue }) => {
  );
 };
 
-const SubscriptionSection = () => {
+const SubscriptionSection = ({ userType }) => {
  const [products, setProducts] = useState([]);
  const [subInfo, setSubInfo] = useState(null);
  const [loading, setLoading] = useState(true);
@@ -831,7 +831,11 @@ const SubscriptionSection = () => {
  </div>
  )}
  <div className="grid gap-3">
- {products.sort((a, b) => {
+ {products.filter(product => {
+ const tier = product.metadata?.tier || 'fan';
+ if (userType === 'venue') return tier === 'venue';
+ return tier === 'fan';
+ }).sort((a, b) => {
  const orderA = parseInt(a.metadata?.order || '99');
  const orderB = parseInt(b.metadata?.order || '99');
  return orderA - orderB;
@@ -8552,7 +8556,7 @@ const HuddleUpApp = () => {
  </div>
  )}
 
- <SubscriptionSection />
+ <SubscriptionSection userType={user?.userType} />
 
  <ReferralSection user={user} />
 
