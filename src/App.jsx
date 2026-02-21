@@ -1136,6 +1136,8 @@ const HuddleUpApp = () => {
  const [qaExpandedIndex, setQaExpandedIndex] = useState(null);
  const [showTourGuide, setShowTourGuide] = useState(false);
  const [tourTab, setTourTab] = useState('fans');
+ const [spotlightTourActive, setSpotlightTourActive] = useState(false);
+ const [spotlightStep, setSpotlightStep] = useState(0);
  const [showInviteReminder, setShowInviteReminder] = useState(false);
  const inviteReminderShown = useRef(false);
  const [showTrialExpired, setShowTrialExpired] = useState(false);
@@ -1518,6 +1520,17 @@ const HuddleUpApp = () => {
  }, 45000);
  return () => clearTimeout(timer);
  }, [user]);
+
+ useEffect(() => {
+ if (!user || currentScreen !== 'games') return;
+ const tourSeen = localStorage.getItem('huddle_tour_seen');
+ if (!tourSeen) {
+ const timer = setTimeout(() => {
+ startSpotlightTour();
+ }, 1500);
+ return () => clearTimeout(timer);
+ }
+ }, [user, currentScreen]);
 
  const resetSponsorForm = () => {
  setSponsorName(''); setSponsorContactName(''); setSponsorContactEmail('');
@@ -2854,6 +2867,221 @@ const HuddleUpApp = () => {
  );
  };
 
+ const SPOTLIGHT_TOUR_STEPS = [
+ {
+   targetId: 'nav-buttons',
+   title: 'Your Toolbox',
+   description: 'All your features are right here! Scroll left and right to see everything Huddle Up offers.',
+   icon: '🧰',
+   position: 'below',
+ },
+ {
+   targetId: 'location-search',
+   title: 'Find Your City',
+   description: 'Type any city to find watch parties near you. Or tap the pin icon to auto-detect your location!',
+   icon: '📍',
+   position: 'below',
+ },
+ {
+   targetId: 'sports-scroller',
+   title: 'Pick Your Sport',
+   description: 'Scroll through 15+ sports to filter games. Tap a sport to see only those matchups.',
+   icon: '🏈',
+   position: 'below',
+ },
+ {
+   targetId: 'game-cards',
+   title: 'Tap a Game',
+   description: 'Each card shows a live or upcoming game. Tap it to see details, join a watch party, or create your own!',
+   icon: '🎮',
+   position: 'above',
+ },
+ {
+   targetId: 'my-crew',
+   title: 'My Crew',
+   description: 'Find friends, send messages, and build your sports crew. The red badge shows unread messages & friend requests.',
+   icon: '👥',
+   position: 'below',
+ },
+ {
+   targetId: 'rewards',
+   title: 'Earn Rewards',
+   description: 'Get points for hosting parties, attending events, and inviting friends. Enter raffles to win prizes!',
+   icon: '🏆',
+   position: 'below',
+ },
+ {
+   targetId: 'trending',
+   title: 'Trending Now',
+   description: 'See the hottest parties and most popular venues. This icon lights up when there\'s action happening!',
+   icon: '🔥',
+   position: 'below',
+ },
+ {
+   targetId: 'alerts',
+   title: 'Alerts & Invitations',
+   description: 'Party invites, score updates, and friend activity all show up here. Never miss a game day!',
+   icon: '🔔',
+   position: 'below',
+ },
+ {
+   targetId: 'profile',
+   title: 'Your Profile',
+   description: 'Set your favorite teams, upload a photo, manage notifications, and personalize your experience.',
+   icon: '⚙️',
+   position: 'below',
+ },
+ ];
+
+ const [spotlightRect, setSpotlightRect] = useState(null);
+
+ const startSpotlightTour = () => {
+   setSpotlightStep(0);
+   setSpotlightTourActive(true);
+   setSpotlightRect(null);
+   localStorage.setItem('huddle_tour_seen', 'true');
+ };
+
+ useEffect(() => {
+   if (!spotlightTourActive) { setSpotlightRect(null); return; }
+   const step = SPOTLIGHT_TOUR_STEPS[spotlightStep];
+   if (!step) return;
+
+   const updateRect = () => {
+     const target = document.querySelector(`[data-tour-id="${step.targetId}"]`);
+     if (target) {
+       const r = target.getBoundingClientRect();
+       setSpotlightRect({ top: r.top, left: r.left, width: r.width, height: r.height });
+     } else {
+       setSpotlightRect(null);
+     }
+   };
+
+   const target = document.querySelector(`[data-tour-id="${step.targetId}"]`);
+   if (target) {
+     target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+     setTimeout(updateRect, 400);
+   }
+
+   window.addEventListener('resize', updateRect);
+   window.addEventListener('scroll', updateRect, true);
+   return () => {
+     window.removeEventListener('resize', updateRect);
+     window.removeEventListener('scroll', updateRect, true);
+   };
+ }, [spotlightTourActive, spotlightStep]);
+
+ const spotlightTourJSX = () => {
+   if (!spotlightTourActive) return null;
+   const step = SPOTLIGHT_TOUR_STEPS[spotlightStep];
+   if (!step) return null;
+   const rect = spotlightRect;
+   const isLast = spotlightStep === SPOTLIGHT_TOUR_STEPS.length - 1;
+   const padding = 8;
+
+   const handleNext = () => {
+     if (spotlightStep < SPOTLIGHT_TOUR_STEPS.length - 1) {
+       setSpotlightStep(spotlightStep + 1);
+     } else {
+       setSpotlightTourActive(false);
+     }
+   };
+   const handlePrev = () => { if (spotlightStep > 0) setSpotlightStep(spotlightStep - 1); };
+   const handleSkip = () => { setSpotlightTourActive(false); };
+
+   const tooltipWidth = Math.min(300, window.innerWidth - 32);
+   let tooltipStyle = { pointerEvents: 'auto', width: tooltipWidth };
+   if (rect) {
+     tooltipStyle.left = Math.max(16, Math.min(rect.left, window.innerWidth - tooltipWidth - 16));
+     if (step.position === 'below') {
+       const topPos = rect.top + rect.height + padding + 12;
+       tooltipStyle.top = Math.min(topPos, window.innerHeight - 250);
+     } else {
+       const topPos = rect.top - padding - 230;
+       tooltipStyle.top = Math.max(16, topPos);
+     }
+   } else {
+     tooltipStyle.left = 16;
+     tooltipStyle.top = window.innerHeight / 2 - 100;
+   }
+
+   return (
+     <div className="fixed inset-0 z-[100]" style={{ pointerEvents: 'auto' }}>
+       <svg className="absolute inset-0 w-full h-full" style={{ pointerEvents: 'none' }}>
+         <defs>
+           <mask id="spotlight-mask">
+             <rect x="0" y="0" width="100%" height="100%" fill="white" />
+             {rect && (
+               <rect
+                 x={rect.left - padding}
+                 y={rect.top - padding}
+                 width={rect.width + padding * 2}
+                 height={rect.height + padding * 2}
+                 rx="16"
+                 fill="black"
+               />
+             )}
+           </mask>
+         </defs>
+         <rect
+           x="0" y="0" width="100%" height="100%" fill="rgba(0,0,0,0.82)"
+           mask="url(#spotlight-mask)"
+         />
+         {rect && (
+           <rect
+             x={rect.left - padding}
+             y={rect.top - padding}
+             width={rect.width + padding * 2}
+             height={rect.height + padding * 2}
+             rx="16"
+             fill="none"
+             stroke="#1E90FF"
+             strokeWidth="2.5"
+             className="animate-pulse"
+           />
+         )}
+       </svg>
+
+       <div className="absolute inset-0" onClick={handleSkip} style={{ pointerEvents: 'auto' }} />
+
+       <div
+         className="absolute z-[101] animate-fadeIn"
+         style={tooltipStyle}
+         onClick={(e) => e.stopPropagation()}
+       >
+         <div className="bg-[#1a1f2e] border-2 border-[#1E90FF]/50 rounded-2xl p-5 shadow-2xl shadow-blue-500/20">
+           <div className="flex items-center gap-2 mb-1">
+             <span className="text-2xl">{step.icon}</span>
+             <span className="text-xs font-bold text-[#1E90FF] uppercase tracking-wider">Step {spotlightStep + 1} of {SPOTLIGHT_TOUR_STEPS.length}</span>
+           </div>
+           <h3 className="text-white text-lg font-black mb-1.5" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.5px' }}>{step.title}</h3>
+           <p className="text-[#A0A4AB] text-sm leading-relaxed mb-4">{step.description}</p>
+
+           <div className="flex items-center gap-2 mb-3">
+             {SPOTLIGHT_TOUR_STEPS.map((_, i) => (
+               <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i === spotlightStep ? 'w-6 bg-[#1E90FF]' : i < spotlightStep ? 'w-3 bg-[#1E90FF]/60' : 'w-2 bg-gray-600'}`} />
+             ))}
+           </div>
+
+           <div className="flex gap-2">
+             {spotlightStep > 0 && (
+               <button onClick={handlePrev} className="px-4 py-2 bg-[#222A36] text-white rounded-xl text-sm font-bold hover:bg-[#2a3344] transition-colors">
+                 Back
+               </button>
+             )}
+             <button onClick={handleSkip} className="px-4 py-2 text-[#A0A4AB] hover:text-white text-sm font-bold transition-colors">
+               Skip
+             </button>
+             <button onClick={handleNext} className="flex-1 px-4 py-2.5 bg-[#1E90FF] text-white rounded-xl text-sm font-bold hover:opacity-90 transition-all">
+               {isLast ? "Let's Go! 🚀" : 'Next →'}
+             </button>
+           </div>
+         </div>
+       </div>
+     </div>
+   );
+ };
+
  const InviteReminderPopup = () => {
  if (!showInviteReminder) return null;
  const shareApp = async () => {
@@ -3775,7 +4003,7 @@ const HuddleUpApp = () => {
  <img src="/huddle-up-logo.png" alt="Huddle Up" className="h-12 drop-shadow-sm" />
  </div>
  <div className="flex-1 min-w-0 overflow-x-auto overflow-y-visible scrollbar-hide py-2" style={{ WebkitOverflowScrolling: 'touch' }}>
- <div className="flex gap-1.5 w-max">
+ <div className="flex gap-1.5 w-max" data-tour-id="nav-buttons">
  {userVenue && (
  <button
  onClick={() => setCurrentScreen('venueDashboard')}
@@ -3811,6 +4039,7 @@ const HuddleUpApp = () => {
  <button
  onClick={() => setCurrentScreen('myCrew')}
  className="flex flex-col items-center px-2 py-1.5 bg-[#1E90FF]/20 rounded-xl hover:bg-[#1E90FF]/30 transition-colors border border-[#1E90FF]/30 relative"
+ data-tour-id="my-crew"
  >
  <Users className="w-5 h-5 text-[#1E90FF]" />
  <span className="text-[9px] text-[#1E90FF] mt-0.5 leading-none">My Crew</span>
@@ -3821,6 +4050,7 @@ const HuddleUpApp = () => {
  <button
  onClick={() => setCurrentScreen('rewards')}
  className="flex flex-col items-center px-2 py-1.5 bg-yellow-500/20 rounded-xl hover:bg-yellow-500/30 transition-colors border border-yellow-500/30"
+ data-tour-id="rewards"
  >
  <Gift className="w-5 h-5 text-yellow-300" />
  <span className="text-[9px] text-yellow-300 mt-0.5 leading-none">Rewards</span>
@@ -3848,6 +4078,7 @@ const HuddleUpApp = () => {
  </button>
  <button
  onClick={() => setCurrentScreen('trending')}
+ data-tour-id="trending"
  className={`flex flex-col items-center px-2 py-1.5 rounded-xl transition-colors border relative ${parties.some(p => p.attendees?.length > 0) ? 'bg-pink-500/30 border-pink-400/50 shadow-sm shadow-pink-500/20' : 'bg-pink-500/20 border-pink-500/30 hover:bg-pink-500/30'}`}
  >
  <Zap className={`w-5 h-5 ${parties.some(p => p.attendees?.length > 0) ? 'text-pink-200 animate-pulse' : 'text-pink-300'}`} />
@@ -3866,6 +4097,7 @@ const HuddleUpApp = () => {
  <button
  onClick={() => setCurrentScreen('invitations')}
  className="flex flex-col items-center px-2 py-1.5 bg-[#151A22] rounded-xl hover:bg-[#222A36] transition-colors relative"
+ data-tour-id="alerts"
  >
  <Bell className="w-5 h-5 text-white" />
  <span className="text-[9px] text-[#A0A4AB] mt-0.5 leading-none">Alerts</span>
@@ -3878,6 +4110,7 @@ const HuddleUpApp = () => {
  <button
  onClick={() => setCurrentScreen('profile')}
  className="flex flex-col items-center px-2 py-1.5 bg-[#151A22] rounded-xl hover:bg-[#222A36] transition-colors"
+ data-tour-id="profile"
  >
  {user.profilePicture ? (
  <ProfileAvatar src={user.profilePicture} name={user.name} size="xs" className="border border-[#1E90FF]/50" />
@@ -3902,7 +4135,7 @@ const HuddleUpApp = () => {
  <div className="max-w-4xl mx-auto px-4">
 
  {/* LOCATION SEARCH */}
- <div className="relative mb-3">
+ <div className="relative mb-3" data-tour-id="location-search">
  <Navigation className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#1E90FF]" />
  <DebouncedInput
  type="text"
@@ -3944,6 +4177,16 @@ const HuddleUpApp = () => {
  />
  </div>
 
+ <button
+ onClick={startSpotlightTour}
+ data-tour-id="take-a-tour"
+ className="w-full py-2.5 mb-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-[#1E90FF]/20 to-purple-500/20 border border-[#1E90FF]/30 text-[#1E90FF] hover:from-[#1E90FF]/30 hover:to-purple-500/30"
+ >
+ <Map className="w-4 h-4" />
+ Take a Tour
+ <ChevronRight className="w-4 h-4" />
+ </button>
+
  {/* MY TEAMS ONLY FILTER */}
  {user?.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 && (
  <button
@@ -3964,7 +4207,7 @@ const HuddleUpApp = () => {
  </button>
  )}
 
- <div className="relative">
+ <div className="relative" data-tour-id="sports-scroller">
  <div
  ref={sportsScrollRef}
  onScroll={() => {
@@ -4173,7 +4416,7 @@ const HuddleUpApp = () => {
  </div>
  </div>
 
- <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
+ <div className="max-w-4xl mx-auto px-4 py-6 space-y-4" data-tour-id="game-cards">
  {filteredGames.map(game => {
  const gameParties = getPartiesForGame(game.id);
  return (
@@ -8914,10 +9157,10 @@ const HuddleUpApp = () => {
 
  <div className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36] shadow-xl space-y-3">
  <h3 className="text-lg font-bold text-white mb-1">Help & Info</h3>
- <button onClick={() => { setShowTourGuide(true); setTourTab('fans'); }} className="w-full flex items-center gap-3 p-3 bg-[#1E90FF]/10 hover:bg-[#1E90FF]/20 border border-[#1E90FF]/20 rounded-xl transition-colors text-left">
+ <button onClick={() => { setCurrentScreen('games'); setTimeout(() => startSpotlightTour(), 500); }} className="w-full flex items-center gap-3 p-3 bg-[#1E90FF]/10 hover:bg-[#1E90FF]/20 border border-[#1E90FF]/20 rounded-xl transition-colors text-left">
  <Map className="w-5 h-5 text-[#1E90FF]" />
  <span className="text-white font-medium text-sm">Take a Tour</span>
- <span className="text-[#A0A4AB]/70 text-xs ml-1">Learn how to use the app</span>
+ <span className="text-[#A0A4AB]/70 text-xs ml-1">Interactive app walkthrough</span>
  <ChevronRight className="w-4 h-4 text-[#A0A4AB]/70 ml-auto" />
  </button>
  <button onClick={() => setShowInviteReminder(true)} className="w-full flex items-center gap-3 p-3 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 rounded-xl transition-colors text-left">
@@ -11223,6 +11466,13 @@ const HuddleUpApp = () => {
  .animate-fade-in {
  animation: fade-in 0.6s ease-out;
  }
+ .animate-fadeIn {
+ animation: fadeIn 0.4s ease-out;
+ }
+ @keyframes fadeIn {
+ from { opacity: 0; transform: translateY(8px); }
+ to { opacity: 1; transform: translateY(0); }
+ }
  @keyframes spin {
  to { transform: rotate(360deg); }
  }
@@ -11235,6 +11485,7 @@ const HuddleUpApp = () => {
  {/* FEATURE 1: Onboarding Tutorial Overlay */}
  {showOnboarding && <OnboardingOverlay />}
  {showTourGuide && <TourGuidePopup />}
+ {spotlightTourActive && spotlightTourJSX()}
  {showInviteReminder && <InviteReminderPopup />}
  {showTrialExpired && <TrialExpiredPopup />}
 
