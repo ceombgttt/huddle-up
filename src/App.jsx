@@ -3137,7 +3137,7 @@ const HuddleUpApp = () => {
  <Users className="w-8 h-8 text-[#1E90FF]" />
  </div>
  <div>
- <h3 className="text-xl font-bold text-white mb-1">I'm a Fan</h3>
+ <h3 className="text-xl font-bold text-white mb-1">Sports Fan</h3>
  <p className="text-sm text-[#A0A4AB]">Find watch parties, connect with other fans, and join the action at local venues</p>
  </div>
  </div>
