@@ -4513,6 +4513,10 @@ const HuddleUpApp = () => {
  const GameDetailScreen = () => {
  const gameParties = getPartiesForGame(selectedGame.id);
 
+ useEffect(() => {
+   window.scrollTo({ top: 0, behavior: 'instant' });
+ }, []);
+
  return (
  <div className="min-h-screen pt-20 bg-[#0F1115]">
  <div className="sticky top-14 z-10 bg-[#0F1115] border-b border-[#222A36]">
