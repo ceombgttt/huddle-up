@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import pool from '../db.js';
+import { sendPushToUser } from './push.js';
 
 const router = Router();
 
@@ -127,6 +128,16 @@ router.post('/messages/:userId', requireAuth, async (req, res) => {
     );
 
     const sender = await pool.query('SELECT name, profile_picture FROM users WHERE id = $1', [myId]);
+    const senderName = sender.rows[0]?.name || 'Someone';
+
+    sendPushToUser(parseInt(otherId), {
+      title: `${senderName}`,
+      body: message.trim().length > 100 ? message.trim().substring(0, 100) + '...' : message.trim(),
+      icon: '/pwa-icon-192.png',
+      badge: '/pwa-icon-192.png',
+      tag: `dm-${myId}`,
+      data: { url: '/', type: 'dm', senderId: myId }
+    }).catch(err => console.error('DM push error:', err));
 
     res.json({
       id: result.rows[0].id,
@@ -135,7 +146,7 @@ router.post('/messages/:userId', requireAuth, async (req, res) => {
       message: result.rows[0].message,
       isRead: result.rows[0].is_read,
       createdAt: result.rows[0].created_at,
-      senderName: sender.rows[0]?.name,
+      senderName: senderName,
       senderPicture: sender.rows[0]?.profile_picture
     });
   } catch (err) {
