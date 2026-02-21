@@ -1095,7 +1095,28 @@ const SmsFieldsSection = ({ user, setUser }) => {
 };
 
 const HuddleUpApp = () => {
- const [currentScreen, setCurrentScreen] = useState('welcome');
+ const [currentScreen, setCurrentScreenRaw] = useState('welcome');
+ const screenHistoryRef = useRef([]);
+ const setCurrentScreen = useCallback((screenOrFn) => {
+   setCurrentScreenRaw(prev => {
+     const next = typeof screenOrFn === 'function' ? screenOrFn(prev) : screenOrFn;
+     if (next !== prev) {
+       const authScreens = ['welcome', 'login', 'signup', 'signupType', 'forgotPassword'];
+       if (!authScreens.includes(prev)) {
+         screenHistoryRef.current = [...screenHistoryRef.current.slice(-19), prev];
+       }
+     }
+     return next;
+   });
+ }, []);
+ const goBack = useCallback(() => {
+   const history = screenHistoryRef.current;
+   if (history.length > 0) {
+     const prevScreen = history[history.length - 1];
+     screenHistoryRef.current = history.slice(0, -1);
+     setCurrentScreenRaw(prevScreen);
+   }
+ }, []);
  const [user, setUser] = useState(null);
  const [selectedSport, setSelectedSport] = useState('All');
  const [showSportsScrollArrow, setShowSportsScrollArrow] = useState(true);
@@ -3878,20 +3899,34 @@ const HuddleUpApp = () => {
  }}
  className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide"
  >
- {SPORTS.map(sport => (
+ {(() => {
+ const liveSports = new Set(games.filter(g => g.gameStatus === 'live').map(g => g.sport));
+ const activeSports = new Set(games.map(g => g.sport));
+ const sorted = ['All', ...SPORTS.filter(s => s !== 'All' && liveSports.has(s)), ...SPORTS.filter(s => s !== 'All' && !liveSports.has(s) && activeSports.has(s)), ...SPORTS.filter(s => s !== 'All' && !activeSports.has(s))];
+ const unique = [...new Set(sorted)];
+ return unique.map(sport => {
+ const isLive = liveSports.has(sport);
+ return (
  <button
  key={sport}
  onClick={() => setSelectedSport(sport)}
  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold whitespace-nowrap transition-all ${
  selectedSport === sport
  ? 'bg-[#1E90FF] text-white shadow-sm'
+ : isLive
+ ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
+ : !activeSports.has(sport) && sport !== 'All'
+ ? 'bg-[#151A22]/50 text-[#A0A4AB]/50'
  : 'bg-[#151A22] text-[#A0A4AB] hover:bg-[#222A36]'
  }`}
  >
+ {isLive && sport !== 'All' && <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />}
  <span className="text-base">{SPORT_ICONS[sport] || '🏅'}</span>
  {sport}
  </button>
- ))}
+ );
+ });
+ })()}
  </div>
  {showSportsScrollArrow && (
  <button
@@ -3978,10 +4013,18 @@ const HuddleUpApp = () => {
  })()}
 
  {/* FEATURED: FIFA WORLD CUP 2026 BANNER */}
+ {(() => {
+ const wcGames = games.filter(g => g.sport === 'FIFA World Cup' || g.sport === 'FIFA Club World Cup');
+ const wcHasStarted = wcGames.length > 0;
+ return (
  <div className="max-w-4xl mx-auto px-4 pt-3">
  <button
- onClick={() => setSelectedSport('FIFA World Cup')}
- className="w-full animate-wc-glow rounded-2xl overflow-hidden"
+ onClick={() => {
+ if (wcHasStarted) {
+ setSelectedSport('FIFA World Cup');
+ }
+ }}
+ className={`w-full animate-wc-glow rounded-2xl overflow-hidden ${!wcHasStarted ? 'cursor-default' : ''}`}
  >
  <div className="relative bg-gradient-to-r from-amber-900/80 via-yellow-700/60 to-amber-900/80 border-2 border-yellow-500/50 rounded-2xl p-4 sm:p-5 overflow-hidden">
  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-400/10 to-transparent animate-wc-shimmer pointer-events-none" />
@@ -3998,6 +4041,8 @@ const HuddleUpApp = () => {
  <div className="flex-1 min-w-0">
  <div className="flex items-center gap-2 mb-1">
  <span className="px-2 py-0.5 bg-red-500/80 text-white text-[10px] font-black uppercase rounded tracking-wider">Featured Event</span>
+ {!wcHasStarted && <span className="px-2 py-0.5 bg-yellow-500/30 text-yellow-300 text-[10px] font-black uppercase rounded tracking-wider">Coming Soon</span>}
+ {wcHasStarted && <span className="px-2 py-0.5 bg-green-500/30 text-green-300 text-[10px] font-black uppercase rounded tracking-wider animate-pulse">Live Now</span>}
  </div>
  <h3 className="text-xl sm:text-2xl font-black text-white leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
  FIFA WORLD CUP 2026
@@ -4014,13 +4059,19 @@ const HuddleUpApp = () => {
  <span className="text-lg">🏴󠁧󠁢󠁥󠁮󠁧󠁿</span>
  <span className="text-lg">🇦🇷</span>
  <span className="text-lg">🇫🇷</span>
- <span className="text-yellow-300 text-xs font-bold ml-auto">Tap to view →</span>
+ {wcHasStarted ? (
+ <span className="text-yellow-300 text-xs font-bold ml-auto">Tap to view games →</span>
+ ) : (
+ <span className="text-yellow-300/60 text-xs font-bold ml-auto">Starts June 2026</span>
+ )}
  </div>
  </div>
  </div>
  </div>
  </button>
  </div>
+ );
+ })()}
 
  <div className="max-w-4xl mx-auto px-4 pt-3">
  <div className="bg-gradient-to-r from-[#1E90FF]/20 via-blue-500/20 to-purple-500/20 border-2 border-[#1E90FF]/40 rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm shadow-[#1E90FF]/10 animate-pulse-slow">
@@ -4055,6 +4106,7 @@ const HuddleUpApp = () => {
  onClick={() => {
  setSelectedGame(game);
  setCurrentScreen('gameDetail');
+ window.scrollTo(0, 0);
  }}
  className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36] hover:border-[#1E90FF]/50 cursor-pointer transform hover:scale-[1.02] transition-all duration-200 shadow-xl"
  >
@@ -10896,8 +10948,38 @@ const HuddleUpApp = () => {
  </div>
  );
 
+ const swipeRef = useRef({ startX: 0, startY: 0, valid: false });
+ const handleTouchStart = useCallback((e) => {
+   const authScreens = ['welcome', 'login', 'signup', 'signupType', 'forgotPassword'];
+   const startX = e.touches[0].clientX;
+   let el = e.target;
+   let inScrollable = false;
+   while (el && el !== e.currentTarget) {
+     if (el.scrollWidth > el.clientWidth + 5) { inScrollable = true; break; }
+     el = el.parentElement;
+   }
+   swipeRef.current = {
+     startX,
+     startY: e.touches[0].clientY,
+     valid: startX < 40 && !inScrollable && !authScreens.includes(currentScreen)
+   };
+ }, [currentScreen]);
+ const handleTouchEnd = useCallback((e) => {
+   if (!swipeRef.current.valid) return;
+   const dx = e.changedTouches[0].clientX - swipeRef.current.startX;
+   const dy = e.changedTouches[0].clientY - swipeRef.current.startY;
+   if (dx > 80 && Math.abs(dy) < Math.abs(dx)) {
+     goBack();
+   }
+ }, [goBack]);
+
  return (
- <div className="font-sans fixed inset-0 overflow-y-auto overflow-x-hidden" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'none' }}>
+ <div
+   className="font-sans fixed inset-0 overflow-y-auto overflow-x-hidden"
+   style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'none' }}
+   onTouchStart={handleTouchStart}
+   onTouchEnd={handleTouchEnd}
+ >
  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
  <style>{`
  .scrollbar-hide::-webkit-scrollbar {
