@@ -1221,7 +1221,9 @@ const HuddleUpApp = () => {
  const [dmSending, setDmSending] = useState(false);
  const [dmUnreadCount, setDmUnreadCount] = useState(0);
  const [dmConversations, setDmConversations] = useState([]);
+ const [dmPopup, setDmPopup] = useState(null);
  const dmEndRef = useRef(null);
+ const dmPrevUnreadRef = useRef(-1);
  const [badgeStats, setBadgeStats] = useState({ partiesHosted: 0, partiesAttended: 0 });
  const [showShareToast, setShowShareToast] = useState(false);
  const [showSignupShare, setShowSignupShare] = useState(false);
@@ -1429,7 +1431,7 @@ const HuddleUpApp = () => {
  const userVenue = user ? venues.find(v => v.claimedBy === user.email) : null;
  const pendingInvitations = invitations.filter(i => i.status === 'pending');
  const unreadNotifications = notifications.filter(n => !n.isRead);
- const totalAlerts = pendingInvitations.length + unreadNotifications.length;
+ const totalAlerts = pendingInvitations.length + unreadNotifications.length + dmUnreadCount;
 
  const loadGames = async () => {
  try {
@@ -1677,6 +1679,12 @@ const HuddleUpApp = () => {
  const gamesInterval = setInterval(loadGames, 60000);
  return () => clearInterval(gamesInterval);
  }, [isPauseScreen]);
+
+ useEffect(() => {
+   if (!user) return;
+   const dmInterval = setInterval(loadDmUnread, 15000);
+   return () => clearInterval(dmInterval);
+ }, [user?.id]);
 
  const getSponsorsForSport = useCallback((sport) => {
  const standardForSport = sponsorBanners.filter(s =>
@@ -2004,6 +2012,14 @@ const HuddleUpApp = () => {
    if (!user) return;
    try {
      const { count } = await api.dm.unreadCount();
+     if (count > dmPrevUnreadRef.current && dmPrevUnreadRef.current >= 0 && currentScreen !== 'dmChat') {
+       const latest = await api.dm.latestUnread();
+       if (latest) {
+         setDmPopup({ senderName: latest.senderName, senderPicture: latest.senderPicture, message: latest.message, senderId: latest.senderId });
+         setTimeout(() => setDmPopup(null), 4000);
+       }
+     }
+     dmPrevUnreadRef.current = count;
      setDmUnreadCount(count);
    } catch (e) {}
  };
@@ -11187,6 +11203,10 @@ const HuddleUpApp = () => {
  from { opacity: 0; transform: translateY(20px); }
  to { opacity: 1; transform: translateY(0); }
  }
+ @keyframes fadeInSlideDown {
+ from { opacity: 0; transform: translate(-50%, -20px); }
+ to { opacity: 1; transform: translate(-50%, 0); }
+ }
  .animate-fade-in {
  animation: fade-in 0.6s ease-out;
  }
@@ -11419,6 +11439,28 @@ const HuddleUpApp = () => {
 </button>
 </div>
 </div>
+)}
+
+{dmPopup && (
+ <div
+   onClick={() => {
+     setDmPopup(null);
+     const friend = friendsList.find(f => f.id === dmPopup.senderId);
+     if (friend) openDmChat(friend);
+     else openDmChat({ id: dmPopup.senderId, name: dmPopup.senderName, profilePicture: dmPopup.senderPicture });
+   }}
+   className="fixed top-16 left-1/2 z-[70] bg-[#1E90FF] text-white px-5 py-3 rounded-2xl shadow-lg shadow-blue-500/30 flex items-center gap-3 cursor-pointer max-w-sm w-[90%]"
+   style={{ animation: 'fadeInSlideDown 0.3s ease-out forwards' }}
+ >
+   <div className="flex-shrink-0">
+     <ProfileAvatar src={dmPopup.senderPicture} name={dmPopup.senderName} size="sm" />
+   </div>
+   <div className="flex-1 min-w-0">
+     <div className="font-bold text-sm">{dmPopup.senderName}</div>
+     <p className="text-xs text-white/80 truncate">{dmPopup.message}</p>
+   </div>
+   <MessageCircle className="w-5 h-5 text-white/60 flex-shrink-0" />
+ </div>
 )}
 
 {showShareToast && (

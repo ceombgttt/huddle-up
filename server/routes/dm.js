@@ -156,4 +156,33 @@ router.get('/unread-count', requireAuth, async (req, res) => {
   }
 });
 
+router.get('/latest-unread', requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT dm.id, dm.message, dm.created_at, u.id AS sender_id, u.name AS sender_name, u.profile_picture AS sender_picture
+      FROM direct_messages dm
+      JOIN users u ON u.id = dm.sender_id
+      INNER JOIN friendships f ON f.status = 'accepted' AND (
+        (f.user_id = $1 AND f.friend_id = dm.sender_id) OR
+        (f.user_id = dm.sender_id AND f.friend_id = $1)
+      )
+      WHERE dm.receiver_id = $1 AND dm.is_read = FALSE
+      ORDER BY dm.created_at DESC
+      LIMIT 1
+    `, [req.session.userId]);
+    if (result.rows.length === 0) return res.json(null);
+    const r = result.rows[0];
+    res.json({
+      id: r.id,
+      message: r.message,
+      createdAt: r.created_at,
+      senderId: r.sender_id,
+      senderName: r.sender_name,
+      senderPicture: r.sender_picture
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed' });
+  }
+});
+
 export default router;
