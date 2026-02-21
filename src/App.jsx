@@ -2528,6 +2528,49 @@ const HuddleUpApp = () => {
 
  const getMapsEmbedUrl = (address) => `https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`;
 
+ const VenueDealsPreview = ({ venueId }) => {
+ const [deals, setDeals] = useState([]);
+ const [promos, setPromos] = useState([]);
+ const [loaded, setLoaded] = useState(false);
+
+ useEffect(() => {
+ if (!venueId) return;
+ Promise.all([
+ api.venueHub.getVenueDeals(venueId).catch(() => []),
+ api.venueHub.getVenuePromotions(venueId).catch(() => [])
+ ]).then(([d, p]) => { setDeals(d); setPromos(p); setLoaded(true); });
+ }, [venueId]);
+
+ if (!loaded || (deals.length === 0 && promos.length === 0)) return null;
+
+ return (
+ <div className="mt-3 space-y-2">
+ {promos.length > 0 && (
+ <div className="p-3 bg-green-500/10 rounded-xl border border-green-500/20">
+ <p className="text-green-300 text-xs font-bold mb-1.5 flex items-center gap-1">📢 Game Promotions</p>
+ {promos.slice(0, 2).map(p => (
+ <div key={p.id} className="text-xs text-white mb-1">
+ <span className="font-semibold">{p.title}</span>
+ {p.specials && <span className="text-amber-300 ml-1">- {p.specials}</span>}
+ </div>
+ ))}
+ </div>
+ )}
+ {deals.length > 0 && (
+ <div className="p-3 bg-amber-500/10 rounded-xl border border-amber-500/20">
+ <p className="text-amber-300 text-xs font-bold mb-1.5 flex items-center gap-1">🏷️ Venue Specials</p>
+ {deals.slice(0, 2).map(d => (
+ <div key={d.id} className="text-xs text-white mb-1">
+ <span className="font-semibold">{d.title}</span>
+ <span className="text-[#A0A4AB] ml-1">- {d.description}</span>
+ </div>
+ ))}
+ </div>
+ )}
+ </div>
+ );
+ };
+
  const VenueMap = ({ address, venueName }) => {
  const [expanded, setExpanded] = useState(false);
  if (!address) return null;
@@ -3520,7 +3563,7 @@ const HuddleUpApp = () => {
  className="flex flex-col items-center px-2 py-1.5 bg-green-500/20 rounded-xl hover:bg-green-500/30 transition-colors border border-green-500/30"
  >
  <Building2 className="w-5 h-5 text-green-300" />
- <span className="text-[9px] text-green-300 mt-0.5 leading-none">Venue</span>
+ <span className="text-[9px] text-green-300 mt-0.5 leading-none">Venue Hub</span>
  </button>
  )}
  {isAdmin && (
@@ -4182,6 +4225,8 @@ const HuddleUpApp = () => {
  </div>
  </div>
  <VenueMap address={party.venueAddress || party.location} venueName={party.venueName || party.location} />
+
+ {matchedVenue?.id && <VenueDealsPreview venueId={matchedVenue.id} />}
 
  {party.notes && (
  <p className="mt-3 text-[#A0A4AB] text-sm">{party.notes}</p>
@@ -7432,6 +7477,313 @@ const HuddleUpApp = () => {
 
 
 
+ const VenueHubScreen = () => {
+ const [hubTab, setHubTab] = useState('dashboard');
+ const [promotions, setPromotions] = useState([]);
+ const [deals, setDeals] = useState([]);
+ const [loadingHub, setLoadingHub] = useState(true);
+ const [showNewPromo, setShowNewPromo] = useState(false);
+ const [showNewDeal, setShowNewDeal] = useState(false);
+ const [promoForm, setPromoForm] = useState({ title: '', description: '', sport: '', homeTeam: '', awayTeam: '', specials: '', gameDate: '', expiresAt: '' });
+ const [dealForm, setDealForm] = useState({ title: '', description: '', dealType: 'special', validUntil: '', terms: '', recurring: false, recurringDays: '' });
+ const [saving, setSaving] = useState(false);
+
+ useEffect(() => {
+ if (userVenue) {
+ Promise.all([
+ api.venueHub.getPromotions().catch(() => []),
+ api.venueHub.getDeals().catch(() => [])
+ ]).then(([p, d]) => { setPromotions(p); setDeals(d); setLoadingHub(false); });
+ } else { setLoadingHub(false); }
+ }, [userVenue]);
+
+ if (!userVenue) {
+ return (
+ <div className="min-h-screen pt-20 bg-[#0F1115] flex items-center justify-center p-4">
+ <div className="text-center">
+ <Building2 className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+ <h2 className="text-2xl font-bold text-white mb-2">No Venue Found</h2>
+ <p className="text-[#A0A4AB] mb-6">You don't have a claimed venue yet.</p>
+ <button onClick={() => setCurrentScreen('claimVenue')} className="px-6 py-3 bg-[#1E90FF] text-white font-bold rounded-xl">Claim Your Venue</button>
+ </div>
+ </div>
+ );
+ }
+
+ const savePromotion = async () => {
+ if (!promoForm.title) return alert('Title is required');
+ setSaving(true);
+ try {
+ const newPromo = await api.venueHub.createPromotion(promoForm);
+ setPromotions([newPromo, ...promotions]);
+ setShowNewPromo(false);
+ setPromoForm({ title: '', description: '', sport: '', homeTeam: '', awayTeam: '', specials: '', gameDate: '', expiresAt: '' });
+ } catch (err) { alert(err.message); }
+ setSaving(false);
+ };
+
+ const saveDeal = async () => {
+ if (!dealForm.title || !dealForm.description) return alert('Title and description are required');
+ setSaving(true);
+ try {
+ const newDeal = await api.venueHub.createDeal(dealForm);
+ setDeals([newDeal, ...deals]);
+ setShowNewDeal(false);
+ setDealForm({ title: '', description: '', dealType: 'special', validUntil: '', terms: '', recurring: false, recurringDays: '' });
+ } catch (err) { alert(err.message); }
+ setSaving(false);
+ };
+
+ const deletePromotion = async (id) => {
+ if (!confirm('Delete this promotion?')) return;
+ try { await api.venueHub.deletePromotion(id); setPromotions(promotions.filter(p => p.id !== id)); } catch (err) { alert(err.message); }
+ };
+
+ const deleteDeal = async (id) => {
+ if (!confirm('Delete this deal?')) return;
+ try { await api.venueHub.deleteDeal(id); setDeals(deals.filter(d => d.id !== id)); } catch (err) { alert(err.message); }
+ };
+
+ const toggleDealActive = async (deal) => {
+ try {
+ const updated = await api.venueHub.updateDeal(deal.id, { active: !deal.active });
+ setDeals(deals.map(d => d.id === deal.id ? updated : d));
+ } catch (err) { alert(err.message); }
+ };
+
+ const SPORTS_LIST = ['NFL', 'NBA', 'MLB', 'NHL', 'MLS', 'Premier League', 'La Liga', 'Champions League', 'College Football', 'College Basketball', 'UFC/MMA', 'Boxing', 'NASCAR', 'F1', 'Tennis', 'Golf'];
+
+ const tabs = [
+ { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+ { id: 'promotions', label: 'Promote Games', icon: '📢' },
+ { id: 'deals', label: 'Deals & Specials', icon: '🏷️' },
+ ];
+
+ return (
+ <div className="min-h-screen pt-20 bg-[#0F1115]">
+ <div className="sticky top-14 z-10 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="max-w-4xl mx-auto px-4 py-3">
+ <div className="flex items-center justify-between mb-3">
+ <button onClick={() => setCurrentScreen('profile')} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors">
+ <ArrowLeft className="w-5 h-5" /> Back
+ </button>
+ <div className="flex items-center gap-2">
+ {userVenue.verified && <span className="px-2 py-1 bg-green-500/20 text-green-300 text-xs font-bold rounded-full border border-green-500/30 flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Verified</span>}
+ </div>
+ </div>
+ <div className="flex items-center gap-3 mb-3">
+ {userVenue.logo && <img src={`/api/uploads/serve/${userVenue.logo.replace('/objects/', '')}`} alt="Logo" className="w-10 h-10 rounded-xl object-cover border border-[#222A36]" />}
+ <div>
+ <h1 className="text-xl font-black text-white">{userVenue.name}</h1>
+ <p className="text-xs text-[#A0A4AB]">Venue Hub</p>
+ </div>
+ </div>
+ <div className="flex gap-1 overflow-x-auto scrollbar-hide">
+ {tabs.map(tab => (
+ <button key={tab.id} onClick={() => setHubTab(tab.id)} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${hubTab === tab.id ? 'bg-green-500/20 text-green-300 border border-green-500/30' : 'text-[#A0A4AB] hover:bg-[#222A36]'}`}>
+ <span>{tab.icon}</span> {tab.label}
+ </button>
+ ))}
+ </div>
+ </div>
+ </div>
+
+ <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
+ {hubTab === 'dashboard' && <VenueAnalyticsDashboard />}
+
+ {hubTab === 'promotions' && (
+ <div className="space-y-4">
+ <div className="flex items-center justify-between">
+ <div>
+ <h2 className="text-xl font-black text-white">Promote Your Games</h2>
+ <p className="text-sm text-[#A0A4AB]">Let fans know which games you're showing and what specials you're running</p>
+ </div>
+ <button onClick={() => setShowNewPromo(true)} className="px-4 py-2 bg-green-500 text-white font-bold rounded-xl text-sm hover:bg-green-600 transition-colors flex items-center gap-1.5">
+ <Plus className="w-4 h-4" /> New Promotion
+ </button>
+ </div>
+
+ {showNewPromo && (
+ <div className="bg-[#151A22] p-5 rounded-2xl border-2 border-green-500/30 space-y-4">
+ <h3 className="text-lg font-bold text-white">Create Game Promotion</h3>
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+ <div className="sm:col-span-2">
+ <label className="block text-xs text-[#A0A4AB] mb-1">Promotion Title *</label>
+ <input value={promoForm.title} onChange={e => setPromoForm({...promoForm, title: e.target.value})} placeholder="e.g. Monday Night Football Watch Party!" className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm focus:ring-2 focus:ring-green-500" />
+ </div>
+ <div>
+ <label className="block text-xs text-[#A0A4AB] mb-1">Sport</label>
+ <select value={promoForm.sport} onChange={e => setPromoForm({...promoForm, sport: e.target.value})} className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm">
+ <option value="">Select sport...</option>
+ {SPORTS_LIST.map(s => <option key={s} value={s}>{s}</option>)}
+ </select>
+ </div>
+ <div>
+ <label className="block text-xs text-[#A0A4AB] mb-1">Game Date & Time</label>
+ <input type="datetime-local" value={promoForm.gameDate} onChange={e => setPromoForm({...promoForm, gameDate: e.target.value})} className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm" />
+ </div>
+ <div>
+ <label className="block text-xs text-[#A0A4AB] mb-1">Home Team</label>
+ <input value={promoForm.homeTeam} onChange={e => setPromoForm({...promoForm, homeTeam: e.target.value})} placeholder="e.g. Miami Heat" className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm" />
+ </div>
+ <div>
+ <label className="block text-xs text-[#A0A4AB] mb-1">Away Team</label>
+ <input value={promoForm.awayTeam} onChange={e => setPromoForm({...promoForm, awayTeam: e.target.value})} placeholder="e.g. LA Lakers" className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm" />
+ </div>
+ <div className="sm:col-span-2">
+ <label className="block text-xs text-[#A0A4AB] mb-1">Description</label>
+ <textarea value={promoForm.description} onChange={e => setPromoForm({...promoForm, description: e.target.value})} placeholder="Tell fans what to expect..." rows={2} className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm resize-none" />
+ </div>
+ <div className="sm:col-span-2">
+ <label className="block text-xs text-[#A0A4AB] mb-1">Game Day Specials</label>
+ <input value={promoForm.specials} onChange={e => setPromoForm({...promoForm, specials: e.target.value})} placeholder="e.g. $5 pitchers, half-price wings during the game" className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm" />
+ </div>
+ </div>
+ <div className="flex gap-2">
+ <button onClick={savePromotion} disabled={saving} className="px-5 py-2.5 bg-green-500 text-white font-bold rounded-xl text-sm hover:bg-green-600 disabled:opacity-50">{saving ? 'Saving...' : 'Create Promotion'}</button>
+ <button onClick={() => setShowNewPromo(false)} className="px-5 py-2.5 bg-[#222A36] text-[#A0A4AB] font-bold rounded-xl text-sm hover:text-white">Cancel</button>
+ </div>
+ </div>
+ )}
+
+ {loadingHub ? (
+ <div className="text-center py-8"><div className="animate-spin w-8 h-8 border-2 border-green-400 border-t-transparent rounded-full mx-auto" /></div>
+ ) : promotions.length === 0 && !showNewPromo ? (
+ <div className="bg-[#151A22] p-8 rounded-2xl border border-[#222A36] text-center">
+ <div className="text-4xl mb-3">📢</div>
+ <h3 className="text-lg font-bold text-white mb-2">No Promotions Yet</h3>
+ <p className="text-[#A0A4AB] text-sm mb-4">Create your first game promotion to let fans know what's happening at your venue!</p>
+ <button onClick={() => setShowNewPromo(true)} className="px-5 py-2.5 bg-green-500 text-white font-bold rounded-xl text-sm">Create First Promotion</button>
+ </div>
+ ) : (
+ <div className="space-y-3">
+ {promotions.map(promo => (
+ <div key={promo.id} className="bg-[#151A22] p-4 rounded-2xl border border-[#222A36] hover:border-green-500/30 transition-colors">
+ <div className="flex items-start justify-between gap-3">
+ <div className="flex-1 min-w-0">
+ <div className="flex items-center gap-2 mb-1 flex-wrap">
+ <h3 className="text-white font-bold">{promo.title}</h3>
+ {promo.sport && <span className="px-2 py-0.5 bg-[#1E90FF]/20 text-[#1E90FF] text-xs font-bold rounded-full">{promo.sport}</span>}
+ <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${promo.status === 'active' ? 'bg-green-500/20 text-green-300' : 'bg-gray-500/20 text-gray-400'}`}>{promo.status}</span>
+ </div>
+ {(promo.home_team || promo.away_team) && <p className="text-sm text-white/80 mb-1">{promo.away_team} @ {promo.home_team}</p>}
+ {promo.game_date && <p className="text-xs text-[#A0A4AB] mb-1">Game: {new Date(promo.game_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</p>}
+ {promo.description && <p className="text-sm text-[#A0A4AB]">{promo.description}</p>}
+ {promo.specials && <p className="text-sm text-amber-300 mt-1">🏷️ {promo.specials}</p>}
+ </div>
+ <button onClick={() => deletePromotion(promo.id)} className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors flex-shrink-0"><Trash2 className="w-4 h-4" /></button>
+ </div>
+ </div>
+ ))}
+ </div>
+ )}
+ </div>
+ )}
+
+ {hubTab === 'deals' && (
+ <div className="space-y-4">
+ <div className="flex items-center justify-between">
+ <div>
+ <h2 className="text-xl font-black text-white">Deals & Specials</h2>
+ <p className="text-sm text-[#A0A4AB]">Create exclusive offers that fans see when browsing your venue</p>
+ </div>
+ <button onClick={() => setShowNewDeal(true)} className="px-4 py-2 bg-amber-500 text-white font-bold rounded-xl text-sm hover:bg-amber-600 transition-colors flex items-center gap-1.5">
+ <Plus className="w-4 h-4" /> New Deal
+ </button>
+ </div>
+
+ {showNewDeal && (
+ <div className="bg-[#151A22] p-5 rounded-2xl border-2 border-amber-500/30 space-y-4">
+ <h3 className="text-lg font-bold text-white">Create a Deal</h3>
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+ <div className="sm:col-span-2">
+ <label className="block text-xs text-[#A0A4AB] mb-1">Deal Title *</label>
+ <input value={dealForm.title} onChange={e => setDealForm({...dealForm, title: e.target.value})} placeholder="e.g. Happy Hour: Half-Price Wings" className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm focus:ring-2 focus:ring-amber-500" />
+ </div>
+ <div>
+ <label className="block text-xs text-[#A0A4AB] mb-1">Deal Type</label>
+ <select value={dealForm.dealType} onChange={e => setDealForm({...dealForm, dealType: e.target.value})} className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm">
+ <option value="special">Game Day Special</option>
+ <option value="happy_hour">Happy Hour</option>
+ <option value="food">Food Deal</option>
+ <option value="drink">Drink Deal</option>
+ <option value="exclusive">Exclusive Offer</option>
+ <option value="group">Group Discount</option>
+ </select>
+ </div>
+ <div>
+ <label className="block text-xs text-[#A0A4AB] mb-1">Valid Until (optional)</label>
+ <input type="date" value={dealForm.validUntil} onChange={e => setDealForm({...dealForm, validUntil: e.target.value})} className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm" />
+ </div>
+ <div className="sm:col-span-2">
+ <label className="block text-xs text-[#A0A4AB] mb-1">Description *</label>
+ <textarea value={dealForm.description} onChange={e => setDealForm({...dealForm, description: e.target.value})} placeholder="Describe the deal..." rows={2} className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm resize-none" />
+ </div>
+ <div className="sm:col-span-2">
+ <label className="block text-xs text-[#A0A4AB] mb-1">Terms & Conditions (optional)</label>
+ <input value={dealForm.terms} onChange={e => setDealForm({...dealForm, terms: e.target.value})} placeholder="e.g. Valid for dine-in only, min 2 people" className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm" />
+ </div>
+ <div className="sm:col-span-2 flex items-center gap-3">
+ <label className="flex items-center gap-2 cursor-pointer">
+ <input type="checkbox" checked={dealForm.recurring} onChange={e => setDealForm({...dealForm, recurring: e.target.checked})} className="w-4 h-4 rounded" />
+ <span className="text-white text-sm">Recurring deal (e.g. every game day)</span>
+ </label>
+ </div>
+ </div>
+ <div className="flex gap-2">
+ <button onClick={saveDeal} disabled={saving} className="px-5 py-2.5 bg-amber-500 text-white font-bold rounded-xl text-sm hover:bg-amber-600 disabled:opacity-50">{saving ? 'Saving...' : 'Create Deal'}</button>
+ <button onClick={() => setShowNewDeal(false)} className="px-5 py-2.5 bg-[#222A36] text-[#A0A4AB] font-bold rounded-xl text-sm hover:text-white">Cancel</button>
+ </div>
+ </div>
+ )}
+
+ {loadingHub ? (
+ <div className="text-center py-8"><div className="animate-spin w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full mx-auto" /></div>
+ ) : deals.length === 0 && !showNewDeal ? (
+ <div className="bg-[#151A22] p-8 rounded-2xl border border-[#222A36] text-center">
+ <div className="text-4xl mb-3">🏷️</div>
+ <h3 className="text-lg font-bold text-white mb-2">No Deals Yet</h3>
+ <p className="text-[#A0A4AB] text-sm mb-4">Create exclusive deals and specials to attract more fans to your venue!</p>
+ <button onClick={() => setShowNewDeal(true)} className="px-5 py-2.5 bg-amber-500 text-white font-bold rounded-xl text-sm">Create First Deal</button>
+ </div>
+ ) : (
+ <div className="space-y-3">
+ {deals.map(deal => {
+ const typeLabels = { special: 'Game Day Special', happy_hour: 'Happy Hour', food: 'Food Deal', drink: 'Drink Deal', exclusive: 'Exclusive', group: 'Group Discount' };
+ const typeColors = { special: 'bg-amber-500/20 text-amber-300', happy_hour: 'bg-purple-500/20 text-purple-300', food: 'bg-orange-500/20 text-orange-300', drink: 'bg-cyan-500/20 text-cyan-300', exclusive: 'bg-pink-500/20 text-pink-300', group: 'bg-green-500/20 text-green-300' };
+ return (
+ <div key={deal.id} className={`bg-[#151A22] p-4 rounded-2xl border transition-colors ${deal.active ? 'border-[#222A36] hover:border-amber-500/30' : 'border-red-500/20 opacity-60'}`}>
+ <div className="flex items-start justify-between gap-3">
+ <div className="flex-1 min-w-0">
+ <div className="flex items-center gap-2 mb-1 flex-wrap">
+ <h3 className="text-white font-bold">{deal.title}</h3>
+ <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${typeColors[deal.deal_type] || typeColors.special}`}>{typeLabels[deal.deal_type] || deal.deal_type}</span>
+ {!deal.active && <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-red-500/20 text-red-300">Paused</span>}
+ {deal.recurring && <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-blue-500/20 text-blue-300">Recurring</span>}
+ </div>
+ <p className="text-sm text-[#A0A4AB]">{deal.description}</p>
+ {deal.terms && <p className="text-xs text-[#A0A4AB]/70 mt-1">Terms: {deal.terms}</p>}
+ {deal.valid_until && <p className="text-xs text-[#A0A4AB]/70 mt-1">Valid until {new Date(deal.valid_until).toLocaleDateString()}</p>}
+ </div>
+ <div className="flex items-center gap-1 flex-shrink-0">
+ <button onClick={() => toggleDealActive(deal)} className={`p-2 rounded-lg transition-colors ${deal.active ? 'text-amber-400 hover:bg-amber-500/20' : 'text-green-400 hover:bg-green-500/20'}`} title={deal.active ? 'Pause deal' : 'Activate deal'}>
+ {deal.active ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+ </button>
+ <button onClick={() => deleteDeal(deal.id)} className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
+ </div>
+ </div>
+ </div>
+ );
+ })}
+ </div>
+ )}
+ </div>
+ )}
+ </div>
+ </div>
+ );
+ };
+
  const MyPartiesScreen = () => {
  const [deletingPartyId, setDeletingPartyId] = useState(null);
  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
@@ -10467,7 +10819,7 @@ const HuddleUpApp = () => {
  {currentScreen === 'createParty' && createPartyScreenJSX()}
  {currentScreen === 'claimVenue' && claimVenueScreenJSX()}
  {currentScreen === 'admin' && AdminPanelScreen()}
- {currentScreen === 'venueDashboard' && <VenueAnalyticsDashboard />}
+ {currentScreen === 'venueDashboard' && <VenueHubScreen />}
  {currentScreen === 'sponsorDashboard' && <SponsorDashboard />}
  {currentScreen === 'myParties' && <MyPartiesScreen />}
  {currentScreen === 'profile' && <ProfileScreen />}

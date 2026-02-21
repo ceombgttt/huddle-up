@@ -278,4 +278,16 @@ export const api = {
     userCities: () => request('/analytics/user-cities'),
     hourlyActivity: () => request('/analytics/hourly-activity'),
   },
+  venueHub: {
+    getPromotions: () => request('/venue-hub/promotions'),
+    createPromotion: (data) => request('/venue-hub/promotions', { method: 'POST', body: JSON.stringify(data) }),
+    updatePromotion: (id, data) => request(`/venue-hub/promotions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    deletePromotion: (id) => request(`/venue-hub/promotions/${id}`, { method: 'DELETE' }),
+    getDeals: () => request('/venue-hub/deals'),
+    createDeal: (data) => request('/venue-hub/deals', { method: 'POST', body: JSON.stringify(data) }),
+    updateDeal: (id, data) => request(`/venue-hub/deals/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    deleteDeal: (id) => request(`/venue-hub/deals/${id}`, { method: 'DELETE' }),
+    getVenuePromotions: (venueId) => request(`/venue-hub/venue/${venueId}/promotions`),
+    getVenueDeals: (venueId) => request(`/venue-hub/venue/${venueId}/deals`),
+  },
 };

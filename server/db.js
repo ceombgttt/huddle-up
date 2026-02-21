@@ -455,6 +455,37 @@ export async function initDB() {
       ALTER TABLE parties ADD COLUMN IF NOT EXISTS ticket_price_cents INTEGER DEFAULT 0;
       ALTER TABLE parties ADD COLUMN IF NOT EXISTS is_promoted BOOLEAN DEFAULT FALSE;
       ALTER TABLE parties ADD COLUMN IF NOT EXISTS has_recap BOOLEAN DEFAULT FALSE;
+
+      CREATE TABLE IF NOT EXISTS venue_promotions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        venue_id UUID REFERENCES venues(id) ON DELETE CASCADE,
+        title TEXT NOT NULL,
+        description TEXT,
+        sport TEXT,
+        game_date TIMESTAMPTZ,
+        home_team TEXT,
+        away_team TEXT,
+        specials TEXT,
+        image_url TEXT,
+        status TEXT DEFAULT 'active',
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        expires_at TIMESTAMPTZ
+      );
+
+      CREATE TABLE IF NOT EXISTS venue_deals (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        venue_id UUID REFERENCES venues(id) ON DELETE CASCADE,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL,
+        deal_type TEXT DEFAULT 'special',
+        valid_from TIMESTAMPTZ DEFAULT NOW(),
+        valid_until TIMESTAMPTZ,
+        terms TEXT,
+        recurring BOOLEAN DEFAULT FALSE,
+        recurring_days TEXT,
+        active BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
     `);
 
     const adminCheck = await client.query("SELECT id FROM users WHERE email = 'admin@huddleupusa.com'");
