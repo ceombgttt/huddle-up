@@ -3701,7 +3701,7 @@ const HuddleUpApp = () => {
  <div className="flex-shrink-0">
  <img src="/huddle-up-logo.png" alt="Huddle Up" className="h-12 drop-shadow-sm" />
  </div>
- <div className="flex-1 min-w-0 overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+ <div className="flex-1 min-w-0 overflow-x-auto overflow-y-visible scrollbar-hide py-2" style={{ WebkitOverflowScrolling: 'touch' }}>
  <div className="flex gap-1.5 w-max">
  {userVenue && (
  <button
@@ -4196,24 +4196,24 @@ const HuddleUpApp = () => {
 
  return (
  <div className="min-h-screen pt-20 bg-[#0F1115]">
- <div className="sticky top-20 z-10 bg-[#0F1115] border-b border-[#222A36]">
- <div className="max-w-4xl mx-auto px-4 py-4">
+ <div className="sticky top-14 z-10 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="max-w-4xl mx-auto px-4 py-2 flex items-center justify-between">
  <button
  onClick={() => setCurrentScreen('games')}
- className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors mb-4"
+ className="flex items-center gap-1.5 text-[#A0A4AB] hover:text-white transition-colors"
  >
  <ArrowLeft className="w-5 h-5" />
- Back to Games
+ <span className="text-sm font-medium">Back</span>
  </button>
- </div>
- </div>
-
- <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
- <div className="bg-[#151A22] p-8 rounded-2xl border border-[#222A36] shadow-xl">
- <div className="flex items-center justify-between mb-4">
  <span className="px-3 py-1 bg-[#1E90FF]/20 text-[#1E90FF] text-xs font-bold rounded-full border border-[#1E90FF]/30">
  {selectedGame.sport}
  </span>
+ </div>
+ </div>
+
+ <div className="max-w-4xl mx-auto px-4 py-4 space-y-6">
+ <div className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36] shadow-xl">
+ <div className="flex items-center justify-end mb-3">
  {user && (
  <button
  onClick={() => toggleWatchGame(selectedGame)}
