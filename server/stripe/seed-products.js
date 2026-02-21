@@ -5,7 +5,7 @@ const PRODUCTS = [
     name: 'Huddle Up Fan',
     description: 'Access to all watch parties, game scores, fan finder, and crew features. Support the Huddle Up community!',
     metadata: { tier: 'fan', order: '1' },
-    priceAmountCents: 499,
+    priceAmountCents: 299,
   },
   {
     name: 'Huddle Up Venue',
