@@ -2585,6 +2585,16 @@ const HuddleUpApp = () => {
  );
  
  return matchesSport && matchesSearch && matchesMyTeams;
+ }).sort((a, b) => {
+   const aParties = parties.filter(p => p.gameId === a.id);
+   const bParties = parties.filter(p => p.gameId === b.id);
+   const aAttendees = aParties.reduce((sum, p) => sum + (p.attendees?.length || 0), 0);
+   const bAttendees = bParties.reduce((sum, p) => sum + (p.attendees?.length || 0), 0);
+   const aHasParties = aParties.length > 0 ? 1 : 0;
+   const bHasParties = bParties.length > 0 ? 1 : 0;
+   if (aHasParties !== bHasParties) return bHasParties - aHasParties;
+   if (aHasParties && bHasParties) return bAttendees - aAttendees;
+   return 0;
  });
 
  const isCityMatch = (partyCity) => {
@@ -3838,10 +3848,13 @@ const HuddleUpApp = () => {
  </button>
  <button
  onClick={() => setCurrentScreen('trending')}
- className="flex flex-col items-center px-2 py-1.5 bg-pink-500/20 rounded-xl hover:bg-pink-500/30 transition-colors border border-pink-500/30"
+ className={`flex flex-col items-center px-2 py-1.5 rounded-xl transition-colors border relative ${parties.some(p => p.attendees?.length > 0) ? 'bg-pink-500/30 border-pink-400/50 shadow-sm shadow-pink-500/20' : 'bg-pink-500/20 border-pink-500/30 hover:bg-pink-500/30'}`}
  >
- <Zap className="w-5 h-5 text-pink-300" />
- <span className="text-[9px] text-pink-300 mt-0.5 leading-none">Trending</span>
+ <Zap className={`w-5 h-5 ${parties.some(p => p.attendees?.length > 0) ? 'text-pink-200 animate-pulse' : 'text-pink-300'}`} />
+ <span className={`text-[9px] mt-0.5 leading-none ${parties.some(p => p.attendees?.length > 0) ? 'text-pink-200 font-bold' : 'text-pink-300'}`}>Trending</span>
+ {parties.some(p => p.attendees?.length > 0) && (
+   <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-pink-400 rounded-full animate-pulse" />
+ )}
  </button>
  <button
  onClick={() => setShowQA(true)}
