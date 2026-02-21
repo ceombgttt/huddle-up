@@ -1431,7 +1431,7 @@ const HuddleUpApp = () => {
  const userVenue = user ? venues.find(v => v.claimedBy === user.email) : null;
  const pendingInvitations = invitations.filter(i => i.status === 'pending');
  const unreadNotifications = notifications.filter(n => !n.isRead);
- const totalAlerts = pendingInvitations.length + unreadNotifications.length + dmUnreadCount;
+ const totalAlerts = pendingInvitations.length + unreadNotifications.length;
 
  const loadGames = async () => {
  try {
@@ -3804,8 +3804,8 @@ const HuddleUpApp = () => {
  >
  <Users className="w-5 h-5 text-[#1E90FF]" />
  <span className="text-[9px] text-[#1E90FF] mt-0.5 leading-none">My Crew</span>
- {friendRequests.length > 0 && (
- <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-[8px] flex items-center justify-center font-bold">{friendRequests.length}</span>
+ {(friendRequests.length + dmUnreadCount) > 0 && (
+ <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-[8px] flex items-center justify-center font-bold">{friendRequests.length + dmUnreadCount}</span>
  )}
  </button>
  <button
