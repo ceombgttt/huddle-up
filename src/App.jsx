@@ -3178,7 +3178,7 @@ const HuddleUpApp = () => {
  <p className="text-white font-bold text-lg mb-1">Keep the party going!</p>
  <p className="text-amber-200 text-sm mb-3">Subscribe now for full access to everything</p>
  <div className="flex items-center justify-center gap-2 mb-2">
- <span className="text-4xl font-black text-white">$2.99</span>
+ <span className="text-4xl font-black text-white">$4.99</span>
  <span className="text-[#A0A4AB] text-sm">/month</span>
  </div>
  <p className="text-[#A0A4AB] text-xs">Cancel anytime. No contracts.</p>
@@ -3199,7 +3199,7 @@ const HuddleUpApp = () => {
  </div>
  <div className="space-y-2">
  <button onClick={() => { dismissExpired(); setCurrentScreen('subscription'); }} className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold rounded-xl hover:opacity-90 transition-all text-lg">
- Subscribe Now - $2.99/mo
+ Subscribe Now - $4.99/mo
  </button>
  <button onClick={dismissExpired} className="w-full py-2.5 bg-[#0F1115] text-[#A0A4AB] rounded-xl hover:text-white transition-all text-sm">
  Maybe Later
@@ -3238,7 +3238,7 @@ const HuddleUpApp = () => {
  <span className="text-3xl font-black text-white">$0</span>
  <span className="text-[#A0A4AB] text-sm">for 4 months</span>
  </div>
- <p className="text-[#A0A4AB] text-xs">Then only <span className="text-white font-bold">$2.99/month</span> to keep all premium features</p>
+ <p className="text-[#A0A4AB] text-xs">Then only <span className="text-white font-bold">$4.99/month</span> to keep all premium features</p>
  {trialEndDate && (
  <div className="mt-3 inline-block px-4 py-1.5 bg-green-500/20 border border-green-500/30 rounded-full">
  <span className="text-green-300 text-xs font-bold">FREE until {trialEndDate}</span>
@@ -3263,7 +3263,7 @@ const HuddleUpApp = () => {
  <button onClick={() => setShowWelcomePopup(false)} className="w-full py-2 text-[#A0A4AB] hover:text-white text-sm mt-2 transition-colors">
  Skip Tour
  </button>
- <p className="text-center text-[#A0A4AB]/50 text-xs mt-3">By continuing, you acknowledge that after your 4-month free trial, your membership will be $2.99/month. You can cancel anytime.</p>
+ <p className="text-center text-[#A0A4AB]/50 text-xs mt-3">By continuing, you acknowledge that after your 4-month free trial, your membership will be $4.99/month. You can cancel anytime.</p>
  </div>
  </div>
  );
@@ -3271,7 +3271,7 @@ const HuddleUpApp = () => {
 
  const QA_ITEMS = [
  { q: 'What is Huddle Up?', a: 'Huddle Up is the #1 app for finding and creating sports watch parties. We connect fans with local venues, other fans, and events for 15+ sports leagues including NFL, NBA, MLB, NHL, MLS, Premier League, and more.' },
- { q: 'Is Huddle Up free to use?', a: 'Yes! All new users get a 4-month free trial with full access to all features. After the trial, the subscription is just $2.99/month to keep all premium features.' },
+ { q: 'Is Huddle Up free to use?', a: 'Yes! All new users get a 4-month free trial with full access to all features. After the trial, the subscription is just $4.99/month to keep all premium features.' },
  { q: 'How do I create a watch party?', a: 'Tap any game on the schedule, then tap "Create Watch Party." Choose a venue, add details about your party, and invite friends. It\'s that simple!' },
  { q: 'How do I find parties near me?', a: 'Use the search bar to type your city name, or enable location services and we\'ll show you parties nearby automatically.' },
  { q: 'What are badges and how do I earn them?', a: 'Badges are achievements you earn by participating! Host parties to earn "Party Starter," attend 5+ to get "Social Butterfly," leave reviews for "Critic," and more. Your fan score goes up with every activity.' },
@@ -9139,7 +9139,7 @@ const HuddleUpApp = () => {
  <div className="w-10 h-10 rounded-full bg-[#1E90FF]/20 flex items-center justify-center"><Crown className="w-5 h-5 text-[#1E90FF]" /></div>
  <div>
  <p className="text-[#1E90FF] font-bold text-sm">Premium Member</p>
- <p className="text-[#A0A4AB] text-xs">$2.99/month - Full access to all features</p>
+ <p className="text-[#A0A4AB] text-xs">$4.99/month - Full access to all features</p>
  </div>
  </div>
  )}
@@ -9147,9 +9147,9 @@ const HuddleUpApp = () => {
  <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
  <p className="text-red-300 font-bold text-sm mb-1">Free Trial Ended</p>
  <p className="text-[#A0A4AB] text-xs mb-2">Your 4-month free trial has ended. Subscribe now to keep enjoying all premium features!</p>
- <p className="text-white text-sm font-bold mb-3">Only $2.99/month - that's less than a cup of coffee!</p>
+ <p className="text-white text-sm font-bold mb-3">Only $4.99/month - that's less than a cup of coffee!</p>
  <button onClick={() => setCurrentScreen('subscription')} className="px-4 py-2 bg-gradient-to-r from-[#1E90FF] to-purple-500 text-white font-bold rounded-lg text-sm">
- Subscribe Now - $2.99/mo
+ Subscribe Now - $4.99/mo
  </button>
  </div>
  )}
