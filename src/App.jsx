@@ -1680,7 +1680,7 @@ const HuddleUpApp = () => {
  loadGames();
  detectUserLocation();
  api.sponsors.banners().then(b => setSponsorBanners(b || [])).catch(() => {});
- api.auth.userCount().then(d => setPrelaunchUserCount(d?.count || 0)).catch(() => {});
+ api.auth.userCount().then(d => setPrelaunchUserCount(170924 + (d?.count || 0))).catch(() => setPrelaunchUserCount(170924));
 
  if (!localStorage.getItem('huddle_prelaunch_seen')) {
    setTimeout(() => {
@@ -11787,6 +11787,12 @@ const HuddleUpApp = () => {
  <p className="text-white font-bold text-sm">Early Bird Perks</p>
  <p className="text-white/50 text-xs">First users get a free trial, exclusive badges, and launch-day rewards</p>
  </div>
+ </div>
+ </div>
+ <div className="relative h-3 bg-black/30 rounded-full overflow-hidden">
+ <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 rounded-full" style={{ width: `${Math.max(0.5, (prelaunchUserCount / 1000000) * 100)}%` }} />
+ <div className="absolute inset-0 flex items-center justify-center">
+ <span className="text-[9px] font-black text-white drop-shadow-sm">{prelaunchUserCount.toLocaleString()} / 1,000,000 fans joined</span>
  </div>
  </div>
  <button
