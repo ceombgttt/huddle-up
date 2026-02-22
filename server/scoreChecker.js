@@ -14,6 +14,7 @@ const ESPN_ENDPOINTS = {
   'MLS': 'https://site.api.espn.com/apis/site/v2/sports/soccer/usa.1/scoreboard',
   'Champions League': 'https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard',
   'UFC': 'https://site.api.espn.com/apis/site/v2/sports/mma/ufc/scoreboard',
+  'Boxing': 'https://site.api.espn.com/apis/site/v2/sports/boxing/scoreboard',
 };
 
 let cachedScores = {};

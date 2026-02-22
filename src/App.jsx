@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, Megaphone, MessageCircle, Gift, Award, Clock, Zap, Crown, Copy, Shield, ChevronRight, Info } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, Megaphone, MessageCircle, Gift, Award, Clock, Zap, Crown, Copy, Shield, ChevronRight, Info, Flame } from 'lucide-react';
 import { api } from './api.js';
 
 // Sample games data for different sports
@@ -91,7 +91,7 @@ const SAMPLE_GAMES = [
  { id: 'cri3', sport: 'Cricket', homeTeam: 'IPL Final', awayTeam: 'Championship Match', startTime: '2026-05-30T10:00:00', venue: 'Narendra Modi Stadium, Ahmedabad' },
 ];
 
-const SPORTS = ['All', 'UFC', 'NFL', 'NBA', 'MLB', 'NHL', 'College Football', 'College Basketball', 'Premier League', 'La Liga', 'Liga MX', 'MLS', 'Champions League', 'Formula 1', 'Tennis', 'Rugby', 'Cricket'];
+const SPORTS = ['All', 'UFC', 'Boxing', 'NFL', 'NBA', 'MLB', 'NHL', 'College Football', 'College Basketball', 'Premier League', 'La Liga', 'Liga MX', 'MLS', 'Champions League', 'Formula 1', 'Tennis', 'Rugby', 'Cricket'];
 
 const SPORT_ICONS = {
  'All': '🏟️',
@@ -4274,6 +4274,79 @@ const HuddleUpApp = () => {
  </svg>
  Refresh scores
  </button>
+
+ {(() => {
+ const MAJOR_SPORTS = new Set(['UFC', 'Boxing', 'Formula 1', 'Champions League', 'FIFA World Cup']);
+ const upcomingMajor = games
+   .filter(g => g.gameStatus === 'scheduled' && MAJOR_SPORTS.has(g.sport) && new Date(g.startTime) > new Date())
+   .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
+   .slice(0, 10);
+ if (upcomingMajor.length === 0) return null;
+
+ const GRADIENT_MAP = {
+   'UFC': 'from-red-900/80 to-red-700/40',
+   'Boxing': 'from-amber-900/80 to-amber-700/40',
+   'Formula 1': 'from-red-800/80 to-gray-900/60',
+   'Champions League': 'from-blue-900/80 to-indigo-800/40',
+   'FIFA World Cup': 'from-green-900/80 to-emerald-700/40',
+ };
+ const BORDER_MAP = {
+   'UFC': 'border-red-500/40',
+   'Boxing': 'border-amber-500/40',
+   'Formula 1': 'border-red-500/30',
+   'Champions League': 'border-blue-500/40',
+   'FIFA World Cup': 'border-green-500/40',
+ };
+
+ return (
+   <div className="mt-3 mb-1">
+   <div className="flex items-center justify-between mb-2">
+   <h3 className="text-white font-black text-sm flex items-center gap-2" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>
+   <Flame className="w-4 h-4 text-orange-400" />
+   UPCOMING EVENTS
+   </h3>
+   <span className="text-[10px] text-white/40 font-semibold">{upcomingMajor.length} events</span>
+   </div>
+   <div className="overflow-x-auto scrollbar-hide">
+   <div className="flex gap-3 w-max pb-1">
+   {upcomingMajor.map((event) => {
+   const eventDate = new Date(event.startTime);
+   const timeStr = eventDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+   const timeOfDay = eventDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+   return (
+   <div
+   key={event.id}
+   onClick={() => setSelectedGame(event)}
+   className={`flex-shrink-0 w-64 p-3 rounded-xl border ${BORDER_MAP[event.sport] || 'border-[#222A36]'} bg-gradient-to-br ${GRADIENT_MAP[event.sport] || 'from-[#151A22] to-[#0F1115]'} cursor-pointer hover:scale-[1.02] transition-all`}
+   >
+   <div className="flex items-center justify-between mb-2">
+   <span className="text-[10px] font-bold uppercase tracking-wider text-white/60">{event.sport}</span>
+   <span className="text-lg">{SPORT_ICONS[event.sport] || '🏅'}</span>
+   </div>
+   {event.eventTitle ? (
+   <p className="text-white/50 text-[10px] font-bold mb-0.5">{event.eventTitle}</p>
+   ) : null}
+   <p className="text-white font-bold text-sm leading-tight">{event.homeTeam}</p>
+   <p className="text-white/60 text-xs">vs {event.awayTeam}</p>
+   <div className="flex items-center gap-2 mt-2">
+   <Calendar className="w-3 h-3 text-white/50" />
+   <span className="text-white/70 text-[11px]">{timeStr} • {timeOfDay}</span>
+   </div>
+   {event.venue && (
+   <div className="flex items-center gap-2 mt-0.5">
+   <MapPin className="w-3 h-3 text-white/50" />
+   <span className="text-white/50 text-[10px] truncate">{event.venue}</span>
+   </div>
+   )}
+   </div>
+   );
+   })}
+   </div>
+   </div>
+   </div>
+ );
+ })()}
+
  </div>
 
  {/* MAIN SPONSOR BANNER - 5 slots per sport */}

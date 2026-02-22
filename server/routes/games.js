@@ -19,9 +19,10 @@ const ESPN_ENDPOINTS = {
   'Rugby': 'https://site.api.espn.com/apis/site/v2/sports/rugby/rugby-union/scoreboard',
   'Cricket': 'https://site.api.espn.com/apis/site/v2/sports/cricket/icc/scoreboard',
   'UFC': 'https://site.api.espn.com/apis/site/v2/sports/mma/ufc/scoreboard',
+  'Boxing': 'https://site.api.espn.com/apis/site/v2/sports/boxing/scoreboard',
 };
 
-const WEEKLY_SPORTS = new Set(['UFC', 'Formula 1', 'Rugby', 'Cricket']);
+const WEEKLY_SPORTS = new Set(['UFC', 'Boxing', 'Formula 1', 'Rugby', 'Cricket']);
 
 function getDateRange() {
   const now = new Date();
