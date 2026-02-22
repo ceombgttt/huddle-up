@@ -4000,7 +4000,7 @@ const HuddleUpApp = () => {
  <div className="max-w-4xl mx-auto px-4 pt-4 pb-2">
  <div className="flex items-center gap-3 mb-2">
  <div className="flex-shrink-0">
- <img src="/huddle-up-logo.png" alt="Huddle Up" className="h-12 drop-shadow-sm" />
+ <img src="/huddle-up-shield.png" alt="Huddle Up" className="h-12 drop-shadow-sm" />
  </div>
  <div className="flex-1 min-w-0 overflow-x-auto overflow-y-visible scrollbar-hide py-2" style={{ WebkitOverflowScrolling: 'touch' }}>
  <div className="flex gap-1.5 w-max" data-tour-id="nav-buttons">
@@ -10636,7 +10636,7 @@ const HuddleUpApp = () => {
  {fantasySelectedLeague.season && <span className="text-xs text-slate-400">• {fantasySelectedLeague.season}</span>}
  </div>
  </div>
- <img src="/huddle-up-logo.png" alt="Huddle Up" className="w-10 h-10 object-contain" />
+ <img src="/huddle-up-shield.png" alt="Huddle Up" className="w-10 h-10 object-contain" />
  </div>
  </div>
  </div>
@@ -10833,7 +10833,7 @@ const HuddleUpApp = () => {
  FANTASY LEAGUES
  </h1>
  <div className="ml-auto">
- <img src="/huddle-up-logo.png" alt="Huddle Up" className="w-10 h-10 object-contain" />
+ <img src="/huddle-up-shield.png" alt="Huddle Up" className="w-10 h-10 object-contain" />
  </div>
  </div>
  </div>
