@@ -8761,6 +8761,27 @@ const HuddleUpApp = () => {
  <span className="text-[#1E90FF] font-semibold">{user.country}</span>
  </p>
  )}
+ {user.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 && (
+ <div className="mt-3 w-full">
+ <p className="text-[#A0A4AB] text-xs uppercase tracking-wider mb-2 font-semibold">My Teams</p>
+ <div className="flex flex-wrap justify-center gap-2">
+ {Object.entries(user.favoriteTeams).map(([sport, team]) => {
+ const logoUrl = getTeamLogoUrl(sport, team);
+ return (
+ <div key={sport} className="flex flex-col items-center gap-1 px-2 py-1.5 bg-[#0F1115] rounded-xl border border-[#222A36]">
+ {logoUrl ? (
+ <img src={logoUrl} alt={team} className="w-8 h-8 object-contain" />
+ ) : (
+ <div className="w-8 h-8 rounded-full bg-[#222A36] flex items-center justify-center text-xs text-white font-bold">{team?.charAt(0)}</div>
+ )}
+ <span className="text-[#A0A4AB] text-[10px] leading-tight max-w-[60px] truncate">{team}</span>
+ <span className="text-[#555] text-[8px]">{sport}</span>
+ </div>
+ );
+ })}
+ </div>
+ </div>
+ )}
  <button
  onClick={() => setEditProfileOpen(true)}
  className="mt-3 px-4 py-2 bg-[#151A22] hover:bg-[#222A36] text-white text-sm font-semibold rounded-xl transition-all flex items-center gap-2 mx-auto"
