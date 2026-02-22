@@ -61,8 +61,12 @@ const SAMPLE_GAMES = [
  { id: 'ufc2', sport: 'UFC', homeTeam: 'UFC Fight Night', awayTeam: 'Prelims & Main Card', startTime: '2026-02-28T19:00:00', venue: 'UFC APEX, Las Vegas' },
  
  // Boxing
- { id: 'box1', sport: 'Boxing', homeTeam: 'Heavyweight Championship', awayTeam: 'Title Fight', startTime: '2026-03-15T21:00:00', venue: 'MGM Grand, Las Vegas' },
- { id: 'box2', sport: 'Boxing', homeTeam: 'Welterweight Bout', awayTeam: 'Main Event', startTime: '2026-03-29T20:00:00', venue: 'Madison Square Garden, NYC' },
+ { id: 'box1', sport: 'Boxing', homeTeam: 'Sebastian Fundora', awayTeam: 'Keith Thurman', startTime: '2026-03-28T21:00:00', venue: 'Las Vegas', eventTitle: 'WBC Jr. Middleweight Title' },
+ { id: 'box2', sport: 'Boxing', homeTeam: 'Tyson Fury', awayTeam: 'Arslanbek Makhmudov', startTime: '2026-04-11T20:00:00', venue: 'United Kingdom', eventTitle: 'Heavyweight - Netflix' },
+ { id: 'box3', sport: 'Boxing', homeTeam: 'Deontay Wilder', awayTeam: 'Derek Chisora', startTime: '2026-05-09T21:00:00', venue: 'Co-op Live Arena, Manchester', eventTitle: 'Heavyweight - DAZN' },
+ { id: 'box4', sport: 'Boxing', homeTeam: 'David Benavidez', awayTeam: 'Gilberto Ramirez', startTime: '2026-05-17T22:00:00', venue: 'Las Vegas', eventTitle: 'WBO/WBA Cruiserweight Titles' },
+ { id: 'box5', sport: 'Boxing', homeTeam: 'Fabio Wardley', awayTeam: 'Daniel Dubois', startTime: '2026-03-28T19:00:00', venue: 'Manchester, England', eventTitle: 'Heavyweight' },
+ { id: 'box6', sport: 'Boxing', homeTeam: 'Caroline Dubois', awayTeam: 'Terri Harper', startTime: '2026-04-05T18:00:00', venue: 'London, England', eventTitle: 'WBC & WBO Lightweight Titles' },
  
  // FIFA World Cup
  { id: 'wc1', sport: 'FIFA World Cup', homeTeam: 'USA', awayTeam: 'Mexico', startTime: '2026-06-20T14:00:00', venue: 'MetLife Stadium, New Jersey' },
@@ -1439,7 +1443,21 @@ const HuddleUpApp = () => {
  try {
  const liveGames = await api.games.list();
  if (liveGames && liveGames.length > 0) {
- setGames(liveGames);
+ const FALLBACK_SPORTS = new Set(['Boxing', 'FIFA World Cup', 'Formula 1', 'Tennis', 'Rugby', 'Cricket']);
+ const now = new Date();
+ const sportHasUpcoming = {};
+ for (const g of liveGames) {
+   if (FALLBACK_SPORTS.has(g.sport)) {
+     const isUpcoming = g.gameStatus === 'scheduled' && new Date(g.startTime) > now;
+     if (isUpcoming) sportHasUpcoming[g.sport] = true;
+   }
+ }
+ const missingSamples = SAMPLE_GAMES.filter(g =>
+   FALLBACK_SPORTS.has(g.sport) && !sportHasUpcoming[g.sport] && new Date(g.startTime) > now
+ );
+ const existingIds = new Set(liveGames.map(g => g.id));
+ const deduped = missingSamples.filter(g => !existingIds.has(g.id));
+ setGames([...liveGames, ...deduped]);
  } else {
  setGames(SAMPLE_GAMES);
  }
@@ -4316,7 +4334,7 @@ const HuddleUpApp = () => {
    return (
    <div
    key={event.id}
-   onClick={() => setSelectedGame(event)}
+   onClick={() => { setSelectedGame(event); setCurrentScreen('gameDetail'); window.scrollTo(0, 0); }}
    className={`flex-shrink-0 w-64 p-3 rounded-xl border ${BORDER_MAP[event.sport] || 'border-[#222A36]'} bg-gradient-to-br ${GRADIENT_MAP[event.sport] || 'from-[#151A22] to-[#0F1115]'} cursor-pointer hover:scale-[1.02] transition-all`}
    >
    <div className="flex items-center justify-between mb-2">
