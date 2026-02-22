@@ -24,9 +24,9 @@ const ESPN_ENDPOINTS = {
 
 const WEEKLY_SPORTS = new Set(['UFC', 'Boxing', 'Formula 1', 'Rugby', 'Cricket']);
 
-function getDateRange() {
+function getDateRange(days = 7) {
   const now = new Date();
-  const future = new Date(now.getTime() + 21 * 24 * 60 * 60 * 1000);
+  const future = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
   const fmt = d => d.toISOString().slice(0, 10).replace(/-/g, '');
   return `${fmt(now)}-${fmt(future)}`;
 }
@@ -130,10 +130,12 @@ async function fetchAllGames() {
   }
 
   const allGames = [];
-  const dateRange = getDateRange();
+  const weeklyRange = getDateRange(21);
+  const dailyRange = getDateRange(7);
   const fetchPromises = Object.entries(ESPN_ENDPOINTS).map(async ([sport, url]) => {
     try {
-      const fetchUrl = WEEKLY_SPORTS.has(sport) ? `${url}?dates=${dateRange}` : url;
+      const range = WEEKLY_SPORTS.has(sport) ? weeklyRange : dailyRange;
+      const fetchUrl = `${url}?dates=${range}`;
       const response = await fetch(fetchUrl, {
         headers: { 'Accept': 'application/json' },
         signal: AbortSignal.timeout(8000),
