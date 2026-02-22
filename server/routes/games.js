@@ -134,16 +134,33 @@ async function fetchAllGames() {
   const dailyRange = getDateRange(7);
   const fetchPromises = Object.entries(ESPN_ENDPOINTS).map(async ([sport, url]) => {
     try {
-      const range = WEEKLY_SPORTS.has(sport) ? weeklyRange : dailyRange;
-      const fetchUrl = `${url}?dates=${range}`;
-      const response = await fetch(fetchUrl, {
-        headers: { 'Accept': 'application/json' },
-        signal: AbortSignal.timeout(8000),
-      });
-      if (!response.ok) return [];
-      const data = await response.json();
-      const events = data.events || [];
-      return events.map(e => parseESPNEvent(e, sport)).filter(Boolean);
+      if (WEEKLY_SPORTS.has(sport)) {
+        const response = await fetch(`${url}?dates=${weeklyRange}`, {
+          headers: { 'Accept': 'application/json' },
+          signal: AbortSignal.timeout(8000),
+        });
+        if (!response.ok) return [];
+        const data = await response.json();
+        return (data.events || []).map(e => parseESPNEvent(e, sport)).filter(Boolean);
+      }
+
+      const [todayRes, upcomingRes] = await Promise.all([
+        fetch(url, { headers: { 'Accept': 'application/json' }, signal: AbortSignal.timeout(8000) }),
+        fetch(`${url}?dates=${dailyRange}`, { headers: { 'Accept': 'application/json' }, signal: AbortSignal.timeout(8000) }),
+      ]);
+
+      const todayGames = todayRes.ok ? (await todayRes.json()).events || [] : [];
+      const upcomingGames = upcomingRes.ok ? (await upcomingRes.json()).events || [] : [];
+
+      const seenIds = new Set();
+      const merged = [];
+      for (const e of [...todayGames, ...upcomingGames]) {
+        if (!seenIds.has(e.id)) {
+          seenIds.add(e.id);
+          merged.push(e);
+        }
+      }
+      return merged.map(e => parseESPNEvent(e, sport)).filter(Boolean);
     } catch (err) {
       console.error(`Failed to fetch ${sport} games:`, err.message);
       return [];
