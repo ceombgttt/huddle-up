@@ -21,6 +21,15 @@ const ESPN_ENDPOINTS = {
   'UFC': 'https://site.api.espn.com/apis/site/v2/sports/mma/ufc/scoreboard',
 };
 
+const WEEKLY_SPORTS = new Set(['UFC', 'Formula 1', 'Rugby', 'Cricket']);
+
+function getDateRange() {
+  const now = new Date();
+  const future = new Date(now.getTime() + 21 * 24 * 60 * 60 * 1000);
+  const fmt = d => d.toISOString().slice(0, 10).replace(/-/g, '');
+  return `${fmt(now)}-${fmt(future)}`;
+}
+
 let gamesCache = { data: null, timestamp: 0 };
 const CACHE_TTL = 60 * 1000;
 
@@ -30,8 +39,6 @@ function parseESPNEvent(event, sport) {
 
   const homeCompetitor = competition.competitors?.find(c => c.homeAway === 'home');
   const awayCompetitor = competition.competitors?.find(c => c.homeAway === 'away');
-
-  if (!homeCompetitor || !awayCompetitor) return null;
 
   const status = event.status?.type;
   let gameStatus = 'scheduled';
@@ -48,6 +55,51 @@ function parseESPNEvent(event, sport) {
       gameStatus = 'scheduled';
       statusDetail = status.shortDetail || '';
     }
+  }
+
+  if (!homeCompetitor || !awayCompetitor || (!homeCompetitor.team?.displayName && !awayCompetitor.team?.displayName)) {
+    const eventName = event.name || '';
+    const vsMatch = eventName.match(/:\s*(.+?)\s+vs\.?\s+(.+)$/i);
+    if (vsMatch) {
+      return {
+        id: `${sport.toLowerCase().replace(/\s+/g, '')}_${event.id}`,
+        espnId: event.id,
+        sport,
+        homeTeam: vsMatch[1].trim(),
+        awayTeam: vsMatch[2].trim(),
+        homeScore: 0,
+        awayScore: 0,
+        homeLogo: null,
+        awayLogo: null,
+        homeRecord: '',
+        awayRecord: '',
+        startTime: event.date,
+        venue: competition.venue?.fullName || '',
+        gameStatus,
+        statusDetail,
+        broadcast: competition.broadcasts?.[0]?.names?.[0] || '',
+        eventTitle: event.shortName || eventName.split(':')[0]?.trim() || '',
+      };
+    }
+    return {
+      id: `${sport.toLowerCase().replace(/\s+/g, '')}_${event.id}`,
+      espnId: event.id,
+      sport,
+      homeTeam: eventName || event.shortName || sport,
+      awayTeam: 'Main Card',
+      homeScore: 0,
+      awayScore: 0,
+      homeLogo: null,
+      awayLogo: null,
+      homeRecord: '',
+      awayRecord: '',
+      startTime: event.date,
+      venue: competition.venue?.fullName || '',
+      gameStatus,
+      statusDetail,
+      broadcast: competition.broadcasts?.[0]?.names?.[0] || '',
+      eventTitle: event.shortName || eventName.split(':')[0]?.trim() || '',
+    };
   }
 
   return {
@@ -77,9 +129,11 @@ async function fetchAllGames() {
   }
 
   const allGames = [];
+  const dateRange = getDateRange();
   const fetchPromises = Object.entries(ESPN_ENDPOINTS).map(async ([sport, url]) => {
     try {
-      const response = await fetch(url, {
+      const fetchUrl = WEEKLY_SPORTS.has(sport) ? `${url}?dates=${dateRange}` : url;
+      const response = await fetch(fetchUrl, {
         headers: { 'Accept': 'application/json' },
         signal: AbortSignal.timeout(8000),
       });
