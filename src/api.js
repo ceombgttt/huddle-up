@@ -21,6 +21,7 @@ export const api = {
     login: (email, password, rememberMe = true) =>
       request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password, rememberMe }) }),
     logout: () => request('/auth/logout', { method: 'POST' }),
+    userCount: () => request('/auth/user-count'),
     verifyEmail: (email) =>
       request('/auth/verify-email', { method: 'POST', body: JSON.stringify({ email }) }),
     resetPassword: (email, code, newPassword) =>

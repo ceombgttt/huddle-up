@@ -1139,6 +1139,9 @@ const HuddleUpApp = () => {
  const [showQA, setShowQA] = useState(false);
  const [qaExpandedIndex, setQaExpandedIndex] = useState(null);
  const [showTourGuide, setShowTourGuide] = useState(false);
+ const [prelaunchUserCount, setPrelaunchUserCount] = useState(0);
+ const [showPrelaunchModal, setShowPrelaunchModal] = useState(false);
+ const [prelaunchDismissed, setPrelaunchDismissed] = useState(false);
  const [tourTab, setTourTab] = useState('fans');
  const [spotlightTourActive, setSpotlightTourActive] = useState(false);
  const [spotlightStep, setSpotlightStep] = useState(0);
@@ -1677,6 +1680,14 @@ const HuddleUpApp = () => {
  loadGames();
  detectUserLocation();
  api.sponsors.banners().then(b => setSponsorBanners(b || [])).catch(() => {});
+ api.auth.userCount().then(d => setPrelaunchUserCount(d?.count || 0)).catch(() => {});
+
+ if (!localStorage.getItem('huddle_prelaunch_seen')) {
+   setTimeout(() => {
+     setShowPrelaunchModal(true);
+     localStorage.setItem('huddle_prelaunch_seen', '1');
+   }, 2000);
+ }
 
  const params = new URLSearchParams(window.location.search);
  if (params.get('checkout') === 'success') {
@@ -4151,6 +4162,50 @@ const HuddleUpApp = () => {
  </div>
 
  <div className="max-w-4xl mx-auto px-4">
+
+ {/* PRE-LAUNCH BANNER */}
+ {!prelaunchDismissed && (
+ <div className="mb-3 relative overflow-hidden rounded-2xl border border-amber-500/40 bg-gradient-to-r from-amber-900/60 via-orange-900/50 to-red-900/40">
+ <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMDMpIi8+PC9zdmc+')] opacity-50" />
+ <button onClick={() => setPrelaunchDismissed(true)} className="absolute top-2 right-2 text-white/40 hover:text-white/80 z-10">
+ <X className="w-4 h-4" />
+ </button>
+ <div className="relative p-4">
+ <div className="flex items-center gap-2 mb-2">
+ <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+ <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-300">PRE-LAUNCH MODE</span>
+ </div>
+ <h3 className="text-white font-black text-lg leading-tight mb-1" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>
+ {user?.user_type === 'venue' ? 'GET YOUR VENUE READY' : 'ROAD TO 1 MILLION FANS'}
+ </h3>
+ <p className="text-white/60 text-xs mb-3">{user?.user_type === 'venue' ? 'Set up your venue before launch so fans can find you on day one!' : 'Set up your profile now & be ready when we go live. Early members get exclusive perks!'}</p>
+ <div className="relative h-3 bg-black/30 rounded-full overflow-hidden mb-2">
+ <div
+ className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 rounded-full transition-all duration-1000"
+ style={{ width: `${Math.max(0.5, (prelaunchUserCount / 1000000) * 100)}%` }}
+ />
+ <div className="absolute inset-0 flex items-center justify-center">
+ <span className="text-[9px] font-black text-white drop-shadow-sm">{prelaunchUserCount.toLocaleString()} / 1,000,000</span>
+ </div>
+ </div>
+ <div className="flex items-center justify-between">
+ <button
+ onClick={() => setCurrentScreen(user?.user_type === 'venue' ? 'venueDashboard' : 'profile')}
+ className="px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs rounded-full transition-all"
+ >
+ {user?.user_type === 'venue' ? 'Set Up Venue' : 'Complete Your Profile'}
+ </button>
+ <button
+ onClick={() => { if (navigator.share) { navigator.share({ title: 'Huddle Up', text: 'Join Huddle Up - the ultimate watch party app! Be one of the first 1 million fans.', url: window.location.origin }); } else { navigator.clipboard.writeText(window.location.origin); } }}
+ className="flex items-center gap-1 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-full transition-all"
+ >
+ <Share2 className="w-3 h-3" />
+ Invite Friends
+ </button>
+ </div>
+ </div>
+ </div>
+ )}
 
  {/* LOCATION SEARCH */}
  <div className="relative mb-3" data-tour-id="location-search">
@@ -8177,6 +8232,40 @@ const HuddleUpApp = () => {
  </div>
 
  <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
+ {hubTab === 'dashboard' && (
+ <div className="relative overflow-hidden rounded-2xl border border-green-500/40 bg-gradient-to-r from-green-900/60 via-emerald-900/50 to-teal-900/40 mb-2">
+ <div className="p-4">
+ <div className="flex items-center gap-2 mb-2">
+ <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+ <span className="text-[10px] font-black uppercase tracking-[0.2em] text-green-300">PRE-LAUNCH MODE</span>
+ </div>
+ <h3 className="text-white font-black text-base leading-tight mb-1" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>
+ GET YOUR VENUE READY FOR LAUNCH
+ </h3>
+ <p className="text-white/60 text-xs mb-3">We're gathering 1 million fans before going live. Set up your venue now so fans can find you on day one!</p>
+ <div className="relative h-3 bg-black/30 rounded-full overflow-hidden mb-3">
+ <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-green-400 via-emerald-500 to-teal-500 rounded-full" style={{ width: `${Math.max(0.5, (prelaunchUserCount / 1000000) * 100)}%` }} />
+ <div className="absolute inset-0 flex items-center justify-center">
+ <span className="text-[9px] font-black text-white drop-shadow-sm">{prelaunchUserCount.toLocaleString()} / 1,000,000 fans joining</span>
+ </div>
+ </div>
+ <div className="grid grid-cols-3 gap-2 text-center">
+ <div className="bg-black/20 rounded-xl p-2">
+ <Camera className="w-4 h-4 text-green-300 mx-auto mb-1" />
+ <p className="text-white text-[10px] font-bold">Add Photos</p>
+ </div>
+ <div className="bg-black/20 rounded-xl p-2">
+ <Megaphone className="w-4 h-4 text-green-300 mx-auto mb-1" />
+ <p className="text-white text-[10px] font-bold">Create Promos</p>
+ </div>
+ <div className="bg-black/20 rounded-xl p-2">
+ <DollarSign className="w-4 h-4 text-green-300 mx-auto mb-1" />
+ <p className="text-white text-[10px] font-bold">Set Up Deals</p>
+ </div>
+ </div>
+ </div>
+ </div>
+ )}
  {hubTab === 'dashboard' && <VenueAnalyticsDashboard />}
 
  {hubTab === 'promotions' && (
@@ -11646,6 +11735,82 @@ const HuddleUpApp = () => {
  setEditProfileOpen(false);
  }}
  />
+ )}
+
+ {showPrelaunchModal && (
+ <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[70] flex items-center justify-center p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setShowPrelaunchModal(false); }}>
+ <div className="bg-[#0F1115] rounded-3xl max-w-md w-full border-2 border-amber-500/40 overflow-hidden shadow-2xl shadow-amber-500/10" onMouseDown={e => e.stopPropagation()}>
+ <div className="bg-gradient-to-br from-amber-600 via-orange-600 to-red-600 p-6 text-center relative overflow-hidden">
+ <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px), radial-gradient(circle at 60% 80%, white 1px, transparent 1px)', backgroundSize: '60px 60px, 80px 80px, 40px 40px' }} />
+ <div className="relative">
+ <div className="w-16 h-16 mx-auto mb-3 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+ <img src="/huddle-up-shield.png" alt="Huddle Up" className="h-12 drop-shadow-lg" />
+ </div>
+ <div className="inline-block px-3 py-1 bg-white/20 rounded-full text-white text-[10px] font-black uppercase tracking-[0.2em] mb-2">
+ Early Access
+ </div>
+ <h2 className="text-2xl font-black text-white mb-1" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>
+ WELCOME TO HUDDLE UP!
+ </h2>
+ <p className="text-white/80 text-sm">The ultimate watch party platform</p>
+ </div>
+ </div>
+ <div className="p-6 space-y-4">
+ <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 text-center">
+ <p className="text-amber-300 font-black text-sm mb-1" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>WE'RE BUILDING SOMETHING BIG</p>
+ <p className="text-white/70 text-xs leading-relaxed">We're gathering <span className="text-amber-400 font-bold">1,000,000 fans & venues</span> before our official launch. You're in early — set up your profile now to be ready!</p>
+ </div>
+ <div className="space-y-2">
+ <div className="flex items-start gap-3 p-3 bg-[#151A22] rounded-xl border border-[#222A36]">
+ <div className="w-8 h-8 bg-[#1E90FF]/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+ <User className="w-4 h-4 text-[#1E90FF]" />
+ </div>
+ <div>
+ <p className="text-white font-bold text-sm">{user?.user_type === 'venue' ? 'Set Up Your Venue' : 'Complete Your Profile'}</p>
+ <p className="text-white/50 text-xs">{user?.user_type === 'venue' ? 'Add your logo, photos, and details so fans can find you' : 'Add your photo, favorite teams, and bio to connect with fans'}</p>
+ </div>
+ </div>
+ <div className="flex items-start gap-3 p-3 bg-[#151A22] rounded-xl border border-[#222A36]">
+ <div className="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+ <Users className="w-4 h-4 text-emerald-400" />
+ </div>
+ <div>
+ <p className="text-white font-bold text-sm">Invite Your Crew</p>
+ <p className="text-white/50 text-xs">Share with friends & earn 100 points per referral when we launch</p>
+ </div>
+ </div>
+ <div className="flex items-start gap-3 p-3 bg-[#151A22] rounded-xl border border-[#222A36]">
+ <div className="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+ <Trophy className="w-4 h-4 text-purple-400" />
+ </div>
+ <div>
+ <p className="text-white font-bold text-sm">Early Bird Perks</p>
+ <p className="text-white/50 text-xs">First users get a free trial, exclusive badges, and launch-day rewards</p>
+ </div>
+ </div>
+ </div>
+ <div className="relative h-3 bg-black/30 rounded-full overflow-hidden">
+ <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 rounded-full" style={{ width: `${Math.max(0.5, (prelaunchUserCount / 1000000) * 100)}%` }} />
+ <div className="absolute inset-0 flex items-center justify-center">
+ <span className="text-[9px] font-black text-white drop-shadow-sm">{prelaunchUserCount.toLocaleString()} / 1,000,000 fans joined</span>
+ </div>
+ </div>
+ <button
+ onClick={() => { setShowPrelaunchModal(false); setCurrentScreen('profile'); }}
+ className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black rounded-xl text-sm transition-all shadow-lg shadow-amber-500/20"
+ style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.1em' }}
+ >
+ {user?.user_type === 'venue' ? 'SET UP MY VENUE' : 'SET UP MY PROFILE'}
+ </button>
+ <button
+ onClick={() => setShowPrelaunchModal(false)}
+ className="w-full py-2 text-white/40 hover:text-white/70 text-xs font-medium transition-colors"
+ >
+ I'll do this later
+ </button>
+ </div>
+ </div>
+ </div>
  )}
 
  {showQA && (

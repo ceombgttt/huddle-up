@@ -306,4 +306,13 @@ router.get('/me', async (req, res) => {
   }
 });
 
+router.get('/user-count', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT COUNT(*) as count FROM users');
+    res.json({ count: parseInt(result.rows[0].count) });
+  } catch (error) {
+    res.json({ count: 0 });
+  }
+});
+
 export default router;
