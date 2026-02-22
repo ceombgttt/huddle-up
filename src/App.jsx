@@ -11789,12 +11789,6 @@ const HuddleUpApp = () => {
  </div>
  </div>
  </div>
- <div className="relative h-3 bg-black/30 rounded-full overflow-hidden">
- <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 rounded-full" style={{ width: `${Math.max(0.5, (prelaunchUserCount / 1000000) * 100)}%` }} />
- <div className="absolute inset-0 flex items-center justify-center">
- <span className="text-[9px] font-black text-white drop-shadow-sm">{prelaunchUserCount.toLocaleString()} / 1,000,000 fans joined</span>
- </div>
- </div>
  <button
  onClick={() => { setShowPrelaunchModal(false); setCurrentScreen('profile'); }}
  className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black rounded-xl text-sm transition-all shadow-lg shadow-amber-500/20"
