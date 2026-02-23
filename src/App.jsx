@@ -4570,47 +4570,49 @@ const HuddleUpApp = () => {
  </div>
  )}
 
- <div className="relative mb-4">
- <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#A0A4AB]" />
+ <div className={`grid ${user?.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 ? 'grid-cols-3' : 'grid-cols-2'} gap-2 mb-3`}>
+ <div className="relative col-span-1">
+ <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#A0A4AB]" />
  <DebouncedInput
  type="text"
  value={searchTerm}
  onChange={(val) => setSearchTerm(val)}
  delay={300}
  placeholder="Search teams..."
- className="w-full pl-10 pr-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
+ className="w-full pl-9 pr-3 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
  />
  </div>
 
  <button
  onClick={startSpotlightTour}
  data-tour-id="take-a-tour"
- className="w-full py-2.5 mb-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-[#1E90FF]/20 to-purple-500/20 border border-[#1E90FF]/30 text-[#1E90FF] hover:from-[#1E90FF]/30 hover:to-purple-500/30"
+ className="py-3 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5 bg-gradient-to-r from-[#1E90FF]/20 to-purple-500/20 border border-[#1E90FF]/30 text-[#1E90FF] hover:from-[#1E90FF]/30 hover:to-purple-500/30"
  >
  <Map className="w-4 h-4" />
- Learn How To Use The App
- <ChevronRight className="w-4 h-4" />
+ <span className="hidden sm:inline">Learn The App</span>
+ <span className="sm:hidden">Tutorial</span>
  </button>
 
- {/* MY TEAMS ONLY FILTER */}
  {user?.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 && (
  <button
  onClick={() => setMyTeamsOnly(!myTeamsOnly)}
- className={`w-full py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 mb-3 ${
+ className={`py-3 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5 ${
  myTeamsOnly
  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-sm'
- : 'bg-[#151A22] text-[#A0A4AB] hover:bg-[#222A36]'
+ : 'bg-[#151A22] text-[#A0A4AB] hover:bg-[#222A36] border border-[#222A36]'
  }`}
  >
- <Star className={`w-5 h-5 ${myTeamsOnly ? 'fill-white' : ''}`} />
- {myTeamsOnly ? 'Showing My Teams Only' : 'Show My Teams Only'}
+ <Star className={`w-4 h-4 ${myTeamsOnly ? 'fill-white' : ''}`} />
+ <span className="hidden sm:inline">{myTeamsOnly ? 'My Teams' : 'My Teams'}</span>
+ <span className="sm:hidden">{myTeamsOnly ? 'My Teams' : 'My Teams'}</span>
  {myTeamsOnly && (
- <span className="ml-2 px-2 py-0.5 bg-[#222A36] rounded-full text-xs">
- {Object.keys(user.favoriteTeams).length} teams
+ <span className="px-1.5 py-0.5 bg-white/20 rounded-full text-[10px]">
+ {Object.keys(user.favoriteTeams).length}
  </span>
  )}
  </button>
  )}
+ </div>
 
  <div className="relative" data-tour-id="sports-scroller">
  <div
@@ -4634,9 +4636,9 @@ const HuddleUpApp = () => {
  <button
  key={sport}
  onClick={() => setSelectedSport(sport)}
- className={`flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold whitespace-nowrap transition-all ${
+ className={`flex flex-col items-center justify-center min-w-[70px] px-3 py-2.5 rounded-xl font-bold whitespace-nowrap transition-all ${
  selectedSport === sport
- ? 'bg-[#1E90FF] text-white shadow-sm'
+ ? 'bg-[#1E90FF] text-white shadow-sm shadow-[#1E90FF]/30'
  : isLive
  ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
  : !activeSports.has(sport) && sport !== 'All'
@@ -4644,9 +4646,9 @@ const HuddleUpApp = () => {
  : 'bg-[#151A22] text-[#A0A4AB] hover:bg-[#222A36]'
  }`}
  >
- {isLive && sport !== 'All' && <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />}
- <span className="text-base">{SPORT_ICONS[sport] || '🏅'}</span>
- {sport}
+ <span className="text-2xl mb-0.5">{SPORT_ICONS[sport] || '🏅'}</span>
+ <span className="text-[10px] leading-tight">{sport}</span>
+ {isLive && sport !== 'All' && <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse mt-0.5" />}
  </button>
  );
  });
