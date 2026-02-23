@@ -8898,6 +8898,54 @@ const HuddleUpApp = () => {
  </button>
  </div>
 
+ {!showNewPromo && (() => {
+ const myParties = parties.filter(p => p.creatorId === user?.id && new Date(p.date) >= new Date());
+ if (myParties.length === 0) return null;
+ return (
+ <div className="bg-[#151A22] p-5 rounded-2xl border border-[#222A36] space-y-3">
+ <h3 className="text-lg font-bold text-white flex items-center gap-2"><Calendar className="w-5 h-5 text-green-400" /> Your Upcoming Parties</h3>
+ <p className="text-xs text-[#A0A4AB]">Promote a party you've already created — or create a new custom promotion below</p>
+ <div className="space-y-2">
+ {myParties.map(p => {
+ const alreadyPromoted = promotions.some(pr => pr.title === p.title || (pr.home_team === p.team && pr.game_date && new Date(pr.game_date).toDateString() === new Date(p.date).toDateString()));
+ return (
+ <div key={p.id} className="flex items-center justify-between bg-[#0F1115] rounded-xl p-3 border border-[#222A36] hover:border-green-500/30 transition-colors">
+ <div className="flex-1 min-w-0">
+ <div className="flex items-center gap-2 flex-wrap">
+ <span className="text-white font-bold text-sm truncate">{p.title || `${p.team} Watch Party`}</span>
+ {p.sport && <span className="px-1.5 py-0.5 bg-[#1E90FF]/20 text-[#1E90FF] text-[10px] font-bold rounded-full">{p.sport}</span>}
+ </div>
+ <div className="flex items-center gap-3 mt-1 text-xs text-[#A0A4AB]">
+ <span>{new Date(p.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
+ {p.location && <span className="truncate">{p.location}</span>}
+ </div>
+ </div>
+ {alreadyPromoted ? (
+ <span className="px-3 py-1.5 bg-green-500/10 text-green-400 text-xs font-bold rounded-lg border border-green-500/20 flex-shrink-0">Promoted</span>
+ ) : (
+ <button onClick={() => {
+ setPromoForm({
+ title: p.title || `${p.team} Watch Party`,
+ sport: p.sport || '',
+ gameDate: p.date ? new Date(p.date).toISOString().slice(0, 16) : '',
+ homeTeam: p.team || '',
+ awayTeam: p.awayTeam || '',
+ description: p.description || '',
+ specials: '',
+ });
+ setShowNewPromo(true);
+ }} className="px-3 py-1.5 bg-green-500 text-white text-xs font-bold rounded-lg hover:bg-green-600 transition-colors flex-shrink-0 flex items-center gap-1">
+ <Megaphone className="w-3 h-3" /> Promote
+ </button>
+ )}
+ </div>
+ );
+ })}
+ </div>
+ </div>
+ );
+ })()}
+
  {showNewPromo && (
  <div className="bg-[#151A22] p-5 rounded-2xl border-2 border-green-500/30 space-y-4">
  <h3 className="text-lg font-bold text-white">Create Game Promotion</h3>
