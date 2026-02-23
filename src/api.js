@@ -16,8 +16,8 @@ async function request(path, options = {}) {
 export const api = {
   auth: {
     me: () => request('/auth/me'),
-    signup: (email, password, name, gender, dateOfBirth, rememberMe = true, referralCode = '', userType = 'fan', venueName = '', venueAddress = '') =>
-      request('/auth/signup', { method: 'POST', body: JSON.stringify({ email, password, name, gender, dateOfBirth, rememberMe, referralCode, userType, venueName, venueAddress }) }),
+    signup: (email, password, name, gender, dateOfBirth, rememberMe = true, referralCode = '', userType = 'fan', venueName = '', venueAddress = '', affiliateCode = '') =>
+      request('/auth/signup', { method: 'POST', body: JSON.stringify({ email, password, name, gender, dateOfBirth, rememberMe, referralCode, affiliateCode, userType, venueName, venueAddress }) }),
     login: (email, password, rememberMe = true) =>
       request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password, rememberMe }) }),
     logout: () => request('/auth/logout', { method: 'POST' }),
@@ -134,7 +134,7 @@ export const api = {
   },
   stripe: {
     products: () => request('/stripe/products'),
-    checkout: (priceId) => request('/stripe/checkout', { method: 'POST', body: JSON.stringify({ priceId }) }),
+    checkout: (priceId, affiliateCode) => request('/stripe/checkout', { method: 'POST', body: JSON.stringify({ priceId, affiliateCode: affiliateCode || undefined }) }),
     subscription: () => request('/stripe/subscription'),
     portal: () => request('/stripe/portal', { method: 'POST' }),
     syncSubscription: () => request('/stripe/sync-subscription', { method: 'POST' }),
@@ -265,6 +265,10 @@ export const api = {
     adminRejectReferral: (id) => request(`/affiliates/admin/referral/${id}/reject`, { method: 'PUT' }),
     adminPayout: (id, data) => request(`/affiliates/admin/${id}/payout`, { method: 'POST', body: JSON.stringify(data) }),
     adminPayouts: (id) => request(`/affiliates/admin/${id}/payouts`),
+    adminExport: (id) => `/api/affiliates/admin/export/${id}`,
+    validateCode: (code) => request('/affiliates/validate-code', { method: 'POST', body: JSON.stringify({ code }) }),
+    checkUserCode: () => request('/affiliates/check-user-code'),
+    influencerDashboard: (token) => request(`/affiliates/influencer-dashboard/${token}`),
   },
   analytics: {
     overview: () => request('/analytics/overview'),

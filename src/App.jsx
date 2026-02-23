@@ -1203,6 +1203,8 @@ const HuddleUpApp = () => {
  const [analyticsData, setAnalyticsData] = useState(null);
  const [analyticsLoading, setAnalyticsLoading] = useState(false);
  const [qrCheckinToken, setQrCheckinToken] = useState(null);
+ const [influencerDashboardToken, setInfluencerDashboardToken] = useState(null);
+ const [initialInfluencerCode, setInitialInfluencerCode] = useState('');
  const [adminQrModal, setAdminQrModal] = useState(null);
  const [editPartyModal, setEditPartyModal] = useState(null);
  const [editPartyForm, setEditPartyForm] = useState({ venueName: '', streetAddress: '', city: '', state: '', notes: '', maxSize: '', gameTime: '' });
@@ -1699,6 +1701,20 @@ const HuddleUpApp = () => {
  setCurrentScreen('qrCheckin');
  window.history.replaceState({}, '', '/');
  }
+
+ const influencerMatch = window.location.pathname.match(/^\/influencer\/(.+)$/);
+ if (influencerMatch) {
+ setInfluencerDashboardToken(influencerMatch[1]);
+ setCurrentScreen('influencerDashboard');
+ window.history.replaceState({}, '', '/');
+ }
+
+ const signupCodeMatch = new URLSearchParams(window.location.search).get('code');
+ if (signupCodeMatch) {
+ setInitialInfluencerCode(signupCodeMatch.toUpperCase());
+ setCurrentScreen('signup');
+ window.history.replaceState({}, '', window.location.pathname);
+ }
  }, []);
 
  useEffect(() => {
@@ -1877,9 +1893,9 @@ const HuddleUpApp = () => {
  }
  };
 
- const handleSignUp = async (email, password, name, gender, dateOfBirth, rememberMe = true, referralCode = '', userType = 'fan', venueName = '', venueAddress = '') => {
+ const handleSignUp = async (email, password, name, gender, dateOfBirth, rememberMe = true, referralCode = '', userType = 'fan', venueName = '', venueAddress = '', affiliateCode = '') => {
  try {
- const userData = await api.auth.signup(email, password, name, gender, dateOfBirth, rememberMe, referralCode, userType, venueName, venueAddress);
+ const userData = await api.auth.signup(email, password, name, gender, dateOfBirth, rememberMe, referralCode, userType, venueName, venueAddress, affiliateCode);
  setUser(userData);
  setShowWelcomePopup(true);
  setShowOnboarding(false);
@@ -3181,9 +3197,170 @@ const HuddleUpApp = () => {
  );
  };
 
+ const InfluencerDashboard = () => {
+ const [dashData, setDashData] = useState(null);
+ const [dashLoading, setDashLoading] = useState(true);
+ const [dashError, setDashError] = useState(null);
+
+ useEffect(() => {
+ if (!influencerDashboardToken) return;
+ (async () => {
+ try {
+ const data = await api.affiliates.influencerDashboard(influencerDashboardToken);
+ setDashData(data);
+ } catch (e) {
+ setDashError(e.message || 'Dashboard not found');
+ } finally {
+ setDashLoading(false);
+ }
+ })();
+ }, [influencerDashboardToken]);
+
+ if (dashLoading) return (
+ <div className="min-h-screen bg-[#0A0E14] flex items-center justify-center">
+ <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-500"></div>
+ </div>
+ );
+
+ if (dashError) return (
+ <div className="min-h-screen bg-[#0A0E14] flex items-center justify-center p-4">
+ <div className="bg-[#0F1115] border border-red-500/20 rounded-2xl p-8 text-center max-w-md">
+ <div className="text-4xl mb-4">🔒</div>
+ <h2 className="text-xl font-bold text-white mb-2">Dashboard Not Found</h2>
+ <p className="text-[#A0A4AB] mb-6">{dashError}</p>
+ <button onClick={() => setCurrentScreen('landing')} className="px-6 py-2.5 bg-amber-500 text-black font-bold rounded-xl hover:bg-amber-400">Go Home</button>
+ </div>
+ </div>
+ );
+
+ const inf = dashData.influencer;
+ const stats = dashData.stats;
+ const unpaidCents = inf.pendingPayoutCents || 0;
+ const monthlyRecurring = parseInt(stats.monthly_recurring_cents || 0);
+
+ return (
+ <div className="min-h-screen bg-[#0A0E14]">
+ <div className="bg-gradient-to-r from-amber-600/20 via-amber-500/10 to-transparent border-b border-amber-500/20">
+ <div className="max-w-4xl mx-auto px-4 py-6">
+ <div className="flex items-center gap-3 mb-1">
+ <span className="text-2xl">⭐</span>
+ <h1 className="text-2xl font-black text-white">Influencer Dashboard</h1>
+ </div>
+ <p className="text-amber-300/70 text-sm">Welcome back, {inf.name}</p>
+ </div>
+ </div>
+ <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+ <div className="bg-[#0F1115] border border-amber-500/20 rounded-2xl p-5">
+ <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
+ <div>
+ <p className="text-[#A0A4AB] text-xs mb-1">Your Code</p>
+ <div className="flex items-center gap-2">
+ <span className="text-2xl font-black text-amber-400 font-mono tracking-wider">{inf.code}</span>
+ <button onClick={() => { navigator.clipboard.writeText(inf.code); }} className="text-xs text-[#A0A4AB] hover:text-white bg-[#151A22] px-2 py-1 rounded">Copy</button>
+ </div>
+ </div>
+ <div className="text-right">
+ <p className="text-[#A0A4AB] text-xs mb-1">Commission Rate</p>
+ <span className="text-xl font-bold text-green-400">{Math.round(inf.commissionRate * 100)}%</span>
+ </div>
+ </div>
+ <div className="bg-[#151A22] rounded-xl p-3 text-sm text-[#A0A4AB]">
+ <p>Share your code with fans! They get <span className="text-amber-400 font-bold">6 months of Pro free</span>, and you earn <span className="text-green-400 font-bold">{Math.round(inf.commissionRate * 100)}% recurring commission</span> (~${((299 * inf.commissionRate) / 100).toFixed(2)}/mo per user) after they convert to paid.</p>
+ </div>
+ </div>
+
+ <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+ <div className="bg-[#0F1115] border border-[#222A36] rounded-xl p-4 text-center">
+ <p className="text-2xl font-black text-white">{stats.total_redemptions || 0}</p>
+ <p className="text-[#A0A4AB] text-xs mt-1">Total Signups</p>
+ </div>
+ <div className="bg-[#0F1115] border border-cyan-500/20 rounded-xl p-4 text-center">
+ <p className="text-2xl font-black text-cyan-400">{stats.active_trials || 0}</p>
+ <p className="text-[#A0A4AB] text-xs mt-1">On Free Trial</p>
+ </div>
+ <div className="bg-[#0F1115] border border-purple-500/20 rounded-xl p-4 text-center">
+ <p className="text-2xl font-black text-purple-400">{stats.active_paying || 0}</p>
+ <p className="text-[#A0A4AB] text-xs mt-1">Paying Users</p>
+ </div>
+ <div className="bg-[#0F1115] border border-green-500/20 rounded-xl p-4 text-center">
+ <p className="text-2xl font-black text-green-400">${(monthlyRecurring / 100).toFixed(2)}</p>
+ <p className="text-[#A0A4AB] text-xs mt-1">Monthly Recurring</p>
+ </div>
+ </div>
+
+ <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+ <div className="bg-[#0F1115] border border-green-500/20 rounded-xl p-4">
+ <p className="text-[#A0A4AB] text-xs mb-1">Total Earned</p>
+ <p className="text-xl font-bold text-green-400">${((inf.totalEarnedCents || 0) / 100).toFixed(2)}</p>
+ </div>
+ <div className="bg-[#0F1115] border border-blue-500/20 rounded-xl p-4">
+ <p className="text-[#A0A4AB] text-xs mb-1">Already Paid</p>
+ <p className="text-xl font-bold text-blue-400">${((inf.totalPaidCents || 0) / 100).toFixed(2)}</p>
+ </div>
+ <div className="bg-[#0F1115] border border-yellow-500/20 rounded-xl p-4">
+ <p className="text-[#A0A4AB] text-xs mb-1">Pending Payout</p>
+ <p className="text-xl font-bold text-yellow-400">${(unpaidCents / 100).toFixed(2)}</p>
+ </div>
+ </div>
+
+ {dashData.recentRedemptions && dashData.recentRedemptions.length > 0 && (
+ <div className="bg-[#0F1115] border border-[#222A36] rounded-2xl p-5">
+ <h3 className="text-white font-bold mb-3">Recent Signups</h3>
+ <div className="space-y-2 max-h-80 overflow-y-auto">
+ {dashData.recentRedemptions.map((ref, i) => {
+ const trialEnd = ref.trial_end_date ? new Date(ref.trial_end_date) : null;
+ const isTrialActive = trialEnd && trialEnd > new Date() && !ref.converted_to_paid;
+ const isPaying = ref.converted_to_paid && ref.subscription_active;
+ const isChurned = (trialEnd && trialEnd <= new Date() && !ref.converted_to_paid) || (ref.converted_to_paid && !ref.subscription_active);
+ return (
+ <div key={i} className="flex items-center justify-between bg-[#151A22] rounded-lg px-3 py-2">
+ <div>
+ <span className="text-white text-sm font-medium">{ref.user_name || 'User'}</span>
+ <span className="text-[#A0A4AB] text-xs ml-2">{new Date(ref.created_at).toLocaleDateString()}</span>
+ </div>
+ <div className="flex items-center gap-2">
+ {isPaying && <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full border border-purple-500/30">Paying · ${((ref.monthly_commission_cents || 0) / 100).toFixed(2)}/mo</span>}
+ {isTrialActive && <span className="text-xs bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full border border-cyan-500/30">Trial · {Math.ceil((trialEnd - new Date()) / 86400000)}d left</span>}
+ {isChurned && <span className="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full border border-red-500/30">Churned</span>}
+ </div>
+ </div>
+ );
+ })}
+ </div>
+ </div>
+ )}
+
+ {dashData.payouts && dashData.payouts.length > 0 && (
+ <div className="bg-[#0F1115] border border-[#222A36] rounded-2xl p-5">
+ <h3 className="text-white font-bold mb-3">Payout History</h3>
+ <div className="space-y-2">
+ {dashData.payouts.map((p, i) => (
+ <div key={i} className="flex items-center justify-between bg-[#151A22] rounded-lg px-3 py-2">
+ <span className="text-white text-sm">${(p.amount_cents / 100).toFixed(2)}</span>
+ <div className="flex items-center gap-2">
+ <span className={`text-xs px-2 py-0.5 rounded-full ${p.status === 'paid' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>{p.status}</span>
+ <span className="text-[#A0A4AB] text-xs">{new Date(p.created_at).toLocaleDateString()}</span>
+ </div>
+ </div>
+ ))}
+ </div>
+ </div>
+ )}
+
+ <div className="text-center py-4">
+ <button onClick={() => setCurrentScreen('landing')} className="text-[#A0A4AB] hover:text-white text-sm">← Back to Huddle Up</button>
+ </div>
+ </div>
+ </div>
+ );
+ };
+
  const ProUpgradeScreen = () => {
  const [proYearly, setProYearly] = useState(false);
  const [upgrading, setUpgrading] = useState(false);
+ const [proAffCode, setProAffCode] = useState('');
+ const [proAffValid, setProAffValid] = useState(null);
+ const [proAffMsg, setProAffMsg] = useState('');
  const proPerks = [
  { icon: <Zap className="w-5 h-5" />, title: 'Ad-Free Experience', desc: 'No sponsor banners or ads anywhere in the app', color: 'text-yellow-400' },
  { icon: <Clock className="w-5 h-5" />, title: 'Priority Party Placement', desc: 'Your parties appear at the top of listings in your city', color: 'text-blue-400' },
@@ -3222,7 +3399,7 @@ const HuddleUpApp = () => {
  const targetPrice = proYearly
  ? proProduct.prices.find(p => p.recurring?.interval === 'year') || proProduct.prices[0]
  : proProduct.prices.find(p => p.recurring?.interval === 'month') || proProduct.prices[0];
- const result = await api.stripe.checkout(targetPrice.id);
+ const result = await api.stripe.checkout(targetPrice.id, proAffValid ? proAffCode : '');
  if (result?.url) window.location.href = result.url;
  } else {
  alert('Pro plan is being set up. Please try again shortly.');
@@ -3302,8 +3479,24 @@ const HuddleUpApp = () => {
  </div>
  {proYearly && <p className="text-green-300 text-xs font-bold mb-2">That's only $2.50/month!</p>}
  <p className="text-white/50 text-xs mb-4">Cancel anytime. Core app stays free forever.</p>
+ <div className="mb-3">
+ <label className="block text-amber-300/80 text-xs font-bold mb-1.5">Have an influencer code? Get 6 months free!</label>
+ <div className="flex gap-2">
+ <input type="text" value={proAffCode} onChange={e => { setProAffCode(e.target.value.toUpperCase()); setProAffValid(null); setProAffMsg(''); }}
+ placeholder="Enter code" className="flex-1 px-3 py-2 bg-black/30 border border-amber-500/20 rounded-lg text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500" />
+ <button type="button" onClick={async () => {
+ if (!proAffCode.trim()) return;
+ try {
+ const r = await api.affiliates.validateCode(proAffCode);
+ if (r.valid) { setProAffValid(true); setProAffMsg('Code applied! 6 months free, then $2.99/mo'); }
+ else { setProAffValid(false); setProAffMsg(r.error || 'Invalid code'); }
+ } catch { setProAffValid(false); setProAffMsg('Could not validate code'); }
+ }} className="px-3 py-2 bg-amber-500/20 text-amber-300 font-bold rounded-lg text-xs border border-amber-500/30 hover:bg-amber-500/30">Apply</button>
+ </div>
+ {proAffMsg && <p className={`text-xs mt-1 ${proAffValid ? 'text-green-400' : 'text-red-400'}`}>{proAffMsg}</p>}
+ </div>
  <button onClick={handleUpgrade} disabled={upgrading} className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black rounded-xl text-sm transition-all shadow-lg shadow-amber-500/20 disabled:opacity-50" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>
- {upgrading ? 'LOADING...' : 'START PRO NOW'}
+ {upgrading ? 'LOADING...' : (proAffValid ? 'START 6-MONTH FREE TRIAL' : 'START PRO NOW')}
  </button>
  </div>
  </div>
@@ -3866,6 +4059,9 @@ const HuddleUpApp = () => {
  const [signupAgeConfirmed, setSignupAgeConfirmed] = useState(false);
  const [signupRememberMe, setSignupRememberMe] = useState(true);
  const [signupReferralCode, setSignupReferralCode] = useState('');
+ const [signupInfluencerCode, setSignupInfluencerCode] = useState(initialInfluencerCode || '');
+ const [signupInfluencerValid, setSignupInfluencerValid] = useState(null);
+ const [signupInfluencerMsg, setSignupInfluencerMsg] = useState('');
 
  const handleSignupSubmit = () => {
  if (!signupUserType || !['fan', 'venue'].includes(signupUserType)) {
@@ -3904,7 +4100,7 @@ const HuddleUpApp = () => {
  alert('Please enter your venue name.');
  return;
  }
- handleSignUp(signupEmail, signupPassword, signupName, signupGender, signupDateOfBirth, signupRememberMe, signupReferralCode, signupUserType, signupVenueName, signupVenueAddress);
+ handleSignUp(signupEmail, signupPassword, signupName, signupGender, signupDateOfBirth, signupRememberMe, signupReferralCode, signupUserType, signupVenueName, signupVenueAddress, signupInfluencerCode);
  };
 
  const signUpScreenJSX = (
@@ -4081,6 +4277,39 @@ const HuddleUpApp = () => {
  placeholder="e.g., HU-ABCD1234"
  className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
  />
+ </div>
+
+ <div>
+ <label className="block text-sm font-semibold text-amber-400 mb-1">Have an influencer code? (optional)</label>
+ <div className="flex gap-2">
+ <input
+ type="text"
+ value={signupInfluencerCode}
+ onChange={e => { setSignupInfluencerCode(e.target.value.toUpperCase()); setSignupInfluencerValid(null); setSignupInfluencerMsg(''); }}
+ placeholder="e.g., SPORTS50"
+ className="flex-1 px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+ />
+ <button
+ type="button"
+ onClick={async () => {
+ if (!signupInfluencerCode.trim()) return;
+ try {
+ const result = await api.affiliates.validateCode(signupInfluencerCode);
+ if (result.valid) {
+ setSignupInfluencerValid(true);
+ setSignupInfluencerMsg(`Code applied! Get Pro FREE for 6 months`);
+ } else {
+ setSignupInfluencerValid(false);
+ setSignupInfluencerMsg(result.error || 'Invalid code');
+ }
+ } catch { setSignupInfluencerValid(false); setSignupInfluencerMsg('Could not validate code'); }
+ }}
+ className="px-4 py-3 bg-amber-500/20 text-amber-300 font-bold rounded-xl text-sm border border-amber-500/30 hover:bg-amber-500/30 transition-all"
+ >Apply</button>
+ </div>
+ {signupInfluencerMsg && (
+ <p className={`text-xs mt-1 ${signupInfluencerValid ? 'text-green-400' : 'text-red-400'}`}>{signupInfluencerMsg}</p>
+ )}
  </div>
 
  <button
@@ -5718,7 +5947,7 @@ const HuddleUpApp = () => {
  { id: 'analytics', label: 'Analytics', icon: BarChart3 },
  { id: 'management', label: 'Management', icon: Settings },
  { id: 'rewards', label: 'Rewards', icon: Gift },
- { id: 'affiliates', label: 'Affiliates', icon: Users },
+ { id: 'affiliates', label: 'Influencers', icon: Users },
  ].map(tab => (
  <button key={tab.id} onClick={() => setAdminTab(tab.id)}
  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
@@ -7008,53 +7237,64 @@ const HuddleUpApp = () => {
  <div className="bg-[#151A22] rounded-2xl border border-[#222A36] p-6">
  <div className="flex items-center justify-between mb-6">
  <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
- <Users className="inline w-5 h-5 mr-2 text-green-400" /> AFFILIATE PROGRAM
+ <Users className="inline w-5 h-5 mr-2 text-amber-400" /> INFLUENCER MANAGEMENT
  </h2>
  <button
- onClick={() => setAdminAffiliateForm({ name: '', email: '', code: '', commissionType: 'per_signup', commissionAmountCents: 500, paymentMethod: 'paypal', paymentDetails: '', notes: '' })}
- className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold rounded-xl text-sm hover:shadow-green-500/30 transition-all"
+ onClick={() => setAdminAffiliateForm({ name: '', email: '', code: '', commissionRate: '0.30', maxRedemptions: '', expirationDate: '', paymentMethod: 'paypal', paymentDetails: '', notes: '' })}
+ className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-black font-bold rounded-xl text-sm hover:shadow-amber-500/30 transition-all"
  >
- <Plus className="w-4 h-4 inline mr-1" /> Add Affiliate
+ <Plus className="w-4 h-4 inline mr-1" /> Add Influencer
  </button>
  </div>
 
  {adminAffiliateForm && (
- <div className="bg-[#0F1115] rounded-xl border border-[#222A36] p-5 mb-6 space-y-4">
- <h3 className="text-white font-bold text-sm">{adminAffiliateForm.id ? 'EDIT AFFILIATE' : 'ADD NEW AFFILIATE'}</h3>
+ <div className="bg-[#0F1115] rounded-xl border border-amber-500/20 p-5 mb-6 space-y-4">
+ <h3 className="text-amber-300 font-bold text-sm">{adminAffiliateForm.id ? 'EDIT INFLUENCER' : 'ADD NEW INFLUENCER'}</h3>
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
  <div>
- <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Name *</label>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Influencer Name *</label>
  <input value={adminAffiliateForm.name} onChange={e => setAdminAffiliateForm(f => ({ ...f, name: e.target.value }))}
- className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" placeholder="e.g. John Smith" />
+ className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500" placeholder="e.g. Barstool Sports" />
  </div>
  <div>
  <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Email *</label>
  <input value={adminAffiliateForm.email} onChange={e => setAdminAffiliateForm(f => ({ ...f, email: e.target.value }))}
- className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" placeholder="affiliate@example.com" />
+ className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500" placeholder="influencer@example.com" />
  </div>
  <div>
- <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Affiliate Code *</label>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Influencer Code *</label>
+ <div className="flex gap-2">
  <input value={adminAffiliateForm.code} onChange={e => setAdminAffiliateForm(f => ({ ...f, code: e.target.value.toUpperCase() }))}
- className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF] uppercase" placeholder="e.g. JOHN2025" />
+ className="flex-1 px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500 uppercase" placeholder="e.g. BARSTOOL" />
+ <button type="button" onClick={() => {
+ const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+ let code = '';
+ for (let i = 0; i < 8; i++) code += chars[Math.floor(Math.random() * chars.length)];
+ setAdminAffiliateForm(f => ({ ...f, code }));
+ }} className="px-3 py-2 bg-amber-500/10 text-amber-300 rounded-xl text-xs font-bold border border-amber-500/20 hover:bg-amber-500/20">Auto</button>
+ </div>
  </div>
  <div>
- <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Commission Type</label>
- <select value={adminAffiliateForm.commissionType} onChange={e => setAdminAffiliateForm(f => ({ ...f, commissionType: e.target.value }))}
- className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[#1E90FF]">
- <option value="per_signup">Per Signup (flat fee)</option>
- <option value="per_subscription">Per Subscription (flat fee)</option>
- <option value="percentage">Percentage of Revenue</option>
- </select>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Commission Rate (%)</label>
+ <input type="number" min="10" max="50" step="1" value={Math.round(parseFloat(adminAffiliateForm.commissionRate || 0.30) * 100)}
+ onChange={e => setAdminAffiliateForm(f => ({ ...f, commissionRate: (parseInt(e.target.value || 30) / 100).toFixed(2) }))}
+ className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-amber-500" />
+ <p className="text-xs text-[#A0A4AB] mt-1">Earns ${(299 * parseFloat(adminAffiliateForm.commissionRate || 0.30) / 100).toFixed(2)}/mo per paying user</p>
  </div>
  <div>
- <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Commission Amount ($)</label>
- <input type="number" step="0.01" value={(adminAffiliateForm.commissionAmountCents / 100).toFixed(2)} onChange={e => setAdminAffiliateForm(f => ({ ...f, commissionAmountCents: Math.round(parseFloat(e.target.value || 0) * 100) }))}
- className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" />
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Max Redemptions (optional)</label>
+ <input type="number" value={adminAffiliateForm.maxRedemptions || ''} onChange={e => setAdminAffiliateForm(f => ({ ...f, maxRedemptions: e.target.value ? parseInt(e.target.value) : '' }))}
+ className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500" placeholder="Unlimited" />
+ </div>
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Expiration Date (optional)</label>
+ <input type="date" value={adminAffiliateForm.expirationDate ? adminAffiliateForm.expirationDate.split('T')[0] : ''} onChange={e => setAdminAffiliateForm(f => ({ ...f, expirationDate: e.target.value || '' }))}
+ className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-amber-500" />
  </div>
  <div>
  <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Payment Method</label>
  <select value={adminAffiliateForm.paymentMethod} onChange={e => setAdminAffiliateForm(f => ({ ...f, paymentMethod: e.target.value }))}
- className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[#1E90FF]">
+ className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-amber-500">
  <option value="paypal">PayPal</option>
  <option value="venmo">Venmo</option>
  <option value="zelle">Zelle</option>
@@ -7065,21 +7305,21 @@ const HuddleUpApp = () => {
  <div className="sm:col-span-2">
  <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Payment Details</label>
  <input value={adminAffiliateForm.paymentDetails} onChange={e => setAdminAffiliateForm(f => ({ ...f, paymentDetails: e.target.value }))}
- className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" placeholder="PayPal email, Venmo handle, etc." />
+ className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500" placeholder="PayPal email, Venmo handle, etc." />
  </div>
  <div className="sm:col-span-2">
  <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Notes</label>
  <textarea value={adminAffiliateForm.notes} onChange={e => setAdminAffiliateForm(f => ({ ...f, notes: e.target.value }))}
- rows={2} className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" placeholder="Optional notes..." />
+ rows={2} className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500" placeholder="Optional notes..." />
  </div>
  {adminAffiliateForm.id && (
  <div>
  <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Status</label>
  <select value={adminAffiliateForm.status || 'active'} onChange={e => setAdminAffiliateForm(f => ({ ...f, status: e.target.value }))}
- className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[#1E90FF]">
+ className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-amber-500">
  <option value="active">Active</option>
  <option value="paused">Paused</option>
- <option value="terminated">Terminated</option>
+ <option value="expired">Expired</option>
  </select>
  </div>
  )}
@@ -7104,10 +7344,10 @@ const HuddleUpApp = () => {
  className={`flex-1 py-2.5 font-bold rounded-xl text-sm transition-all ${
  adminAffiliateSaving || !adminAffiliateForm.name || !adminAffiliateForm.email || !adminAffiliateForm.code
  ? 'bg-gray-600 text-[#A0A4AB] cursor-not-allowed'
- : 'bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:shadow-green-500/30'
+ : 'bg-gradient-to-r from-amber-500 to-orange-500 text-black hover:shadow-amber-500/30'
  }`}
  >
- {adminAffiliateSaving ? 'Saving...' : adminAffiliateForm.id ? 'Update Affiliate' : 'Add Affiliate'}
+ {adminAffiliateSaving ? 'Saving...' : adminAffiliateForm.id ? 'Update Influencer' : 'Add Influencer'}
  </button>
  <button onClick={() => { setAdminAffiliateForm(null); setAdminAffiliateDetail(null); }} className="px-6 py-2.5 bg-[#151A22] text-[#A0A4AB] font-bold rounded-xl hover:bg-[#222A36] text-sm">Cancel</button>
  </div>
@@ -7243,8 +7483,8 @@ const HuddleUpApp = () => {
  {adminAffiliates.length === 0 && !adminAffiliateForm ? (
  <div className="text-center py-8 text-[#A0A4AB]">
  <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
- <p className="font-bold mb-1">No affiliates yet</p>
- <p className="text-sm">Add affiliates who promote Huddle Up and earn commissions for each signup they generate.</p>
+ <p className="font-bold mb-1">No influencers yet</p>
+ <p className="text-sm">Add influencers who promote Huddle Up. They get unique codes that give users 6 months of Pro free and earn commissions after.</p>
  </div>
  ) : (
  <div className="space-y-3">
@@ -7268,13 +7508,20 @@ const HuddleUpApp = () => {
  }`}>{aff.status.toUpperCase()}</span>
  <span className="bg-[#151A22] text-[#1E90FF] px-2 py-0.5 text-xs font-mono rounded border border-[#222A36]">{aff.code}</span>
  </div>
- <div className="text-[#A0A4AB] text-xs mt-1">{aff.email} · {aff.payment_method} · ${(aff.commission_amount_cents / 100).toFixed(2)}/{aff.commission_type.replace('_', ' ')}</div>
+ <div className="text-[#A0A4AB] text-xs mt-1">{aff.email} · {Math.round(parseFloat(aff.commission_rate || 0.30) * 100)}% commission · {aff.payment_method}</div>
  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm">
- <span className="text-[#A0A4AB]">{aff.total_referrals || 0} referrals</span>
+ <span className="text-[#A0A4AB]">{aff.total_referrals || 0} signups</span>
+ <span className="text-cyan-400">{aff.active_trials || 0} on trial</span>
+ <span className="text-purple-400">{aff.active_paying_users || 0} paying</span>
  <span className="text-green-400 font-medium">${((aff.total_earned_cents || 0) / 100).toFixed(2)} earned</span>
- <span className="text-blue-400">${((aff.total_paid_cents || 0) / 100).toFixed(2)} paid</span>
  {unpaidCents > 0 && <span className="text-yellow-400 font-medium">${(unpaidCents / 100).toFixed(2)} unpaid</span>}
  </div>
+ {aff.dashboard_token && (
+ <div className="mt-1">
+ <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/influencer/${aff.dashboard_token}`); alert('Dashboard link copied!'); }}
+ className="text-xs text-amber-400 hover:text-amber-300 underline">Copy Dashboard Link</button>
+ </div>
+ )}
  </div>
  <div className="flex flex-col gap-2 flex-shrink-0">
  <button onClick={async () => {
@@ -7287,7 +7534,8 @@ const HuddleUpApp = () => {
  </button>
  <button onClick={() => { setAdminAffiliateDetail(null); setAdminAffiliateForm({
  id: aff.id, name: aff.name, email: aff.email, code: aff.code,
- commissionType: aff.commission_type, commissionAmountCents: aff.commission_amount_cents,
+ commissionRate: aff.commission_rate || '0.30',
+ maxRedemptions: aff.max_redemptions || '', expirationDate: aff.expiration_date || '',
  paymentMethod: aff.payment_method, paymentDetails: aff.payment_details || '',
  notes: aff.notes || '', status: aff.status,
  }); }} className="p-2 bg-[#151A22] rounded-lg hover:bg-[#222A36] text-[#A0A4AB] hover:text-white" title="Edit">
@@ -11953,6 +12201,7 @@ const HuddleUpApp = () => {
  {currentScreen === 'myParties' && <MyPartiesScreen />}
  {currentScreen === 'profile' && <ProfileScreen />}
  {currentScreen === 'proUpgrade' && <ProUpgradeScreen />}
+ {currentScreen === 'influencerDashboard' && <InfluencerDashboard />}
  {currentScreen === 'fanFinder' && renderFanFinderScreen()}
  {currentScreen === 'myCrew' && renderMyCrewScreen()}
  {currentScreen === 'dmChat' && renderDmChatScreen()}

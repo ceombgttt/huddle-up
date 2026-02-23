@@ -52,17 +52,34 @@ router.post('/signup', async (req, res) => {
 
     const user = result.rows[0];
 
-    const affCode = affiliateCode?.trim().toUpperCase() || referralCode?.trim().toUpperCase() || '';
+    const affCode = affiliateCode?.trim().toUpperCase() || '';
     if (affCode) {
       try {
-        const affCheck = await pool.query('SELECT id, commission_amount_cents FROM affiliates WHERE code = $1 AND status = $2', [affCode, 'active']);
+        const affCheck = await pool.query(
+          'SELECT id, commission_rate, max_redemptions, expiration_date, status FROM affiliates WHERE code = $1',
+          [affCode]
+        );
         if (affCheck.rows.length > 0) {
           const aff = affCheck.rows[0];
-          await pool.query('UPDATE users SET affiliate_code = $1 WHERE id = $2', [affCode, user.id]);
-          await pool.query(
-            `INSERT INTO affiliate_referrals (affiliate_id, user_id, user_email, commission_cents, status) VALUES ($1, $2, $3, $4, $5)`,
-            [aff.id, user.id, email, aff.commission_amount_cents, 'pending']
-          );
+          let isValid = aff.status === 'active';
+          if (isValid && aff.expiration_date && new Date(aff.expiration_date) < new Date()) isValid = false;
+          if (isValid && aff.max_redemptions) {
+            const usage = await pool.query('SELECT COUNT(*) as count FROM affiliate_referrals WHERE affiliate_id = $1', [aff.id]);
+            if (parseInt(usage.rows[0].count) >= aff.max_redemptions) isValid = false;
+          }
+          if (isValid) {
+            const commissionCents = Math.round(299 * parseFloat(aff.commission_rate || 0.30));
+            await pool.query('UPDATE users SET affiliate_code = $1, subscription_tier = $2 WHERE id = $3', [affCode, 'pro', user.id]);
+            const trialStart = new Date();
+            const trialEnd = new Date();
+            trialEnd.setDate(trialEnd.getDate() + 180);
+            await pool.query(
+              `INSERT INTO affiliate_referrals (affiliate_id, user_id, user_email, commission_cents, status, trial_start_date, trial_end_date, monthly_commission_cents)
+               VALUES ($1, $2, $3, 0, 'trial', $4, $5, $6)`,
+              [aff.id, user.id, email, trialStart, trialEnd, commissionCents]
+            );
+            user.subscription_tier = 'pro';
+          }
         }
       } catch (affErr) {
         console.error('Affiliate tracking error (non-fatal):', affErr);

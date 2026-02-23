@@ -69,7 +69,7 @@ router.get('/products', async (req, res) => {
 
 router.post('/checkout', requireAuth, async (req, res) => {
   try {
-    const { priceId } = req.body;
+    const { priceId, affiliateCode } = req.body;
     if (!priceId) {
       return res.status(400).json({ error: 'priceId is required' });
     }
@@ -99,11 +99,35 @@ router.post('/checkout', requireAuth, async (req, res) => {
     const userId = req.session.userId;
 
     const userResult = await pool.query(
-      'SELECT id, email, name, stripe_customer_id, referral_code, referred_by FROM users WHERE id = $1',
+      'SELECT id, email, name, stripe_customer_id, referral_code, referred_by, affiliate_code FROM users WHERE id = $1',
       [userId]
     );
     const user = userResult.rows[0];
     if (!user) return res.status(404).json({ error: 'User not found' });
+
+    let validAffiliateCode = null;
+    if (affiliateCode && affiliateCode.trim() && tier === 'pro') {
+      if (user.affiliate_code) {
+        return res.status(400).json({ error: 'You have already used an influencer code' });
+      }
+      const affCheck = await pool.query(
+        'SELECT id, code, status, max_redemptions, expiration_date FROM affiliates WHERE code = $1',
+        [affiliateCode.trim().toUpperCase()]
+      );
+      if (affCheck.rows.length > 0) {
+        const aff = affCheck.rows[0];
+        if (aff.status === 'active' && (!aff.expiration_date || new Date(aff.expiration_date) > new Date())) {
+          if (aff.max_redemptions) {
+            const usage = await pool.query('SELECT COUNT(*) as count FROM affiliate_referrals WHERE affiliate_id = $1', [aff.id]);
+            if (parseInt(usage.rows[0].count) < aff.max_redemptions) {
+              validAffiliateCode = aff;
+            }
+          } else {
+            validAffiliateCode = aff;
+          }
+        }
+      }
+    }
 
     let customerId = user.stripe_customer_id;
     if (!customerId) {
@@ -131,8 +155,20 @@ router.post('/checkout', requireAuth, async (req, res) => {
         userId: user.id,
         tier,
         referredBy: user.referred_by || '',
+        affiliateCode: validAffiliateCode ? validAffiliateCode.code : '',
       },
     };
+
+    if (validAffiliateCode) {
+      sessionParams.subscription_data = {
+        trial_period_days: 180,
+        metadata: {
+          affiliateCode: validAffiliateCode.code,
+          userId: user.id,
+          tier,
+        },
+      };
+    }
 
     const session = await stripe.checkout.sessions.create(sessionParams);
     res.json({ url: session.url });
