@@ -26,6 +26,7 @@ const mapSponsor = (s) => ({
   website: s.website,
   notes: s.notes,
   tagline: s.tagline,
+  placementType: s.placement_type || 'sport_banner',
   targetSports: s.target_sports || [],
   sponsorTier: s.sponsor_tier || 'standard',
   slotNumber: s.slot_number || null,
@@ -52,7 +53,7 @@ router.get('/', requireAdmin, async (req, res) => {
 
 router.post('/', requireAdmin, async (req, res) => {
   try {
-    const { name, contactName, contactEmail, contactPhone, logo, website, notes, amountPaid, paymentFrequency, startDate, endDate, status } = req.body;
+    const { name, contactName, contactEmail, contactPhone, logo, website, notes, amountPaid, paymentFrequency, startDate, endDate, status, placementType, targetSports, sponsorTier, slotNumber, tagline } = req.body;
 
     if (!name) return res.status(400).json({ error: 'Sponsor name is required' });
 
@@ -61,11 +62,15 @@ router.post('/', requireAdmin, async (req, res) => {
     const validStatuses = ['active', 'paused', 'ended'];
     const stat = validStatuses.includes(status) ? status : 'active';
     const amount = parseFloat(amountPaid) || 0;
+    const pType = ['main_banner', 'sport_banner'].includes(placementType) ? placementType : 'sport_banner';
+    const tier = ['standard', 'premium'].includes(sponsorTier) ? sponsorTier : 'standard';
+    const slot = parseInt(slotNumber) || null;
+    const sports = Array.isArray(targetSports) ? targetSports : [];
 
     const result = await pool.query(
-      `INSERT INTO sponsors (name, contact_name, contact_email, contact_phone, logo, website, notes, amount_paid, payment_frequency, start_date, end_date, status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`,
-      [name, contactName || null, contactEmail || null, contactPhone || null, logo || null, website || null, notes || null, amount, freq, startDate || null, endDate || null, stat]
+      `INSERT INTO sponsors (name, contact_name, contact_email, contact_phone, logo, website, notes, amount_paid, payment_frequency, start_date, end_date, status, placement_type, target_sports, sponsor_tier, slot_number, tagline)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) RETURNING id`,
+      [name, contactName || null, contactEmail || null, contactPhone || null, logo || null, website || null, notes || null, amount, freq, startDate || null, endDate || null, stat, pType, sports, tier, slot, tagline || null]
     );
 
     res.json({ id: result.rows[0].id });
@@ -80,7 +85,7 @@ router.put('/:id', requireAdmin, async (req, res) => {
     const sponsor = await pool.query('SELECT * FROM sponsors WHERE id = $1', [req.params.id]);
     if (sponsor.rows.length === 0) return res.status(404).json({ error: 'Sponsor not found' });
 
-    const { name, contactName, contactEmail, contactPhone, logo, website, notes, amountPaid, paymentFrequency, startDate, endDate, status } = req.body;
+    const { name, contactName, contactEmail, contactPhone, logo, website, notes, amountPaid, paymentFrequency, startDate, endDate, status, placementType, targetSports, sponsorTier, slotNumber, tagline } = req.body;
 
     if (!name) return res.status(400).json({ error: 'Sponsor name is required' });
 
@@ -89,14 +94,19 @@ router.put('/:id', requireAdmin, async (req, res) => {
     const validStatuses = ['active', 'paused', 'ended'];
     const stat = validStatuses.includes(status) ? status : 'active';
     const amount = parseFloat(amountPaid) || 0;
+    const pType = ['main_banner', 'sport_banner'].includes(placementType) ? placementType : 'sport_banner';
+    const tier = ['standard', 'premium'].includes(sponsorTier) ? sponsorTier : 'standard';
+    const slot = parseInt(slotNumber) || null;
+    const sports = Array.isArray(targetSports) ? targetSports : [];
 
     await pool.query(
       `UPDATE sponsors SET
         name = $1, contact_name = $2, contact_email = $3, contact_phone = $4,
         logo = $5, website = $6, notes = $7, amount_paid = $8,
-        payment_frequency = $9, start_date = $10, end_date = $11, status = $12
-       WHERE id = $13`,
-      [name, contactName || null, contactEmail || null, contactPhone || null, logo || null, website || null, notes || null, amount, freq, startDate || null, endDate || null, stat, req.params.id]
+        payment_frequency = $9, start_date = $10, end_date = $11, status = $12,
+        placement_type = $13, target_sports = $14, sponsor_tier = $15, slot_number = $16, tagline = $17
+       WHERE id = $18`,
+      [name, contactName || null, contactEmail || null, contactPhone || null, logo || null, website || null, notes || null, amount, freq, startDate || null, endDate || null, stat, pType, sports, tier, slot, tagline || null, req.params.id]
     );
 
     res.json({ ok: true });
@@ -164,8 +174,9 @@ router.put('/me', requireAuth, async (req, res) => {
 router.get('/banners', async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT name, tagline, logo, website, target_sports, sponsor_tier FROM sponsors WHERE status = 'active' ORDER BY
+      `SELECT name, tagline, logo, website, target_sports, sponsor_tier, placement_type, slot_number FROM sponsors WHERE status = 'active' ORDER BY
         CASE WHEN sponsor_tier = 'premium' THEN 0 ELSE 1 END,
+        slot_number ASC NULLS LAST,
         created_at DESC`
     );
     res.json(result.rows.map(s => ({
@@ -174,7 +185,9 @@ router.get('/banners', async (req, res) => {
       logo: s.logo,
       url: s.website,
       targetSports: s.target_sports || [],
-      tier: s.sponsor_tier || 'standard'
+      tier: s.sponsor_tier || 'standard',
+      placementType: s.placement_type || 'sport_banner',
+      slotNumber: s.slot_number || null
     })));
   } catch (error) {
     console.error('Get banners error:', error);

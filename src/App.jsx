@@ -1184,6 +1184,11 @@ const HuddleUpApp = () => {
  const [sponsorEndDate, setSponsorEndDate] = useState('');
  const [sponsorStatus, setSponsorStatus] = useState('active');
  const [sponsorLogo, setSponsorLogo] = useState(null);
+ const [sponsorPlacementType, setSponsorPlacementType] = useState('sport_banner');
+ const [sponsorTagline, setSponsorTagline] = useState('');
+ const [sponsorTargetSports, setSponsorTargetSports] = useState([]);
+ const [sponsorTierField, setSponsorTierField] = useState('standard');
+ const [sponsorSlotNumber, setSponsorSlotNumber] = useState('');
  const [savingSponsor, setSavingSponsor] = useState(false);
  const [uploadingSponsorLogo, setUploadingSponsorLogo] = useState(false);
  const [adminEditVenue, setAdminEditVenue] = useState(null);
@@ -1552,6 +1557,8 @@ const HuddleUpApp = () => {
  setSponsorContactPhone(''); setSponsorWebsite(''); setSponsorNotes('');
  setSponsorAmount(''); setSponsorFrequency('one-time'); setSponsorStartDate('');
  setSponsorEndDate(''); setSponsorStatus('active'); setSponsorLogo(null);
+ setSponsorPlacementType('sport_banner'); setSponsorTagline('');
+ setSponsorTargetSports([]); setSponsorTierField('standard'); setSponsorSlotNumber('');
  setEditingSponsor(null); setShowSponsorForm(false);
  };
 
@@ -1564,6 +1571,9 @@ const HuddleUpApp = () => {
  setSponsorStartDate(s.startDate ? s.startDate.split('T')[0] : '');
  setSponsorEndDate(s.endDate ? s.endDate.split('T')[0] : '');
  setSponsorStatus(s.status || 'active'); setSponsorLogo(s.logo || null);
+ setSponsorPlacementType(s.placementType || 'sport_banner'); setSponsorTagline(s.tagline || '');
+ setSponsorTargetSports(s.targetSports || []); setSponsorTierField(s.sponsorTier || 'standard');
+ setSponsorSlotNumber(s.slotNumber ? String(s.slotNumber) : '');
  setEditingSponsor(s.id); setShowSponsorForm(true);
  };
 
@@ -1605,7 +1615,10 @@ const HuddleUpApp = () => {
  contactPhone: sponsorContactPhone, logo: sponsorLogo, website: sponsorWebsite,
  notes: sponsorNotes, amountPaid: sponsorAmount ? parseFloat(sponsorAmount) : 0,
  paymentFrequency: sponsorFrequency, startDate: sponsorStartDate || null,
- endDate: sponsorEndDate || null, status: sponsorStatus
+ endDate: sponsorEndDate || null, status: sponsorStatus,
+ placementType: sponsorPlacementType, tagline: sponsorTagline,
+ targetSports: sponsorTargetSports, sponsorTier: sponsorTierField,
+ slotNumber: sponsorSlotNumber ? parseInt(sponsorSlotNumber) : null
  };
  if (editingSponsor) { await api.sponsors.update(editingSponsor, data); }
  else { await api.sponsors.create(data); }
@@ -6751,6 +6764,83 @@ const HuddleUpApp = () => {
  placeholder="sponsor-website.com"
  className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500" />
  </div>
+ </div>
+
+ <div className="border border-green-500/20 rounded-xl p-4 space-y-4 bg-green-500/5">
+ <h4 className="text-green-400 font-bold text-sm flex items-center gap-2">
+ <MapPin className="w-4 h-4" /> AD PLACEMENT
+ </h4>
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Placement Type *</label>
+ <select value={sponsorPlacementType} onChange={(e) => setSponsorPlacementType(e.target.value)}
+ className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-green-500">
+ <option value="main_banner" className="bg-[#151A22]">Main Banner (Top of All Pages)</option>
+ <option value="sport_banner" className="bg-[#151A22]">Sport Banner (Per-Sport Pages)</option>
+ </select>
+ <p className="text-xs text-[#A0A4AB] mt-1">{sponsorPlacementType === 'main_banner' ? 'Shows as the top banner across the entire app' : 'Shows on specific sport league pages'}</p>
+ </div>
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Tagline</label>
+ <input type="text" value={sponsorTagline} onChange={(e) => setSponsorTagline(e.target.value)}
+ placeholder="e.g. Fuel Your Game Day"
+ className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500" />
+ </div>
+ {sponsorPlacementType === 'sport_banner' && (
+ <>
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Tier</label>
+ <select value={sponsorTierField} onChange={(e) => setSponsorTierField(e.target.value)}
+ className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-green-500">
+ <option value="standard" className="bg-[#151A22]">Standard (1 sport)</option>
+ <option value="premium" className="bg-[#151A22]">Premium (Multi-sport)</option>
+ </select>
+ </div>
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Slot Number (1-5)</label>
+ <select value={sponsorSlotNumber} onChange={(e) => setSponsorSlotNumber(e.target.value)}
+ className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-green-500">
+ <option value="" className="bg-[#151A22]">Auto-assign</option>
+ <option value="1" className="bg-[#151A22]">Slot 1</option>
+ <option value="2" className="bg-[#151A22]">Slot 2</option>
+ <option value="3" className="bg-[#151A22]">Slot 3</option>
+ <option value="4" className="bg-[#151A22]">Slot 4</option>
+ <option value="5" className="bg-[#151A22]">Slot 5</option>
+ </select>
+ </div>
+ <div className="md:col-span-2">
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-2">Target Sports</label>
+ <div className="flex flex-wrap gap-2">
+ {['NFL', 'NBA', 'MLB', 'NHL', 'College Football', 'College Basketball', 'Premier League', 'La Liga', 'Liga MX', 'MLS', 'Champions League', 'Formula 1', 'UFC', 'Tennis'].map(sport => (
+ <button key={sport} type="button"
+ onClick={() => {
+ if (sponsorTargetSports.includes(sport)) {
+ setSponsorTargetSports(sponsorTargetSports.filter(s => s !== sport));
+ } else {
+ if (sponsorTierField === 'standard' && sponsorTargetSports.length >= 1) {
+ alert('Standard tier allows only 1 sport. Switch to Premium for multi-sport.');
+ return;
+ }
+ setSponsorTargetSports([...sponsorTargetSports, sport]);
+ }
+ }}
+ className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
+ sponsorTargetSports.includes(sport)
+ ? 'bg-green-500/20 text-green-400 border-green-500/40'
+ : 'bg-[#151A22] text-[#A0A4AB] border-[#222A36] hover:border-green-500/30'
+ }`}>
+ {sport}
+ </button>
+ ))}
+ </div>
+ {sponsorTierField === 'standard' && <p className="text-xs text-yellow-400/70 mt-1">Standard tier: 1 sport max. Upgrade to Premium for multiple sports.</p>}
+ </div>
+ </>
+ )}
+ </div>
+ </div>
+
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
  <div>
  <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Amount Paid ($)</label>
  <input type="number" step="0.01" value={sponsorAmount} onChange={(e) => setSponsorAmount(e.target.value)}
@@ -6860,6 +6950,16 @@ const HuddleUpApp = () => {
  <span className="text-[#A0A4AB]/70">{s.paymentFrequency === 'one-time' ? 'One-Time' : s.paymentFrequency.charAt(0).toUpperCase() + s.paymentFrequency.slice(1)}</span>
  {s.startDate && <span className="text-[#A0A4AB]/70">From: {new Date(s.startDate).toLocaleDateString()}</span>}
  {s.endDate && <span className="text-[#A0A4AB]/70">To: {new Date(s.endDate).toLocaleDateString()}</span>}
+ </div>
+ <div className="flex flex-wrap gap-1.5 mt-2">
+ <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${s.placementType === 'main_banner' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'}`}>
+ {s.placementType === 'main_banner' ? 'Main Banner' : 'Sport Banner'}
+ </span>
+ {s.placementType === 'sport_banner' && s.targetSports && s.targetSports.length > 0 && s.targetSports.map(sp => (
+ <span key={sp} className="px-2 py-0.5 text-xs rounded-full bg-[#1E90FF]/10 text-[#1E90FF] border border-[#1E90FF]/20">{sp}</span>
+ ))}
+ {s.slotNumber && <span className="px-2 py-0.5 text-xs rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/20">Slot {s.slotNumber}</span>}
+ {s.sponsorTier === 'premium' && <span className="px-2 py-0.5 text-xs rounded-full bg-yellow-500/10 text-yellow-300 border border-yellow-500/20">Premium</span>}
  </div>
  {s.notes && <p className="text-[#A0A4AB]/70 text-xs mt-2 italic">"{s.notes}"</p>}
  </div>
