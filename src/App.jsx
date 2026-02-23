@@ -8350,7 +8350,7 @@ const HuddleUpApp = () => {
  <li>✓ Advanced analytics & insights</li>
  </ul>
  <div className="text-2xl font-black text-white mb-4">
- $99<span className="text-sm text-[#A0A4AB]">/month</span>
+ $49.99<span className="text-sm text-[#A0A4AB]">/month</span>
  </div>
  </div>
  <button className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-xl hover:shadow-purple-500/50 transition-all">
