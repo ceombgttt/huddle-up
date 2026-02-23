@@ -13,7 +13,8 @@ router.get('/', async (req, res) => {
       FROM venues v
       LEFT JOIN users u ON v.claimed_by = u.id
       ORDER BY
-        CASE WHEN u.subscription_tier IN ('venue', 'sponsor') THEN 0 ELSE 1 END,
+        CASE WHEN v.featured = true AND (v.featured_until IS NULL OR v.featured_until > NOW()) THEN 0 ELSE 1 END,
+        CASE WHEN u.subscription_tier IN ('venue', 'featured_venue', 'sponsor') THEN 0 ELSE 1 END,
         v.featured DESC, v.name
     `);
 
@@ -23,9 +24,10 @@ router.get('/', async (req, res) => {
       address: v.address,
       type: v.type,
       verified: v.verified,
-      featured: v.featured,
+      featured: v.featured && (v.featured_until === null || new Date(v.featured_until) > new Date()),
+      featuredTier: v.featured_tier,
       claimedBy: v.claimed_by_email,
-      subscribed: v.owner_tier === 'venue' || v.owner_tier === 'sponsor',
+      subscribed: v.owner_tier === 'venue' || v.owner_tier === 'featured_venue' || v.owner_tier === 'sponsor',
       phone: v.phone,
       website: v.website,
       city: v.city,

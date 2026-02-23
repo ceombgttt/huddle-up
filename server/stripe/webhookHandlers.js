@@ -48,6 +48,21 @@ export class WebhookHandlers {
     );
     console.log(`User ${userId} subscription updated to tier: ${tier}`);
 
+    if (tier === 'featured_venue') {
+      try {
+        const venueResult = await pool.query('SELECT id FROM venues WHERE claimed_by = $1', [userId]);
+        if (venueResult.rows.length > 0) {
+          await pool.query(
+            `UPDATE venues SET featured = true, featured_tier = 'featured', featured_subscription_id = $1, featured_until = NOW() + INTERVAL '30 days' WHERE claimed_by = $2`,
+            [session.subscription, userId]
+          );
+          console.log(`Venue for user ${userId} upgraded to Featured`);
+        }
+      } catch (err) {
+        console.error('Featured venue upgrade error:', err.message);
+      }
+    }
+
     if (tier === 'sponsor') {
       try {
         const existing = await pool.query('SELECT id FROM sponsors WHERE user_id = $1', [userId]);
@@ -120,6 +135,10 @@ export class WebhookHandlers {
       );
       if (prevTier.rows[0]?.subscription_tier === 'sponsor') {
         await pool.query("UPDATE sponsors SET status = 'ended' WHERE user_id = $1", [userId]);
+      }
+      if (prevTier.rows[0]?.subscription_tier === 'featured_venue') {
+        await pool.query("UPDATE venues SET featured = false, featured_tier = 'standard', featured_subscription_id = NULL, featured_until = NULL WHERE claimed_by = $1", [userId]);
+        console.log(`Venue for user ${userId} featured status removed`);
       }
       console.log(`User ${userId} subscription ${status}, reverted to free tier`);
     }

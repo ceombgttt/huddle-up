@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, Megaphone, MessageCircle, Gift, Award, Clock, Zap, Crown, Copy, Shield, ChevronRight, Info, Flame } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, Megaphone, MessageCircle, Gift, Award, Clock, Zap, Crown, Copy, Shield, ChevronRight, Info, Flame, TrendingUp } from 'lucide-react';
 import { api } from './api.js';
 
 // Sample games data for different sports
@@ -8198,6 +8198,7 @@ const HuddleUpApp = () => {
 
  const tabs = [
  { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+ { id: 'featured', label: 'Go Featured', icon: '⭐' },
  { id: 'promotions', label: 'Promote Games', icon: '📢' },
  { id: 'deals', label: 'Deals & Specials', icon: '🏷️' },
  ];
@@ -8211,6 +8212,7 @@ const HuddleUpApp = () => {
  <ArrowLeft className="w-5 h-5" /> Back
  </button>
  <div className="flex items-center gap-2">
+ {userVenue.featured && <span className="px-2 py-1 bg-amber-500/20 text-amber-300 text-xs font-bold rounded-full border border-amber-500/30 flex items-center gap-1"><Star className="w-3 h-3 fill-amber-300" /> Featured</span>}
  {userVenue.verified && <span className="px-2 py-1 bg-green-500/20 text-green-300 text-xs font-bold rounded-full border border-green-500/30 flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Verified</span>}
  </div>
  </div>
@@ -8267,6 +8269,161 @@ const HuddleUpApp = () => {
  </div>
  )}
  {hubTab === 'dashboard' && <VenueAnalyticsDashboard />}
+
+ {hubTab === 'featured' && (
+ <div className="space-y-4">
+ {userVenue.featured ? (
+ <div className="relative overflow-hidden rounded-2xl border border-amber-500/40 bg-gradient-to-br from-amber-900/40 via-orange-900/30 to-yellow-900/20">
+ <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+ <div className="p-5">
+ <div className="flex items-center gap-3 mb-3">
+ <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/30">
+ <Star className="w-6 h-6 text-white fill-white" />
+ </div>
+ <div>
+ <h2 className="text-xl font-black text-white">Featured Venue</h2>
+ <p className="text-amber-300 text-xs font-bold">Your venue is currently featured!</p>
+ </div>
+ </div>
+ <div className="grid grid-cols-2 gap-3 mt-4">
+ <div className="bg-black/20 rounded-xl p-3 border border-amber-500/20">
+ <TrendingUp className="w-5 h-5 text-amber-400 mb-1" />
+ <p className="text-white font-bold text-sm">Priority Search</p>
+ <p className="text-white/50 text-xs">You appear first in results</p>
+ </div>
+ <div className="bg-black/20 rounded-xl p-3 border border-amber-500/20">
+ <Award className="w-5 h-5 text-amber-400 mb-1" />
+ <p className="text-white font-bold text-sm">Featured Badge</p>
+ <p className="text-white/50 text-xs">Stand out from other venues</p>
+ </div>
+ <div className="bg-black/20 rounded-xl p-3 border border-amber-500/20">
+ <Flame className="w-5 h-5 text-amber-400 mb-1" />
+ <p className="text-white font-bold text-sm">Trending Boost</p>
+ <p className="text-white/50 text-xs">Boosted in trending feed</p>
+ </div>
+ <div className="bg-black/20 rounded-xl p-3 border border-amber-500/20">
+ <BarChart3 className="w-5 h-5 text-amber-400 mb-1" />
+ <p className="text-white font-bold text-sm">Enhanced Stats</p>
+ <p className="text-white/50 text-xs">Detailed analytics access</p>
+ </div>
+ </div>
+ <button
+ onClick={async () => { try { const d = await api.stripe.portal(); if (d?.url) window.location.href = d.url; } catch(e) { console.error(e); } }}
+ className="w-full mt-4 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-sm transition-all"
+ >
+ Manage Subscription
+ </button>
+ </div>
+ </div>
+ ) : (
+ <div className="space-y-4">
+ <div className="relative overflow-hidden rounded-2xl border border-[#222A36] bg-gradient-to-br from-[#151A22] via-[#1A1F2B] to-[#151A22]">
+ <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+ <div className="p-5">
+ <div className="flex items-center gap-2 mb-1">
+ <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
+ <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-300">UPGRADE YOUR VENUE</span>
+ </div>
+ <h2 className="text-2xl font-black text-white mb-1" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>GO FEATURED</h2>
+ <p className="text-[#A0A4AB] text-sm mb-4">Get more fans through your door with premium placement and visibility across the platform.</p>
+
+ <div className="grid grid-cols-1 gap-3 mb-5">
+ {[
+ { icon: <TrendingUp className="w-5 h-5" />, title: 'Priority in Search Results', desc: 'Your venue appears at the top when fans search for watch party spots nearby' },
+ { icon: <Award className="w-5 h-5" />, title: 'Featured Badge', desc: 'A gold star badge on your venue card so fans know you\'re a top-tier spot' },
+ { icon: <Flame className="w-5 h-5" />, title: 'Trending Feed Boost', desc: 'Get boosted placement in the trending feed so more fans discover you' },
+ { icon: <Bell className="w-5 h-5" />, title: 'Fan Notifications', desc: 'Nearby fans get notified when you\'re hosting games or running specials' },
+ { icon: <BarChart3 className="w-5 h-5" />, title: 'Enhanced Analytics', desc: 'See detailed data on views, check-ins, and fan engagement at your venue' },
+ { icon: <Zap className="w-5 h-5" />, title: 'Promoted Parties', desc: 'Watch parties at your venue get highlighted with a "Featured" label' },
+ ].map((perk, i) => (
+ <div key={i} className="flex items-start gap-3 p-3 bg-black/20 rounded-xl border border-[#222A36]">
+ <div className="w-9 h-9 bg-amber-500/20 rounded-lg flex items-center justify-center flex-shrink-0 text-amber-400">
+ {perk.icon}
+ </div>
+ <div>
+ <p className="text-white font-bold text-sm">{perk.title}</p>
+ <p className="text-white/50 text-xs">{perk.desc}</p>
+ </div>
+ </div>
+ ))}
+ </div>
+ </div>
+ </div>
+
+ <div className="relative overflow-hidden rounded-2xl border-2 border-amber-500/60 bg-gradient-to-r from-amber-900/30 via-orange-900/20 to-amber-900/30">
+ <div className="p-5">
+ <div className="flex items-center justify-between mb-3">
+ <div>
+ <p className="text-amber-300 text-xs font-bold uppercase tracking-wider">Featured Venue</p>
+ <div className="flex items-baseline gap-1 mt-1">
+ <span className="text-3xl font-black text-white">$49</span>
+ <span className="text-lg text-white">.99</span>
+ <span className="text-[#A0A4AB] text-sm">/month</span>
+ </div>
+ </div>
+ <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/30">
+ <Star className="w-7 h-7 text-white fill-white" />
+ </div>
+ </div>
+ <p className="text-white/60 text-xs mb-4">Everything in your current plan, plus all featured perks above. Cancel anytime.</p>
+ <button
+ onClick={async () => {
+ try {
+ const products = await api.stripe.products();
+ const featuredProduct = products.find(p => p.metadata?.tier === 'featured_venue');
+ if (featuredProduct && featuredProduct.prices.length > 0) {
+ const result = await api.stripe.checkout(featuredProduct.prices[0].id);
+ if (result?.url) window.location.href = result.url;
+ } else {
+ alert('Featured Venue plan is being set up. Please try again shortly.');
+ }
+ } catch(e) { console.error(e); alert('Something went wrong. Please try again.'); }
+ }}
+ className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black rounded-xl text-sm transition-all shadow-lg shadow-amber-500/20"
+ style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}
+ >
+ UPGRADE TO FEATURED
+ </button>
+ </div>
+ </div>
+
+ <div className="rounded-2xl border border-[#222A36] bg-[#151A22] p-4">
+ <h3 className="text-white font-bold text-sm mb-3">Regular vs Featured Comparison</h3>
+ <div className="space-y-2">
+ {[
+ { feature: 'Listed on platform', regular: true, featured: true },
+ { feature: 'Create watch parties', regular: true, featured: true },
+ { feature: 'Post deals & specials', regular: true, featured: true },
+ { feature: 'QR code check-ins', regular: true, featured: true },
+ { feature: 'Basic analytics', regular: true, featured: true },
+ { feature: 'Priority search placement', regular: false, featured: true },
+ { feature: 'Featured badge', regular: false, featured: true },
+ { feature: 'Trending feed boost', regular: false, featured: true },
+ { feature: 'Fan notifications', regular: false, featured: true },
+ { feature: 'Enhanced analytics', regular: false, featured: true },
+ { feature: 'Promoted parties', regular: false, featured: true },
+ ].map((row, i) => (
+ <div key={i} className="flex items-center justify-between py-1.5 border-b border-[#222A36] last:border-0">
+ <span className="text-white/70 text-xs">{row.feature}</span>
+ <div className="flex items-center gap-6">
+ <span className="text-xs w-16 text-center">{row.regular ? <CheckCircle className="w-4 h-4 text-green-400 mx-auto" /> : <X className="w-4 h-4 text-[#333] mx-auto" />}</span>
+ <span className="text-xs w-16 text-center"><CheckCircle className="w-4 h-4 text-amber-400 mx-auto" /></span>
+ </div>
+ </div>
+ ))}
+ <div className="flex items-center justify-between pt-2">
+ <span className="text-white/40 text-[10px]"></span>
+ <div className="flex items-center gap-6">
+ <span className="text-[10px] text-[#A0A4AB] w-16 text-center font-bold">$29.99/mo</span>
+ <span className="text-[10px] text-amber-300 w-16 text-center font-bold">$49.99/mo</span>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ )}
+ </div>
+ )}
 
  {hubTab === 'promotions' && (
  <div className="space-y-4">
@@ -10573,10 +10730,13 @@ const HuddleUpApp = () => {
  </h3>
  <div className="space-y-2">
  {trendingData.hotVenues.map(venue => (
- <div key={venue.id} className="p-3 bg-[#151A22] rounded-xl border border-[#222A36] flex items-center justify-between">
+ <div key={venue.id} className={`p-3 bg-[#151A22] rounded-xl border ${venue.featured ? 'border-amber-500/40' : 'border-[#222A36]'} flex items-center justify-between`}>
+ <div className="flex items-center gap-2">
+ {venue.featured && <Star className="w-4 h-4 text-amber-400 fill-amber-400 flex-shrink-0" />}
  <div>
  <p className="text-white font-medium">{venue.name}</p>
  <p className="text-xs text-[#A0A4AB]">{venue.city}</p>
+ </div>
  </div>
  <span className="text-orange-400 text-sm font-bold">{venue.partyCount || venue.party_count} parties</span>
  </div>

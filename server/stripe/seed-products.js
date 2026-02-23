@@ -14,9 +14,15 @@ const PRODUCTS = [
     priceAmountCents: 2999,
   },
   {
+    name: 'Huddle Up Featured Venue',
+    description: 'Priority placement in search results, Featured badge, trending feed boost, and enhanced analytics for your venue.',
+    metadata: { tier: 'featured_venue', order: '3' },
+    priceAmountCents: 4999,
+  },
+  {
     name: 'Huddle Up Sponsor',
     description: 'Premium banner ad placement across all sports, featured placement, and analytics on your sponsorship reach.',
-    metadata: { tier: 'sponsor', order: '3' },
+    metadata: { tier: 'sponsor', order: '4' },
     priceAmountCents: 9999,
   },
 ];

@@ -35,14 +35,14 @@ router.get('/feed', async (req, res) => {
     ].slice(0, 10);
 
     const venuesResult = await pool.query(
-      `SELECT v.id, v.name, v.address, v.city, v.verified, v.featured, v.logo, v.picture,
+      `SELECT v.id, v.name, v.address, v.city, v.verified, v.featured, v.featured_tier, v.featured_until, v.logo, v.picture,
         COUNT(p.id) as party_count
        FROM venues v
        LEFT JOIN parties p ON LOWER(v.name) = LOWER(p.venue_name)
        WHERE p.created_at >= NOW() - INTERVAL '30 days'
-       GROUP BY v.id, v.name, v.address, v.city, v.verified, v.featured, v.logo, v.picture
+       GROUP BY v.id, v.name, v.address, v.city, v.verified, v.featured, v.featured_tier, v.featured_until, v.logo, v.picture
        HAVING COUNT(p.id) > 0
-       ORDER BY party_count DESC
+       ORDER BY CASE WHEN v.featured = true AND (v.featured_until IS NULL OR v.featured_until > NOW()) THEN 0 ELSE 1 END, party_count DESC
        LIMIT 5`
     );
 
@@ -80,7 +80,7 @@ router.get('/feed', async (req, res) => {
         address: v.address,
         city: v.city,
         verified: v.verified,
-        featured: v.featured,
+        featured: v.featured && (v.featured_until === null || new Date(v.featured_until) > new Date()),
         logo: v.logo,
         picture: v.picture,
         partyCount: parseInt(v.party_count)
