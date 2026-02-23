@@ -231,10 +231,10 @@ const DEMO_SPONSORS = [
 ];
 
 const DEMO_MAIN_SPONSOR = {
- name: 'Victory Sports Drink',
- tagline: 'Fuel the Fans. Own the Moment.',
- logoUrl: '/demo-sponsors/victory-sports-main.png',
- bannerUrl: '/demo-sponsors/main-sponsor-placeholder.png',
+ name: 'Apex Athletics',
+ tagline: 'Gear Up for Game Day',
+ logoUrl: '/images/main-sponsor-banner.png',
+ bannerUrl: '/images/main-sponsor-banner.png',
  url: '#',
  isDemo: true,
 };
