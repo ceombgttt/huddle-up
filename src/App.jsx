@@ -3186,7 +3186,7 @@ const HuddleUpApp = () => {
  const [upgrading, setUpgrading] = useState(false);
  const proPerks = [
  { icon: <Zap className="w-5 h-5" />, title: 'Ad-Free Experience', desc: 'No sponsor banners or ads anywhere in the app', color: 'text-yellow-400' },
- { icon: <Clock className="w-5 h-5" />, title: 'Early Party Access', desc: 'See and join new parties 24 hours before free users', color: 'text-blue-400' },
+ { icon: <Clock className="w-5 h-5" />, title: 'Priority Party Placement', desc: 'Your parties appear at the top of listings in your city', color: 'text-blue-400' },
  { icon: <Star className="w-5 h-5" />, title: 'VIP Badge', desc: 'Gold VIP badge next to your name everywhere in the app', color: 'text-amber-400' },
  { icon: <Trophy className="w-5 h-5" />, title: '2x Points Multiplier', desc: 'Earn double points for every action you take', color: 'text-purple-400' },
  { icon: <Crown className="w-5 h-5" />, title: 'Custom Profile Themes', desc: 'Choose from 5 exclusive color schemes for your profile', color: 'text-pink-400' },
@@ -3205,7 +3205,7 @@ const HuddleUpApp = () => {
  { feature: 'QR check-in', free: true, pro: true },
  { feature: 'Notifications & alerts', free: true, pro: true },
  { feature: 'Ad-free experience', free: false, pro: true },
- { feature: 'Early party access (24hr)', free: false, pro: true },
+ { feature: 'Priority party placement', free: false, pro: true },
  { feature: 'VIP badge', free: false, pro: true },
  { feature: '2x points multiplier', free: false, pro: true },
  { feature: 'Custom profile themes', free: false, pro: true },
@@ -3385,7 +3385,7 @@ const HuddleUpApp = () => {
 
  const QA_ITEMS = [
  { q: 'What is Huddle Up?', a: 'Huddle Up is the #1 app for finding and creating sports watch parties. We connect fans with local venues, other fans, and events for 15+ sports leagues including NFL, NBA, MLB, NHL, MLS, Premier League, and more.' },
- { q: 'Is Huddle Up free to use?', a: 'Yes! Huddle Up is 100% free for all core features - creating parties, joining parties, live scores, chat, fan finder, rewards, and more. We also offer an optional Pro upgrade ($2.99/mo) for premium perks like ad-free browsing, VIP badge, 2x points, and early party access.' },
+ { q: 'Is Huddle Up free to use?', a: 'Yes! Huddle Up is 100% free for all core features - creating parties, joining parties, live scores, chat, fan finder, rewards, and more. We also offer an optional Pro upgrade ($2.99/mo) for premium perks like ad-free browsing, VIP badge, 2x points, and priority party placement.' },
  { q: 'How do I create a watch party?', a: 'Tap any game on the schedule, then tap "Create Watch Party." Choose a venue, add details about your party, and invite friends. It\'s that simple!' },
  { q: 'How do I find parties near me?', a: 'Use the search bar to type your city name, or enable location services and we\'ll show you parties nearby automatically.' },
  { q: 'What are badges and how do I earn them?', a: 'Badges are achievements you earn by participating! Host parties to earn "Party Starter," attend 5+ to get "Social Butterfly," leave reviews for "Critic," and more. Your fan score goes up with every activity.' },
@@ -9585,7 +9585,7 @@ const HuddleUpApp = () => {
  <h3 className="text-lg font-bold text-white">Upgrade to Pro</h3>
  <span className="text-amber-300 text-xs font-bold">$2.99/mo</span>
  </div>
- <p className="text-[#A0A4AB] text-xs mb-3">Get ad-free browsing, VIP badge, 2x points, early party access, and more.</p>
+ <p className="text-[#A0A4AB] text-xs mb-3">Get ad-free browsing, VIP badge, 2x points, priority placement, and more.</p>
  <button onClick={() => setCurrentScreen('proUpgrade')} className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-black font-bold rounded-xl text-sm hover:opacity-90 transition-all">
  See Pro Features
  </button>

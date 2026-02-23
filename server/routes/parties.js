@@ -12,6 +12,7 @@ router.get('/', async (req, res) => {
     const { gameId, city } = req.query;
     let query = `
       SELECT p.*, u.name as host_name, u.email as host_email,
+        u.subscription_tier as host_subscription_tier,
         (SELECT COUNT(*) FROM party_attendees pa WHERE pa.party_id = p.id) as attendee_count,
         v.picture as venue_picture, v.logo as venue_logo
       FROM parties p
@@ -33,7 +34,7 @@ router.get('/', async (req, res) => {
     if (conditions.length > 0) {
       query += ' WHERE ' + conditions.join(' AND ');
     }
-    query += ' ORDER BY p.created_at DESC';
+    query += ` ORDER BY (CASE WHEN u.subscription_tier = 'pro' THEN 0 ELSE 1 END), p.created_at DESC`;
 
     const result = await pool.query(query, params);
 

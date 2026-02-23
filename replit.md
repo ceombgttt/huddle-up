@@ -11,7 +11,7 @@ The application uses a single Express server for both API and React frontend, se
 
 The UI/UX emphasizes intuitive navigation and visual engagement, incorporating team logos, color schemes, and interactive elements. Features include real-time game scores (ESPN API), a notification system, fan-finder, and administrative analytics. Additional functionalities include:
 - **Venue QR Code Check-in**: Unique QR codes for attendance verification, earning users points and badges.
-- **Pricing Model**: Core features are free; an optional "Pro" tier ($2.99/month or $29.99/year) offers premium perks like an ad-free experience, VIP badge, 2x points multiplier, early party access, custom themes, advanced analytics, and priority support.
+- **Pricing Model**: Core features are free; an optional "Pro" tier ($2.99/month or $29.99/year) offers premium perks like an ad-free experience, VIP badge, 2x points multiplier, priority party placement (Pro parties sorted to top of city listings), custom themes, advanced analytics, and priority support.
 - **Rewards & Points System**: Users earn points for engagement (creating/attending parties, invites, check-ins), with Pro users receiving a 2x multiplier. Points are used for raffle entries for grand prizes.
 - **Sponsor System**: Features 5 sponsor slots per sport league (Standard and Premium tiers) with dedicated banner display.
 - **Main Sponsor Banner**: A prominent, fixed banner at the top of all pages for the most premium advertising placement.
