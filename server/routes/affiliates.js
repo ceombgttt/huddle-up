@@ -11,7 +11,7 @@ router.get('/admin/all', requireAdmin, async (req, res) => {
       SELECT a.*,
         (SELECT COUNT(*) FROM affiliate_referrals WHERE affiliate_id = a.id) as total_referrals,
         (SELECT COUNT(*) FROM affiliate_referrals WHERE affiliate_id = a.id AND converted_to_paid = true AND subscription_active = true) as active_paying_users,
-        (SELECT COUNT(*) FROM affiliate_referrals WHERE affiliate_id = a.id AND converted_to_paid = false AND trial_end_date > NOW()) as active_trials,
+        (SELECT COUNT(*) FROM affiliate_referrals WHERE affiliate_id = a.id) as total_signups,
         (SELECT COALESCE(SUM(amount_cents), 0) FROM affiliate_payouts WHERE affiliate_id = a.id AND status = 'completed') as total_payouts_cents
       FROM affiliates a ORDER BY a.created_at DESC
     `);
@@ -252,15 +252,15 @@ router.get('/influencer-dashboard/:token', async (req, res) => {
     const statsResult = await pool.query(`
       SELECT 
         COUNT(*) as total_redemptions,
+        COUNT(*) as total_signups,
         COUNT(*) FILTER (WHERE converted_to_paid = true AND subscription_active = true) as active_paying,
-        COUNT(*) FILTER (WHERE converted_to_paid = false AND trial_end_date > NOW()) as active_trials,
-        COUNT(*) FILTER (WHERE trial_end_date <= NOW() AND converted_to_paid = false) as churned_trials,
+        COUNT(*) FILTER (WHERE converted_to_paid = true AND NOT subscription_active) as churned,
         COALESCE(SUM(CASE WHEN converted_to_paid = true AND subscription_active = true THEN monthly_commission_cents ELSE 0 END), 0) as monthly_recurring_cents
       FROM affiliate_referrals WHERE affiliate_id = $1
     `, [affiliate.id]);
 
     const recentRefs = await pool.query(
-      `SELECT ar.created_at, ar.trial_start_date, ar.trial_end_date, ar.converted_to_paid, ar.subscription_active, ar.monthly_commission_cents,
+      `SELECT ar.created_at, ar.converted_to_paid, ar.subscription_active, ar.monthly_commission_cents,
        u.name as user_name
        FROM affiliate_referrals ar LEFT JOIN users u ON ar.user_id = u.id
        WHERE ar.affiliate_id = $1 ORDER BY ar.created_at DESC LIMIT 50`,
@@ -302,9 +302,9 @@ router.get('/admin/export/:id', requireAdmin, async (req, res) => {
       [req.params.id]
     );
 
-    let csv = 'User,Email,Signup Date,Trial Start,Trial End,Converted,Active,Monthly Commission\n';
+    let csv = 'User,Email,Signup Date,Converted,Active,Monthly Commission\n';
     for (const r of refs.rows) {
-      csv += `"${r.user_name || ''}","${r.user_email || r.user_email_actual || ''}","${r.created_at}","${r.trial_start_date || ''}","${r.trial_end_date || ''}",${r.converted_to_paid},${r.subscription_active},$${((r.monthly_commission_cents || 0) / 100).toFixed(2)}\n`;
+      csv += `"${r.user_name || ''}","${r.user_email || r.user_email_actual || ''}","${r.created_at}",${r.converted_to_paid},${r.subscription_active},$${((r.monthly_commission_cents || 0) / 100).toFixed(2)}\n`;
     }
 
     res.setHeader('Content-Type', 'text/csv');

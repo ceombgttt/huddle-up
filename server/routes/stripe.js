@@ -5,6 +5,26 @@ import { getUncachableStripeClient, getStripePublishableKey } from '../stripe/st
 
 const router = Router();
 
+const INFLUENCER_COUPON_ID = 'HUDDLE_INFLUENCER_50';
+async function getOrCreateInfluencerCoupon() {
+  const stripe = await getUncachableStripeClient();
+  try {
+    await stripe.coupons.retrieve(INFLUENCER_COUPON_ID);
+    return INFLUENCER_COUPON_ID;
+  } catch (e) {
+    if (e.statusCode === 404) {
+      await stripe.coupons.create({
+        id: INFLUENCER_COUPON_ID,
+        percent_off: 50,
+        duration: 'forever',
+        name: 'Influencer 50% Off Pro',
+      });
+      return INFLUENCER_COUPON_ID;
+    }
+    throw e;
+  }
+}
+
 router.get('/publishable-key', async (req, res) => {
   try {
     const key = await getStripePublishableKey();
@@ -160,8 +180,10 @@ router.post('/checkout', requireAuth, async (req, res) => {
     };
 
     if (validAffiliateCode) {
+      sessionParams.discounts = [{
+        coupon: await getOrCreateInfluencerCoupon(),
+      }];
       sessionParams.subscription_data = {
-        trial_period_days: 180,
         metadata: {
           affiliateCode: validAffiliateCode.code,
           userId: user.id,

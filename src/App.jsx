@@ -3284,7 +3284,7 @@ const HuddleUpApp = () => {
  </div>
  </div>
  <div className="bg-[#151A22] rounded-xl p-3 text-sm text-[#A0A4AB]">
- <p>Share your code with fans! They get <span className="text-amber-400 font-bold">6 months of Pro free</span>, and you earn <span className="text-green-400 font-bold">{Math.round(inf.commissionRate * 100)}% recurring commission</span> (~${((299 * inf.commissionRate) / 100).toFixed(2)}/mo per user) after they convert to paid.</p>
+ <p>Share your code with fans! They get <span className="text-amber-400 font-bold">50% off Pro</span> ($1.50/mo instead of $2.99), and you earn <span className="text-green-400 font-bold">{Math.round(inf.commissionRate * 100)}% recurring commission</span> (~${((150 * inf.commissionRate) / 100).toFixed(2)}/mo per user).</p>
  </div>
  </div>
 
@@ -3294,8 +3294,8 @@ const HuddleUpApp = () => {
  <p className="text-[#A0A4AB] text-xs mt-1">Total Signups</p>
  </div>
  <div className="bg-[#0F1115] border border-cyan-500/20 rounded-xl p-4 text-center">
- <p className="text-2xl font-black text-cyan-400">{stats.active_trials || 0}</p>
- <p className="text-[#A0A4AB] text-xs mt-1">On Free Trial</p>
+ <p className="text-2xl font-black text-cyan-400">{stats.total_signups || 0}</p>
+ <p className="text-[#A0A4AB] text-xs mt-1">Total Signups</p>
  </div>
  <div className="bg-[#0F1115] border border-purple-500/20 rounded-xl p-4 text-center">
  <p className="text-2xl font-black text-purple-400">{stats.active_paying || 0}</p>
@@ -3327,10 +3327,9 @@ const HuddleUpApp = () => {
  <h3 className="text-white font-bold mb-3">Recent Signups</h3>
  <div className="space-y-2 max-h-80 overflow-y-auto">
  {dashData.recentRedemptions.map((ref, i) => {
- const trialEnd = ref.trial_end_date ? new Date(ref.trial_end_date) : null;
- const isTrialActive = trialEnd && trialEnd > new Date() && !ref.converted_to_paid;
  const isPaying = ref.converted_to_paid && ref.subscription_active;
- const isChurned = (trialEnd && trialEnd <= new Date() && !ref.converted_to_paid) || (ref.converted_to_paid && !ref.subscription_active);
+ const isChurned = ref.converted_to_paid && !ref.subscription_active;
+ const isSignedUp = !ref.converted_to_paid;
  return (
  <div key={i} className="flex items-center justify-between bg-[#151A22] rounded-lg px-3 py-2">
  <div>
@@ -3339,7 +3338,7 @@ const HuddleUpApp = () => {
  </div>
  <div className="flex items-center gap-2">
  {isPaying && <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full border border-purple-500/30">Paying · ${((ref.monthly_commission_cents || 0) / 100).toFixed(2)}/mo</span>}
- {isTrialActive && <span className="text-xs bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full border border-cyan-500/30">Trial · {Math.ceil((trialEnd - new Date()) / 86400000)}d left</span>}
+ {isSignedUp && <span className="text-xs bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full border border-cyan-500/30">Signed Up</span>}
  {isChurned && <span className="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full border border-red-500/30">Churned</span>}
  </div>
  </div>
@@ -3499,7 +3498,7 @@ const HuddleUpApp = () => {
  {proYearly && <p className="text-green-300 text-xs font-bold mb-2">That's only $2.50/month!</p>}
  <p className="text-white/50 text-xs mb-4">Cancel anytime. Core app stays free forever.</p>
  <div className="mb-3">
- <label className="block text-amber-300/80 text-xs font-bold mb-1.5">Have an influencer code? Get 6 months free!</label>
+ <label className="block text-amber-300/80 text-xs font-bold mb-1.5">Have an influencer code? Get 50% off Pro!</label>
  <div className="flex gap-2">
  <input type="text" value={proAffCode} onChange={e => { setProAffCode(e.target.value.toUpperCase()); setProAffValid(null); setProAffMsg(''); }}
  placeholder="Enter code" className="flex-1 px-3 py-2 bg-black/30 border border-amber-500/20 rounded-lg text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500" />
@@ -3507,7 +3506,7 @@ const HuddleUpApp = () => {
  if (!proAffCode.trim()) return;
  try {
  const r = await api.affiliates.validateCode(proAffCode);
- if (r.valid) { setProAffValid(true); setProAffMsg('Code applied! 6 months free, then $2.99/mo'); }
+ if (r.valid) { setProAffValid(true); setProAffMsg('Code applied! 50% off — only $1.50/mo'); }
  else { setProAffValid(false); setProAffMsg(r.error || 'Invalid code'); }
  } catch { setProAffValid(false); setProAffMsg('Could not validate code'); }
  }} className="px-3 py-2 bg-amber-500/20 text-amber-300 font-bold rounded-lg text-xs border border-amber-500/30 hover:bg-amber-500/30">Apply</button>
@@ -3515,7 +3514,7 @@ const HuddleUpApp = () => {
  {proAffMsg && <p className={`text-xs mt-1 ${proAffValid ? 'text-green-400' : 'text-red-400'}`}>{proAffMsg}</p>}
  </div>
  <button onClick={handleUpgrade} disabled={upgrading} className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black rounded-xl text-sm transition-all shadow-lg shadow-amber-500/20 disabled:opacity-50" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>
- {upgrading ? 'LOADING...' : (proAffValid ? 'START 6-MONTH FREE TRIAL' : 'START PRO NOW')}
+ {upgrading ? 'LOADING...' : (proAffValid ? 'GET 50% OFF PRO' : 'START PRO NOW')}
  </button>
  </div>
  </div>
@@ -4316,7 +4315,7 @@ const HuddleUpApp = () => {
  const result = await api.affiliates.validateCode(signupInfluencerCode);
  if (result.valid) {
  setSignupInfluencerValid(true);
- setSignupInfluencerMsg(`Code applied! Get Pro FREE for 6 months`);
+ setSignupInfluencerMsg(`Code applied! Get 50% off Pro — only $1.50/mo`);
  } else {
  setSignupInfluencerValid(false);
  setSignupInfluencerMsg(result.error || 'Invalid code');
@@ -7613,7 +7612,7 @@ const HuddleUpApp = () => {
  <div className="text-center py-8 text-[#A0A4AB]">
  <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
  <p className="font-bold mb-1">No influencers yet</p>
- <p className="text-sm">Add influencers who promote Huddle Up. They get unique codes that give users 6 months of Pro free and earn commissions after.</p>
+ <p className="text-sm">Add influencers who promote Huddle Up. They get unique codes that give users 50% off Pro ($1.50/mo) and earn recurring commissions on each paying user.</p>
  </div>
  ) : (
  <div className="space-y-3">
@@ -7640,7 +7639,7 @@ const HuddleUpApp = () => {
  <div className="text-[#A0A4AB] text-xs mt-1">{aff.email} · {Math.round(parseFloat(aff.commission_rate || 0.30) * 100)}% commission · {aff.payment_method}</div>
  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm">
  <span className="text-[#A0A4AB]">{aff.total_referrals || 0} signups</span>
- <span className="text-cyan-400">{aff.active_trials || 0} on trial</span>
+ <span className="text-cyan-400">{aff.total_signups || 0} signups</span>
  <span className="text-purple-400">{aff.active_paying_users || 0} paying</span>
  <span className="text-green-400 font-medium">${((aff.total_earned_cents || 0) / 100).toFixed(2)} earned</span>
  {unpaidCents > 0 && <span className="text-yellow-400 font-medium">${(unpaidCents / 100).toFixed(2)} unpaid</span>}

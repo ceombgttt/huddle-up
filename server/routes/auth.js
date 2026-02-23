@@ -68,17 +68,7 @@ router.post('/signup', async (req, res) => {
             if (parseInt(usage.rows[0].count) >= aff.max_redemptions) isValid = false;
           }
           if (isValid) {
-            const commissionCents = Math.round(299 * parseFloat(aff.commission_rate || 0.30));
-            await pool.query('UPDATE users SET affiliate_code = $1, subscription_tier = $2 WHERE id = $3', [affCode, 'pro', user.id]);
-            const trialStart = new Date();
-            const trialEnd = new Date();
-            trialEnd.setDate(trialEnd.getDate() + 180);
-            await pool.query(
-              `INSERT INTO affiliate_referrals (affiliate_id, user_id, user_email, commission_cents, status, trial_start_date, trial_end_date, monthly_commission_cents)
-               VALUES ($1, $2, $3, 0, 'trial', $4, $5, $6)`,
-              [aff.id, user.id, email, trialStart, trialEnd, commissionCents]
-            );
-            user.subscription_tier = 'pro';
+            await pool.query('UPDATE users SET affiliate_code = $1 WHERE id = $2', [affCode, user.id]);
           }
         }
       } catch (affErr) {

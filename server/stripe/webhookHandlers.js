@@ -54,22 +54,26 @@ export class WebhookHandlers {
         const affResult = await pool.query('SELECT id, commission_rate FROM affiliates WHERE code = $1 AND status = $2', [affiliateCode, 'active']);
         if (affResult.rows.length > 0) {
           const aff = affResult.rows[0];
-          const commissionCents = Math.round(299 * parseFloat(aff.commission_rate));
-          const trialStart = new Date();
-          const trialEnd = new Date();
-          trialEnd.setDate(trialEnd.getDate() + 180);
+          const discountedPrice = 150;
+          const commissionCents = Math.round(discountedPrice * parseFloat(aff.commission_rate));
 
           await pool.query('UPDATE users SET affiliate_code = $1 WHERE id = $2', [affiliateCode, userId]);
 
           const userEmail = await pool.query('SELECT email FROM users WHERE id = $1', [userId]);
 
           await pool.query(
-            `INSERT INTO affiliate_referrals (affiliate_id, user_id, user_email, commission_cents, status, trial_start_date, trial_end_date, monthly_commission_cents)
-             VALUES ($1, $2, $3, 0, 'trial', $4, $5, $6)
+            `INSERT INTO affiliate_referrals (affiliate_id, user_id, user_email, commission_cents, status, converted_to_paid, subscription_active, monthly_commission_cents)
+             VALUES ($1, $2, $3, $4, 'active', true, true, $4)
              ON CONFLICT DO NOTHING`,
-            [aff.id, userId, userEmail.rows[0]?.email || '', trialStart, trialEnd, commissionCents]
+            [aff.id, userId, userEmail.rows[0]?.email || '', commissionCents]
           );
-          console.log(`Affiliate ${affiliateCode}: user ${userId} started 6-month trial, commission $${(commissionCents / 100).toFixed(2)}/mo after trial`);
+
+          await pool.query(
+            'UPDATE affiliates SET total_earned_cents = total_earned_cents + $1 WHERE id = $2',
+            [commissionCents, aff.id]
+          );
+
+          console.log(`Affiliate ${affiliateCode}: user ${userId} subscribed at 50% off, commission $${(commissionCents / 100).toFixed(2)}/mo`);
         }
       } catch (err) {
         console.error('Affiliate tracking on checkout error:', err.message);
@@ -157,27 +161,14 @@ export class WebhookHandlers {
         [subscription.id, tier, 'active', userId]
       );
 
-      if (tier === 'pro' && !subscription.trial_end) {
+      if (tier === 'pro') {
         try {
           await pool.query(
-            `UPDATE affiliate_referrals SET converted_to_paid = true, subscription_active = true, status = 'converted'
-             WHERE user_id = $1 AND converted_to_paid = false`,
+            `UPDATE affiliate_referrals SET subscription_active = true WHERE user_id = $1 AND converted_to_paid = true`,
             [userId]
           );
-          const affRef = await pool.query(
-            `SELECT ar.monthly_commission_cents, ar.affiliate_id FROM affiliate_referrals ar WHERE ar.user_id = $1 AND ar.converted_to_paid = true`,
-            [userId]
-          );
-          if (affRef.rows.length > 0) {
-            const ref = affRef.rows[0];
-            await pool.query(
-              'UPDATE affiliates SET total_earned_cents = total_earned_cents + $1 WHERE id = $2',
-              [ref.monthly_commission_cents, ref.affiliate_id]
-            );
-            console.log(`Affiliate commission: user ${userId} converted from trial, earning $${(ref.monthly_commission_cents / 100).toFixed(2)}/mo`);
-          }
         } catch (err) {
-          console.error('Affiliate conversion tracking error:', err.message);
+          console.error('Affiliate subscription status update error:', err.message);
         }
       }
     } else if (status === 'canceled' || status === 'unpaid' || status === 'past_due') {

@@ -11,7 +11,7 @@ The application uses a single Express server for both API and React frontend, se
 
 The UI/UX emphasizes intuitive navigation and visual engagement, incorporating team logos, color schemes, and interactive elements. Features include real-time game scores (ESPN API), a notification system, fan-finder, and administrative analytics. Additional functionalities include:
 - **Venue QR Code Check-in**: Unique QR codes for attendance verification, earning users points and badges.
-- **Pricing Model**: Core features are free; an optional "Pro" tier ($2.99/month or $29.99/year) offers premium perks like an ad-free experience, VIP badge, 2x points multiplier, priority party placement (Pro parties sorted to top of city listings), custom themes, advanced analytics, and priority support.
+- **Pricing Model**: Core features are free; an optional "Pro" tier ($2.99/month or $29.99/year) offers premium perks like an ad-free experience, VIP badge, 2x points multiplier, priority party placement (Pro parties sorted to top of city listings), custom themes, advanced analytics, and priority support. Ads are non-clickable (display-only).
 - **Rewards & Points System**: Users earn points for engagement (creating/attending parties, invites, check-ins), with Pro users receiving a 2x multiplier. Points are used for raffle entries for grand prizes.
 - **Sponsor System**: Features 5 sponsor slots per sport league (Standard and Premium tiers) with dedicated banner display.
 - **Main Sponsor Banner**: A prominent, fixed banner at the top of all pages for the most premium advertising placement.
@@ -24,7 +24,7 @@ The UI/UX emphasizes intuitive navigation and visual engagement, incorporating t
     - **Game & Rivalry Alerts**: Customizable notifications for team games and classic rivalries.
     - **Event Tickets & Promoted Parties**: Hosts can set up ticketing and promote parties.
     - **Party Highlights/Recaps**: Hosts can create textual and photo highlights for past parties.
-- **Affiliate Program**: A paid program for partners to earn commissions for user signups, managed via an admin panel.
+- **Affiliate Program**: Influencers get unique codes that give users 50% off Pro ($1.50/mo instead of $2.99). Influencers earn recurring commissions (30% default) on each paying user. Managed via admin panel with public influencer dashboards.
 - **Featured Venue System**: Two venue tiers (Regular and Featured) with Featured venues receiving priority placement, badges, and enhanced visibility.
 - **Fan vs. Venue Account System**: Distinct signup flows and dashboards for Fan and Venue users, with specific features tailored to each role.
 - **Interactive Spotlight Tour**: A step-by-step walkthrough of key app features for new users.
