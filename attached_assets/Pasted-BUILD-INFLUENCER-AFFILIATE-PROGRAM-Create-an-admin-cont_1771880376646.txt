@@ -1,0 +1,183 @@
+BUILD INFLUENCER AFFILIATE PROGRAM
+
+Create an admin-controlled influencer affiliate system with the following specifications:
+
+=== ADMIN FEATURES ===
+
+1. ADMIN DASHBOARD - Add new section "Influencer Management"
+   - Create influencer affiliate codes (admin only)
+   - View all active affiliate codes
+   - See affiliate performance (signups, revenue, payouts)
+   - Deactivate/pause affiliate codes
+   - Export affiliate reports
+
+2. CREATE AFFILIATE CODE FORM (Admin Only):
+   - Influencer name (required)
+   - Influencer email (required)
+   - Custom code (e.g., "SPORTS50", "BARSTOOL", "ESPNFAN") - must be unique
+   - Optional: Max redemptions limit
+   - Optional: Expiration date
+   - Auto-generate code option (random 8-character code)
+   - Commission rate: Default 30% (admin can adjust 10-50%)
+
+3. AFFILIATE CODE DATABASE:
+   Store in database/state:
+   - code_id (unique)
+   - affiliate_code (e.g., "BARSTOOL")
+   - influencer_name
+   - influencer_email
+   - commission_rate (default: 0.30 for 30%)
+   - created_date
+   - status (active/paused/expired)
+   - total_uses
+   - total_revenue_generated
+   - total_commission_earned
+   - max_redemptions (optional)
+   - expiration_date (optional)
+
+=== USER EXPERIENCE ===
+
+1. SIGNUP/UPGRADE FLOW:
+   - When user signs up or upgrades to Pro, show field:
+     "Have an influencer code? Enter it here (optional)"
+   - If code entered:
+     * Validate code (check if exists, active, not expired, under max redemptions)
+     * If VALID: Apply 6-month free Pro trial
+     * Show success message: "Code applied! You get Pro FREE for 6 months, then $2.99/mo"
+     * Track which user used which code
+
+2. WHAT USER GETS:
+   - Pro features FREE for first 6 months
+   - After 6 months: Auto-charge $2.99/mo (Stripe subscription)
+   - User can cancel anytime
+
+3. PRO FEATURES (already built, just confirm they're working):
+   - Ad-free experience
+   - VIP badge ⭐
+   - 2x points multiplier
+   - Early party access (24 hours before free users)
+   - Custom profile themes
+   - Advanced analytics
+   - Priority support
+   - Custom party backgrounds
+
+=== COMMISSION TRACKING ===
+
+1. TRACK EACH REDEMPTION:
+   Store in database when code is used:
+   - redemption_id
+   - affiliate_code
+   - user_id (who used the code)
+   - redemption_date
+   - trial_start_date
+   - trial_end_date (6 months from start)
+   - subscription_start_date (after trial ends)
+   - commission_earned (calculated monthly after trial)
+   - payout_status (pending/paid)
+
+2. COMMISSION CALCULATION:
+   - Month 1-6: $0 commission (user is on free trial)
+   - Month 7+: Influencer earns 30% of $2.99 = $0.90 per month per user
+   - Commission only earned while user remains subscribed
+   - If user cancels, commission stops
+
+3. AFFILIATE DASHBOARD (for influencers - create separate view):
+   - Total redemptions
+   - Active users (paying after trial)
+   - Total commission earned
+   - Pending payout
+   - Payment history
+   - Unique affiliate link: https://huddleupus.com/signup?code=BARSTOOL
+
+=== STRIPE INTEGRATION ===
+
+1. MODIFY STRIPE SUBSCRIPTION:
+   - When user applies valid code:
+     * Create Stripe subscription with 6-month trial (trial_period_days: 180)
+     * Price: $2.99/mo
+     * Start charging after 180 days
+   
+2. WEBHOOK HANDLING:
+   - When subscription becomes active (after trial):
+     * Mark user as "paying customer" in affiliate tracking
+     * Start calculating monthly commission for influencer
+   
+   - When subscription is cancelled:
+     * Stop commission tracking for that user
+
+=== ADMIN REPORTING ===
+
+1. INFLUENCER PERFORMANCE TABLE:
+   Show table with columns:
+   - Influencer Name
+   - Code
+   - Total Redemptions
+   - Active Paying Users (post-trial)
+   - Total Revenue Generated
+   - Commission Earned
+   - Commission Pending
+   - Status
+   - Actions (View Details, Pause, Export)
+
+2. PAYOUT TRACKING:
+   - Mark commissions as "Paid" when influencer is paid
+   - Export payout reports (CSV)
+   - Filter by date range, influencer, status
+
+=== VALIDATION & ERROR HANDLING ===
+
+1. CODE VALIDATION:
+   - Check if code exists
+   - Check if active (not paused/expired)
+   - Check if under max redemptions limit
+   - Check expiration date
+   - Show clear error messages if invalid
+
+2. PREVENT ABUSE:
+   - One code per user (can't use multiple codes)
+   - Track code in user's account permanently
+   - If user already used a code, show: "You've already used an influencer code"
+
+=== UI/UX UPDATES ===
+
+1. ADD TO SIGNUP FLOW:
+   After email/password fields, add:
+   [Optional input field]
+   "Have an influencer code?"
+   [Text input: "Enter code"]
+   [Apply button]
+
+2. ADD TO SETTINGS/UPGRADE PAGE:
+   If user is free tier:
+   "Upgrade to Pro - $2.99/mo"
+   [Input: "Have an influencer code? Get 6 months free!"]
+
+3. ADMIN NAVIGATION:
+   Add menu item: "Influencers" or "Affiliate Program"
+
+=== NOTIFICATIONS ===
+
+1. EMAIL TO USER (when code applied):
+   Subject: "Welcome to Pro - 6 Months FREE!"
+   Body: "Your code [CODE] has been applied. You now have Pro features for 6 months, then $2.99/mo. Cancel anytime."
+
+2. EMAIL TO INFLUENCER (when code is used):
+   Subject: "New signup with your code!"
+   Body: "[User] just signed up with code [CODE]. You'll earn $0.90/mo after their 6-month trial."
+
+=== SECURITY ===
+
+- Only admins can create/manage codes
+- Codes are case-insensitive (BARSTOOL = barstool)
+- Prevent SQL injection on code input
+- Rate limit code validation (max 5 attempts per minute per user)
+
+=== IMPLEMENTATION NOTES ===
+
+- Use existing Stripe subscription system
+- Add new database tables/collections for affiliate tracking
+- Update user model to store affiliate_code_used
+- Create admin routes for affiliate management
+- Add affiliate commission calculations to monthly cron job
+
+Build this complete influencer affiliate system with all admin controls, user flows, commission tracking, and reporting.

@@ -434,6 +434,10 @@ export async function initDB() {
         code TEXT UNIQUE NOT NULL,
         commission_type TEXT DEFAULT 'per_signup',
         commission_amount_cents INTEGER DEFAULT 500,
+        commission_rate NUMERIC(4,2) DEFAULT 0.30,
+        max_redemptions INTEGER,
+        expiration_date TIMESTAMPTZ,
+        dashboard_token TEXT UNIQUE,
         status TEXT DEFAULT 'active',
         payment_method TEXT DEFAULT 'paypal',
         payment_details TEXT,
@@ -450,6 +454,11 @@ export async function initDB() {
         user_email TEXT,
         commission_cents INTEGER DEFAULT 0,
         status TEXT DEFAULT 'pending',
+        trial_start_date TIMESTAMPTZ,
+        trial_end_date TIMESTAMPTZ,
+        converted_to_paid BOOLEAN DEFAULT FALSE,
+        subscription_active BOOLEAN DEFAULT FALSE,
+        monthly_commission_cents INTEGER DEFAULT 0,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
 
