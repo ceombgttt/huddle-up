@@ -239,6 +239,7 @@ const DEMO_MAIN_SPONSOR = {
  isDemo: true,
 };
 
+const MAIN_BANNER_HEIGHT = 56;
 const MainSponsorBanner = ({ mainSponsor }) => {
  const sponsor = mainSponsor || DEMO_MAIN_SPONSOR;
  const bannerSrc = sponsor.bannerUrl || sponsor.logoUrl;
@@ -250,11 +251,11 @@ const MainSponsorBanner = ({ mainSponsor }) => {
  }
  }}
  className={`w-full relative overflow-hidden ${sponsor.url && sponsor.url !== '#' ? 'cursor-pointer' : ''}`}
- style={{ height: '120px' }}
+ style={{ height: `${MAIN_BANNER_HEIGHT}px` }}
  >
  <img src={bannerSrc} alt={sponsor.name} className="absolute inset-0 w-full h-full object-cover" />
  {sponsor.isDemo && (
- <div className="absolute bottom-1 right-2 text-[10px] text-white/30 font-medium">AD</div>
+ <div className="absolute bottom-0.5 right-2 text-[9px] text-white/30 font-medium">AD</div>
  )}
  </div>
  );
@@ -6797,10 +6798,10 @@ const HuddleUpApp = () => {
  </p>
  {sponsorPlacementType === 'main_banner' ? (
  <div className="text-xs text-[#A0A4AB] space-y-0.5">
- <p><span className="text-white font-medium">Recommended Size:</span> 1200 x 200 px (6:1 ratio)</p>
- <p><span className="text-white font-medium">Minimum Size:</span> 800 x 120 px</p>
+ <p><span className="text-white font-medium">Recommended Size:</span> 1200 x 150 px (8:1 ratio)</p>
+ <p><span className="text-white font-medium">Minimum Size:</span> 800 x 100 px</p>
  <p><span className="text-white font-medium">Format:</span> PNG or JPG, max 2MB</p>
- <p><span className="text-white font-medium">Display:</span> Full-width banner at top of all pages, 120px tall</p>
+ <p><span className="text-white font-medium">Display:</span> Full-width banner fixed at top of all pages</p>
  <p className="text-amber-400/70 mt-1">Tip: Use a wide, horizontal image with bold text and logo. Dark backgrounds work best.</p>
  </div>
  ) : (
@@ -12309,9 +12310,12 @@ const HuddleUpApp = () => {
  {showInviteReminder && <InviteReminderPopup />}
 
  {user && !isPro && !['welcome', 'login', 'signup', 'forgotPassword'].includes(currentScreen) && (
- <div className="fixed top-0 left-0 right-0 z-[60]">
+ <>
+ <div className="fixed top-0 left-0 right-0 z-[60]" style={{ height: `${MAIN_BANNER_HEIGHT}px` }}>
  <MainSponsorBanner />
  </div>
+ <div style={{ height: `${MAIN_BANNER_HEIGHT}px` }} />
+ </>
  )}
 
  {currentScreen === 'welcome' && <WelcomeScreen />}
