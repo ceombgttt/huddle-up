@@ -2,10 +2,11 @@ import { getUncachableStripeClient } from './stripeClient.js';
 
 const PRODUCTS = [
   {
-    name: 'Huddle Up Fan',
-    description: 'Access to all watch parties, game scores, fan finder, and crew features. Support the Huddle Up community!',
-    metadata: { tier: 'fan', order: '1' },
-    priceAmountCents: 499,
+    name: 'Huddle Up Pro',
+    description: 'Ad-free experience, VIP badge, 2x points multiplier, early party access, custom profile themes, and more premium perks.',
+    metadata: { tier: 'pro', order: '1' },
+    priceAmountCents: 299,
+    yearlyPriceAmountCents: 2999,
   },
   {
     name: 'Huddle Up Venue',
@@ -53,6 +54,16 @@ async function seedProducts() {
       });
 
       console.log(`Created: ${p.name} (${product.id}) - $${(p.priceAmountCents / 100).toFixed(2)}/mo (${price.id})`);
+
+      if (p.yearlyPriceAmountCents) {
+        const yearlyPrice = await stripe.prices.create({
+          product: product.id,
+          unit_amount: p.yearlyPriceAmountCents,
+          currency: 'usd',
+          recurring: { interval: 'year' },
+        });
+        console.log(`  + Yearly price: $${(p.yearlyPriceAmountCents / 100).toFixed(2)}/yr (${yearlyPrice.id})`);
+      }
     }
 
     console.log('Done! Products will sync to database via webhook.');

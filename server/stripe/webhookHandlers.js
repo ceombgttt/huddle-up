@@ -43,8 +43,8 @@ export class WebhookHandlers {
     if (!userId || !tier) return;
 
     await pool.query(
-      'UPDATE users SET stripe_subscription_id = $1, subscription_tier = $2 WHERE id = $3',
-      [session.subscription, tier, userId]
+      'UPDATE users SET stripe_subscription_id = $1, subscription_tier = $2, subscription_status = $3 WHERE id = $4',
+      [session.subscription, tier, 'active', userId]
     );
     console.log(`User ${userId} subscription updated to tier: ${tier}`);
 
@@ -122,10 +122,11 @@ export class WebhookHandlers {
 
     if (status === 'active') {
       const metadata = subscription.metadata || {};
-      const tier = metadata.tier || 'fan';
+      const existingTier = await pool.query('SELECT subscription_tier FROM users WHERE id = $1', [userId]);
+      const tier = metadata.tier || existingTier.rows[0]?.subscription_tier || 'free';
       await pool.query(
-        'UPDATE users SET stripe_subscription_id = $1, subscription_tier = $2 WHERE id = $3',
-        [subscription.id, tier, userId]
+        'UPDATE users SET stripe_subscription_id = $1, subscription_tier = $2, subscription_status = $3 WHERE id = $4',
+        [subscription.id, tier, 'active', userId]
       );
     } else if (status === 'canceled' || status === 'unpaid' || status === 'past_due') {
       const prevTier = await pool.query('SELECT subscription_tier FROM users WHERE id = $1', [userId]);

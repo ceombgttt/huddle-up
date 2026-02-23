@@ -1,0 +1,70 @@
+Update the Huddle Up app pricing model:
+
+PRICING CHANGES:
+
+1. REMOVE all user subscription requirements ($4.99/mo)
+   - Remove the 6-month free trial system
+   - Remove subscription checks for basic features
+   - Make ALL core features free for all users
+
+2. ADD optional "Pro" tier at $2.99/mo with these features:
+   - Ad-free experience (remove sponsor banners)
+   - Early access to parties (see/join parties 24 hours before free users)
+   - Custom profile themes (choose from 5 color schemes: Electric Blue, Neon Green, Hot Pink, Purple Fade, Gold Rush)
+   - VIP badge next to username (gold star icon ⭐)
+   - Priority support (marked as Pro user in support queue)
+   - 2x points multiplier (earn double points for all actions)
+   - Custom party backgrounds (upload custom banner for parties you host)
+   - Advanced analytics (see detailed stats on your parties)
+
+3. UPDATE the subscription flow:
+   - Add "Upgrade to Pro" button in profile settings
+   - Show Pro benefits on a dedicated "Pro Features" screen
+   - Use existing Stripe integration, change price from $4.99 to $2.99
+   - Add "Pro" badge throughout app for users who subscribe
+   - Keep subscription optional - never block core features
+
+4. FREE tier includes (confirm these are accessible without Pro):
+   - Browse all parties
+   - Join unlimited parties  
+   - Create unlimited parties
+   - Party chat & messaging
+   - Photo sharing
+   - Fan Finder
+   - Friend requests & My Crew
+   - Team chat rooms
+   - Party reviews & ratings
+   - Fantasy league integration
+   - Points system & rewards
+   - Badges (all 8 types)
+   - QR check-in
+   - Push notifications
+   - SMS notifications
+   - Social media sharing
+   - ALL core features
+
+5. UPDATE UI/UX:
+   - Remove any "Subscribe to continue" modals
+   - Remove subscription requirement warnings
+   - Add subtle "Upgrade to Pro" prompts (not blocking)
+   - Show Pro badge on Pro users' profiles
+   - Add Pro features list in settings menu
+
+6. KEEP venue pricing unchanged:
+   - Free tier: Basic listing
+   - Featured tier: $199/mo
+   - Multi-location tiers: $499/mo and $999/mo
+
+7. ADD Pro comparison screen showing:
+   Free vs Pro side-by-side comparison table
+   "Try Pro Free for 7 days" button
+   "Only $2.99/month" pricing
+   Monthly/Yearly toggle (Yearly: $29.99/year - save $6)
+
+8. UPDATE all pricing mentions in:
+   - Settings screens
+   - Onboarding flow
+   - About/Help sections
+   - Any hardcoded pricing references
+
+Make sure core app functionality is 100% free - Pro should feel like optional premium perks, not required features.

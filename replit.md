@@ -1,80 +1,44 @@
 # Huddle Up - Find Watch Parties
 
 ## Overview
-Huddle Up is a full-stack web application designed to connect sports fans by facilitating the discovery and organization of sports watch parties. It enables users to find local venues hosting games, create their own watch parties, and interact with a community of fellow enthusiasts. The platform aims to enhance the sports-watching experience by making it easier for fans to gather, socialize, and cheer for their favorite teams together. Key capabilities include user authentication, party creation and management, venue claiming, and administrative controls.
+Huddle Up is a full-stack web application connecting sports fans by facilitating the discovery and organization of sports watch parties. It enables users to find local venues, create parties, and engage with a community of enthusiasts. The platform aims to enhance the sports-watching experience by making it easier for fans to gather and socialize. Key capabilities include user authentication, party management, venue claiming, and administrative controls. The project seeks to create a vibrant community around live sports viewing, offering a comprehensive solution for fans to connect and enjoy games together.
 
 ## User Preferences
 I prefer detailed explanations and iterative development. Ask before making major changes. Do not make changes to the `public/` folder.
 
 ## System Architecture
-The application employs a single Express server to serve both the API and the React frontend. In development, it uses Vite in middleware mode, while in production, Express serves static built files. The backend utilizes a PostgreSQL database for data persistence and a custom email/password authentication system secured with bcrypt and express-session. Tailwind CSS is used for styling, complemented by custom CSS and Lucide React for icons. The project structure is organized into `server/` for backend logic (routes, DB) and `src/` for frontend components and API client. Object storage, specifically Replit's built-in GCS-backed storage, is used for managing user-uploaded content like profile pictures and venue images via presigned URLs.
+The application uses a single Express server for both API and React frontend, serving static built files in production and utilizing Vite in development. PostgreSQL is the primary database. Authentication is handled by a custom email/password system secured with bcrypt and express-session. Styling uses Tailwind CSS, custom CSS, and Lucide React icons. The project is structured with `server/` for backend logic and `src/` for frontend components. Object storage via Replit's GCS-backed storage manages user-uploaded images using presigned URLs.
 
-The UI/UX focuses on intuitive navigation and a visually engaging experience for sports fans, featuring team logos, color schemes, and interactive elements like maps and chat. Key features include real-time game scores from the ESPN API, a comprehensive notification system for party updates and score alerts, a fan-finder mechanism for social interaction, and robust administrative analytics for monitoring platform activity. The system also supports SMS notifications via Twilio for personalized party alerts and a rewards system to incentivize user engagement.
-
-## Venue QR Code Check-in System
-Venues get unique QR codes for attendance verification. Venue owners generate/manage QR codes from their dashboard. Users scan the QR code URL with their phone camera to check in, earning 75 points and a "Verified Attendee" badge. The system auto-detects active parties at the venue for the user. Venue owners see real turnout stats including total/verified check-ins and unique visitors. Tables: venue_qr_codes (venue_id, token, active). Routes at /api/qr/*. Frontend: VenueQrSection component (outside App), QrCheckinScreen (inside App). URL pattern: /checkin/:token.
-
-## Rewards & Points System
-Users earn points for engagement: creating parties (50 pts), attending parties (25 pts), inviting friends (100 pts), and checking in at venues (75 pts). Points can be redeemed for rewards like free drinks, subscription months, merch discounts, VIP badges, and more. Backend uses transactional point deduction with SELECT FOR UPDATE for concurrency safety. Points are awarded automatically in existing party/invite flows. Check-in is available on party cards for attending members. Tables: user_points, points_history, rewards, reward_redemptions, venue_checkins. Routes at /api/rewards/*.
-
-## Sponsor System (Per-Sport Slots)
-5 sponsor slots per sport league. Slots 1-4 are Standard tier ($99.99/mo, single-sport placement). Slot 5 is Premium Multi-Sport tier ($299.99/mo, can target multiple sports). Sponsors subscribe via Stripe, auto-get a sponsor record, and manage their banner (name, tagline, logo, website, target sports) from the Sponsor Dashboard. Demo example sponsors with generated logos are shown for NFL and NBA to visualize the system. Empty slots show "Available". Real sponsors replace demo/empty slots. Banner design: large format with sponsor image covering ~45% left side, big bold text (2xl-3xl) on the right, rotating through all 5 slots with dot indicators. No pricing shown on banners. Backend: server/routes/sponsors.js. DB columns: sponsor_tier (standard/premium), slot_number, target_sports[]. Frontend: DEMO_SPONSORS array (5 per NFL, 5 per NBA), getSponsorsForSport() function, SLOT_STYLES array with 5 color themes. Admin manages all sponsors from admin panel. public/demo-sponsors/ contains example logo images.
-
-## Main Sponsor (Top Banner)
-The Main Sponsor is the most premium placement - a fixed orange/amber banner at the very top of all pages (above navigation) for logged-in users. Shows sponsor logo (w-10 h-10), name, tagline, and "MAIN SPONSOR" label. Only one Main Sponsor at a time across the entire platform. When no real main sponsor is active, a demo example (Victory Sports Drink) is shown with an "Advertise" button. The MainSponsorBanner component is defined at the top level and rendered via fixed positioning (z-60). Banner height is h-14 (56px). All screen containers have pt-14 and sticky headers use top-14 to account for the banner height. Demo logo: public/demo-sponsors/victory-sports-main.png.
-
-## Fantasy League Integration
-Manual fantasy league tracking system integrated into the platform. Users can create and join fantasy leagues for any sport (NFL, NBA, MLB, NHL, Soccer) across platforms (ESPN, Yahoo, Sleeper, Other). Features include: league creation with auto-generated invite codes, team management, player roster tracking (name, position, NFL team, starter status), standings/leaderboard with W-L records and points, commissioner controls (delete league), and party integration via party_fantasy_links table. Chat includes "Trash Talk" mode (message_type='fantasy') with special orange/red gradient styling and trophy icon toggle. Fantasy Hub accessible via orange Trophy button in main nav bar. Tables: fantasy_leagues, fantasy_teams, fantasy_players, party_fantasy_links. Routes at /api/fantasy/*. Frontend: renderFantasyScreen function in App.jsx. Platform badge colors: ESPN=red, Yahoo=purple, Sleeper=green, Other=gray. Access control enforces league membership for viewing details.
-
-## Community & Engagement Features (New)
-Several new community features have been added:
-
-### Party Reviews & Ratings
-Users can rate parties on atmosphere, food/drinks, and crowd energy (1-5 stars). Reviews include text comments. Backend: server/routes/reviews.js. Routes at /api/reviews/*. Tables: party_reviews (party_id, user_id, atmosphere, food_drinks, crowd_energy, comment).
-
-### Team Chat Rooms
-Team-specific chat rooms grouped by sport. Users can join rooms for their favorite teams and chat with other fans. Backend: server/routes/teamchat.js. Routes at /api/team-chats/*. Tables: team_chat_rooms, team_chat_messages. Frontend: renderTeamChatsScreen in App.jsx. Accessible via teal "Team Chat" button in nav bar.
-
-### User Profiles with Stats
-Public user profiles showing fan score, badges, stats (parties hosted/attended, reviews given, friends count), and activity timeline. Fan score = (parties_hosted*10) + (parties_attended*5) + (reviews_given*3) + (friends_count*2) + (total_points/10). 8 badge types: Party Starter, Social Butterfly, Regular, Superfan, Critic, Popular, VIP, Pioneer. Backend: server/routes/profile.js. Routes at /api/profile/*.
-
-### Trending Feed
-Shows hot parties (most attendees in next 7 days), hot venues (most parties in last 30 days), and popular sports. Promoted parties appear at top. Backend: server/routes/trending.js. Routes at /api/trending/*. Frontend: renderTrendingScreen in App.jsx. Accessible via pink "Trending" button in nav bar.
-
-### Game Alerts & Rivalry Alerts
-Notification preferences for team alerts, rivalry alerts, suggested parties, and game reminders. Team alerts notify when favorite teams play soon. Rivalry alerts for classic matchups (e.g., Yankees vs Red Sox, Lakers vs Celtics). Seeded with 11 default rivalry pairs. Backend: server/routes/alerts.js. Routes at /api/alerts/*. Tables: notification_preferences, rivalry_pairs.
-
-### Event Tickets & Promoted Parties
-Hosts can set up ticketing (price, capacity) and promote parties. Users can purchase tickets (simplified MVP without Stripe). My Tickets screen shows purchased tickets. Backend: server/routes/tickets.js. Routes at /api/tickets/*. Tables: party_tickets, ticket_purchases, promoted_parties.
-
-### Party Highlights/Recaps
-Hosts can create highlights/recaps for past parties with text and photos. Recent highlights appear in the trending feed. Backend: server/routes/trending.js (highlights endpoints). Table: party_highlights.
-
-## Raffle-Based Rewards System
-Points system focuses on raffle entries instead of merchandise/venue redemptions. Users earn points through engagement (create party 50pts, attend party 25pts, invite friend 100pts, venue check-in 75pts, referral welcome bonus 50pts). Points are spent to enter raffles for grand prizes (game tickets, signed memorabilia, electronics). Each raffle has configurable points-per-entry cost and max entries per user. Backend: server/routes/raffles.js. Routes at /api/raffles/*. Tables: raffles, raffle_entries. Frontend: Raffles tab in RewardsScreen (replaces old Redeem tab). Welcome bonus: 50 points awarded when a new user applies a referral code; referrer gets 100 points.
-
-## Affiliate Program
-Paid affiliate program for partners/influencers who promote Huddle Up. Affiliates earn real money (commissions) for each signup they generate. Admin manages everything: create affiliates with unique codes, set commission rates (per signup, per subscription, or percentage), choose payment methods (PayPal, Venmo, Zelle, check, bank transfer). When users sign up with an affiliate code, a referral is tracked automatically as "pending". Admin reviews and approves/rejects each referral. Approved referrals add to the affiliate's earned balance. Admin processes payouts when ready, recording payment references. This is separate from the existing user referral system (which only awards points). Tables: affiliates, affiliate_referrals, affiliate_payouts. Users table has affiliate_code column. Routes at /api/affiliates/*. Frontend: Affiliates tab in Admin Panel.
-
-## Featured Venue System
-Two venue tiers: Regular ($29.99/mo) and Featured ($49.99/mo). Featured venues get priority search placement, a gold star badge, trending feed boost, fan notifications, enhanced analytics, and promoted party labels. Stripe product "Huddle Up Featured Venue" with tier metadata 'featured_venue'. On checkout completion, webhook sets venues.featured=true, featured_tier='featured', featured_until=NOW()+30 days. On subscription cancellation, featured status is removed. Venue Hub has a "Go Featured" tab (star icon) showing perks comparison table, pricing card, and Stripe checkout button. Already-featured venues see active status with manage subscription button. DB columns: venues.featured_tier, venues.featured_until, venues.featured_subscription_id. Venues sorted by featured status first in search results and trending feed.
-
-## Fan vs Venue Account System
-Users choose their account type (Fan or Venue) during signup via a dedicated type selection screen. The signup flow is: Welcome → Choose Type (Fan/Venue) → Type-specific Signup Form → App. Fan signup includes gender, date of birth (21+ age verification), and personal details. Venue signup includes venue name, venue address, and contact name (no age verification required). The user_type column ('fan'/'venue') is stored in the users table. Venue accounts auto-create a claimed venue record on signup. After login, venue users land on the Venue Hub dashboard while fans land on the games screen. The /me endpoint also routes returning users to the correct experience. Backend: server/routes/auth.js handles user_type in signup/login/me responses. Frontend: signupTypeScreenJSX for type selection, conditional signup form fields in signUpScreenJSX. Venue Hub (VenueHubScreen) with Dashboard, Promote Games, and Deals tabs is exclusive to venue accounts. Tables: users.user_type column, venue_promotions, venue_deals. Routes: /api/venue-hub/*.
-
-## Interactive Spotlight Tour
-"Take a Tour" feature provides an interactive step-by-step walkthrough of the app. Uses SVG mask-based spotlight overlay to highlight actual UI elements one at a time. 9 tour stops cover: nav buttons, location search, sports scroller, game cards, My Crew, Rewards, Trending, Alerts, and Profile. Each step shows a tooltip with icon, title, description, and progress dots. Navigation via Back/Skip/Next buttons. Auto-triggers for first-time users (1.5s after landing on games screen). State tracked via localStorage 'huddle_tour_seen'. "Take a Tour" button on games screen and in Profile > Help & Info. Uses data-tour-id attributes on target elements. Spotlight rect updates on scroll/resize. Implementation: spotlightTourJSX() render function + useEffect for rect tracking in App.jsx.
+The UI/UX emphasizes intuitive navigation and visual engagement, incorporating team logos, color schemes, and interactive elements. Features include real-time game scores (ESPN API), a notification system, fan-finder, and administrative analytics. Additional functionalities include:
+- **Venue QR Code Check-in**: Unique QR codes for attendance verification, earning users points and badges.
+- **Pricing Model**: Core features are free; an optional "Pro" tier ($2.99/month or $29.99/year) offers premium perks like an ad-free experience, VIP badge, 2x points multiplier, early party access, custom themes, advanced analytics, and priority support.
+- **Rewards & Points System**: Users earn points for engagement (creating/attending parties, invites, check-ins), with Pro users receiving a 2x multiplier. Points are used for raffle entries for grand prizes.
+- **Sponsor System**: Features 5 sponsor slots per sport league (Standard and Premium tiers) with dedicated banner display.
+- **Main Sponsor Banner**: A prominent, fixed banner at the top of all pages for the most premium advertising placement.
+- **Fantasy League Integration**: Allows users to create and join fantasy leagues for various sports and platforms, with team management, standings, commissioner controls, and party integration. Includes a "Trash Talk" chat mode.
+- **Community & Engagement**:
+    - **Party Reviews & Ratings**: Users can rate parties on atmosphere, food/drinks, and crowd energy.
+    - **Team Chat Rooms**: Sport-specific chat rooms for fans to connect.
+    - **User Profiles**: Public profiles displaying fan scores, badges, stats, and activity timelines.
+    - **Trending Feed**: Shows hot parties, venues, and popular sports.
+    - **Game & Rivalry Alerts**: Customizable notifications for team games and classic rivalries.
+    - **Event Tickets & Promoted Parties**: Hosts can set up ticketing and promote parties.
+    - **Party Highlights/Recaps**: Hosts can create textual and photo highlights for past parties.
+- **Affiliate Program**: A paid program for partners to earn commissions for user signups, managed via an admin panel.
+- **Featured Venue System**: Two venue tiers (Regular and Featured) with Featured venues receiving priority placement, badges, and enhanced visibility.
+- **Fan vs. Venue Account System**: Distinct signup flows and dashboards for Fan and Venue users, with specific features tailored to each role.
+- **Interactive Spotlight Tour**: A step-by-step walkthrough of key app features for new users.
 
 ## External Dependencies
-- **PostgreSQL**: Primary database for all application data.
+- **PostgreSQL**: Database.
 - **Express**: Backend web framework.
 - **React**: Frontend library.
 - **Vite**: Frontend build tool.
-- **Tailwind CSS**: Utility-first CSS framework.
-- **Lucide React**: Icon library.
+- **Tailwind CSS**: Styling.
+- **Lucide React**: Icons.
 - **bcrypt**: Password hashing.
 - **express-session** & **connect-pg-simple**: Session management.
-- **ESPN API**: For live game scores, team data, and sports information.
-- **Twilio**: For SMS text notifications.
-- **Google Maps API**: For interactive venue maps and directions.
-- **Replit Object Storage (GCS-backed)**: For storing user and venue images.
+- **ESPN API**: Live game scores and sports data.
+- **Twilio**: SMS notifications.
+- **Google Maps API**: Maps and directions.
+- **Replit Object Storage (GCS-backed)**: Image storage.

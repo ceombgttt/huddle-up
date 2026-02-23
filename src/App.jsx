@@ -795,10 +795,10 @@ const SubscriptionSection = ({ userType }) => {
  };
 
  const tierConfig = {
- fan: { icon: '\u{1F3DF}\u{FE0F}', color: 'cyan', label: 'Fan', features: ['Join unlimited watch parties', 'Fan Finder access', 'My Crew features', 'Live scores & alerts'] },
+ pro: { icon: '⭐', color: 'amber', label: 'Pro', features: ['Ad-free experience', 'VIP badge', '2x points multiplier', 'Early party access', 'Custom profile themes', 'Advanced analytics'] },
  venue: { icon: '\u{1F3EA}', color: 'green', label: 'Venue Owner', features: ['Claim & manage your venue', 'Upload photos & logo', 'Appear in search results', 'Analytics dashboard'] },
- sponsor: { icon: '\u{1F4E2}', color: 'orange', label: 'Sponsor', features: ['Premium banner ads', 'All sports coverage', 'Featured placement', 'Reach analytics'] },
- };
+ sponsor: { icon: '\\u{1F4E2}', color: 'orange', label: 'Sponsor', features: ['Premium banner ads', 'All sports coverage', 'Featured placement', 'Reach analytics'] },
+ }
 
  if (loading) {
  return (
@@ -836,16 +836,16 @@ const SubscriptionSection = ({ userType }) => {
  )}
  <div className="grid gap-3">
  {products.filter(product => {
- const tier = product.metadata?.tier || 'fan';
+ const tier = product.metadata?.tier || 'pro';
  if (userType === 'venue') return tier === 'venue';
- return tier === 'fan';
+ return tier === 'pro';
  }).sort((a, b) => {
  const orderA = parseInt(a.metadata?.order || '99');
  const orderB = parseInt(b.metadata?.order || '99');
  return orderA - orderB;
  }).map(product => {
- const tier = product.metadata?.tier || 'fan';
- const config = tierConfig[tier] || tierConfig.fan;
+ const tier = product.metadata?.tier || 'pro';
+ const config = tierConfig[tier] || tierConfig.pro;
  const price = product.prices?.[0];
  const isCurrentPlan = currentTier === tier;
 
@@ -964,7 +964,7 @@ const ReferralSection = ({ user }) => {
  AFFILIATE PROGRAM
  </h2>
  <p className="text-[#A0A4AB] text-sm mb-4">
- Share your code and earn 10% commission on every subscription from your referrals!
+ Share your code and earn rewards when your referrals join Huddle Up!
  </p>
 
  {referralData?.referralCode && (
@@ -1147,7 +1147,7 @@ const HuddleUpApp = () => {
  const [spotlightStep, setSpotlightStep] = useState(0);
  const [showInviteReminder, setShowInviteReminder] = useState(false);
  const inviteReminderShown = useRef(false);
- const [showTrialExpired, setShowTrialExpired] = useState(false);
+ const [showProScreen, setShowProScreen] = useState(false);
  const [myTeamsOnly, setMyTeamsOnly] = useState(false); // Filter by favorite teams
  const [venues, setVenues] = useState(SAMPLE_VENUES);
  const [venueClaims, setVenueClaims] = useState([]);
@@ -1518,15 +1518,7 @@ const HuddleUpApp = () => {
  }
  }, [currentScreen, user?.isAdmin, loadSponsors]);
 
- useEffect(() => {
- if (user && user.subscriptionStatus === 'expired') {
- const lastExpiredShown = localStorage.getItem('lastTrialExpiredShown');
- const oneDay = 24 * 60 * 60 * 1000;
- if (!lastExpiredShown || (Date.now() - parseInt(lastExpiredShown)) > oneDay) {
- setTimeout(() => setShowTrialExpired(true), 2000);
- }
- }
- }, [user?.subscriptionStatus]);
+ const isPro = user?.subscriptionTier === 'pro';
 
  useEffect(() => {
  if (!user || inviteReminderShown.current) return;
@@ -1630,7 +1622,7 @@ const HuddleUpApp = () => {
  const activeSponsors = adminSponsors.filter(s => s.status === 'active');
 
  const formScreens = ['welcome', 'login', 'signup', 'forgotPassword', 'claimVenue', 'createParty'];
- const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', 'qrCheckin', 'myParties', 'myCrew', 'fanFinder', 'invitations', 'venueDashboard', 'sponsorDashboard', 'teamChats', 'trending', 'myTickets', 'alerts', 'userProfile', 'dmChat', ...formScreens];
+ const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', 'qrCheckin', 'myParties', 'myCrew', 'fanFinder', 'invitations', 'venueDashboard', 'sponsorDashboard', 'teamChats', 'trending', 'myTickets', 'alerts', 'userProfile', 'dmChat', 'proUpgrade', ...formScreens];
  const isFormScreen = formScreens.includes(currentScreen);
  const isPauseScreen = pauseScreens.includes(currentScreen);
 
@@ -3189,51 +3181,155 @@ const HuddleUpApp = () => {
  );
  };
 
- const TrialExpiredPopup = () => {
- if (!showTrialExpired) return null;
- const dismissExpired = () => {
- setShowTrialExpired(false);
- localStorage.setItem('lastTrialExpiredShown', Date.now().toString());
+ const ProUpgradeScreen = () => {
+ const [proYearly, setProYearly] = useState(false);
+ const [upgrading, setUpgrading] = useState(false);
+ const proPerks = [
+ { icon: <Zap className="w-5 h-5" />, title: 'Ad-Free Experience', desc: 'No sponsor banners or ads anywhere in the app', color: 'text-yellow-400' },
+ { icon: <Clock className="w-5 h-5" />, title: 'Early Party Access', desc: 'See and join new parties 24 hours before free users', color: 'text-blue-400' },
+ { icon: <Star className="w-5 h-5" />, title: 'VIP Badge', desc: 'Gold VIP badge next to your name everywhere in the app', color: 'text-amber-400' },
+ { icon: <Trophy className="w-5 h-5" />, title: '2x Points Multiplier', desc: 'Earn double points for every action you take', color: 'text-purple-400' },
+ { icon: <Crown className="w-5 h-5" />, title: 'Custom Profile Themes', desc: 'Choose from 5 exclusive color schemes for your profile', color: 'text-pink-400' },
+ { icon: <BarChart3 className="w-5 h-5" />, title: 'Advanced Analytics', desc: 'See detailed stats on your parties and engagement', color: 'text-cyan-400' },
+ { icon: <Camera className="w-5 h-5" />, title: 'Custom Party Backgrounds', desc: 'Upload custom banners for parties you host', color: 'text-green-400' },
+ { icon: <Shield className="w-5 h-5" />, title: 'Priority Support', desc: 'Get faster responses from our support team', color: 'text-orange-400' },
+ ];
+ const comparisonRows = [
+ { feature: 'Browse & join parties', free: true, pro: true },
+ { feature: 'Create unlimited parties', free: true, pro: true },
+ { feature: 'Party chat & messaging', free: true, pro: true },
+ { feature: 'Live scores & updates', free: true, pro: true },
+ { feature: 'Fan Finder & My Crew', free: true, pro: true },
+ { feature: 'Team Chat Rooms', free: true, pro: true },
+ { feature: 'Points & badges', free: true, pro: true },
+ { feature: 'QR check-in', free: true, pro: true },
+ { feature: 'Notifications & alerts', free: true, pro: true },
+ { feature: 'Ad-free experience', free: false, pro: true },
+ { feature: 'Early party access (24hr)', free: false, pro: true },
+ { feature: 'VIP badge', free: false, pro: true },
+ { feature: '2x points multiplier', free: false, pro: true },
+ { feature: 'Custom profile themes', free: false, pro: true },
+ { feature: 'Custom party backgrounds', free: false, pro: true },
+ { feature: 'Advanced analytics', free: false, pro: true },
+ { feature: 'Priority support', free: false, pro: true },
+ ];
+ const handleUpgrade = async () => {
+ setUpgrading(true);
+ try {
+ const products = await api.stripe.products();
+ const proProduct = products.find(p => p.metadata?.tier === 'pro');
+ if (proProduct && proProduct.prices.length > 0) {
+ const targetPrice = proYearly
+ ? proProduct.prices.find(p => p.recurring?.interval === 'year') || proProduct.prices[0]
+ : proProduct.prices.find(p => p.recurring?.interval === 'month') || proProduct.prices[0];
+ const result = await api.stripe.checkout(targetPrice.id);
+ if (result?.url) window.location.href = result.url;
+ } else {
+ alert('Pro plan is being set up. Please try again shortly.');
+ }
+ } catch(e) { console.error(e); alert('Something went wrong. Please try again.'); }
+ setUpgrading(false);
  };
  return (
- <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-[75] flex items-center justify-center p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) dismissExpired(); }}>
- <div className="bg-[#151A22] rounded-2xl p-6 max-w-md w-full border-2 border-amber-500/30 shadow-2xl" onMouseDown={e => e.stopPropagation()}>
- <div className="text-center mb-5">
- <div className="text-5xl mb-3">⏰</div>
- <h2 className="text-2xl font-black text-white mb-2">Your Free Trial Has Ended</h2>
- <p className="text-[#A0A4AB] text-sm leading-relaxed">We hope you've been enjoying Huddle Up! Your 4-month free trial has wrapped up.</p>
- </div>
- <div className="mb-5 p-4 bg-gradient-to-br from-amber-500/15 to-orange-500/10 border border-amber-500/25 rounded-2xl text-center">
- <p className="text-white font-bold text-lg mb-1">Keep the party going!</p>
- <p className="text-amber-200 text-sm mb-3">Subscribe now for full access to everything</p>
- <div className="flex items-center justify-center gap-2 mb-2">
- <span className="text-4xl font-black text-white">$4.99</span>
- <span className="text-[#A0A4AB] text-sm">/month</span>
- </div>
- <p className="text-[#A0A4AB] text-xs">Cancel anytime. No contracts.</p>
- </div>
- <div className="space-y-2 mb-5">
- <div className="flex items-center gap-3 p-2.5 bg-[#1E90FF]/10 rounded-xl border border-[#1E90FF]/15">
- <span className="text-xl">🏈</span>
- <p className="text-white text-sm">Watch parties for 15+ sports leagues</p>
- </div>
- <div className="flex items-center gap-3 p-2.5 bg-green-500/10 rounded-xl border border-green-500/15">
- <span className="text-xl">📊</span>
- <p className="text-white text-sm">Live scores, team chats, and fan finder</p>
- </div>
- <div className="flex items-center gap-3 p-2.5 bg-purple-500/10 rounded-xl border border-purple-500/15">
- <span className="text-xl">🏆</span>
- <p className="text-white text-sm">Rewards, raffles, and exclusive badges</p>
- </div>
- </div>
- <div className="space-y-2">
- <button onClick={() => { dismissExpired(); setCurrentScreen('subscription'); }} className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold rounded-xl hover:opacity-90 transition-all text-lg">
- Subscribe Now - $4.99/mo
- </button>
- <button onClick={dismissExpired} className="w-full py-2.5 bg-[#0F1115] text-[#A0A4AB] rounded-xl hover:text-white transition-all text-sm">
- Maybe Later
+ <div className="min-h-screen pt-20 bg-[#0F1115]">
+ <div className="sticky top-14 z-10 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="max-w-lg mx-auto px-4 py-3">
+ <button onClick={() => setCurrentScreen('profile')} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors mb-2">
+ <ArrowLeft className="w-5 h-5" /> Back
  </button>
  </div>
+ </div>
+ <div className="max-w-lg mx-auto px-4 py-6 space-y-4">
+ {isPro ? (
+ <div className="relative overflow-hidden rounded-2xl border border-amber-500/40 bg-gradient-to-br from-amber-900/40 via-orange-900/30 to-yellow-900/20 p-5">
+ <div className="flex items-center gap-3 mb-3">
+ <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/30">
+ <Crown className="w-6 h-6 text-white" />
+ </div>
+ <div>
+ <h2 className="text-xl font-black text-white">You're a Pro!</h2>
+ <p className="text-amber-300 text-xs font-bold">All Pro perks are active</p>
+ </div>
+ </div>
+ <div className="grid grid-cols-2 gap-2 mt-4">
+ {proPerks.slice(0, 4).map((perk, i) => (
+ <div key={i} className="bg-black/20 rounded-xl p-3 border border-amber-500/20">
+ <div className={`${perk.color} mb-1`}>{perk.icon}</div>
+ <p className="text-white font-bold text-xs">{perk.title}</p>
+ </div>
+ ))}
+ </div>
+ <button onClick={async () => { try { const d = await api.stripe.portal(); if (d?.url) window.location.href = d.url; } catch(e) { console.error(e); } }} className="w-full mt-4 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-sm transition-all">
+ Manage Subscription
+ </button>
+ </div>
+ ) : (
+ <>
+ <div className="relative overflow-hidden rounded-2xl border border-[#222A36] bg-gradient-to-br from-[#151A22] via-[#1A1F2B] to-[#151A22] p-5">
+ <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+ <div className="text-center mb-4">
+ <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-amber-500/30">
+ <Crown className="w-8 h-8 text-white" />
+ </div>
+ <h2 className="text-2xl font-black text-white mb-1" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>UPGRADE TO PRO</h2>
+ <p className="text-[#A0A4AB] text-sm">Get premium perks. Core features stay free forever.</p>
+ </div>
+ <div className="space-y-2.5">
+ {proPerks.map((perk, i) => (
+ <div key={i} className="flex items-start gap-3 p-3 bg-black/20 rounded-xl border border-[#222A36]">
+ <div className={`w-9 h-9 bg-amber-500/15 rounded-lg flex items-center justify-center flex-shrink-0 ${perk.color}`}>
+ {perk.icon}
+ </div>
+ <div>
+ <p className="text-white font-bold text-sm">{perk.title}</p>
+ <p className="text-white/50 text-xs">{perk.desc}</p>
+ </div>
+ </div>
+ ))}
+ </div>
+ </div>
+ <div className="relative overflow-hidden rounded-2xl border-2 border-amber-500/60 bg-gradient-to-r from-amber-900/30 via-orange-900/20 to-amber-900/30 p-5">
+ <div className="text-center">
+ <p className="text-amber-300 text-xs font-bold uppercase tracking-wider mb-2">Huddle Up Pro</p>
+ <div className="flex items-center justify-center gap-3 mb-3">
+ <button onClick={() => setProYearly(false)} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${!proYearly ? 'bg-amber-500 text-black' : 'bg-white/10 text-white'}`}>Monthly</button>
+ <button onClick={() => setProYearly(true)} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${proYearly ? 'bg-amber-500 text-black' : 'bg-white/10 text-white'}`}>Yearly <span className="text-[10px]">(Save $6)</span></button>
+ </div>
+ <div className="flex items-baseline justify-center gap-1 mb-1">
+ <span className="text-4xl font-black text-white">{proYearly ? '$29' : '$2'}</span>
+ <span className="text-lg text-white">{proYearly ? '.99' : '.99'}</span>
+ <span className="text-[#A0A4AB] text-sm">/{proYearly ? 'year' : 'month'}</span>
+ </div>
+ {proYearly && <p className="text-green-300 text-xs font-bold mb-2">That's only $2.50/month!</p>}
+ <p className="text-white/50 text-xs mb-4">Cancel anytime. Core app stays free forever.</p>
+ <button onClick={handleUpgrade} disabled={upgrading} className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black rounded-xl text-sm transition-all shadow-lg shadow-amber-500/20 disabled:opacity-50" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>
+ {upgrading ? 'LOADING...' : 'START PRO NOW'}
+ </button>
+ </div>
+ </div>
+ <div className="rounded-2xl border border-[#222A36] bg-[#151A22] p-4">
+ <h3 className="text-white font-bold text-sm mb-3 text-center">Free vs Pro Comparison</h3>
+ <div className="flex items-center justify-between pb-2 border-b border-[#222A36] mb-2">
+ <span className="text-white/40 text-xs">Feature</span>
+ <div className="flex items-center gap-6">
+ <span className="text-[10px] text-[#A0A4AB] w-12 text-center font-bold">Free</span>
+ <span className="text-[10px] text-amber-300 w-12 text-center font-bold">Pro</span>
+ </div>
+ </div>
+ <div className="space-y-1.5">
+ {comparisonRows.map((row, i) => (
+ <div key={i} className="flex items-center justify-between py-1">
+ <span className="text-white/70 text-xs">{row.feature}</span>
+ <div className="flex items-center gap-6">
+ <span className="w-12 text-center">{row.free ? <CheckCircle className="w-3.5 h-3.5 text-green-400 mx-auto" /> : <X className="w-3.5 h-3.5 text-[#333] mx-auto" />}</span>
+ <span className="w-12 text-center"><CheckCircle className="w-3.5 h-3.5 text-amber-400 mx-auto" /></span>
+ </div>
+ </div>
+ ))}
+ </div>
+ </div>
+ </>
+ )}
  </div>
  </div>
  );
@@ -3251,7 +3347,6 @@ const HuddleUpApp = () => {
  { icon: '📍', title: 'Discover Venues', desc: 'Find sports bars and venues hosting game day events near you' },
  { icon: '🔥', title: 'Trending Feed', desc: 'See the hottest parties and most popular venues in your area' },
  ];
- const trialEndDate = user?.trialEndsAt ? new Date(user.trialEndsAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : null;
  return (
  <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-[70] flex items-center justify-center p-4 overflow-y-auto">
  <div className="rounded-2xl p-6 sm:p-8 max-w-lg w-full shadow-2xl my-4" style={{ backgroundColor: '#161A22', border: '2px solid rgba(30, 144, 255, 0.3)' }}>
@@ -3261,21 +3356,12 @@ const HuddleUpApp = () => {
  <p className="text-sm font-semibold" style={{ color: '#F5B400' }}>Find Your Crew. Watch The Game.</p>
  </div>
  <div className="mb-5 p-4 bg-gradient-to-br from-green-500/15 to-emerald-500/10 border border-green-500/30 rounded-2xl text-center">
- <p className="text-white font-bold text-lg mb-1">We want you to have the best experience!</p>
- <p className="text-green-300 text-sm mb-3">That's why we're offering your first <span className="font-black text-green-200 text-base">4 months completely FREE</span></p>
- <div className="flex items-center justify-center gap-2 mb-2">
- <span className="text-3xl font-black text-white">$0</span>
- <span className="text-[#A0A4AB] text-sm">for 4 months</span>
- </div>
- <p className="text-[#A0A4AB] text-xs">Then only <span className="text-white font-bold">$4.99/month</span> to keep all premium features</p>
- {trialEndDate && (
- <div className="mt-3 inline-block px-4 py-1.5 bg-green-500/20 border border-green-500/30 rounded-full">
- <span className="text-green-300 text-xs font-bold">FREE until {trialEndDate}</span>
- </div>
- )}
+ <p className="text-white font-bold text-lg mb-1">100% Free. No Strings Attached.</p>
+ <p className="text-green-300 text-sm mb-2">All core features are <span className="font-black text-green-200 text-base">completely FREE forever</span></p>
+ <p className="text-[#A0A4AB] text-xs">Optional Pro upgrade ($2.99/mo) for premium perks</p>
  </div>
  <div className="space-y-2 mb-5 max-h-[35vh] overflow-y-auto pr-1">
- <p className="text-[#A0A4AB] text-sm font-medium text-center mb-2">Everything you get access to:</p>
+ <p className="text-[#A0A4AB] text-sm font-medium text-center mb-2">Everything you get for free:</p>
  {features.map((f, i) => (
  <div key={i} className="flex items-start gap-3 bg-[#151A22] rounded-xl p-3 border border-[#222A36]">
  <span className="text-2xl flex-shrink-0">{f.icon}</span>
@@ -3287,12 +3373,11 @@ const HuddleUpApp = () => {
  ))}
  </div>
  <button onClick={() => { setShowWelcomePopup(false); setShowOnboarding(true); setOnboardingStep(0); }} className="w-full py-3 text-white font-bold transition-colors text-lg hover:opacity-90" style={{ backgroundColor: '#1E90FF', borderRadius: '12px' }}>
- Start My Free Trial
+ Get Started
  </button>
  <button onClick={() => setShowWelcomePopup(false)} className="w-full py-2 text-[#A0A4AB] hover:text-white text-sm mt-2 transition-colors">
  Skip Tour
  </button>
- <p className="text-center text-[#A0A4AB]/50 text-xs mt-3">By continuing, you acknowledge that after your 4-month free trial, your membership will be $4.99/month. You can cancel anytime.</p>
  </div>
  </div>
  );
@@ -3300,7 +3385,7 @@ const HuddleUpApp = () => {
 
  const QA_ITEMS = [
  { q: 'What is Huddle Up?', a: 'Huddle Up is the #1 app for finding and creating sports watch parties. We connect fans with local venues, other fans, and events for 15+ sports leagues including NFL, NBA, MLB, NHL, MLS, Premier League, and more.' },
- { q: 'Is Huddle Up free to use?', a: 'Yes! All new users get a 4-month free trial with full access to all features. After the trial, the subscription is just $4.99/month to keep all premium features.' },
+ { q: 'Is Huddle Up free to use?', a: 'Yes! Huddle Up is 100% free for all core features - creating parties, joining parties, live scores, chat, fan finder, rewards, and more. We also offer an optional Pro upgrade ($2.99/mo) for premium perks like ad-free browsing, VIP badge, 2x points, and early party access.' },
  { q: 'How do I create a watch party?', a: 'Tap any game on the schedule, then tap "Create Watch Party." Choose a venue, add details about your party, and invite friends. It\'s that simple!' },
  { q: 'How do I find parties near me?', a: 'Use the search bar to type your city name, or enable location services and we\'ll show you parties nearby automatically.' },
  { q: 'What are badges and how do I earn them?', a: 'Badges are achievements you earn by participating! Host parties to earn "Party Starter," attend 5+ to get "Social Butterfly," leave reviews for "Critic," and more. Your fan score goes up with every activity.' },
@@ -4422,8 +4507,8 @@ const HuddleUpApp = () => {
 
  </div>
 
- {/* MAIN SPONSOR BANNER - 5 slots per sport */}
- {(() => {
+ {/* MAIN SPONSOR BANNER - 5 slots per sport (hidden for Pro users) */}
+ {!isPro && (() => {
  const sponsors = getSponsorsForSport(selectedSport);
  const sponsor = sponsors[sponsorIndex % sponsors.length];
  return (
@@ -9069,15 +9154,17 @@ const HuddleUpApp = () => {
  {user.name}
  </h1>
  <p className="text-[#A0A4AB] text-sm">{user.email}</p>
- {user.subscriptionTier && user.subscriptionTier !== 'free' && (
+ {user.subscriptionTier === 'pro' && (
+ <span className="inline-flex items-center gap-1 px-3 py-1 mt-1 rounded-full text-xs font-bold border bg-amber-500/20 text-amber-300 border-amber-500/30">
+ ⭐ Pro Member
+ </span>
+ )}
+ {user.subscriptionTier && !['free', 'pro'].includes(user.subscriptionTier) && (
  <span className={`inline-flex items-center gap-1 px-3 py-1 mt-1 rounded-full text-xs font-bold border ${
  user.subscriptionTier === 'sponsor' ? 'bg-orange-500/20 text-orange-300 border-orange-500/30' :
- user.subscriptionTier === 'venue' ? 'bg-green-500/20 text-green-300 border-green-500/30' :
- 'bg-[#1E90FF]/20 text-[#1E90FF] border-[#1E90FF]/30'
+ 'bg-green-500/20 text-green-300 border-green-500/30'
  }`}>
- {user.subscriptionTier === 'sponsor' ? '📢 Sponsor' :
- user.subscriptionTier === 'venue' ? '🏪 Venue Owner' :
- '🏟️ Fan'}
+ {user.subscriptionTier === 'sponsor' ? '📢 Sponsor' : '🏪 Venue Owner'}
  </span>
  )}
  {user.dateOfBirth && (
@@ -9480,39 +9567,31 @@ const HuddleUpApp = () => {
  </div>
  </div>
 
- {user?.subscriptionStatus && (
  <div className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36] shadow-xl">
- <h3 className="text-lg font-bold text-white mb-3">Subscription</h3>
- {user.subscriptionStatus === 'trial' && user.trialEndsAt && (
- <div className="flex items-center gap-3 p-3 bg-green-500/10 border border-green-500/20 rounded-xl">
- <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center"><Crown className="w-5 h-5 text-green-400" /></div>
+ {isPro ? (
+ <div className="flex items-center justify-between">
+ <div className="flex items-center gap-3">
+ <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center"><Crown className="w-5 h-5 text-amber-400" /></div>
  <div>
- <p className="text-green-300 font-bold text-sm">Free Trial Active</p>
- <p className="text-[#A0A4AB] text-xs">Expires {new Date(user.trialEndsAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+ <p className="text-amber-300 font-bold text-sm">Pro Member</p>
+ <p className="text-[#A0A4AB] text-xs">$2.99/month - All premium perks active</p>
  </div>
  </div>
- )}
- {user.subscriptionStatus === 'active' && (
- <div className="flex items-center gap-3 p-3 bg-[#1E90FF]/10 border border-[#1E90FF]/20 rounded-xl">
- <div className="w-10 h-10 rounded-full bg-[#1E90FF]/20 flex items-center justify-center"><Crown className="w-5 h-5 text-[#1E90FF]" /></div>
+ <button onClick={() => setCurrentScreen('proUpgrade')} className="px-3 py-1.5 bg-amber-500/20 text-amber-300 font-bold rounded-lg text-xs border border-amber-500/30">Manage</button>
+ </div>
+ ) : (
  <div>
- <p className="text-[#1E90FF] font-bold text-sm">Premium Member</p>
- <p className="text-[#A0A4AB] text-xs">$4.99/month - Full access to all features</p>
+ <div className="flex items-center justify-between mb-2">
+ <h3 className="text-lg font-bold text-white">Upgrade to Pro</h3>
+ <span className="text-amber-300 text-xs font-bold">$2.99/mo</span>
  </div>
- </div>
- )}
- {user.subscriptionStatus === 'expired' && (
- <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
- <p className="text-red-300 font-bold text-sm mb-1">Free Trial Ended</p>
- <p className="text-[#A0A4AB] text-xs mb-2">Your 4-month free trial has ended. Subscribe now to keep enjoying all premium features!</p>
- <p className="text-white text-sm font-bold mb-3">Only $4.99/month - that's less than a cup of coffee!</p>
- <button onClick={() => setCurrentScreen('subscription')} className="px-4 py-2 bg-gradient-to-r from-[#1E90FF] to-purple-500 text-white font-bold rounded-lg text-sm">
- Subscribe Now - $4.99/mo
+ <p className="text-[#A0A4AB] text-xs mb-3">Get ad-free browsing, VIP badge, 2x points, early party access, and more.</p>
+ <button onClick={() => setCurrentScreen('proUpgrade')} className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-black font-bold rounded-xl text-sm hover:opacity-90 transition-all">
+ See Pro Features
  </button>
  </div>
  )}
  </div>
- )}
 
  <div className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36] shadow-xl space-y-3">
  <h3 className="text-lg font-bold text-white mb-1">Help & Info</h3>
@@ -9677,6 +9756,9 @@ const HuddleUpApp = () => {
  <div className="flex items-center gap-2 flex-wrap">
  <span className="text-white font-semibold">{fan.name}</span>
  <BadgeDisplay attended={fan.partiesAttended || 0} hosted={fan.partiesHosted || 0} size="sm" />
+ {fan.subscriptionTier === 'pro' && (
+ <span className="px-1.5 py-0.5 bg-amber-500/20 text-amber-300 text-[10px] font-bold rounded-full border border-amber-500/30">⭐ PRO</span>
+ )}
  {fan.subscriptionTier === 'sponsor' && (
  <span className="px-2 py-0.5 bg-orange-500/20 text-orange-300 text-xs font-bold rounded-full border border-orange-500/30">📢 Sponsor</span>
  )}
@@ -11849,9 +11931,8 @@ const HuddleUpApp = () => {
  {showTourGuide && <TourGuidePopup />}
  {spotlightTourActive && spotlightTourJSX()}
  {showInviteReminder && <InviteReminderPopup />}
- {showTrialExpired && <TrialExpiredPopup />}
 
- {user && !['welcome', 'login', 'signup', 'forgotPassword'].includes(currentScreen) && (
+ {user && !isPro && !['welcome', 'login', 'signup', 'forgotPassword'].includes(currentScreen) && (
  <div className="fixed top-0 left-0 right-0 z-[60]">
  <MainSponsorBanner />
  </div>
@@ -11871,6 +11952,7 @@ const HuddleUpApp = () => {
  {currentScreen === 'sponsorDashboard' && <SponsorDashboard />}
  {currentScreen === 'myParties' && <MyPartiesScreen />}
  {currentScreen === 'profile' && <ProfileScreen />}
+ {currentScreen === 'proUpgrade' && <ProUpgradeScreen />}
  {currentScreen === 'fanFinder' && renderFanFinderScreen()}
  {currentScreen === 'myCrew' && renderMyCrewScreen()}
  {currentScreen === 'dmChat' && renderDmChatScreen()}
