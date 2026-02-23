@@ -2889,7 +2889,7 @@ const HuddleUpApp = () => {
  <div className="flex items-center justify-between mb-4">
  <h2 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
  <Map className="inline w-6 h-6 mr-2 text-[#1E90FF]" />
- TAKE A TOUR
+ LEARN HOW TO USE THE APP
  </h2>
  <button onClick={() => setShowTourGuide(false)} className="p-1 text-[#A0A4AB] hover:text-white"><X className="w-5 h-5" /></button>
  </div>
@@ -4588,7 +4588,7 @@ const HuddleUpApp = () => {
  className="w-full py-2.5 mb-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-[#1E90FF]/20 to-purple-500/20 border border-[#1E90FF]/30 text-[#1E90FF] hover:from-[#1E90FF]/30 hover:to-purple-500/30"
  >
  <Map className="w-4 h-4" />
- Take a Tour
+ Learn How To Use The App
  <ChevronRight className="w-4 h-4" />
  </button>
 
@@ -9973,7 +9973,7 @@ const HuddleUpApp = () => {
  <h3 className="text-lg font-bold text-white mb-1">Help & Info</h3>
  <button onClick={() => { setCurrentScreen('games'); setTimeout(() => startSpotlightTour(), 500); }} className="w-full flex items-center gap-3 p-3 bg-[#1E90FF]/10 hover:bg-[#1E90FF]/20 border border-[#1E90FF]/20 rounded-xl transition-colors text-left">
  <Map className="w-5 h-5 text-[#1E90FF]" />
- <span className="text-white font-medium text-sm">Take a Tour</span>
+ <span className="text-white font-medium text-sm">Learn How To Use The App</span>
  <span className="text-[#A0A4AB]/70 text-xs ml-1">Interactive app walkthrough</span>
  <ChevronRight className="w-4 h-4 text-[#A0A4AB]/70 ml-auto" />
  </button>
