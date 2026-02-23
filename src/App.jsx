@@ -249,9 +249,13 @@ const MainSponsorBanner = ({ mainSponsor }) => {
  window.open(sponsor.url, '_blank');
  }
  }}
- className={`w-full h-20 relative overflow-hidden ${sponsor.url && sponsor.url !== '#' ? 'cursor-pointer' : ''}`}
+ className={`w-full relative overflow-hidden ${sponsor.url && sponsor.url !== '#' ? 'cursor-pointer' : ''}`}
+ style={{ height: '120px' }}
  >
  <img src={bannerSrc} alt={sponsor.name} className="absolute inset-0 w-full h-full object-cover" />
+ {sponsor.isDemo && (
+ <div className="absolute bottom-1 right-2 text-[10px] text-white/30 font-medium">AD</div>
+ )}
  </div>
  );
 };
@@ -6785,6 +6789,30 @@ const HuddleUpApp = () => {
  <input type="text" value={sponsorTagline} onChange={(e) => setSponsorTagline(e.target.value)}
  placeholder="e.g. Fuel Your Game Day"
  className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500" />
+ </div>
+ <div className="md:col-span-2">
+ <div className={`rounded-lg p-3 border ${sponsorPlacementType === 'main_banner' ? 'bg-amber-500/5 border-amber-500/20' : 'bg-blue-500/5 border-blue-500/20'}`}>
+ <p className={`text-xs font-bold mb-1 ${sponsorPlacementType === 'main_banner' ? 'text-amber-400' : 'text-blue-400'}`}>
+ {sponsorPlacementType === 'main_banner' ? 'MAIN BANNER SPECS' : 'SPORT BANNER SPECS'}
+ </p>
+ {sponsorPlacementType === 'main_banner' ? (
+ <div className="text-xs text-[#A0A4AB] space-y-0.5">
+ <p><span className="text-white font-medium">Recommended Size:</span> 1200 x 200 px (6:1 ratio)</p>
+ <p><span className="text-white font-medium">Minimum Size:</span> 800 x 120 px</p>
+ <p><span className="text-white font-medium">Format:</span> PNG or JPG, max 2MB</p>
+ <p><span className="text-white font-medium">Display:</span> Full-width banner at top of all pages, 120px tall</p>
+ <p className="text-amber-400/70 mt-1">Tip: Use a wide, horizontal image with bold text and logo. Dark backgrounds work best.</p>
+ </div>
+ ) : (
+ <div className="text-xs text-[#A0A4AB] space-y-0.5">
+ <p><span className="text-white font-medium">Recommended Size:</span> 400 x 100 px (4:1 ratio)</p>
+ <p><span className="text-white font-medium">Logo Size:</span> 200 x 200 px (square)</p>
+ <p><span className="text-white font-medium">Format:</span> PNG or JPG, max 2MB</p>
+ <p><span className="text-white font-medium">Display:</span> Shown as sponsor card on sport-specific pages</p>
+ <p className="text-blue-400/70 mt-1">Tip: Square logos with transparent backgrounds look cleanest.</p>
+ </div>
+ )}
+ </div>
  </div>
  {sponsorPlacementType === 'sport_banner' && (
  <>
