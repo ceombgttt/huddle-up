@@ -8900,11 +8900,14 @@ const HuddleUpApp = () => {
 
  {!showNewPromo && (() => {
  const myParties = parties.filter(p => p.creatorId === user?.id && new Date(p.date) >= new Date());
- if (myParties.length === 0) return null;
+ const now = new Date();
+ const upcomingGames = games.filter(g => new Date(g.startTime) > now).sort((a, b) => new Date(a.startTime) - new Date(b.startTime)).slice(0, 15);
  return (
- <div className="bg-[#151A22] p-5 rounded-2xl border border-[#222A36] space-y-3">
- <h3 className="text-lg font-bold text-white flex items-center gap-2"><Calendar className="w-5 h-5 text-green-400" /> Your Upcoming Parties</h3>
- <p className="text-xs text-[#A0A4AB]">Promote a party you've already created — or create a new custom promotion below</p>
+ <div className="space-y-4">
+ {myParties.length > 0 && (
+ <div className="bg-[#151A22] p-5 rounded-2xl border border-green-500/20 space-y-3">
+ <h3 className="text-lg font-bold text-white flex items-center gap-2"><Calendar className="w-5 h-5 text-green-400" /> Your Watch Parties</h3>
+ <p className="text-xs text-[#A0A4AB]">Quickly promote a party you've already created</p>
  <div className="space-y-2">
  {myParties.map(p => {
  const alreadyPromoted = promotions.some(pr => pr.title === p.title || (pr.home_team === p.team && pr.game_date && new Date(pr.game_date).toDateString() === new Date(p.date).toDateString()));
@@ -8924,15 +8927,7 @@ const HuddleUpApp = () => {
  <span className="px-3 py-1.5 bg-green-500/10 text-green-400 text-xs font-bold rounded-lg border border-green-500/20 flex-shrink-0">Promoted</span>
  ) : (
  <button onClick={() => {
- setPromoForm({
- title: p.title || `${p.team} Watch Party`,
- sport: p.sport || '',
- gameDate: p.date ? new Date(p.date).toISOString().slice(0, 16) : '',
- homeTeam: p.team || '',
- awayTeam: p.awayTeam || '',
- description: p.description || '',
- specials: '',
- });
+ setPromoForm({ title: p.title || `${p.team} Watch Party`, sport: p.sport || '', gameDate: p.date ? new Date(p.date).toISOString().slice(0, 16) : '', homeTeam: p.team || '', awayTeam: p.awayTeam || '', description: p.description || '', specials: '' });
  setShowNewPromo(true);
  }} className="px-3 py-1.5 bg-green-500 text-white text-xs font-bold rounded-lg hover:bg-green-600 transition-colors flex-shrink-0 flex items-center gap-1">
  <Megaphone className="w-3 h-3" /> Promote
@@ -8941,6 +8936,50 @@ const HuddleUpApp = () => {
  </div>
  );
  })}
+ </div>
+ </div>
+ )}
+
+ {upcomingGames.length > 0 && (
+ <div className="bg-[#151A22] p-5 rounded-2xl border border-[#222A36] space-y-3">
+ <h3 className="text-lg font-bold text-white flex items-center gap-2"><Zap className="w-5 h-5 text-amber-400" /> Upcoming Games</h3>
+ <p className="text-xs text-[#A0A4AB]">Pick a game to promote at your venue — add your specials and attract fans</p>
+ <div className="space-y-2 max-h-[400px] overflow-y-auto">
+ {upcomingGames.map(g => {
+ const alreadyPromoted = promotions.some(pr => pr.home_team === g.homeTeam && pr.away_team === g.awayTeam && pr.game_date && new Date(pr.game_date).toDateString() === new Date(g.startTime).toDateString());
+ return (
+ <div key={g.id} className="flex items-center justify-between bg-[#0F1115] rounded-xl p-3 border border-[#222A36] hover:border-amber-500/30 transition-colors">
+ <div className="flex-1 min-w-0">
+ <div className="flex items-center gap-2 flex-wrap">
+ <span className="px-1.5 py-0.5 bg-[#1E90FF]/20 text-[#1E90FF] text-[10px] font-bold rounded-full">{g.sport}</span>
+ <span className="text-white font-bold text-sm">{g.awayTeam} <span className="text-[#A0A4AB] font-normal">@</span> {g.homeTeam}</span>
+ </div>
+ <div className="flex items-center gap-3 mt-1 text-xs text-[#A0A4AB]">
+ <span>{new Date(g.startTime).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
+ {g.venue && <span className="truncate">{g.venue}</span>}
+ </div>
+ </div>
+ {alreadyPromoted ? (
+ <span className="px-3 py-1.5 bg-green-500/10 text-green-400 text-xs font-bold rounded-lg border border-green-500/20 flex-shrink-0">Promoted</span>
+ ) : (
+ <button onClick={() => {
+ setPromoForm({ title: `${g.awayTeam} @ ${g.homeTeam} Watch Party`, sport: g.sport || '', gameDate: new Date(g.startTime).toISOString().slice(0, 16), homeTeam: g.homeTeam || '', awayTeam: g.awayTeam || '', description: '', specials: '' });
+ setShowNewPromo(true);
+ }} className="px-3 py-1.5 bg-amber-500 text-black text-xs font-bold rounded-lg hover:bg-amber-400 transition-colors flex-shrink-0 flex items-center gap-1">
+ <Megaphone className="w-3 h-3" /> Promote
+ </button>
+ )}
+ </div>
+ );
+ })}
+ </div>
+ </div>
+ )}
+
+ <div className="text-center">
+ <button onClick={() => setShowNewPromo(true)} className="px-5 py-2.5 bg-[#222A36] text-[#A0A4AB] font-bold rounded-xl text-sm hover:text-white hover:bg-[#2a3340] transition-colors inline-flex items-center gap-2">
+ <Plus className="w-4 h-4" /> Create Custom Promotion
+ </button>
  </div>
  </div>
  );
