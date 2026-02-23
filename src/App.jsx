@@ -218,16 +218,16 @@ const SLOT_STYLES = [
 ];
 
 const DEMO_SPONSORS = [
- { name: 'Game Day Grill', tagline: 'Fuel your game day experience', demoLogo: '/demo-sponsors/gameday-grill.png', url: '#', sport: 'NFL', slot: 1 },
- { name: 'Cold Brew Co', tagline: 'Craft beers for every quarter', demoLogo: '/demo-sponsors/cold-brew-co.png', url: '#', sport: 'NFL', slot: 2 },
- { name: 'FanBet', tagline: 'Your game, your call - bet smarter', demoLogo: '/demo-sponsors/fanbet.png', url: '#', sport: 'NFL', slot: 3 },
- { name: 'Gridiron Gear', tagline: 'Gear up for game day', demoLogo: '/demo-sponsors/gameday-grill.png', url: '#', sport: 'NFL', slot: 4 },
- { name: 'Tailgate Nation', tagline: 'The ultimate tailgate experience', demoLogo: '/demo-sponsors/cold-brew-co.png', url: '#', sport: 'NFL', slot: 5, tier: 'premium' },
- { name: 'Peak Athletics', tagline: 'Performance gear for real fans', demoLogo: '/demo-sponsors/peak-athletics.png', url: '#', sport: 'NBA', slot: 1 },
- { name: 'Surge Energy', tagline: 'Powered by fans, fueled by Surge', demoLogo: '/demo-sponsors/surge-energy.png', url: '#', sport: 'NBA', slot: 2 },
- { name: 'Slam Dunk Pizza', tagline: 'Score big with every slice', demoLogo: '/demo-sponsors/slam-dunk-pizza.png', url: '#', sport: 'NBA', slot: 3 },
- { name: 'Courtside Kicks', tagline: 'Step up your sneaker game', demoLogo: '/demo-sponsors/peak-athletics.png', url: '#', sport: 'NBA', slot: 4 },
- { name: 'Hoops & Hops', tagline: 'Where basketball meets craft beer', demoLogo: '/demo-sponsors/surge-energy.png', url: '#', sport: 'NBA', slot: 5, tier: 'premium' },
+ { name: 'Tailgate Nation', tagline: 'The ultimate tailgate experience', demoLogo: '/demo-sponsors/cold-brew-co.png', url: '#', sport: 'NFL', slot: 1, tier: 'premium' },
+ { name: 'Game Day Grill', tagline: 'Fuel your game day experience', demoLogo: '/demo-sponsors/gameday-grill.png', url: '#', sport: 'NFL', slot: 2 },
+ { name: 'Cold Brew Co', tagline: 'Craft beers for every quarter', demoLogo: '/demo-sponsors/cold-brew-co.png', url: '#', sport: 'NFL', slot: 3 },
+ { name: 'FanBet', tagline: 'Your game, your call - bet smarter', demoLogo: '/demo-sponsors/fanbet.png', url: '#', sport: 'NFL', slot: 4 },
+ { name: 'Gridiron Gear', tagline: 'Gear up for game day', demoLogo: '/demo-sponsors/gameday-grill.png', url: '#', sport: 'NFL', slot: 5 },
+ { name: 'Hoops & Hops', tagline: 'Where basketball meets craft beer', demoLogo: '/demo-sponsors/surge-energy.png', url: '#', sport: 'NBA', slot: 1, tier: 'premium' },
+ { name: 'Peak Athletics', tagline: 'Performance gear for real fans', demoLogo: '/demo-sponsors/peak-athletics.png', url: '#', sport: 'NBA', slot: 2 },
+ { name: 'Surge Energy', tagline: 'Powered by fans, fueled by Surge', demoLogo: '/demo-sponsors/surge-energy.png', url: '#', sport: 'NBA', slot: 3 },
+ { name: 'Slam Dunk Pizza', tagline: 'Score big with every slice', demoLogo: '/demo-sponsors/slam-dunk-pizza.png', url: '#', sport: 'NBA', slot: 4 },
+ { name: 'Courtside Kicks', tagline: 'Step up your sneaker game', demoLogo: '/demo-sponsors/peak-athletics.png', url: '#', sport: 'NBA', slot: 5 },
 ];
 
 const DEMO_MAIN_SPONSOR = {
@@ -245,12 +245,7 @@ const MainSponsorBanner = ({ mainSponsor }) => {
  const bannerSrc = sponsor.bannerUrl || sponsor.logoUrl;
  return (
  <div
- onClick={() => {
- if (sponsor.url && sponsor.url !== '#') {
- window.open(sponsor.url, '_blank');
- }
- }}
- className={`w-full relative overflow-hidden ${sponsor.url && sponsor.url !== '#' ? 'cursor-pointer' : ''}`}
+ className="w-full relative overflow-hidden"
  style={{ height: `${MAIN_BANNER_HEIGHT}px` }}
  >
  <img src={bannerSrc} alt={sponsor.name} className="absolute inset-0 w-full h-full object-cover" />
@@ -1766,38 +1761,44 @@ const HuddleUpApp = () => {
  const totalSlots = 5;
  const slots = Array(totalSlots).fill(null);
 
- standardForSport.slice(0, 4).forEach((s, i) => {
- slots[i] = {
- name: s.name,
- tagline: s.tagline || 'Official Huddle Up Sponsor',
- icon: null,
- logoUrl: s.logo ? `/api/uploads/serve/${s.logo.replace('/objects/', '')}` : null,
- ...SLOT_STYLES[i % SLOT_STYLES.length],
- url: s.url || null,
- isReal: true,
- tier: 'standard',
- slotNum: i + 1,
- };
- });
-
  if (premiumForSport.length > 0) {
  const p = premiumForSport[0];
- slots[4] = {
+ slots[0] = {
  name: p.name,
  tagline: p.tagline || 'Official Huddle Up Sponsor',
  icon: null,
  logoUrl: p.logo ? `/api/uploads/serve/${p.logo.replace('/objects/', '')}` : null,
- ...SLOT_STYLES[4 % SLOT_STYLES.length],
+ ...SLOT_STYLES[0],
  url: p.url || null,
  isReal: true,
  tier: 'premium',
- slotNum: 5,
+ slotNum: 1,
  };
  }
 
+ const startSlot = premiumForSport.length > 0 ? 1 : 0;
+ standardForSport.slice(0, totalSlots - startSlot).forEach((s, i) => {
+ const idx = startSlot + i;
+ slots[idx] = {
+ name: s.name,
+ tagline: s.tagline || 'Official Huddle Up Sponsor',
+ icon: null,
+ logoUrl: s.logo ? `/api/uploads/serve/${s.logo.replace('/objects/', '')}` : null,
+ ...SLOT_STYLES[idx % SLOT_STYLES.length],
+ url: s.url || null,
+ isReal: true,
+ tier: 'standard',
+ slotNum: idx + 1,
+ };
+ });
+
+ const demoPremium = demoForSport.filter(d => d.tier === 'premium');
+ const demoStandard = demoForSport.filter(d => d.tier !== 'premium');
+ const demoSorted = [...demoPremium, ...demoStandard];
+
  for (let i = 0; i < totalSlots; i++) {
  if (!slots[i]) {
- const demo = demoForSport.find(d => d.slot === i + 1);
+ const demo = demoSorted.shift();
  if (demo) {
  slots[i] = {
  name: demo.name,
@@ -1808,7 +1809,7 @@ const HuddleUpApp = () => {
  url: demo.url,
  isDemo: true,
  tier: demo.tier || 'standard',
- slotNum: demo.slot,
+ slotNum: i + 1,
  };
  }
  }
@@ -1824,7 +1825,7 @@ const HuddleUpApp = () => {
  ...SLOT_STYLES[i % SLOT_STYLES.length],
  url: null,
  isEmpty: true,
- tier: i === 4 ? 'premium' : 'standard',
+ tier: 'standard',
  slotNum: i + 1,
  };
  }
@@ -4761,8 +4762,7 @@ const HuddleUpApp = () => {
  return (
  <div className="max-w-4xl mx-auto px-4 pt-3 space-y-2">
  <div
- onClick={() => sponsor.url && sponsor.url !== '#' && window.open(sponsor.url, '_blank')}
- className={`relative overflow-hidden rounded-2xl border-2 ${sponsor.borderColor} bg-gradient-to-r ${sponsor.color} ${sponsor.url && sponsor.url !== '#' ? 'cursor-pointer' : ''} transition-all duration-500 hover:scale-[1.01] shadow-sm shadow-black/20`}
+ className={`relative overflow-hidden rounded-2xl border-2 ${sponsor.borderColor} bg-gradient-to-r ${sponsor.color} transition-all duration-500 shadow-sm shadow-black/20`}
  >
  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-sponsor-shimmer pointer-events-none" />
  <div className="relative flex items-stretch min-h-[120px]">
