@@ -11226,15 +11226,17 @@ const qrScannerRef = useRef(null);
  </div>
  )}
 
- <div className="flex gap-2">
+ <div className="sticky top-[52px] z-10 bg-[#0F1115] py-3 -mx-4 px-4">
+   <div className="flex gap-2">
    {['upcoming', 'past', 'predict', 'leaderboard'].map(tab => (
-     <button key={tab} onClick={() => setPredictionsTab(tab)}
-       className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex-shrink-0 ${
+     <button key={tab} onClick={() => { setPredictionsTab(tab); if (tab === 'leaderboard') loadPredictionLeaderboard(); }}
+       className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors flex-shrink-0 cursor-pointer ${
          predictionsTab === tab ? 'bg-emerald-500 text-white' : 'bg-[#151A22] text-[#A0A4AB] hover:text-white'
        }`}>
        {tab === 'upcoming' ? 'Active' : tab === 'past' ? 'History' : tab === 'predict' ? 'Games' : 'Leaders'}
      </button>
    ))}
+   </div>
  </div>
 
  {predictionsTab === 'predict' && (
