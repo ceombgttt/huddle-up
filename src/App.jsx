@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, Megaphone, MessageCircle, Gift, Award, Clock, Zap, Crown, Copy, Shield, ChevronRight, Info, Flame, TrendingUp, Menu, ScanLine } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, Megaphone, MessageCircle, Gift, Award, Clock, Zap, Crown, Copy, Shield, ChevronRight, Info, Flame, TrendingUp, Menu, ScanLine, Download, Smartphone } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { api } from './api.js';
 
@@ -1212,6 +1212,10 @@ const HuddleUpApp = () => {
  const [showProScreen, setShowProScreen] = useState(false);
  const [myTeamsOnly, setMyTeamsOnly] = useState(false);
  const [hamburgerOpen, setHamburgerOpen] = useState(false);
+ const [pwaInstallPrompt, setPwaInstallPrompt] = useState(null);
+ const [showInstallBanner, setShowInstallBanner] = useState(false);
+ const [showIosInstallModal, setShowIosInstallModal] = useState(false);
+ const [isAppInstalled, setIsAppInstalled] = useState(false);
 const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
  const [venues, setVenues] = useState(SAMPLE_VENUES);
  const [venueClaims, setVenueClaims] = useState([]);
@@ -1625,6 +1629,62 @@ const qrScannerRef = useRef(null);
  return () => clearTimeout(timer);
  }
  }, [user, currentScreen]);
+
+ const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+ const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+ useEffect(() => {
+   if (isStandalone) { setIsAppInstalled(true); return; }
+   const dismissed = localStorage.getItem('pwa_install_dismissed');
+   if (dismissed) {
+     const dismissedAt = parseInt(dismissed);
+     if (Date.now() - dismissedAt < 7 * 24 * 60 * 60 * 1000) return;
+   }
+   const handler = (e) => {
+     e.preventDefault();
+     setPwaInstallPrompt(e);
+     setShowInstallBanner(true);
+   };
+   window.addEventListener('beforeinstallprompt', handler);
+   const installedHandler = () => {
+     setIsAppInstalled(true);
+     setShowInstallBanner(false);
+     setPwaInstallPrompt(null);
+   };
+   window.addEventListener('appinstalled', installedHandler);
+   if (isIos) {
+     const iosDismissed = localStorage.getItem('pwa_install_dismissed');
+     if (!iosDismissed || (Date.now() - parseInt(iosDismissed)) >= 7 * 24 * 60 * 60 * 1000) {
+       setTimeout(() => setShowInstallBanner(true), 3000);
+     }
+   }
+   return () => {
+     window.removeEventListener('beforeinstallprompt', handler);
+     window.removeEventListener('appinstalled', installedHandler);
+   };
+ }, []);
+
+ const handlePwaInstall = async () => {
+   if (isIos) {
+     setShowIosInstallModal(true);
+     setShowInstallBanner(false);
+     return;
+   }
+   if (pwaInstallPrompt) {
+     pwaInstallPrompt.prompt();
+     const { outcome } = await pwaInstallPrompt.userChoice;
+     if (outcome === 'accepted') {
+       setIsAppInstalled(true);
+     }
+     setPwaInstallPrompt(null);
+     setShowInstallBanner(false);
+   }
+ };
+
+ const dismissInstallBanner = () => {
+   setShowInstallBanner(false);
+   localStorage.setItem('pwa_install_dismissed', String(Date.now()));
+ };
 
  const resetSponsorForm = () => {
  setSponsorName(''); setSponsorContactName(''); setSponsorContactEmail('');
@@ -4560,6 +4620,11 @@ const qrScannerRef = useRef(null);
  </button>
  </div>
  <div className="p-3 space-y-1">
+ {!isAppInstalled && (
+ <button onClick={() => { handlePwaInstall(); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-[#1E90FF]/10 hover:bg-[#1E90FF]/20 transition-colors text-left active:scale-[0.98] border border-[#1E90FF]/30">
+ <Download className="w-5 h-5 text-[#1E90FF]" /><span className="text-[#1E90FF] text-sm font-bold">Install App</span>
+ </button>
+ )}
  <button onClick={() => { setCurrentScreen('myParties'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-500/10 transition-colors text-left active:scale-[0.98]">
  <Calendar className="w-5 h-5 text-orange-400" /><span className="text-white text-sm font-semibold">My Parties</span>
  </button>
@@ -4598,6 +4663,75 @@ const qrScannerRef = useRef(null);
  </div>
  </div>
  </>
+ )}
+
+ {showInstallBanner && !isAppInstalled && !isStandalone && (
+ <div className="sticky top-[60px] left-0 right-0 z-[60]" style={{ animation: 'slideDown 300ms ease-out' }}>
+ <div className="flex items-center justify-between px-4 py-3" style={{ background: 'linear-gradient(135deg, #1E90FF 0%, #F5B400 100%)' }}>
+ <div className="flex items-center gap-3 flex-1 min-w-0">
+ <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+ <Smartphone className="w-5 h-5 text-white" />
+ </div>
+ <span className="text-white font-semibold text-sm truncate">Get the Huddle Up App!</span>
+ </div>
+ <div className="flex items-center gap-2 flex-shrink-0">
+ <button onClick={handlePwaInstall} className="px-4 py-1.5 bg-white text-[#0F1115] font-bold text-xs rounded-full hover:bg-white/90 transition-colors active:scale-95">
+ Install
+ </button>
+ <button onClick={dismissInstallBanner} className="p-1 text-white/80 hover:text-white transition-colors">
+ <X className="w-5 h-5" />
+ </button>
+ </div>
+ </div>
+ </div>
+ )}
+
+ {showIosInstallModal && (
+ <div className="fixed inset-0 bg-black/70 z-[200] flex items-center justify-center p-4" onClick={() => setShowIosInstallModal(false)}>
+ <div className="bg-[#151A22] rounded-2xl w-full max-w-sm overflow-hidden border border-[#222A36]" onClick={e => e.stopPropagation()}>
+ <div className="p-5 text-center" style={{ background: 'linear-gradient(135deg, #1E90FF 0%, #F5B400 100%)' }}>
+ <div className="w-16 h-16 mx-auto mb-3 rounded-2xl overflow-hidden bg-white/20 flex items-center justify-center">
+ <img src="/pwa-icon-192.png" alt="Huddle Up" className="w-12 h-12 rounded-xl" />
+ </div>
+ <h3 className="text-white font-black text-lg" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>INSTALL HUDDLE UP</h3>
+ <p className="text-white/80 text-xs mt-1">Add to your home screen for the best experience</p>
+ </div>
+ <div className="p-5 space-y-4">
+ <div className="flex items-start gap-3">
+ <div className="w-8 h-8 rounded-full bg-[#1E90FF]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+ <span className="text-[#1E90FF] font-bold text-sm">1</span>
+ </div>
+ <div>
+ <p className="text-white font-semibold text-sm">Tap the Share button</p>
+ <p className="text-[#A0A4AB] text-xs mt-0.5">Look for the <span className="inline-block px-1.5 py-0.5 bg-[#222A36] rounded text-white text-xs">⬆ Share</span> icon at the bottom of Safari</p>
+ </div>
+ </div>
+ <div className="flex items-start gap-3">
+ <div className="w-8 h-8 rounded-full bg-[#1E90FF]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+ <span className="text-[#1E90FF] font-bold text-sm">2</span>
+ </div>
+ <div>
+ <p className="text-white font-semibold text-sm">Scroll down & tap "Add to Home Screen"</p>
+ <p className="text-[#A0A4AB] text-xs mt-0.5">Look for the <span className="inline-block px-1.5 py-0.5 bg-[#222A36] rounded text-white text-xs">+ Add to Home Screen</span> option</p>
+ </div>
+ </div>
+ <div className="flex items-start gap-3">
+ <div className="w-8 h-8 rounded-full bg-[#1E90FF]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+ <span className="text-[#1E90FF] font-bold text-sm">3</span>
+ </div>
+ <div>
+ <p className="text-white font-semibold text-sm">Tap "Add" in the top right</p>
+ <p className="text-[#A0A4AB] text-xs mt-0.5">Huddle Up will appear on your home screen like a native app!</p>
+ </div>
+ </div>
+ </div>
+ <div className="px-5 pb-5">
+ <button onClick={() => setShowIosInstallModal(false)} className="w-full py-3 bg-[#1E90FF] hover:bg-[#1E90FF]/80 text-white font-bold text-sm rounded-xl transition-colors active:scale-[0.98]">
+ Got It!
+ </button>
+ </div>
+ </div>
+ </div>
  )}
 
  <div className="max-w-4xl mx-auto px-4">
