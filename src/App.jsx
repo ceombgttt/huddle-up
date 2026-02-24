@@ -11180,7 +11180,7 @@ const qrScannerRef = useRef(null);
  <div className="min-h-screen pt-20 bg-[#0F1115]">
  <div className="sticky top-14 z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-2 flex items-center gap-3">
- <button onClick={() => setCurrentScreen('home')} className="flex items-center gap-1.5 text-[#A0A4AB] hover:text-white transition-colors">
+ <button onClick={() => setCurrentScreen('games')} className="flex items-center gap-1.5 text-[#A0A4AB] hover:text-white transition-colors">
  <ArrowLeft className="w-5 h-5" /><span className="text-sm font-medium">Back</span>
  </button>
  <h1 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>GAME PREDICTIONS</h1>
