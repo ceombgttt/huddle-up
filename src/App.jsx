@@ -4539,21 +4539,22 @@ const HuddleUpApp = () => {
  </div>
  )}
 
- {/* LOCATION SEARCH */}
- <div className="relative mb-3" data-tour-id="location-search">
- <Navigation className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#1E90FF]" />
+ {/* LOCATION SEARCH + PARTIES NEAR - SIDE BY SIDE */}
+ <div className={`grid ${locationDetected && currentCity ? 'grid-cols-2' : 'grid-cols-1'} gap-2 mb-3`} data-tour-id="location-search">
+ <div className="relative">
+ <Navigation className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#1E90FF]" />
  <DebouncedInput
  type="text"
  value={currentCity}
  onChange={(val) => { setCurrentCity(val); setLocationDetected(false); }}
  delay={400}
- placeholder={locationLoading ? "Detecting your location..." : "Enter city (e.g., Dallas, TX)"}
- className="w-full pl-10 pr-12 py-3 bg-cyan-100 border-2 border-cyan-300 rounded-xl text-black placeholder-cyan-600/50 focus:outline-none focus:ring-2 focus:ring-[#1E90FF] font-semibold"
+ placeholder={locationLoading ? "Detecting..." : "Enter city..."}
+ className="w-full pl-9 pr-10 py-3 bg-cyan-100 border-2 border-cyan-300 rounded-xl text-black placeholder-cyan-600/50 focus:outline-none focus:ring-2 focus:ring-[#1E90FF] font-semibold text-sm"
  />
  <button
  onClick={detectUserLocation}
  disabled={locationLoading}
- className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-lg hover:bg-[#1E90FF]/20 transition-colors"
+ className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1.5 rounded-lg hover:bg-[#1E90FF]/20 transition-colors"
  title="Use my location"
  >
  {locationLoading ? (
@@ -4564,11 +4565,12 @@ const HuddleUpApp = () => {
  </button>
  </div>
  {locationDetected && currentCity && (
- <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-emerald-500/20 border border-emerald-500/30 rounded-xl">
- <MapPin className="w-4 h-4 text-emerald-400" />
- <span className="text-emerald-300 text-sm font-semibold">Showing parties near {currentCity}</span>
+ <div className="flex items-center gap-2 px-3 py-3 bg-emerald-500/20 border border-emerald-500/30 rounded-xl">
+ <MapPin className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+ <span className="text-emerald-300 text-xs font-semibold truncate">Near {currentCity}</span>
  </div>
  )}
+ </div>
 
  <div className={`grid ${user?.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 ? 'grid-cols-3' : 'grid-cols-2'} gap-2 mb-3`}>
  <div className="relative col-span-1">
@@ -4636,7 +4638,7 @@ const HuddleUpApp = () => {
  <button
  key={sport}
  onClick={() => setSelectedSport(sport)}
- className={`flex flex-col items-center justify-center min-w-[70px] px-3 py-2.5 rounded-xl font-bold whitespace-nowrap transition-all ${
+ className={`flex flex-col items-center justify-center min-w-[68px] max-w-[76px] px-2 py-2 rounded-xl font-bold transition-all ${
  selectedSport === sport
  ? 'bg-[#1E90FF] text-white shadow-sm shadow-[#1E90FF]/30'
  : isLive
@@ -4646,8 +4648,8 @@ const HuddleUpApp = () => {
  : 'bg-[#151A22] text-[#A0A4AB] hover:bg-[#222A36]'
  }`}
  >
- <span className="text-2xl mb-0.5">{SPORT_ICONS[sport] || '🏅'}</span>
- <span className="text-[10px] leading-tight">{sport}</span>
+ <span className="text-xl leading-none">{SPORT_ICONS[sport] || '🏅'}</span>
+ <span className="text-[9px] leading-tight mt-1 text-center w-full truncate">{sport}</span>
  {isLive && sport !== 'All' && <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse mt-0.5" />}
  </button>
  );
@@ -4733,8 +4735,21 @@ const HuddleUpApp = () => {
    {event.eventTitle ? (
    <p className="text-white/50 text-[10px] font-bold mb-0.5">{event.eventTitle}</p>
    ) : null}
-   <p className="text-white font-bold text-sm leading-tight">{event.homeTeam}</p>
-   <p className="text-white/60 text-xs">vs {event.awayTeam}</p>
+   <div className="flex items-center gap-3 my-1.5">
+   {(() => { const homeLogo = getTeamLogoUrl(event.sport, event.homeTeam); const awayLogo = getTeamLogoUrl(event.sport, event.awayTeam); return (
+   <>
+   <div className="flex flex-col items-center gap-1 flex-1 min-w-0">
+   {homeLogo ? <img src={homeLogo} alt="" className="w-10 h-10 object-contain" onError={(e) => e.target.style.display='none'} /> : <span className="text-2xl">{SPORT_ICONS[event.sport] || '🏅'}</span>}
+   <span className="text-white font-bold text-[10px] leading-tight text-center truncate w-full">{event.homeTeam}</span>
+   </div>
+   <span className="text-white/40 font-black text-xs flex-shrink-0">VS</span>
+   <div className="flex flex-col items-center gap-1 flex-1 min-w-0">
+   {awayLogo ? <img src={awayLogo} alt="" className="w-10 h-10 object-contain" onError={(e) => e.target.style.display='none'} /> : <span className="text-2xl">{SPORT_ICONS[event.sport] || '🏅'}</span>}
+   <span className="text-white/70 font-bold text-[10px] leading-tight text-center truncate w-full">{event.awayTeam}</span>
+   </div>
+   </>
+   ); })()}
+   </div>
    <div className="flex items-center gap-2 mt-2">
    <Calendar className="w-3 h-3 text-white/50" />
    <span className="text-white/70 text-[11px]">{timeStr} • {timeOfDay}</span>
