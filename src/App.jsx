@@ -857,7 +857,7 @@ const SubscriptionSection = ({ userType }) => {
  };
 
  const tierConfig = {
- pro: { icon: '⭐', color: 'amber', label: 'Pro', features: ['Ad-free experience', 'VIP badge', '2x points multiplier', 'Early party access', 'Custom profile themes', 'Advanced analytics'] },
+ pro: { icon: '⭐', color: 'amber', label: 'Pro', features: ['VIP badge', '3x points multiplier', 'Early party access', 'Custom profile themes', 'Advanced analytics'] },
  venue: { icon: '\u{1F3EA}', color: 'green', label: 'Venue Owner', features: ['Claim & manage your venue', 'Upload photos & logo', 'Appear in search results', 'Analytics dashboard'] },
  sponsor: { icon: '\\u{1F4E2}', color: 'orange', label: 'Sponsor', features: ['Premium banner ads', 'All sports coverage', 'Featured placement', 'Reach analytics'] },
  }
@@ -3599,10 +3599,9 @@ const qrScannerRef = useRef(null);
  const [proAffValid, setProAffValid] = useState(null);
  const [proAffMsg, setProAffMsg] = useState('');
  const proPerks = [
- { icon: <Zap className="w-5 h-5" />, title: 'Ad-Free Experience', desc: 'No sponsor banners or ads anywhere in the app', color: 'text-yellow-400' },
  { icon: <Clock className="w-5 h-5" />, title: 'Priority Party Placement', desc: 'Your parties appear at the top of listings in your city', color: 'text-blue-400' },
  { icon: <Star className="w-5 h-5" />, title: 'VIP Badge', desc: 'Gold VIP badge next to your name everywhere in the app', color: 'text-amber-400' },
- { icon: <Trophy className="w-5 h-5" />, title: '2x Points Multiplier', desc: 'Earn double points for every action you take', color: 'text-purple-400' },
+ { icon: <Trophy className="w-5 h-5" />, title: '3x Points Multiplier', desc: 'Earn triple points for every action you take', color: 'text-purple-400' },
  { icon: <Crown className="w-5 h-5" />, title: 'Custom Profile Themes', desc: 'Choose from 5 exclusive color schemes for your profile', color: 'text-pink-400' },
  { icon: <BarChart3 className="w-5 h-5" />, title: 'Advanced Analytics', desc: 'See detailed stats on your parties and engagement', color: 'text-cyan-400' },
  { icon: <Camera className="w-5 h-5" />, title: 'Custom Party Backgrounds', desc: 'Upload custom banners for parties you host', color: 'text-green-400' },
@@ -3618,10 +3617,9 @@ const qrScannerRef = useRef(null);
  { feature: 'Points & badges', free: true, pro: true },
  { feature: 'QR check-in', free: true, pro: true },
  { feature: 'Notifications & alerts', free: true, pro: true },
- { feature: 'Ad-free experience', free: false, pro: true },
  { feature: 'Priority party placement', free: false, pro: true },
  { feature: 'VIP badge', free: false, pro: true },
- { feature: '2x points multiplier', free: false, pro: true },
+ { feature: '3x points multiplier', free: false, pro: true },
  { feature: 'Custom profile themes', free: false, pro: true },
  { feature: 'Custom party backgrounds', free: false, pro: true },
  { feature: 'Advanced analytics', free: false, pro: true },
@@ -3815,7 +3813,7 @@ const qrScannerRef = useRef(null);
 
  const QA_ITEMS = [
  { q: 'What is Huddle Up?', a: 'Huddle Up is the #1 app for finding and creating sports watch parties. We connect fans with local venues, other fans, and events for 15+ sports leagues including NFL, NBA, MLB, NHL, MLS, Premier League, and more.' },
- { q: 'Is Huddle Up free to use?', a: 'Yes! Huddle Up is 100% free for all core features - creating parties, joining parties, live scores, chat, fan finder, rewards, and more. We also offer an optional Pro upgrade ($2.99/mo) for premium perks like ad-free browsing, VIP badge, 2x points, and priority party placement.' },
+ { q: 'Is Huddle Up free to use?', a: 'Yes! Huddle Up is 100% free for all core features - creating parties, joining parties, live scores, chat, fan finder, rewards, and more. We also offer an optional Pro upgrade ($2.99/mo) for premium perks like VIP badge, 3x points, and priority party placement.' },
  { q: 'How do I create a watch party?', a: 'Tap any game on the schedule, then tap "Create Watch Party." Choose a venue, add details about your party, and invite friends. It\'s that simple!' },
  { q: 'How do I find parties near me?', a: 'Use the search bar to type your city name, or enable location services and we\'ll show you parties nearby automatically.' },
  { q: 'What are badges and how do I earn them?', a: 'Badges are achievements you earn by participating! Host parties to earn "Party Starter," attend 5+ to get "Social Butterfly," leave reviews for "Critic," and more. Your fan score goes up with every activity.' },
@@ -5020,8 +5018,8 @@ const qrScannerRef = useRef(null);
 
  </div>
 
- {/* MAIN SPONSOR BANNER - 5 slots per sport (hidden for Pro users) */}
- {!isPro && (() => {
+ {/* MAIN SPONSOR BANNER - 5 slots per sport (visible to all users) */}
+ {(() => {
  const sponsors = getSponsorsForSport(selectedSport);
  const sponsor = sponsors[sponsorIndex % sponsors.length];
  return (
@@ -12883,7 +12881,7 @@ const qrScannerRef = useRef(null);
  {spotlightTourActive && spotlightTourJSX()}
  {showInviteReminder && <InviteReminderPopup />}
 
- {user && !isPro && !['welcome', 'login', 'signup', 'forgotPassword'].includes(currentScreen) && (
+ {user && !['welcome', 'login', 'signup', 'forgotPassword'].includes(currentScreen) && (
  <>
  <div className="fixed top-0 left-0 right-0 z-[60]" style={{ height: `${MAIN_BANNER_HEIGHT}px` }}>
  <MainSponsorBanner />

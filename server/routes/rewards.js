@@ -18,7 +18,7 @@ async function awardPoints(userId, action, description, referenceId = null) {
 
   const userResult = await pool.query('SELECT subscription_tier FROM users WHERE id = $1', [userId]);
   const isPro = userResult.rows[0]?.subscription_tier === 'pro';
-  if (isPro) points *= 2;
+  if (isPro) points *= 3;
 
   await pool.query(
     `INSERT INTO user_points (user_id, total_points, lifetime_points, updated_at)
@@ -33,7 +33,7 @@ async function awardPoints(userId, action, description, referenceId = null) {
   await pool.query(
     `INSERT INTO points_history (user_id, points, action, description, reference_id)
      VALUES ($1, $2, $3, $4, $5)`,
-    [userId, points, action, description || (isPro ? `${action} (2x Pro bonus)` : action), referenceId]
+    [userId, points, action, description || (isPro ? `${action} (3x Pro bonus)` : action), referenceId]
   );
 
   return points;
