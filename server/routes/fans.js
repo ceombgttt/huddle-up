@@ -101,7 +101,7 @@ router.get('/nearby', requireAuth, async (req, res) => {
     );
 
     const upcomingParties = await pool.query(
-      `SELECT p.id, p.title, p.sport, p.home_team, p.away_team, p.game_time, p.venue_name, p.city,
+      `SELECT p.id, p.game_id, p.title, p.sport, p.home_team, p.away_team, p.game_time, p.venue_name, p.city,
         (SELECT COUNT(*) FROM party_attendees pa WHERE pa.party_id = p.id) as attendee_count,
         p.max_size
        FROM parties p
@@ -127,6 +127,7 @@ router.get('/nearby', requireAuth, async (req, res) => {
       })),
       parties: upcomingParties.rows.map(p => ({
         id: p.id,
+        gameId: p.game_id,
         title: p.title,
         sport: p.sport,
         homeTeam: p.home_team,

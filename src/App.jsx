@@ -9951,7 +9951,7 @@ const qrScannerRef = useRef(null);
  <h3 className="text-lg font-bold text-[#A0A4AB] mb-3">Hosting ({hostedParties.length})</h3>
  <div className="space-y-3">
  {hostedParties.map(party => {
- const game = SAMPLE_GAMES.find(g => g.gameId === party.gameId);
+ const game = SAMPLE_GAMES.find(g => g.id === party.gameId);
  return (
  <div
  key={party.id}
@@ -10355,7 +10355,7 @@ const qrScannerRef = useRef(null);
  {nearbyParties.map(p => (
  <div
  key={p.id}
- onClick={() => { const fullParty = parties.find(fp => fp.id === p.id); if (fullParty) { setSelectedParty(fullParty); setCurrentScreen('partyDetail'); } else { setSelectedParty({ id: p.id, title: p.title, sport: p.sport, homeTeam: p.homeTeam, awayTeam: p.awayTeam, gameTime: p.gameTime, venueName: p.venueName, city: p.city, attendeeCount: p.attendeeCount, maxSize: p.maxSize }); setCurrentScreen('partyDetail'); } }}
+ onClick={() => { const matchingGame = games.find(g => g.id === p.gameId); if (matchingGame) { setSelectedGame(matchingGame); setCurrentScreen('gameDetail'); } else { setSelectedGame({ id: p.gameId || p.id, sport: p.sport, homeTeam: p.homeTeam, awayTeam: p.awayTeam, startTime: p.gameTime, gameStatus: 'scheduled' }); setCurrentScreen('gameDetail'); } window.scrollTo(0, 0); }}
  className="flex items-center gap-3 p-3 bg-[#0F1115] rounded-xl cursor-pointer hover:bg-[#1a1f2a] transition-colors"
  >
  <div className="text-2xl">{SPORT_ICONS[p.sport] || '🏅'}</div>
