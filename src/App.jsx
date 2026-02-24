@@ -4649,7 +4649,7 @@ const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
  <button
  key={sport}
  onClick={() => setSelectedSport(sport)}
- className={`flex flex-col items-center justify-center min-w-[56px] max-w-[64px] px-1.5 py-1.5 rounded-[10px] font-bold transition-all active:scale-[0.98] ${
+ className={`flex flex-col items-center justify-center min-w-[60px] px-2 py-2 rounded-[10px] font-bold transition-all active:scale-[0.98] ${
  selectedSport === sport
  ? 'bg-[#1E90FF] text-white shadow-sm shadow-[#1E90FF]/30'
  : isLive
@@ -4660,7 +4660,7 @@ const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
  }`}
  >
  <span className="text-lg leading-none">{SPORT_ICONS[sport] || '🏅'}</span>
- <span className="text-[8px] leading-tight mt-1 text-center w-full truncate">{sport}</span>
+ <span className="text-[11px] font-semibold leading-tight mt-[6px] text-center whitespace-nowrap">{({'College Football':'NCAAF','College Basketball':'NCAA BB','Champions League':'UCL','Premier League':'EPL','Formula 1':'F1'})[sport] || sport}</span>
  {isLive && sport !== 'All' && <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse mt-0.5" />}
  </button>
  );
