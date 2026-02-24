@@ -116,7 +116,47 @@ app.use('/api/affiliates', affiliateRoutes);
 app.use('/api/venue-hub', venueHubRoutes);
 app.use('/api/dm', dmRoutes);
 
+import { seedDemoData, clearDemoData, getSeedStats } from './seed.js';
+
 app.get('/api/health', (req, res) => res.json({ ok: true }));
+
+app.post('/api/seed/create', async (req, res) => {
+  try {
+    if (!req.session?.userId) return res.status(401).json({ error: 'Unauthorized' });
+    const userCheck = await pool.query('SELECT is_admin FROM users WHERE id = $1', [req.session.userId]);
+    if (!userCheck.rows[0]?.is_admin) return res.status(403).json({ error: 'Admin only' });
+    const result = await seedDemoData();
+    res.json({ success: true, ...result });
+  } catch (err) {
+    console.error('Seed error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/seed/clear', async (req, res) => {
+  try {
+    if (!req.session?.userId) return res.status(401).json({ error: 'Unauthorized' });
+    const userCheck = await pool.query('SELECT is_admin FROM users WHERE id = $1', [req.session.userId]);
+    if (!userCheck.rows[0]?.is_admin) return res.status(403).json({ error: 'Admin only' });
+    const result = await clearDemoData();
+    res.json({ success: true, ...result });
+  } catch (err) {
+    console.error('Clear seed error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/seed/stats', async (req, res) => {
+  try {
+    if (!req.session?.userId) return res.status(401).json({ error: 'Unauthorized' });
+    const userCheck = await pool.query('SELECT is_admin FROM users WHERE id = $1', [req.session.userId]);
+    if (!userCheck.rows[0]?.is_admin) return res.status(403).json({ error: 'Admin only' });
+    const stats = await getSeedStats();
+    res.json(stats);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 async function start() {
   await initDB();

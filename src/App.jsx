@@ -6286,6 +6286,7 @@ const qrScannerRef = useRef(null);
  { id: 'management', label: 'Management', icon: Settings },
  { id: 'rewards', label: 'Rewards', icon: Gift },
  { id: 'affiliates', label: 'Influencers', icon: Users },
+ { id: 'seeddata', label: 'Seed Data', icon: Zap },
  ].map(tab => (
  <button key={tab.id} onClick={() => setAdminTab(tab.id)}
  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
@@ -8028,6 +8029,61 @@ const qrScannerRef = useRef(null);
  </div>
  </div>
  </>
+ )}
+
+ {adminTab === 'seeddata' && (
+ <div className="bg-[#0F1115] rounded-2xl border border-[#222A36] p-6">
+ <h3 className="text-lg font-bold text-white mb-2">Demo Seed Data</h3>
+ <p className="text-[#A0A4AB] text-sm mb-4">Populate the app with realistic demo users, watch parties, chat messages, and reviews to make it feel alive for new visitors.</p>
+ <div className="flex gap-3 mb-4">
+ <button
+ onClick={async () => {
+   if (!confirm('This will create 50 demo users, 28 parties with chat/reviews, and 12 venues. Continue?')) return;
+   try {
+     const res = await fetch('/api/seed/create', { method: 'POST', credentials: 'include' });
+     const data = await res.json();
+     if (data.success) alert(`Seed data created! ${data.users} users, ${data.parties} parties, ${data.venues} venues`);
+     else alert('Error: ' + (data.error || 'Unknown'));
+   } catch (e) { alert('Error: ' + e.message); }
+ }}
+ className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl text-sm transition-all active:scale-95"
+ >Seed Demo Data</button>
+ <button
+ onClick={async () => {
+   if (!confirm('This will remove ALL demo/seed data (users, parties, messages). Real user data is safe. Continue?')) return;
+   try {
+     const res = await fetch('/api/seed/clear', { method: 'POST', credentials: 'include' });
+     const data = await res.json();
+     if (data.success) alert(`Cleared ${data.cleared} seed users and all their data.`);
+     else alert('Error: ' + (data.error || 'Unknown'));
+   } catch (e) { alert('Error: ' + e.message); }
+ }}
+ className="px-6 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 font-bold rounded-xl text-sm border border-red-500/30 transition-all active:scale-95"
+ >Clear Demo Data</button>
+ </div>
+ <div className="bg-[#151A22] rounded-xl p-4 border border-[#222A36]">
+ <h4 className="text-white font-bold text-sm mb-2">What Gets Created:</h4>
+ <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+ <div className="text-center p-3 bg-[#0F1115] rounded-lg">
+ <div className="text-2xl font-black text-[#1E90FF]">50</div>
+ <div className="text-[#A0A4AB] text-xs">Demo Users</div>
+ </div>
+ <div className="text-center p-3 bg-[#0F1115] rounded-lg">
+ <div className="text-2xl font-black text-green-400">28</div>
+ <div className="text-[#A0A4AB] text-xs">Watch Parties</div>
+ </div>
+ <div className="text-center p-3 bg-[#0F1115] rounded-lg">
+ <div className="text-2xl font-black text-amber-400">12</div>
+ <div className="text-[#A0A4AB] text-xs">Real Venues</div>
+ </div>
+ <div className="text-center p-3 bg-[#0F1115] rounded-lg">
+ <div className="text-2xl font-black text-purple-400">200+</div>
+ <div className="text-[#A0A4AB] text-xs">Chat Messages</div>
+ </div>
+ </div>
+ <p className="text-[#A0A4AB] text-xs mt-3">Includes realistic profiles, favorite teams, points, party attendees, chat conversations, reviews, and venue check-ins. Demo users have @huddleup-seed.demo emails so they won't conflict with real accounts.</p>
+ </div>
+ </div>
  )}
 
  </div>
