@@ -164,6 +164,7 @@ router.get('/redemptions', requireAuth, async (req, res) => {
 });
 
 router.post('/checkin', requireAuth, async (req, res) => {
+  return res.status(403).json({ error: 'Manual check-in is disabled. Please scan the venue QR code to check in.' });
   try {
     const { partyId } = req.body;
     if (!partyId) return res.status(400).json({ error: 'Party ID required' });

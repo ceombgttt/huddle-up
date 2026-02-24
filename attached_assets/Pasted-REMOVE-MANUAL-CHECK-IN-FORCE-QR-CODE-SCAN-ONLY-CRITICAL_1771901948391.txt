@@ -1,0 +1,131 @@
+REMOVE MANUAL CHECK-IN - FORCE QR CODE SCAN ONLY
+
+CRITICAL SECURITY FIX: Users should NOT be able to check in by clicking a button. They MUST scan a QR code at the physical venue to prevent fake check-ins.
+
+=== PROBLEM ===
+
+Currently, users can click "Check In (+75 pts)" button from anywhere and get points without actually being at the venue. This allows users to:
+- Fake attendance from home
+- Get points they didn't earn
+- Inflate venue attendance numbers
+- Make data unreliable for venues
+- Potentially fraud the system
+
+This breaks the entire business model because venues pay based on accurate attendance data.
+
+=== SOLUTION ===
+
+REMOVE the manual "Check In" button completely and REQUIRE QR code scanning.
+
+=== IMPLEMENTATION ===
+
+1. REMOVE BUTTON:
+   - Delete the current "Check In (+75 pts)" button
+   - This button should NOT exist on the party page
+
+2. REPLACE WITH:
+   - Button text: "📷 Scan QR Code to Check In (+75 pts)"
+   - Button color: Gold/yellow (to indicate points reward)
+   - When clicked: Opens phone camera immediately
+   - User must scan QR code displayed at the venue
+   - NO other way to check in
+
+3. QR CODE SCANNING FLOW:
+   - User clicks "Scan QR Code to Check In"
+   - App requests camera permission (if not granted)
+   - Camera opens in QR scanner mode
+   - User points camera at QR code at venue
+   - QR code contains: party_id + venue_id + timestamp
+   - App validates QR code is for THIS party
+   - App validates QR code is current (not expired)
+   - App validates user hasn't already checked in
+   - If valid: Award 75 points + mark user as checked in
+   - Show success message: "Checked in! +75 points earned"
+
+4. QR CODE VALIDATION:
+   - QR code must match current party ID
+   - QR code must be scanned at venue (or within very close proximity)
+   - Optional: Add location verification (user's GPS near venue)
+   - QR code expires after party ends
+   - Each QR code can only be used once per user per party
+
+5. VENUE SIDE (Admin/Venue Dashboard):
+   - Generate unique QR code for each party
+   - QR code displayed on venue screen/printout
+   - Venue displays QR code prominently at bar/entrance
+   - QR code contains encrypted party data
+   - Each party gets unique QR code
+
+6. SECURITY MEASURES:
+   - QR code cannot be screenshot and shared (add timestamp validation)
+   - QR code refreshes every 60 seconds (optional, for extra security)
+   - Detect if user tries to scan from screenshot (check for fresh scan)
+   - Log all check-in attempts (successful and failed)
+   - Flag suspicious behavior (multiple failed scans, scans from wrong location)
+
+7. USER EXPERIENCE:
+   - Clear instructions: "Ask bartender for QR code" or "Scan QR code at entrance"
+   - Show points reward prominently (+75 pts)
+   - Instant feedback when scanned successfully
+   - If QR code invalid: Show clear error message
+   - If already checked in: Show "Already checked in!" message
+
+8. EDGE CASES:
+   - If camera permission denied: Show message "Camera access required to check in"
+   - If QR code blurry/can't scan: Show "Hold steady and try again"
+   - If wrong QR code scanned: "This QR code is for a different party"
+   - If party ended: "This party has ended, check-in closed"
+   - If user not joined party yet: "Join party first, then scan to check in"
+
+9. ALTERNATIVE CHECK-IN (OPTIONAL):
+   - For venues without QR code capability (rare):
+   - Admin can manually check in users
+   - But regular users CANNOT check themselves in
+   - This prevents fraud
+
+10. TESTING:
+    - Test QR code generation
+    - Test QR code scanning
+    - Test validation logic
+    - Test that button click alone does NOT award points
+    - Test that ONLY successful QR scan awards points
+    - Test duplicate check-in prevention
+    - Test expired QR code handling
+
+=== CRITICAL REQUIREMENTS ===
+
+- Users CANNOT check in without QR code scan
+- No manual "click to check in" option
+- QR code must be scanned with phone camera
+- QR code must be unique per party
+- QR code must be validated server-side
+- Points only awarded after successful QR scan
+- Attendance data must be accurate and trustworthy
+
+=== UI CHANGES ===
+
+BEFORE (Current - INSECURE):
+- Button: "Check In (+75 pts)" 
+- User clicks → Gets points (from anywhere) ❌
+
+AFTER (New - SECURE):
+- Button: "📷 Scan QR Code to Check In (+75 pts)"
+- User clicks → Camera opens → Scan QR at venue → Get points ✅
+
+=== WHY THIS IS CRITICAL ===
+
+Without QR code verification:
+- Users will fake attendance
+- Venues see fake numbers
+- Venues cancel subscriptions
+- Business model fails
+- App loses credibility
+
+With QR code verification:
+- Proves real attendance
+- Venues trust the data
+- Can charge based on real metrics
+- Users earn points fairly
+- System has integrity
+
+Implement this QR code check-in system immediately. This is a critical security and business requirement.

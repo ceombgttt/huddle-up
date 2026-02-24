@@ -1,6 +1,59 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, Megaphone, MessageCircle, Gift, Award, Clock, Zap, Crown, Copy, Shield, ChevronRight, Info, Flame, TrendingUp, Menu } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, Megaphone, MessageCircle, Gift, Award, Clock, Zap, Crown, Copy, Shield, ChevronRight, Info, Flame, TrendingUp, Menu, ScanLine } from 'lucide-react';
+import { Html5Qrcode } from 'html5-qrcode';
 import { api } from './api.js';
+
+function QrScannerInit({ isOpen, onResult, scannerRef, onError }) {
+ useEffect(() => {
+ if (!isOpen) return;
+ let scanner = null;
+ let mounted = true;
+ let starting = false;
+ const startScanner = async () => {
+ if (starting) return;
+ starting = true;
+ await new Promise(r => setTimeout(r, 400));
+ if (!mounted) return;
+ const el = document.getElementById('qr-reader');
+ if (!el) { starting = false; return; }
+ scanner = new Html5Qrcode('qr-reader');
+ scannerRef.current = scanner;
+ try {
+ await scanner.start(
+ { facingMode: 'environment' },
+ { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1 },
+ (decodedText) => onResult(decodedText),
+ () => {}
+ );
+ } catch (err) {
+ console.error('QR Scanner error:', err);
+ if (onError) {
+ const msg = String(err?.message || err || '');
+ if (msg.includes('Permission') || msg.includes('NotAllowed') || msg.includes('denied')) {
+ onError('Camera access denied. Please allow camera permissions in your browser settings and try again.');
+ } else if (msg.includes('NotFound') || msg.includes('no camera')) {
+ onError('No camera found on this device. Please try from a phone with a camera.');
+ } else {
+ onError('Could not start camera. Please check permissions and try again.');
+ }
+ }
+ }
+ starting = false;
+ };
+ startScanner();
+ return () => {
+ mounted = false;
+ const cleanup = async () => {
+ if (scanner) {
+ try { await scanner.stop(); } catch(e) {}
+ }
+ scannerRef.current = null;
+ };
+ cleanup();
+ };
+ }, [isOpen]);
+ return null;
+}
 
 // Sample games data for different sports
 const SAMPLE_GAMES = [
@@ -1266,6 +1319,10 @@ const chatInputRef = useRef(null);
  const [openPhotoPartyId, setOpenPhotoPartyId] = useState(null);
  const [partyPhotos, setPartyPhotos] = useState([]);
  const [checkedInParties, setCheckedInParties] = useState({});
+const [qrScannerOpen, setQrScannerOpen] = useState(false);
+const [qrScanPartyId, setQrScanPartyId] = useState(null);
+const [qrScanStatus, setQrScanStatus] = useState(null);
+const qrScannerRef = useRef(null);
  const [rewardsBalance, setRewardsBalance] = useState({ totalPoints: 0, lifetimePoints: 0 });
  const [rewardsHistory, setRewardsHistory] = useState([]);
  const [rewardsCatalog, setRewardsCatalog] = useState([]);
@@ -2148,17 +2205,53 @@ const chatInputRef = useRef(null);
  }
  };
 
- const handleCheckin = async (partyId) => {
- try {
- const result = await api.rewards.checkin(partyId);
- setCheckedInParties(prev => ({ ...prev, [partyId]: true }));
- alert(`Checked in! You earned ${result.pointsEarned} points!`);
- loadRewards();
- } catch (e) {
- if (e.message?.includes('already checked in')) {
- setCheckedInParties(prev => ({ ...prev, [partyId]: true }));
+ const openQrScanner = (partyId) => {
+ setQrScanPartyId(partyId);
+ setQrScanStatus(null);
+ setQrScannerOpen(true);
+ };
+
+ const closeQrScanner = () => {
+ if (qrScannerRef.current) {
+ try { qrScannerRef.current.stop(); } catch(e) {}
+ qrScannerRef.current = null;
  }
- alert(e.message || 'Check-in failed');
+ setQrScannerOpen(false);
+ setQrScanPartyId(null);
+ setQrScanStatus(null);
+ };
+
+ const handleQrScanResult = async (decodedText) => {
+ if (qrScannerRef.current) {
+ try { qrScannerRef.current.pause(true); } catch(e) {}
+ }
+ setQrScanStatus({ type: 'loading', message: 'Verifying...' });
+ try {
+ const urlParts = decodedText.split('/checkin/');
+ if (urlParts.length < 2) {
+ setQrScanStatus({ type: 'error', message: 'Invalid QR code. Please scan the venue check-in QR code.' });
+ setTimeout(() => { try { qrScannerRef.current?.resume(); } catch(e) {} }, 2000);
+ return;
+ }
+ const token = urlParts[1];
+ const result = await api.qr.scan(token, qrScanPartyId);
+ if (result.ok) {
+ setCheckedInParties(prev => ({ ...prev, [qrScanPartyId]: true }));
+ setQrScanStatus({ type: 'success', message: result.alreadyCheckedIn ? 'Already checked in! Attendance verified.' : `Checked in! +${result.pointsEarned || 75} points earned!` });
+ loadRewards();
+ setTimeout(() => closeQrScanner(), 2000);
+ }
+ } catch (e) {
+ setQrScanStatus({ type: 'error', message: e.message || 'Check-in failed. Try again.' });
+ if (e.message?.includes('already')) {
+ setCheckedInParties(prev => ({ ...prev, [qrScanPartyId]: true }));
+ setTimeout(() => closeQrScanner(), 2000);
+ } else {
+ setTimeout(() => {
+ setQrScanStatus(null);
+ try { qrScannerRef.current?.resume(); } catch(e) {}
+ }, 2500);
+ }
  }
  };
 
@@ -5392,11 +5485,11 @@ const chatInputRef = useRef(null);
 
  {!checkedInParties[party.id] && (
  <button
- onClick={() => handleCheckin(party.id)}
- className="w-full mt-2 py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 text-yellow-300 border-2 border-yellow-500/30 hover:bg-yellow-500/30"
+ onClick={() => openQrScanner(party.id)}
+ className="w-full mt-2 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 text-yellow-300 border-2 border-yellow-500/30 hover:bg-yellow-500/30 active:scale-[0.98]"
  >
- <MapPin className="w-4 h-4" />
- Check In (+75 pts)
+ <ScanLine className="w-5 h-5" />
+ Scan QR Code to Check In (+75 pts)
  </button>
  )}
  {checkedInParties[party.id] && (
@@ -12723,6 +12816,54 @@ const chatInputRef = useRef(null);
  </button>
  </div>
  </div>
+ </div>
+ )}
+
+ {qrScannerOpen && (
+ <div className="fixed inset-0 bg-black/90 z-[100] flex flex-col">
+ <div className="flex items-center justify-between p-4 bg-[#0F1115] border-b border-[#222A36]">
+ <h3 className="text-white font-bold text-lg flex items-center gap-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+ <ScanLine className="w-5 h-5 text-yellow-400" /> SCAN QR CODE
+ </h3>
+ <button onClick={closeQrScanner} className="p-2 rounded-xl hover:bg-[#222A36] transition-colors">
+ <X className="w-6 h-6 text-white" />
+ </button>
+ </div>
+ <div className="flex-1 flex flex-col items-center justify-center px-4">
+ {qrScanStatus?.type === 'success' ? (
+ <div className="text-center">
+ <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-green-500/20 border-2 border-green-500 flex items-center justify-center">
+ <CheckCircle className="w-10 h-10 text-green-400" />
+ </div>
+ <p className="text-green-300 text-lg font-bold">{qrScanStatus.message}</p>
+ </div>
+ ) : qrScanStatus?.type === 'error' ? (
+ <div className="text-center mb-4">
+ <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-red-500/20 border-2 border-red-500 flex items-center justify-center">
+ <X className="w-8 h-8 text-red-400" />
+ </div>
+ <p className="text-red-300 text-sm font-semibold">{qrScanStatus.message}</p>
+ <p className="text-white/50 text-xs mt-2">Retrying...</p>
+ </div>
+ ) : qrScanStatus?.type === 'loading' ? (
+ <div className="text-center">
+ <Loader2 className="w-10 h-10 text-yellow-400 animate-spin mx-auto mb-3" />
+ <p className="text-white text-sm font-semibold">Verifying check-in...</p>
+ </div>
+ ) : (
+ <>
+ <div id="qr-reader" className="w-full max-w-sm rounded-xl overflow-hidden" />
+ <p className="text-white/60 text-sm text-center mt-4 px-4">Point your camera at the QR code displayed at the venue entrance or bar</p>
+ <p className="text-yellow-400/80 text-xs text-center mt-2 font-semibold">Ask the bartender or host for the check-in QR code</p>
+ </>
+ )}
+ </div>
+ <QrScannerInit
+ isOpen={qrScannerOpen && !qrScanStatus}
+ onResult={handleQrScanResult}
+ scannerRef={qrScannerRef}
+ onError={(msg) => setQrScanStatus({ type: 'error', message: msg })}
+ />
  </div>
  )}
 
