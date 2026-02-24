@@ -5425,15 +5425,44 @@ const qrScannerRef = useRef(null);
      <h3 className="text-lg font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>PREDICT THE WINNER</h3>
      <span className="ml-auto text-xs text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">+{predictionConfidence * 50} pts</span>
    </div>
-   {existingPred && existingPred.status === 'pending' ? (
-     <div className="text-center py-2">
-       <p className="text-emerald-400 font-bold">Your pick: {existingPred.picked_team}</p>
-       <p className="text-[#A0A4AB] text-xs">Confidence: {existingPred.confidence}/10 | Potential: +{existingPred.confidence * 50} pts</p>
-       {!isLocked && <button onClick={() => setExpandedPrediction(selectedGame.id)} className="text-xs text-[#1E90FF] mt-2 underline">Change prediction</button>}
+   {existingPred && existingPred.status === 'pending' && expandedPrediction !== selectedGame.id ? (
+     <div className="text-center py-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+       <div className="flex items-center justify-center gap-2 mb-2">
+         <CheckCircle className="w-5 h-5 text-emerald-400" />
+         <p className="text-emerald-400 font-bold text-lg">Prediction Locked In!</p>
+       </div>
+       <div className="flex items-center justify-center gap-4 mb-2">
+         <div className={`flex-1 py-2 rounded-lg text-center ${existingPred.picked_team === selectedGame.homeTeam ? 'bg-emerald-500/20 border border-emerald-500/40' : 'opacity-40'}`}>
+           {selectedGame.homeLogo && <img src={selectedGame.homeLogo} alt="" className="w-8 h-8 object-contain mx-auto mb-1" />}
+           <span className="text-white text-sm font-bold">{selectedGame.homeTeam}</span>
+         </div>
+         <div className={`flex-1 py-2 rounded-lg text-center ${existingPred.picked_team === selectedGame.awayTeam ? 'bg-emerald-500/20 border border-emerald-500/40' : 'opacity-40'}`}>
+           {selectedGame.awayLogo && <img src={selectedGame.awayLogo} alt="" className="w-8 h-8 object-contain mx-auto mb-1" />}
+           <span className="text-white text-sm font-bold">{selectedGame.awayTeam}</span>
+         </div>
+       </div>
+       <p className="text-white text-sm">Confidence: <span className="text-emerald-400 font-bold">{existingPred.confidence}/10</span></p>
+       <p className="text-emerald-400 text-sm font-bold mt-1">Potential: +{existingPred.confidence * 50} points</p>
+       {!isLocked && <button onClick={() => setExpandedPrediction(selectedGame.id)} className="text-xs text-[#1E90FF] mt-3 underline">Change prediction</button>}
+     </div>
+   ) : null}
+   {existingPred && existingPred.status === 'correct' ? (
+     <div className="text-center py-3 bg-emerald-500/10 rounded-xl border border-emerald-500/30">
+       <CheckCircle className="w-8 h-8 text-emerald-400 mx-auto mb-1" />
+       <p className="text-emerald-400 font-bold text-lg">Correct! +{existingPred.points_earned} pts</p>
+       <p className="text-[#A0A4AB] text-xs">You picked {existingPred.picked_team}</p>
+     </div>
+   ) : null}
+   {existingPred && existingPred.status === 'incorrect' ? (
+     <div className="text-center py-3 bg-red-500/10 rounded-xl border border-red-500/20">
+       <X className="w-8 h-8 text-red-400 mx-auto mb-1" />
+       <p className="text-red-400 font-bold">Incorrect</p>
+       <p className="text-[#A0A4AB] text-xs">You picked {existingPred.picked_team} | Winner: {existingPred.winner}</p>
      </div>
    ) : null}
    {(!existingPred || expandedPrediction === selectedGame.id) && !isLocked ? (
      <>
+     <p className="text-sm text-[#A0A4AB] text-center mb-2">Who will win?</p>
      <div className="flex gap-3 mb-3">
        <button onClick={() => submitPrediction(selectedGame, selectedGame.homeTeam, predictionConfidence)}
          disabled={predictionLoading}
@@ -11236,9 +11265,23 @@ const qrScannerRef = useRef(null);
          </div>
        </div>
        {existing ? (
-         <div className="text-center py-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
-           <p className="text-emerald-400 font-bold text-sm">Your pick: {existing.picked_team}</p>
-           <p className="text-[#A0A4AB] text-xs">Confidence: {existing.confidence}/10 | +{existing.confidence * 50} pts if correct</p>
+         <div className="bg-emerald-500/10 rounded-xl border border-emerald-500/20 p-3">
+           <div className="flex items-center justify-center gap-2 mb-2">
+             <CheckCircle className="w-4 h-4 text-emerald-400" />
+             <span className="text-emerald-400 font-bold text-sm">Prediction Locked In!</span>
+           </div>
+           <div className="flex items-center gap-3 justify-center mb-2">
+             <div className={`px-3 py-1.5 rounded-lg text-center ${existing.picked_team === game.homeTeam ? 'bg-emerald-500/20 border border-emerald-500/40' : 'opacity-40'}`}>
+               {game.homeLogo && <img src={game.homeLogo} alt="" className="w-6 h-6 object-contain mx-auto mb-0.5" />}
+               <span className="text-white text-xs font-bold">{game.homeTeam}</span>
+             </div>
+             <span className="text-[#A0A4AB] text-xs">vs</span>
+             <div className={`px-3 py-1.5 rounded-lg text-center ${existing.picked_team === game.awayTeam ? 'bg-emerald-500/20 border border-emerald-500/40' : 'opacity-40'}`}>
+               {game.awayLogo && <img src={game.awayLogo} alt="" className="w-6 h-6 object-contain mx-auto mb-0.5" />}
+               <span className="text-white text-xs font-bold">{game.awayTeam}</span>
+             </div>
+           </div>
+           <p className="text-[#A0A4AB] text-xs text-center">Confidence: {existing.confidence}/10 | Potential: <span className="text-emerald-400 font-bold">+{existing.confidence * 50} pts</span></p>
          </div>
        ) : (
          <>
