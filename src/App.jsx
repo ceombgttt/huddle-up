@@ -10372,7 +10372,7 @@ const qrScannerRef = useRef(null);
  <h3 className="text-lg font-bold text-white">Upgrade to Pro</h3>
  <span className="text-amber-300 text-xs font-bold">$2.99/mo</span>
  </div>
- <p className="text-[#A0A4AB] text-xs mb-3">Get ad-free browsing, VIP badge, 2x points, priority placement, and more.</p>
+ <p className="text-[#A0A4AB] text-xs mb-3">Get VIP badge, 3x points, priority placement, custom themes, and more.</p>
  <button onClick={() => setCurrentScreen('proUpgrade')} className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-black font-bold rounded-xl text-sm hover:opacity-90 transition-all">
  See Pro Features
  </button>
