@@ -309,19 +309,21 @@ export async function seedDemoData() {
         const reviewers = attendeeSlice.slice(0, Math.min(3 + Math.floor(Math.random() * 4), attendeeSlice.length));
         for (const uid of reviewers) {
           const review = REVIEW_COMMENTS[Math.floor(Math.random() * REVIEW_COMMENTS.length)];
+          const overall = Math.round((review.atm + review.food + review.crowd) / 3);
           await client.query(
-            `INSERT INTO party_reviews (party_id, user_id, atmosphere_rating, food_drink_rating, crowd_energy_rating, comment, created_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING`,
-            [partyId, uid, review.atm, review.food, review.crowd, review.text,
+            `INSERT INTO party_reviews (party_id, user_id, atmosphere, food, crowd_energy, overall, comment, created_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT DO NOTHING`,
+            [partyId, uid, review.atm, review.food, review.crowd, overall, review.text,
              new Date(new Date(p.time).getTime() + (1 + Math.random() * 24) * 3600000).toISOString()]
           );
         }
 
+        const venueName = SEED_VENUES[p.venueIdx].name;
         for (const uid of attendeeSlice.slice(0, Math.min(5, attendeeSlice.length))) {
           await client.query(
-            `INSERT INTO venue_checkins (venue_id, user_id, party_id, verified, created_at)
+            `INSERT INTO venue_checkins (user_id, party_id, venue_name, qr_verified, created_at)
              VALUES ($1, $2, $3, true, $4) ON CONFLICT DO NOTHING`,
-            [venueIds[p.venueIdx], uid, partyId, new Date(p.time).toISOString()]
+            [uid, partyId, venueName, new Date(p.time).toISOString()]
           );
         }
       }
