@@ -310,7 +310,7 @@ const MainSponsorBanner = ({ mainSponsor }) => {
  className="w-full relative overflow-hidden bg-black"
  style={{ height: `${MAIN_BANNER_HEIGHT}px` }}
  >
- <img src={bannerSrc} alt={sponsor.name} className="absolute inset-0 w-full h-full object-contain" />
+ <img src={bannerSrc} alt={sponsor.name} className="absolute inset-0 w-full h-full object-cover" />
  {sponsor.isDemo && (
  <div className="absolute bottom-0.5 right-2 text-[9px] text-white/30 font-medium">AD</div>
  )}
