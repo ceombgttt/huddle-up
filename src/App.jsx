@@ -11174,7 +11174,7 @@ const qrScannerRef = useRef(null);
 
  const upcomingPreds = myPredictions.filter(p => p.status === 'pending');
  const pastPreds = myPredictions.filter(p => p.status !== 'pending');
- const scheduledGames = games.filter(g => g.gameStatus === 'scheduled' && new Date(g.startTime) > new Date());
+ const scheduledGames = games.filter(g => g.gameStatus !== 'final');
 
  return (
  <div className="min-h-screen pt-20 bg-[#0F1115]">
@@ -11247,11 +11247,18 @@ const qrScannerRef = useRef(null);
      const timeLeft = new Date(game.startTime) - new Date();
      const hoursLeft = Math.floor(timeLeft / 3600000);
      const minsLeft = Math.floor((timeLeft % 3600000) / 60000);
+     const isStarted = timeLeft <= 0;
      return (
      <div key={game.id} className="bg-[#151A22] rounded-2xl border border-[#222A36] p-4">
        <div className="flex items-center justify-between mb-2">
          <span className="text-xs text-[#1E90FF] bg-[#1E90FF]/10 px-2 py-0.5 rounded-full font-bold">{game.sport}</span>
-         <span className="text-xs text-[#A0A4AB]">{hoursLeft > 0 ? `${hoursLeft}h ${minsLeft}m` : `${minsLeft}m`} until lock</span>
+         {game.gameStatus === 'live' ? (
+           <span className="text-xs text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full font-bold animate-pulse">LIVE</span>
+         ) : isStarted ? (
+           <span className="text-xs text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-full">Started</span>
+         ) : (
+           <span className="text-xs text-[#A0A4AB]">{hoursLeft > 0 ? `${hoursLeft}h ${minsLeft}m` : `${minsLeft}m`} until lock</span>
+         )}
        </div>
        <div className="flex items-center justify-center gap-4 mb-3">
          <div className="flex-1 text-center">
@@ -11282,6 +11289,10 @@ const qrScannerRef = useRef(null);
              </div>
            </div>
            <p className="text-[#A0A4AB] text-xs text-center">Confidence: {existing.confidence}/10 | Potential: <span className="text-emerald-400 font-bold">+{existing.confidence * 50} pts</span></p>
+         </div>
+       ) : isStarted ? (
+         <div className="text-center py-2 bg-[#222A36]/50 rounded-xl">
+           <p className="text-[#A0A4AB] text-sm">Predictions locked - game in progress</p>
          </div>
        ) : (
          <>
