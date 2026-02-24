@@ -5314,6 +5314,12 @@ const qrScannerRef = useRef(null);
  </div>
  
  <div className="space-y-2 text-sm text-[#A0A4AB]">
+ {party.venueName && (
+ <div className="flex items-center gap-2">
+ <Building2 className="w-4 h-4 text-[#1E90FF]" />
+ <span className="text-white font-semibold">{party.venueName}</span>
+ </div>
+ )}
  <div className="flex items-center gap-2">
  <MapPin className="w-4 h-4 text-[#1E90FF]" />
  <AddressLink address={party.venueAddress || party.location} />
@@ -5323,10 +5329,14 @@ const qrScannerRef = useRef(null);
  <span>{party.customTime || formatDateTime(selectedGame.startTime)}</span>
  </div>
  <div className="flex items-center gap-2">
+ <User className="w-4 h-4 text-[#1E90FF]" />
+ <span>Hosted by <span className="text-white font-semibold">{party.hostName}</span></span>
+ </div>
+ <div className="flex items-center gap-2">
  <Users className="w-4 h-4 text-[#1E90FF]" />
  <span>
  {party.attendees.length}
- {party.capacity ? ` / ${party.capacity}` : ''} people
+ {party.capacity ? ` of ${party.capacity}` : ''} attending
  </span>
  </div>
  </div>
@@ -5341,16 +5351,25 @@ const qrScannerRef = useRef(null);
  {/* Attendee List */}
  {party.attendeeDetails && party.attendeeDetails.length > 0 && (
  <div className="mt-4 p-3 bg-[#151A22] rounded-xl border border-[#222A36]">
- <div className="text-xs text-[#A0A4AB] mb-2 font-bold">Who's Going:</div>
+ <div className="flex items-center justify-between mb-2">
+ <div className="text-xs text-[#A0A4AB] font-bold">Who's Going ({party.attendeeDetails.length})</div>
+ <button
+ onClick={(e) => { e.stopPropagation(); openShareMenu(party); }}
+ className="text-xs text-[#1E90FF] font-semibold flex items-center gap-1 hover:text-[#1E90FF]/80 transition-colors"
+ >
+ <UserPlus className="w-3 h-3" /> Invite
+ </button>
+ </div>
  <div className="flex flex-wrap gap-2">
- {party.attendeeDetails.map((attendee, idx) => {
+ {party.attendeeDetails.slice(0, 6).map((attendee, idx) => {
  const genderIcon = attendee.gender === 'male' ? '♂' : attendee.gender === 'female' ? '♀' : '';
  const genderColor = attendee.gender === 'male' ? 'text-[#1E90FF]' : attendee.gender === 'female' ? 'text-pink-400' : 'text-[#A0A4AB]';
  const attendeeTeamLogos = attendee.favoriteTeams ? Object.entries(attendee.favoriteTeams).map(([sport, team]) => getTeamLogoUrl(sport, team)).filter(Boolean) : [];
  return (
  <div
  key={idx}
- className="flex items-center gap-1.5 px-3 py-1 bg-[#151A22] rounded-full border border-[#222A36]"
+ onClick={() => { if (attendee.userId) { setViewingProfileId(attendee.userId); setCurrentScreen('viewProfile'); } }}
+ className="flex items-center gap-1.5 px-3 py-1 bg-[#151A22] rounded-full border border-[#222A36] cursor-pointer hover:border-[#1E90FF]/30 transition-colors"
  >
  <ProfileAvatar src={attendee.profilePicture} name={attendee.name} size="xs" />
  <span className="text-white text-sm">{attendee.name}</span>
@@ -5367,6 +5386,11 @@ const qrScannerRef = useRef(null);
  </div>
  );
  })}
+ {party.attendeeDetails.length > 6 && (
+ <div className="flex items-center px-3 py-1 bg-[#1E90FF]/10 rounded-full border border-[#1E90FF]/20 text-[#1E90FF] text-sm font-semibold">
+ +{party.attendeeDetails.length - 6} more
+ </div>
+ )}
  </div>
  </div>
  )}
@@ -5422,40 +5446,51 @@ const qrScannerRef = useRef(null);
 
  {/* FEATURE 3: Email Reminder Notification */}
  {isAttending && (
- <div className="mb-3 bg-[#1E90FF]/20 border border-[#1E90FF]/30 rounded-lg p-3">
- <div className="flex items-center gap-2 mb-1">
- <span className="text-lg">📧</span>
- <span className="text-white font-bold text-sm">You'll Get Reminders!</span>
- </div>
- <p className="text-[#1E90FF]/80 text-xs">
- We'll email you 2 hours before the party starts so you don't forget. See you there!
- </p>
+ <div className="mb-3 bg-[#1E90FF]/10 border border-[#1E90FF]/20 rounded-lg px-3 py-2 flex items-center gap-2">
+ <span className="text-sm">📧</span>
+ <span className="text-[#1E90FF]/90 text-xs font-semibold">Reminders enabled — we'll email you 2hrs before</span>
+ <CheckCircle className="w-3.5 h-3.5 text-[#1E90FF]/60 ml-auto flex-shrink-0" />
  </div>
  )}
 
+
+ {(isAttending || party.hostEmail === user.email) && (
+ <>
+ {!checkedInParties[party.id] ? (
+ <button
+ onClick={() => openQrScanner(party.id)}
+ className="w-full py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 text-yellow-300 border-2 border-yellow-500/30 hover:bg-yellow-500/30 active:scale-[0.98]"
+ >
+ <ScanLine className="w-5 h-5" />
+ Scan QR to Check In (+75 pts)
+ </button>
+ ) : (
+ <div className="w-full py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 bg-green-500/20 text-green-300 border-2 border-green-500/30">
+ <CheckCircle className="w-4 h-4" />
+ Checked In!
+ </div>
+ )}
+
+ <button
+ onClick={() => openPartyPhotos(party.id)}
+ className={`w-full mt-2 py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
+ openPhotoPartyId === party.id
+ ? 'bg-orange-500/30 text-orange-300 border-2 border-orange-500/40'
+ : 'bg-[#151A22] text-[#A0A4AB] border-2 border-[#222A36] hover:bg-[#222A36]'
+ } active:scale-[0.98]`}
+ >
+ <Camera className="w-4 h-4" />
+ Party Photos
+ </button>
+ </>
+ )}
 
  <button
  onClick={(e) => { e.stopPropagation(); openShareMenu(party); }}
- className="w-full py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-emerald-500/20 text-emerald-300 border-2 border-emerald-500/30 hover:bg-emerald-500/30 mb-2"
+ className="w-full mt-2 py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-emerald-500/20 text-emerald-300 border-2 border-emerald-500/30 hover:bg-emerald-500/30 active:scale-[0.98]"
  >
  <Share2 className="w-4 h-4" /> Share Party
  </button>
-
- {party.hostEmail !== user.email && (
- <button
- onClick={() => isAttending ? handleLeaveParty(party.id) : handleJoinParty(party.id)}
- disabled={!isAttending && isFull}
- className={`w-full py-3 rounded-xl font-bold transition-all ${
- isAttending
- ? 'bg-red-500/20 text-red-300 border-2 border-red-500/30 hover:bg-red-500/30'
- : isFull
- ? 'bg-gray-500/20 text-[#A0A4AB]/70 border-2 border-gray-500/30 cursor-not-allowed'
- : 'bg-[#1E90FF] text-white shadow-sm hover:opacity-90'
- }`}
- >
- {isAttending ? 'LEAVE PARTY' : isFull ? 'PARTY FULL' : 'JOIN PARTY'}
- </button>
- )}
 
  {(isAttending || party.hostEmail === user.email) && (
  <>
@@ -5464,39 +5499,20 @@ const qrScannerRef = useRef(null);
  className={`w-full mt-2 py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
  openChatPartyId === party.id
  ? 'bg-purple-500/30 text-purple-300 border-2 border-purple-500/40'
- : 'bg-[#151A22] text-[#A0A4AB] border-2 border-[#222A36] hover:bg-[#222A36]'
- }`}
+ : 'bg-purple-500/10 text-purple-300 border-2 border-purple-500/20 hover:bg-purple-500/20'
+ } active:scale-[0.98]`}
  >
  <MessageCircle className="w-4 h-4" />
- {openChatPartyId === party.id ? 'Close Chat' : 'Party Chat'}
+ Party Chat
  </button>
 
+ {party.hostEmail !== user.email && (
  <button
- onClick={() => openPartyPhotos(party.id)}
- className={`w-full mt-2 py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
- openPhotoPartyId === party.id
- ? 'bg-orange-500/30 text-orange-300 border-2 border-orange-500/40'
- : 'bg-[#151A22] text-[#A0A4AB] border-2 border-[#222A36] hover:bg-[#222A36]'
- }`}
+ onClick={() => handleLeaveParty(party.id)}
+ className="w-full mt-2 py-2.5 rounded-xl font-bold transition-all bg-red-500/10 text-red-300/80 border border-red-500/20 hover:bg-red-500/20 active:scale-[0.98] text-sm"
  >
- <Camera className="w-4 h-4" />
- {openPhotoPartyId === party.id ? 'Close Photos' : `Party Photos${partyPhotos.length > 0 && openPhotoPartyId === party.id ? ` (${partyPhotos.length})` : ''}`}
+ Leave Party
  </button>
-
- {!checkedInParties[party.id] && (
- <button
- onClick={() => openQrScanner(party.id)}
- className="w-full mt-2 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 text-yellow-300 border-2 border-yellow-500/30 hover:bg-yellow-500/30 active:scale-[0.98]"
- >
- <ScanLine className="w-5 h-5" />
- Scan QR Code to Check In (+75 pts)
- </button>
- )}
- {checkedInParties[party.id] && (
- <div className="w-full mt-2 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 bg-green-500/20 text-green-300 border-2 border-green-500/30">
- <CheckCircle className="w-4 h-4" />
- Checked In!
- </div>
  )}
 
  {openPhotoPartyId === party.id && (
@@ -5655,11 +5671,14 @@ const qrScannerRef = useRef(null);
 
  {openChatPartyId === party.id && (
  <div className="mt-3 bg-[#151A22]/80 rounded-xl border border-[#222A36] overflow-hidden">
- <div className="p-3 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-b border-[#222A36]">
+ <div className="p-3 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-b border-[#222A36] flex items-center justify-between">
  <h4 className="text-white font-bold text-sm flex items-center gap-2">
  <MessageCircle className="w-4 h-4 text-purple-400" />
  Party Chat
  </h4>
+ <button onClick={() => { setOpenChatPartyId(null); }} className="p-1 rounded-lg hover:bg-white/10 transition-colors">
+ <X className="w-4 h-4 text-[#A0A4AB]" />
+ </button>
  </div>
  <div className="h-64 overflow-y-auto p-3 space-y-3">
  {chatLoading ? (
@@ -5667,8 +5686,20 @@ const qrScannerRef = useRef(null);
  <Loader2 className="w-6 h-6 text-purple-400 animate-spin" />
  </div>
  ) : chatMessages.length === 0 ? (
- <div className="flex items-center justify-center h-full text-[#A0A4AB]/70 text-sm">
- No messages yet. Start the conversation!
+ <div className="flex flex-col items-center justify-center h-full gap-3">
+ <MessageCircle className="w-8 h-8 text-purple-400/30" />
+ <p className="text-[#A0A4AB]/70 text-sm">No messages yet</p>
+ <div className="flex flex-wrap justify-center gap-1.5">
+ {['Say hi! 👋', "Who's coming?", 'Lets go! 🔥'].map((starter) => (
+ <button
+ key={starter}
+ onClick={() => { if (chatInputRef.current) { chatInputRef.current.value = starter; chatInputRef.current.focus(); } }}
+ className="px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs hover:bg-purple-500/20 transition-colors"
+ >
+ {starter}
+ </button>
+ ))}
+ </div>
  </div>
  ) : (
  chatMessages.map((msg) => {
@@ -5744,7 +5775,22 @@ const qrScannerRef = useRef(null);
  </div>
  </div>
  )}
+
  </>
+ )}
+
+ {!isAttending && party.hostEmail !== user.email && (
+ <button
+ onClick={() => handleJoinParty(party.id)}
+ disabled={isFull}
+ className={`w-full mt-2 py-3 rounded-xl font-bold transition-all active:scale-[0.98] ${
+ isFull
+ ? 'bg-gray-500/20 text-[#A0A4AB]/70 border-2 border-gray-500/30 cursor-not-allowed'
+ : 'bg-[#1E90FF] text-white shadow-sm hover:opacity-90'
+ }`}
+ >
+ {isFull ? 'PARTY FULL' : 'JOIN PARTY'}
+ </button>
  )}
  </div>
  </div>

@@ -1,0 +1,128 @@
+IMPROVE PARTY PAGE UX
+
+Make these improvements to the party detail page:
+
+=== 1. REORDER BUTTONS (CRITICAL) ===
+
+CURRENT ORDER:
+1. Share Party
+2. Leave Party
+3. Close Chat
+4. Party Photos
+5. Check In (+75 pts)
+
+NEW ORDER:
+1. Check In (+75 pts) - GOLD (primary action first)
+2. Party Photos - DARK
+3. Share Party - GREEN
+4. Party Chat - PURPLE (move chat access here)
+5. Leave Party - RED (destructive action last)
+
+REASONING:
+- Primary action (Check In) goes first
+- Most-used features near top
+- Destructive actions (Leave) go last
+- Users scan top-to-bottom
+
+=== 2. ADD MISSING VENUE INFORMATION ===
+
+ADD these details to the top section (after "SUPPORTING FLORIDA PANTHERS"):
+
+VENUE NAME:
+- Show venue name prominently
+- Example: "🏢 Venue: Rocco's Tacos"
+- Or integrate into address: "Rocco's Tacos • 600 N Congress Ave"
+
+PARTY HOST:
+- Show who created the party
+- Example: "👤 Hosted by: Robyn Bouzas"
+- Or: "Host: Robyn Bouzas"
+
+CAPACITY:
+- Show attendance capacity
+- Example: "👥 2 of 50 attending"
+- Or if unlimited: "👥 2 attending"
+
+=== 3. REMOVE "CLOSE CHAT" BUTTON ===
+
+CURRENT: "Close Chat" button always visible
+
+CHANGE:
+- Remove the "Close Chat" button
+- Chat can be closed by:
+  - Tapping outside chat area
+  - X icon in chat header
+  - Back button
+- This frees up valuable space
+
+=== 4. IMPROVE REMINDERS CARD ===
+
+CURRENT: Takes up lot of space
+
+MAKE IT COMPACT:
+- Collapse to single line: "📧 Reminders Enabled ✓"
+- On tap: Expand to show full text
+- Or make it a small badge/chip instead of full card
+
+ALTERNATIVELY:
+- Keep current card but reduce padding/margins
+- Make text smaller (11px instead of 12px)
+- Reduce height by 30%
+
+=== 5. IMPROVE CHAT EMPTY STATE ===
+
+CURRENT: "No messages yet. Start the conversation!"
+
+ADD:
+- Text input placeholder: "Type your first message..."
+- Or add conversation starters:
+  "💬 Say hi!"
+  "💬 Ask who's coming"
+  "💬 Share your excitement"
+
+=== 6. IMPROVE "WHO'S GOING" SECTION ===
+
+CURRENT: Looks good already
+
+MINOR IMPROVEMENTS:
+- Add "Invite Friends" button
+- Show "+5 more" if more than 4 people
+- Make avatars tappable to view profiles
+
+=== 7. VISUAL HIERARCHY ===
+
+ENSURE:
+- Most important info at top (venue, date, who's going)
+- Primary action (Check In) most prominent
+- Destructive actions (Leave) less prominent
+- Good spacing between sections (15-20px)
+
+=== 8. MOBILE OPTIMIZATION ===
+
+VERIFY:
+- All buttons are tappable (44x44px minimum)
+- Text is readable without zooming
+- Images/avatars load quickly
+- Smooth scrolling
+- No horizontal overflow
+
+=== FINAL LAYOUT (TOP TO BOTTOM) ===
+
+1. Party header (Florida Panthers logo, "VERIFIED")
+2. Venue name + address
+3. Date/time
+4. Host name
+5. Attendance count
+6. "Show Map & Directions" (expandable)
+7. "Who's Going" section
+8. Social proof card ("Your team is playing!")
+9. Reminders card (compact)
+10. BUTTONS (in new order):
+    - Check In (+75 pts)
+    - Party Photos
+    - Share Party
+    - Party Chat
+    - Leave Party
+11. Chat section (if opened)
+
+Implement these UX improvements to create a better party page experience.
