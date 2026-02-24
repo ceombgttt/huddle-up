@@ -78,6 +78,72 @@ router.get('/search', requireAuth, async (req, res) => {
   }
 });
 
+router.get('/nearby', requireAuth, async (req, res) => {
+  try {
+    const { city } = req.query;
+    if (!city || city.trim().length < 2) {
+      return res.status(400).json({ error: 'City is required' });
+    }
+
+    const searchCity = city.trim();
+
+    const result = await pool.query(
+      `SELECT u.id, u.name, u.gender, u.profile_picture, u.joined_at, u.subscription_tier, u.user_city,
+        COALESCE((SELECT json_agg(DISTINCT jsonb_build_object('sport', ft.sport, 'team', ft.team)) FROM user_favorite_teams ft WHERE ft.user_id = u.id), '[]') as favorite_teams,
+        (SELECT COUNT(*) FROM parties WHERE host_id = u.id) as parties_hosted,
+        (SELECT COUNT(*) FROM party_attendees WHERE user_id = u.id) as parties_attended
+       FROM users u
+       WHERE LOWER(u.user_city) LIKE LOWER($1)
+       AND u.id != $2
+       ORDER BY u.subscription_tier = 'pro' DESC, u.name
+       LIMIT 100`,
+      [`%${searchCity}%`, req.session.userId]
+    );
+
+    const upcomingParties = await pool.query(
+      `SELECT p.id, p.title, p.sport, p.home_team, p.away_team, p.game_time, p.venue_name, p.city,
+        (SELECT COUNT(*) FROM party_attendees pa WHERE pa.party_id = p.id) as attendee_count,
+        p.max_size
+       FROM parties p
+       WHERE LOWER(p.city) LIKE LOWER($1)
+       AND (p.game_time IS NULL OR p.game_time > NOW() - INTERVAL '2 hours')
+       ORDER BY p.game_time ASC
+       LIMIT 20`,
+      [`%${searchCity}%`]
+    );
+
+    res.json({
+      fans: result.rows.map(r => ({
+        id: r.id,
+        name: r.name,
+        gender: r.gender,
+        profilePicture: r.profile_picture,
+        joinedAt: r.joined_at,
+        subscriptionTier: r.subscription_tier || 'free',
+        favoriteTeams: r.favorite_teams,
+        partiesHosted: parseInt(r.parties_hosted),
+        partiesAttended: parseInt(r.parties_attended),
+        city: r.user_city
+      })),
+      parties: upcomingParties.rows.map(p => ({
+        id: p.id,
+        title: p.title,
+        sport: p.sport,
+        homeTeam: p.home_team,
+        awayTeam: p.away_team,
+        gameTime: p.game_time,
+        venueName: p.venue_name,
+        city: p.city,
+        attendeeCount: parseInt(p.attendee_count),
+        maxSize: p.max_size
+      }))
+    });
+  } catch (error) {
+    console.error('Nearby fans error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 router.get('/by-team', requireAuth, async (req, res) => {
   try {
     const { sport, team } = req.query;

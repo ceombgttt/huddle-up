@@ -109,6 +109,7 @@ export const api = {
       return request(`/fans/by-team?${params}`);
     },
     search: (q) => request(`/fans/search?q=${encodeURIComponent(q)}`),
+    nearby: (city) => request(`/fans/nearby?city=${encodeURIComponent(city)}`),
     invite: (partyId, toUserId) =>
       request('/fans/invite', { method: 'POST', body: JSON.stringify({ partyId, toUserId }) }),
     invitations: () => request('/fans/invitations'),

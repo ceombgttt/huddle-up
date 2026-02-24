@@ -1224,7 +1224,11 @@ const HuddleUpApp = () => {
  const [fanNameQuery, setFanNameQuery] = useState('');
  const [fanNameResults, setFanNameResults] = useState([]);
  const [fanNameSearchLoading, setFanNameSearchLoading] = useState(false);
- const [fanSearchTab, setFanSearchTab] = useState('team');
+ const [fanSearchTab, setFanSearchTab] = useState('nearby');
+ const [nearbyFans, setNearbyFans] = useState([]);
+ const [nearbyParties, setNearbyParties] = useState([]);
+ const [nearbyLoading, setNearbyLoading] = useState(false);
+ const [nearbyCity, setNearbyCity] = useState('');
  const [invitePartyId, setInvitePartyId] = useState(null);
  const [inviteSending, setInviteSending] = useState({});
  const [friendsList, setFriendsList] = useState([]);
@@ -2326,6 +2330,24 @@ const HuddleUpApp = () => {
  setFanResults([]);
  } finally {
  setFanSearchLoading(false);
+ }
+ };
+
+ const searchNearbyFans = async (cityOverride) => {
+ const searchCity = cityOverride || nearbyCity || currentCity;
+ if (!searchCity || searchCity.trim().length < 2) return;
+ setNearbyLoading(true);
+ setNearbyCity(searchCity);
+ try {
+ const data = await api.fans.nearby(searchCity.trim());
+ setNearbyFans(data.fans || []);
+ setNearbyParties(data.parties || []);
+ } catch (error) {
+ console.error('Nearby fans error:', error);
+ setNearbyFans([]);
+ setNearbyParties([]);
+ } finally {
+ setNearbyLoading(false);
  }
  };
 
@@ -4445,7 +4467,7 @@ const HuddleUpApp = () => {
  <span className="text-[9px] text-yellow-300 mt-0.5 leading-none">Rewards</span>
  </button>
  <button
- onClick={() => setCurrentScreen('fanFinder')}
+ onClick={() => { setCurrentScreen('fanFinder'); if (currentCity && nearbyFans.length === 0) searchNearbyFans(currentCity); }}
  className="flex flex-col items-center px-2 py-1.5 bg-[#1E90FF]/20 rounded-xl hover:bg-[#1E90FF]/30 transition-colors border border-[#1E90FF]/30"
  >
  <UserPlus className="w-5 h-5 text-[#1E90FF]/80" />
@@ -10158,13 +10180,175 @@ const HuddleUpApp = () => {
 
  <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
  <div className="flex gap-2 mb-2">
+ <button onClick={() => { setFanSearchTab('nearby'); if (currentCity && nearbyFans.length === 0) searchNearbyFans(currentCity); }} className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-all ${fanSearchTab === 'nearby' ? 'bg-gradient-to-r from-emerald-500 to-cyan-500 text-white' : 'bg-[#151A22] text-[#A0A4AB] border border-[#222A36]'}`}>
+ <MapPin className="w-4 h-4 inline mr-1" />Near Me
+ </button>
  <button onClick={() => setFanSearchTab('team')} className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-all ${fanSearchTab === 'team' ? 'bg-[#1E90FF] text-white' : 'bg-[#151A22] text-[#A0A4AB] border border-[#222A36]'}`}>
- Search by Team
+ By Team
  </button>
  <button onClick={() => setFanSearchTab('name')} className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-all ${fanSearchTab === 'name' ? 'bg-[#1E90FF] text-white' : 'bg-[#151A22] text-[#A0A4AB] border border-[#222A36]'}`}>
- Search by Name / Phone
+ By Name
  </button>
  </div>
+
+ {fanSearchTab === 'nearby' && (
+ <div className="space-y-4">
+ <div className="bg-gradient-to-br from-emerald-500/10 to-cyan-500/10 border border-emerald-500/30 rounded-2xl p-6">
+ <h2 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+ <MapPin className="w-5 h-5 text-emerald-400" />
+ Fans Near Me
+ </h2>
+ <p className="text-[#A0A4AB] text-sm mb-4">Find other sports fans in your area and connect at watch parties.</p>
+ <div className="flex gap-2">
+ <div className="relative flex-1">
+ <Navigation className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-400" />
+ <input
+ type="text"
+ value={nearbyCity || currentCity || ''}
+ onChange={(e) => setNearbyCity(e.target.value)}
+ onKeyDown={(e) => e.key === 'Enter' && searchNearbyFans()}
+ placeholder="Enter your city..."
+ className="w-full pl-10 pr-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-[#555] focus:outline-none focus:ring-2 focus:ring-emerald-500"
+ />
+ </div>
+ <button
+ onClick={() => searchNearbyFans()}
+ disabled={nearbyLoading || (!nearbyCity && !currentCity)}
+ className="px-5 py-3 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white font-bold rounded-xl hover:opacity-90 transition-all disabled:opacity-50 flex items-center gap-2"
+ >
+ {nearbyLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+ Find
+ </button>
+ </div>
+ </div>
+
+ {nearbyParties.length > 0 && (
+ <div className="bg-[#151A22] border border-[#222A36] rounded-2xl p-4">
+ <h3 className="text-white font-bold text-sm mb-3 flex items-center gap-2">
+ <Flame className="w-4 h-4 text-orange-400" />
+ Watch Parties in {nearbyCity || currentCity}
+ <span className="text-[#A0A4AB] text-xs font-normal">({nearbyParties.length})</span>
+ </h3>
+ <div className="space-y-2">
+ {nearbyParties.map(p => (
+ <div
+ key={p.id}
+ onClick={() => { const fullParty = parties.find(fp => fp.id === p.id); if (fullParty) { setSelectedParty(fullParty); setCurrentScreen('partyDetail'); } else { setSelectedParty({ id: p.id, title: p.title, sport: p.sport, homeTeam: p.homeTeam, awayTeam: p.awayTeam, gameTime: p.gameTime, venueName: p.venueName, city: p.city, attendeeCount: p.attendeeCount, maxSize: p.maxSize }); setCurrentScreen('partyDetail'); } }}
+ className="flex items-center gap-3 p-3 bg-[#0F1115] rounded-xl cursor-pointer hover:bg-[#1a1f2a] transition-colors"
+ >
+ <div className="text-2xl">{SPORT_ICONS[p.sport] || '🏅'}</div>
+ <div className="flex-1 min-w-0">
+ <p className="text-white font-semibold text-sm truncate">{p.title || `${p.homeTeam} vs ${p.awayTeam}`}</p>
+ <p className="text-[#A0A4AB] text-xs">{p.venueName} {p.gameTime ? `• ${new Date(p.gameTime).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}` : ''}</p>
+ </div>
+ <div className="text-right flex-shrink-0">
+ <span className="text-emerald-400 text-xs font-bold">{p.attendeeCount}/{p.maxSize}</span>
+ <p className="text-[#A0A4AB] text-[10px]">attending</p>
+ </div>
+ </div>
+ ))}
+ </div>
+ </div>
+ )}
+
+ {nearbyFans.length > 0 && (
+ <div>
+ <h3 className="text-white font-bold text-sm mb-3 flex items-center gap-2">
+ <Users className="w-4 h-4 text-cyan-400" />
+ {nearbyFans.length} Fan{nearbyFans.length !== 1 ? 's' : ''} in {nearbyCity || currentCity}
+ </h3>
+
+ {fanFinderMyParties.length > 0 && (
+ <div className="bg-[#151A22] border border-[#222A36] rounded-xl p-4 mb-3">
+ <label className="text-sm text-[#A0A4AB] mb-2 block">Invite them to your party:</label>
+ <select
+ value={invitePartyId || ''}
+ onChange={(e) => setInvitePartyId(e.target.value || null)}
+ className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+ >
+ <option value="" className="bg-[#151A22]">Choose a party...</option>
+ {fanFinderMyParties.map(p => (
+ <option key={p.id} value={p.id} className="bg-[#151A22]">
+ {p.title || `${p.homeTeam} vs ${p.awayTeam}`} - {p.venueName}
+ </option>
+ ))}
+ </select>
+ </div>
+ )}
+
+ <div className="space-y-3">
+ {nearbyFans.map(fan => {
+ const isFriend = friendsList.some(f => f.id === fan.id);
+ const requestSent = friendStatuses[fan.id] === 'sent';
+ return (
+ <div key={fan.id} className="bg-[#151A22] border border-[#222A36] rounded-xl p-4">
+ <div className="flex items-center gap-3">
+ <ProfileAvatar src={fan.profilePicture} name={fan.name} size="md" />
+ <div className="flex-1 min-w-0">
+ <div className="flex items-center gap-2 flex-wrap">
+ <span className="text-white font-semibold cursor-pointer hover:text-[#1E90FF]" onClick={() => { setViewingUserId(fan.id); setCurrentScreen('userProfile'); }}>{fan.name}</span>
+ <BadgeDisplay attended={fan.partiesAttended || 0} hosted={fan.partiesHosted || 0} size="sm" />
+ {fan.subscriptionTier === 'pro' && (
+ <span className="px-1.5 py-0.5 bg-amber-500/20 text-amber-300 text-[10px] font-bold rounded-full border border-amber-500/30">⭐ PRO</span>
+ )}
+ {isFriend && (
+ <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 text-xs rounded-full border border-emerald-500/30">
+ <Users className="w-3 h-3 inline mr-1" />Crew
+ </span>
+ )}
+ </div>
+ {fan.city && <p className="text-[#A0A4AB] text-xs mt-0.5"><MapPin className="w-3 h-3 inline mr-1" />{fan.city}</p>}
+ <div className="flex flex-wrap gap-1 mt-1">
+ {fan.favoriteTeams && fan.favoriteTeams.map((ft, i) => (
+ <span key={i} className="px-2 py-0.5 bg-purple-500/20 text-purple-300 rounded-full text-xs">{ft.team}</span>
+ ))}
+ </div>
+ </div>
+ <div className="flex flex-col gap-1.5 flex-shrink-0">
+ {!isFriend && !requestSent && (
+ <button onClick={() => sendFriendRequest(fan.id)} className="px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-green-500 text-white text-xs font-bold rounded-lg transition-all flex items-center gap-1">
+ <Heart className="w-3 h-3" /> Add
+ </button>
+ )}
+ {requestSent && <span className="px-3 py-1.5 bg-[#222A36] text-[#A0A4AB] text-xs rounded-lg">Sent</span>}
+ <button onClick={() => { setDmRecipient(fan); setCurrentScreen('dmChat'); }} className="px-3 py-1.5 bg-[#1E90FF]/20 text-[#1E90FF] text-xs font-bold rounded-lg transition-all flex items-center gap-1">
+ <Send className="w-3 h-3" /> Chat
+ </button>
+ </div>
+ </div>
+ {invitePartyId && (
+ <div className="mt-3 pl-12">
+ <button
+ onClick={() => handleInviteFan(fan.id, invitePartyId)}
+ disabled={inviteSending[`${fan.id}-${invitePartyId}`] === true || inviteSending[`${fan.id}-${invitePartyId}`] === 'sent'}
+ className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 ${inviteSending[`${fan.id}-${invitePartyId}`] === 'sent' ? 'bg-green-500/20 text-green-300 border border-green-500/30' : 'bg-[#1E90FF] text-white hover:opacity-90'} disabled:opacity-60`}
+ >
+ {inviteSending[`${fan.id}-${invitePartyId}`] === 'sent' ? <><CheckCircle className="w-4 h-4" /> Invited</> : inviteSending[`${fan.id}-${invitePartyId}`] === true ? 'Sending...' : <><Send className="w-4 h-4" /> Invite to Party</>}
+ </button>
+ </div>
+ )}
+ </div>
+ );
+ })}
+ </div>
+ </div>
+ )}
+
+ {!nearbyLoading && nearbyFans.length === 0 && (nearbyCity || currentCity) && nearbyCity !== '' && (
+ <div className="text-center py-8">
+ <div className="text-4xl mb-3">📍</div>
+ <p className="text-[#A0A4AB]">No fans found near {nearbyCity || currentCity} yet. Share the app to grow the community!</p>
+ </div>
+ )}
+
+ {!nearbyCity && !currentCity && (
+ <div className="text-center py-8">
+ <div className="text-4xl mb-3">🗺️</div>
+ <p className="text-[#A0A4AB]">Enter your city above or enable location on the home screen to find fans near you.</p>
+ </div>
+ )}
+ </div>
+ )}
 
  {fanSearchTab === 'name' && (
  <div className="bg-gradient-to-br from-purple-500/10 to-[#1E90FF]/10 border border-purple-500/30 rounded-2xl p-6">
@@ -12113,7 +12297,7 @@ const HuddleUpApp = () => {
  </h1>
  <div className="ml-auto">
  <button
- onClick={() => setCurrentScreen('fanFinder')}
+ onClick={() => { setCurrentScreen('fanFinder'); if (currentCity && nearbyFans.length === 0) searchNearbyFans(currentCity); }}
  className="px-4 py-2 bg-[#1E90FF] text-white text-sm font-bold rounded-xl active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
  type="button"
  >
@@ -12166,7 +12350,7 @@ const HuddleUpApp = () => {
  <p className="text-[#A0A4AB] mb-6 max-w-sm mx-auto">Find fans who love the same teams and add them to your crew. Then invite them to watch parties!</p>
  <button
  type="button"
- onClick={() => setCurrentScreen('fanFinder')}
+ onClick={() => { setCurrentScreen('fanFinder'); if (currentCity && nearbyFans.length === 0) searchNearbyFans(currentCity); }}
  className="px-6 py-3 bg-[#1E90FF] text-white font-bold rounded-xl hover:opacity-90 transition-all cursor-pointer active:scale-95"
  >
  <UserPlus className="w-5 h-5 inline mr-2" /> Find Fellow Fans
