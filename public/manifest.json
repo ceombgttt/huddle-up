@@ -1,12 +1,13 @@
 {
-  "name": "Huddle Up - Find Watch Parties",
+  "name": "Huddle Up - Find Your Crew, Watch The Game",
   "short_name": "Huddle Up",
-  "description": "Find your crew, watch the game. Discover and create sports watch parties near you.",
+  "description": "Connect with sports fans and find watch parties for your favorite teams",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0F1115",
   "theme_color": "#1E90FF",
   "orientation": "portrait",
+  "scope": "/",
   "icons": [
     {
       "src": "/pwa-icon-192.png",
@@ -21,5 +22,14 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["sports", "social", "entertainment"]
+  "categories": ["sports", "social", "entertainment"],
+  "shortcuts": [
+    {
+      "name": "Find Parties",
+      "short_name": "Find",
+      "description": "Find watch parties near you",
+      "url": "/",
+      "icons": [{ "src": "/pwa-icon-192.png", "sizes": "192x192" }]
+    }
+  ]
 }
