@@ -31,7 +31,7 @@ router.get('/', async (req, res) => {
       conditions.push(`p.city ILIKE $${params.length}`);
     }
 
-    conditions.push(`(p.game_time IS NULL OR p.game_time::timestamptz > NOW() - INTERVAL '4 hours')`);
+    conditions.push(`(p.game_time IS NULL OR p.game_time ~ '^\\d{4}-' AND p.game_time::timestamptz > NOW() - INTERVAL '4 hours' OR p.game_time !~ '^\\d{4}-')`);
 
     if (conditions.length > 0) {
       query += ' WHERE ' + conditions.join(' AND ');

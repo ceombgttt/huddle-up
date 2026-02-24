@@ -4406,7 +4406,7 @@ const HuddleUpApp = () => {
  );
 
  const gamesScreenJSX = () => (
- <div className="min-h-screen pt-20 bg-[#0F1115]">
+ <div className="min-h-screen pt-2 bg-[#0F1115]">
  <div className="bg-[#0F1115]">
  <div className="max-w-4xl mx-auto px-4 pt-4 pb-2">
  <div className="flex items-center gap-3 mb-2">
@@ -4778,7 +4778,7 @@ const HuddleUpApp = () => {
    <p className="text-white/50 text-[10px] font-bold mb-0.5">{event.eventTitle}</p>
    ) : null}
    <div className="flex items-center gap-3 my-1.5">
-   {(() => { const homeLogo = getTeamLogoUrl(event.sport, event.homeTeam); const awayLogo = getTeamLogoUrl(event.sport, event.awayTeam); return (
+   {(() => { const homeLogo = event.homeLogo || getTeamLogoUrl(event.sport, event.homeTeam); const awayLogo = event.awayLogo || getTeamLogoUrl(event.sport, event.awayTeam); return (
    <>
    <div className="flex flex-col items-center gap-1 flex-1 min-w-0">
    {homeLogo ? <img src={homeLogo} alt="" className="w-10 h-10 object-contain" onError={(e) => e.target.style.display='none'} /> : <span className="text-2xl">{SPORT_ICONS[event.sport] || '🏅'}</span>}
