@@ -205,8 +205,35 @@ export async function seedDemoData() {
       const userId = result.rows[0].id;
       userIds.push(userId);
 
+      const teamSportMap = {
+        'Miami Heat': 'NBA', 'Boston Celtics': 'NBA', 'LA Lakers': 'NBA', 'Golden State Warriors': 'NBA',
+        'Milwaukee Bucks': 'NBA', 'Philadelphia 76ers': 'NBA', 'Dallas Mavericks': 'NBA', 'New York Knicks': 'NBA',
+        'Chicago Bulls': 'NBA', 'Toronto Raptors': 'NBA', 'Cleveland Cavaliers': 'NBA', 'Cincinnati Reds': 'NBA',
+        'Miami Dolphins': 'NFL', 'Buffalo Bills': 'NFL', 'Green Bay Packers': 'NFL', 'New England Patriots': 'NFL',
+        'Pittsburgh Steelers': 'NFL', 'Dallas Cowboys': 'NFL', 'Chicago Bears': 'NFL', 'New York Giants': 'NFL',
+        'San Francisco 49ers': 'NFL', 'Denver Broncos': 'NFL', 'Philadelphia Eagles': 'NFL', 'Kansas City Chiefs': 'NFL',
+        'Atlanta Falcons': 'NFL', 'Carolina Panthers': 'NFL', 'Seattle Seahawks': 'NFL', 'New York Jets': 'NFL',
+        'Cincinnati Bengals': 'NFL', 'Cleveland Browns': 'NFL',
+        'Florida Panthers': 'NHL', 'Pittsburgh Penguins': 'NHL', 'Boston Bruins': 'NHL', 'New York Rangers': 'NHL',
+        'Colorado Avalanche': 'NHL', 'Tampa Bay Lightning': 'NHL', 'Toronto Maple Leafs': 'NHL',
+        'New York Yankees': 'MLB', 'Boston Red Sox': 'MLB', 'LA Dodgers': 'MLB', 'Chicago Cubs': 'MLB',
+        'Atlanta Braves': 'MLB', 'Kansas City Royals': 'MLB',
+        'Inter Miami': 'MLS', 'Seattle Sounders': 'MLS', 'LA Galaxy': 'MLS',
+        'Barcelona': 'La Liga', 'Real Madrid': 'La Liga', 'Atletico Madrid': 'La Liga',
+        'Arsenal': 'Premier League', 'Manchester United': 'Premier League', 'Liverpool': 'Premier League',
+        'Manchester City': 'Premier League',
+        'Club América': 'Liga MX', 'Chivas Guadalajara': 'Liga MX',
+        'Alabama Crimson Tide': 'College Football', 'Georgia Bulldogs': 'College Football', 'Ohio State Buckeyes': 'College Football',
+        'Florida Gators': 'College Football', 'USC Trojans': 'College Football',
+        'Duke Blue Devils': 'College Basketball', 'UConn Huskies': 'College Basketball',
+        'USA': 'FIFA World Cup',
+      };
+      const usedSports = new Set();
       for (const team of u.teams) {
-        await client.query('INSERT INTO user_favorite_teams (user_id, team_name) VALUES ($1, $2) ON CONFLICT DO NOTHING', [userId, team]);
+        const sport = teamSportMap[team] || 'Other';
+        if (usedSports.has(sport)) continue;
+        usedSports.add(sport);
+        await client.query('INSERT INTO user_favorite_teams (user_id, sport, team) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING', [userId, sport, team]);
       }
 
       await client.query(

@@ -6280,7 +6280,7 @@ const qrScannerRef = useRef(null);
  Back to App
  </button>
  </div>
- <div className="flex gap-2 mt-3">
+ <div className="flex gap-2 mt-3 overflow-x-auto pb-2" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
  {[
  { id: 'analytics', label: 'Analytics', icon: BarChart3 },
  { id: 'management', label: 'Management', icon: Settings },
@@ -6289,7 +6289,7 @@ const qrScannerRef = useRef(null);
  { id: 'seeddata', label: 'Seed Data', icon: Zap },
  ].map(tab => (
  <button key={tab.id} onClick={() => setAdminTab(tab.id)}
- className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+ className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex-shrink-0 whitespace-nowrap ${
  adminTab === tab.id ? 'bg-[#1E90FF] text-white shadow-sm shadow-cyan-500/25' : 'bg-[#151A22] text-[#A0A4AB] hover:bg-[#151A22] hover:text-white'
  }`}>
  <tab.icon className="w-4 h-4" />
