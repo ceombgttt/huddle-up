@@ -4624,7 +4624,7 @@ const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
  </div>
 
  {/* SECTION DIVIDER */}
- <div className="h-px bg-white/[0.08] my-5" />
+ <div className="h-px bg-white/[0.08] my-[15px]" />
 
  <h2 className="text-white font-bold text-[15px] mb-[15px] uppercase tracking-[1px]" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>FIND YOUR SPORT</h2>
  <div className="relative" data-tour-id="sports-scroller">
@@ -4636,7 +4636,7 @@ const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
  setShowSportsScrollArrow(el.scrollLeft + el.clientWidth < el.scrollWidth - 10);
  }
  }}
- className="flex gap-[14px] overflow-x-auto pb-3 scrollbar-hide"
+ className="flex gap-[12px] overflow-x-auto pb-3 scrollbar-hide"
  >
  {(() => {
  const liveSports = new Set(games.filter(g => g.gameStatus === 'live').map(g => g.sport));
@@ -4687,7 +4687,7 @@ const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
 
 
  {/* SECTION DIVIDER */}
- <div className="h-px bg-white/[0.08] my-5" />
+ <div className="h-px bg-white/[0.08] my-[15px]" />
 
  {(() => {
  const MAJOR_SPORTS = new Set(['UFC', 'Boxing', 'Formula 1', 'Champions League', 'FIFA World Cup']);
@@ -4722,7 +4722,7 @@ const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
    <span className="text-[10px] text-white/40 font-semibold">{upcomingMajor.length} events</span>
    </div>
    <div className="overflow-x-auto scrollbar-hide">
-   <div className="flex gap-3 w-max pb-1">
+   <div className="flex gap-[15px] w-max pb-1">
    {upcomingMajor.map((event) => {
    const eventDate = new Date(event.startTime);
    const timeStr = eventDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
@@ -4731,7 +4731,7 @@ const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
    <div
    key={event.id}
    onClick={() => { setSelectedGame(event); setCurrentScreen('gameDetail'); window.scrollTo(0, 0); }}
-   className={`flex-shrink-0 w-64 p-3 rounded-xl border ${BORDER_MAP[event.sport] || 'border-[#222A36]'} bg-gradient-to-br ${GRADIENT_MAP[event.sport] || 'from-[#151A22] to-[#0F1115]'} cursor-pointer hover:scale-[1.02] transition-all`}
+   className={`flex-shrink-0 w-64 p-[15px] rounded-[12px] border ${BORDER_MAP[event.sport] || 'border-[#222A36]'} bg-gradient-to-br ${GRADIENT_MAP[event.sport] || 'from-[#151A22] to-[#0F1115]'} cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all duration-200`}
    >
    <div className="flex items-center justify-between mb-2">
    <span className="text-[10px] font-bold uppercase tracking-wider text-white/60">{event.sport}</span>
@@ -4775,7 +4775,7 @@ const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
  })()}
 
  {/* SECTION DIVIDER */}
- <div className="h-px bg-white/[0.08] my-5" />
+ <div className="h-px bg-white/[0.08] my-[15px]" />
 
  </div>
 
@@ -4784,13 +4784,13 @@ const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
  const sponsors = getSponsorsForSport(selectedSport);
  const sponsor = sponsors[sponsorIndex % sponsors.length];
  return (
- <div className="max-w-4xl mx-auto px-4 pt-5 space-y-2">
+ <div className="max-w-4xl mx-auto px-4 pt-5 pb-5">
  <div
- className={`relative overflow-hidden rounded-2xl border-2 ${sponsor.borderColor} bg-gradient-to-r ${sponsor.color} transition-all duration-500 shadow-sm shadow-black/20`}
+ className={`relative overflow-hidden rounded-[12px] border-2 ${sponsor.borderColor} bg-gradient-to-r ${sponsor.color} transition-all duration-200 shadow-sm shadow-black/20`}
  >
  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-sponsor-shimmer pointer-events-none" />
  <div className="relative flex items-stretch min-h-[120px]">
- <div className="flex-shrink-0 w-[45%] bg-black/20 flex items-center justify-center overflow-hidden rounded-l-2xl">
+ <div className="flex-shrink-0 w-[45%] bg-black/20 flex items-center justify-center overflow-hidden rounded-l-[12px]">
  {sponsor.logoUrl ? (
  <img src={sponsor.logoUrl} alt={sponsor.name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling && (e.target.nextSibling.style.display = 'flex'); }} />
  ) : null}
@@ -4821,7 +4821,7 @@ const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
  </div>
  <h3 className="text-white font-extrabold text-2xl sm:text-3xl truncate leading-tight">{sponsor.name}</h3>
  <p className="text-gray-200 text-base sm:text-lg mt-1 truncate">{sponsor.tagline}</p>
- <div className="flex gap-1.5 mt-3">
+ <div className="flex gap-1.5 mt-3 pb-[10px]">
  {sponsors.map((_, i) => (
  <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i === sponsorIndex % sponsors.length ? 'bg-white w-6' : 'bg-white/25 w-1.5'}`} />
  ))}
@@ -4838,16 +4838,16 @@ const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
  const wcGames = games.filter(g => g.sport === 'FIFA World Cup' || g.sport === 'FIFA Club World Cup');
  const wcHasStarted = wcGames.length > 0;
  return (
- <div className="max-w-4xl mx-auto px-4 pt-[25px]">
+ <div className="max-w-4xl mx-auto px-4 pt-5 pb-5">
  <button
  onClick={() => {
  if (wcHasStarted) {
  setSelectedSport('FIFA World Cup');
  }
  }}
- className={`w-full animate-wc-glow rounded-2xl overflow-hidden ${!wcHasStarted ? 'cursor-default' : ''}`}
+ className={`w-full animate-wc-glow rounded-[12px] overflow-hidden ${!wcHasStarted ? 'cursor-default' : ''}`}
  >
- <div className="relative bg-gradient-to-r from-amber-900/80 via-yellow-700/60 to-amber-900/80 border-2 border-yellow-500/50 rounded-2xl p-4 sm:p-5 overflow-hidden">
+ <div className="relative bg-gradient-to-r from-amber-900/80 via-yellow-700/60 to-amber-900/80 border-2 border-yellow-500/50 rounded-[12px] p-4 sm:p-5 overflow-hidden">
  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-400/10 to-transparent animate-wc-shimmer pointer-events-none" />
  <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none" />
  <div className="absolute bottom-0 left-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />

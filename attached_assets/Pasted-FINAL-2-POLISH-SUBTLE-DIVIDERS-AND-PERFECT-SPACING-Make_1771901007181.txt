@@ -1,0 +1,156 @@
+FINAL 2% POLISH - SUBTLE DIVIDERS AND PERFECT SPACING
+
+Make these micro-refinements for world-class polish:
+
+=== 1. ADD SUBTLE SECTION DIVIDERS ===
+
+Add very thin, barely-visible horizontal lines between major sections.
+
+DIVIDER STYLING:
+- Height: 1px
+- Color: rgba(255, 255, 255, 0.08) (very subtle white, almost invisible)
+- Width: 100% (full width)
+- Margin: 15px top and bottom
+
+PLACE DIVIDERS BETWEEN:
+- Location/Teams buttons → Search bar
+- Search bar → "FIND YOUR SPORT" section
+- "FIND YOUR SPORT" → "UPCOMING EVENTS" section
+- Last event card → Featured Event card (FIFA World Cup)
+- Featured Event → Sponsor banner
+
+NOTE: These should be VERY subtle - users shouldn't consciously notice them, but they help the eye naturally separate sections.
+
+=== 2. INCREASE EVENT CARD SPACING ===
+
+Add slightly more vertical spacing between event cards.
+
+CURRENT: Probably 10-12px between cards
+NEW: 15px between each event card
+
+SPACING BREAKDOWN:
+- Between NHL/MLB cards: 15px
+- Between MLB/next card: 15px
+- Between any two event cards: 15px
+- Before first event card (after "UPCOMING EVENTS"): 15px
+- After last event card (before featured/sponsor): 20px
+
+=== 3. OPTIMIZE VERTICAL RHYTHM ===
+
+Ensure consistent spacing throughout the entire page using a 5px grid.
+
+SPACING VALUES (use only these):
+- 5px: Very tight (within elements)
+- 10px: Tight (between related items)
+- 15px: Normal (between cards, sections)
+- 20px: Loose (between major sections)
+- 25px: Very loose (rare, only for major separation)
+
+APPLY THIS TO:
+- All margins
+- All padding
+- All gaps between elements
+
+This creates visual harmony and makes the page feel more professional.
+
+=== 4. FEATURED EVENT SPACING ===
+
+The FIFA World Cup card looks amazing - just ensure spacing around it.
+
+SPACING:
+- 20px margin above (after last event card or sponsor)
+- 20px margin below (before next element)
+- 15px internal padding (already looks good)
+
+=== 5. SPONSOR BANNER SPACING ===
+
+Both sponsor banners (Taco Tuesdays and "Sponsor Slot") look great.
+
+ENSURE:
+- 20px margin above each banner
+- 20px margin below each banner
+- Carousel dots have 10px bottom padding
+- Entire banner is tappable/clickable
+
+=== 6. CTA CARD SPACING ===
+
+The "Tap any game to start a watch party!" card looks excellent.
+
+VERIFY:
+- 20px margin above
+- 20px margin below
+- 15px internal padding
+- Smooth gradient background (blue to purple)
+- Clear tap target
+
+=== 7. SPORT ICONS SECTION ===
+
+The sport icons look perfect - just verify spacing.
+
+SPACING:
+- 15px between "FIND YOUR SPORT" title and icons
+- 12px between each sport icon
+- Icons are evenly spaced
+- Arrow button (→) has 10px left margin
+
+=== 8. CONSISTENCY CHECK ===
+
+Verify these elements are consistent:
+
+BORDER RADIUS:
+- All buttons: 10px
+- All cards: 12px
+- All small elements (badges, icons): 6-8px
+
+SHADOWS:
+- Event cards: Subtle shadow (0 2px 8px rgba(0,0,0,0.3))
+- Featured event: Slightly stronger shadow (0 4px 12px rgba(0,0,0,0.4))
+- Buttons: Minimal or no shadow
+
+TRANSITIONS:
+- All hover effects: 200ms ease
+- All animations: 300ms ease-in-out
+- Smooth, not jarring
+
+=== 9. MOBILE RESPONSIVENESS ===
+
+Ensure spacing adapts on mobile:
+- On screens < 600px wide:
+  - Reduce margins slightly (20px → 15px)
+  - Keep event cards at 15px spacing
+  - Maintain tap targets (44x44px minimum)
+  - Dividers remain at 1px height
+
+=== 10. FINAL QUALITY CHECK ===
+
+After implementing, verify:
+- Dividers are VERY subtle (barely visible)
+- Event cards have 15px spacing between them
+- All spacing uses 5px grid (5, 10, 15, 20, 25)
+- No elements feel cramped
+- No excessive white space
+- Page feels balanced and harmonious
+- Scroll is smooth
+- All cards have consistent styling
+
+=== WHAT NOT TO CHANGE ===
+
+DO NOT MODIFY:
+- Top navigation (it's perfect)
+- Hamburger menu (it's perfect)
+- Location/Teams button layout (it's perfect)
+- Search bar (it's perfect)
+- Sport icons (they look great)
+- Featured event design (it's beautiful)
+- Sponsor banners (they're good)
+- Event card design (they're excellent)
+- Overall color scheme
+- Any functionality
+
+ONLY CHANGE:
+- Add subtle divider lines between sections
+- Adjust spacing/margins to use 5px grid
+- Increase event card spacing to 15px
+- Ensure consistency in border radius, shadows, transitions
+
+Build these micro-refinements for the final 2% polish to achieve 100/100 world-class quality.
