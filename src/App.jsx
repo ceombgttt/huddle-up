@@ -1150,6 +1150,7 @@ const HuddleUpApp = () => {
  const [showProScreen, setShowProScreen] = useState(false);
  const [myTeamsOnly, setMyTeamsOnly] = useState(false);
  const [hamburgerOpen, setHamburgerOpen] = useState(false);
+const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
  const [venues, setVenues] = useState(SAMPLE_VENUES);
  const [venueClaims, setVenueClaims] = useState([]);
  const [selectedVenue, setSelectedVenue] = useState(null);
@@ -4538,41 +4539,79 @@ const HuddleUpApp = () => {
  </div>
  )}
 
- {/* LOCATION SEARCH + PARTIES NEAR - SIDE BY SIDE */}
- <div className={`grid ${locationDetected && currentCity ? 'grid-cols-2' : 'grid-cols-1'} gap-2 mb-3`} data-tour-id="location-search">
+ {/* ROW 1: LOCATION DROPDOWN + MY TEAMS - SIDE BY SIDE */}
+ <div className="grid grid-cols-2 gap-[10px] mt-5 mb-[10px]" data-tour-id="location-search">
  <div className="relative">
- <Navigation className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#1E90FF]" />
+ <button
+ onClick={() => setLocationDropdownOpen(!locationDropdownOpen)}
+ className="w-full flex items-center gap-2 px-3 h-[45px] bg-[#151A22] border border-[#222A36] rounded-[10px] text-left hover:border-[#1E90FF]/40 transition-all active:scale-[0.98]"
+ >
+ <MapPin className="w-4 h-4 text-[#1E90FF] flex-shrink-0" />
+ <span className="text-white text-sm font-semibold truncate flex-1">{currentCity || 'Set Location'}</span>
+ <ChevronDown className={`w-4 h-4 text-[#A0A4AB] flex-shrink-0 transition-transform ${locationDropdownOpen ? 'rotate-180' : ''}`} />
+ </button>
+ {locationDropdownOpen && (
+ <>
+ <div className="fixed inset-0 z-[60]" onClick={() => setLocationDropdownOpen(false)} />
+ <div className="absolute top-full left-0 right-0 mt-1 bg-[#1A1F28] border border-[#222A36] rounded-[10px] shadow-2xl z-[65] overflow-hidden">
+ {currentCity && (
+ <div className="px-4 py-3 border-b border-[#222A36] flex items-center gap-2">
+ <Navigation className="w-4 h-4 text-[#1E90FF]" />
+ <span className="text-white/70 text-xs truncate">Current: <span className="text-white font-semibold">{currentCity}</span></span>
+ </div>
+ )}
+ <button
+ onClick={() => { detectUserLocation(); setLocationDropdownOpen(false); }}
+ disabled={locationLoading}
+ className="w-full px-4 py-3 flex items-center gap-2 hover:bg-[#1E90FF]/10 transition-colors text-left"
+ >
+ {locationLoading ? <Loader2 className="w-4 h-4 text-emerald-400 animate-spin" /> : <MapPin className="w-4 h-4 text-emerald-400" />}
+ <span className="text-emerald-300 text-sm font-semibold">Show parties near me</span>
+ </button>
+ <div className="px-4 py-2 border-t border-[#222A36]">
+ <span className="text-white/50 text-[11px] font-semibold uppercase tracking-wider">Change location</span>
  <DebouncedInput
  type="text"
  value={currentCity}
  onChange={(val) => { setCurrentCity(val); setLocationDetected(false); }}
  delay={400}
- placeholder={locationLoading ? "Detecting..." : "Enter city..."}
- className="w-full pl-9 pr-10 py-3 bg-cyan-100 border-2 border-cyan-300 rounded-xl text-black placeholder-cyan-600/50 focus:outline-none focus:ring-2 focus:ring-[#1E90FF] font-semibold text-sm"
+ placeholder="Type a city name..."
+ className="w-full px-3 py-2 mt-1.5 bg-[#0F1115] border border-[#222A36] rounded-lg text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
  />
- <button
- onClick={detectUserLocation}
- disabled={locationLoading}
- className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1.5 rounded-lg hover:bg-[#1E90FF]/20 transition-colors"
- title="Use my location"
- >
- {locationLoading ? (
- <Loader2 className="w-4 h-4 text-[#1E90FF] animate-spin" />
- ) : (
- <MapPin className="w-4 h-4 text-[#1E90FF]" />
- )}
- </button>
  </div>
- {locationDetected && currentCity && (
- <div className="flex items-center gap-2 px-3 py-3 bg-emerald-500/20 border border-emerald-500/30 rounded-xl">
- <MapPin className="w-4 h-4 text-emerald-400 flex-shrink-0" />
- <span className="text-emerald-300 text-xs font-semibold truncate">Near {currentCity}</span>
  </div>
+ </>
  )}
  </div>
 
- <div className={`grid ${user?.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 ? 'grid-cols-2' : 'grid-cols-1'} gap-2 mb-4`}>
- <div className="relative">
+ {user?.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 ? (
+ <button
+ onClick={() => setMyTeamsOnly(!myTeamsOnly)}
+ className={`h-[45px] rounded-[10px] font-semibold text-sm transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] ${
+ myTeamsOnly
+ ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-sm'
+ : 'bg-[#151A22] text-[#A0A4AB] hover:bg-[#222A36] border border-[#222A36]'
+ }`}
+ >
+ <Star className={`w-4 h-4 ${myTeamsOnly ? 'fill-white' : ''}`} />
+ My Teams ({Object.keys(user.favoriteTeams).length})
+ </button>
+ ) : (
+ <button
+ onClick={() => setCurrentScreen('profile')}
+ className="h-[45px] rounded-[10px] font-semibold text-sm bg-[#151A22] text-[#A0A4AB] hover:bg-[#222A36] border border-[#222A36] flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]"
+ >
+ <Star className="w-4 h-4" />
+ My Teams
+ </button>
+ )}
+ </div>
+
+ {/* SECTION DIVIDER */}
+ <div className="h-px bg-white/[0.08] my-[15px]" />
+
+ {/* ROW 2: SEARCH BAR - FULL WIDTH */}
+ <div className="relative mb-[15px]">
  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#A0A4AB]" />
  <DebouncedInput
  type="text"
@@ -4580,31 +4619,14 @@ const HuddleUpApp = () => {
  onChange={(val) => setSearchTerm(val)}
  delay={300}
  placeholder="Search teams..."
- className="w-full pl-9 pr-3 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
+ className="w-full pl-9 pr-3 h-[50px] bg-[#151A22] border border-[#222A36] rounded-[10px] text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
  />
  </div>
 
- {user?.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 && (
- <button
- onClick={() => setMyTeamsOnly(!myTeamsOnly)}
- className={`py-3 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5 ${
- myTeamsOnly
- ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-sm'
- : 'bg-[#151A22] text-[#A0A4AB] hover:bg-[#222A36] border border-[#222A36]'
- }`}
- >
- <Star className={`w-4 h-4 ${myTeamsOnly ? 'fill-white' : ''}`} />
- My Teams
- {myTeamsOnly && (
- <span className="px-1.5 py-0.5 bg-white/20 rounded-full text-[10px]">
- {Object.keys(user.favoriteTeams).length}
- </span>
- )}
- </button>
- )}
- </div>
+ {/* SECTION DIVIDER */}
+ <div className="h-px bg-white/[0.08] my-5" />
 
- <h2 className="text-white font-black text-lg mb-3 mt-1" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>FIND YOUR SPORT</h2>
+ <h2 className="text-white font-bold text-[15px] mb-[15px] uppercase tracking-[1px]" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>FIND YOUR SPORT</h2>
  <div className="relative" data-tour-id="sports-scroller">
  <div
  ref={sportsScrollRef}
@@ -4614,7 +4636,7 @@ const HuddleUpApp = () => {
  setShowSportsScrollArrow(el.scrollLeft + el.clientWidth < el.scrollWidth - 10);
  }
  }}
- className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide"
+ className="flex gap-[14px] overflow-x-auto pb-3 scrollbar-hide"
  >
  {(() => {
  const liveSports = new Set(games.filter(g => g.gameStatus === 'live').map(g => g.sport));
@@ -4627,7 +4649,7 @@ const HuddleUpApp = () => {
  <button
  key={sport}
  onClick={() => setSelectedSport(sport)}
- className={`flex flex-col items-center justify-center min-w-[68px] max-w-[76px] px-2 py-2 rounded-xl font-bold transition-all ${
+ className={`flex flex-col items-center justify-center min-w-[56px] max-w-[64px] px-1.5 py-1.5 rounded-[10px] font-bold transition-all active:scale-[0.98] ${
  selectedSport === sport
  ? 'bg-[#1E90FF] text-white shadow-sm shadow-[#1E90FF]/30'
  : isLive
@@ -4637,8 +4659,8 @@ const HuddleUpApp = () => {
  : 'bg-[#151A22] text-[#A0A4AB] hover:bg-[#222A36]'
  }`}
  >
- <span className="text-xl leading-none">{SPORT_ICONS[sport] || '🏅'}</span>
- <span className="text-[9px] leading-tight mt-1 text-center w-full truncate">{sport}</span>
+ <span className="text-lg leading-none">{SPORT_ICONS[sport] || '🏅'}</span>
+ <span className="text-[8px] leading-tight mt-1 text-center w-full truncate">{sport}</span>
  {isLive && sport !== 'All' && <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse mt-0.5" />}
  </button>
  );
@@ -4652,10 +4674,10 @@ const HuddleUpApp = () => {
  sportsScrollRef.current.scrollBy({ left: 200, behavior: 'smooth' });
  }
  }}
- className="absolute right-0 top-0 bottom-2 w-12 flex items-center justify-end bg-gradient-to-l from-[#0F1115] via-[#0F1115]/95 to-transparent pr-1"
+ className="absolute right-0 top-0 bottom-2 w-10 flex items-center justify-end bg-gradient-to-l from-[#0F1115] via-[#0F1115]/95 to-transparent pr-0.5"
  >
- <span className="w-8 h-8 rounded-full bg-[#1E90FF]/30 border border-cyan-400/60 flex items-center justify-center animate-scroll-glow">
- <svg className="w-4 h-4 text-[#1E90FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <span className="w-6 h-6 rounded-full bg-[#1E90FF]/20 border border-[#1E90FF]/40 flex items-center justify-center">
+ <svg className="w-3 h-3 text-[#1E90FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
  </svg>
  </span>
@@ -4663,6 +4685,9 @@ const HuddleUpApp = () => {
  )}
  </div>
 
+
+ {/* SECTION DIVIDER */}
+ <div className="h-px bg-white/[0.08] my-5" />
 
  {(() => {
  const MAJOR_SPORTS = new Set(['UFC', 'Boxing', 'Formula 1', 'Champions League', 'FIFA World Cup']);
@@ -4688,9 +4713,9 @@ const HuddleUpApp = () => {
  };
 
  return (
-   <div className="mt-3 mb-1">
-   <div className="flex items-center justify-between mb-2">
-   <h3 className="text-white font-black text-sm flex items-center gap-2" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>
+   <div className="mt-0 mb-[15px]">
+   <div className="flex items-center justify-between mb-[15px]">
+   <h3 className="text-white font-bold text-[14px] flex items-center gap-2 uppercase tracking-[1px]" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>
    <Flame className="w-4 h-4 text-orange-400" />
    UPCOMING EVENTS
    </h3>
@@ -4749,6 +4774,9 @@ const HuddleUpApp = () => {
  );
  })()}
 
+ {/* SECTION DIVIDER */}
+ <div className="h-px bg-white/[0.08] my-5" />
+
  </div>
 
  {/* MAIN SPONSOR BANNER - 5 slots per sport (hidden for Pro users) */}
@@ -4756,7 +4784,7 @@ const HuddleUpApp = () => {
  const sponsors = getSponsorsForSport(selectedSport);
  const sponsor = sponsors[sponsorIndex % sponsors.length];
  return (
- <div className="max-w-4xl mx-auto px-4 pt-3 space-y-2">
+ <div className="max-w-4xl mx-auto px-4 pt-5 space-y-2">
  <div
  className={`relative overflow-hidden rounded-2xl border-2 ${sponsor.borderColor} bg-gradient-to-r ${sponsor.color} transition-all duration-500 shadow-sm shadow-black/20`}
  >
@@ -4810,7 +4838,7 @@ const HuddleUpApp = () => {
  const wcGames = games.filter(g => g.sport === 'FIFA World Cup' || g.sport === 'FIFA Club World Cup');
  const wcHasStarted = wcGames.length > 0;
  return (
- <div className="max-w-4xl mx-auto px-4 pt-3">
+ <div className="max-w-4xl mx-auto px-4 pt-[25px]">
  <button
  onClick={() => {
  if (wcHasStarted) {
@@ -4866,21 +4894,21 @@ const HuddleUpApp = () => {
  );
  })()}
 
- <div className="max-w-4xl mx-auto px-4 pt-3">
- <div className="bg-gradient-to-r from-[#1E90FF]/20 via-blue-500/20 to-purple-500/20 border-2 border-[#1E90FF]/40 rounded-2xl px-5 py-4 flex items-center gap-4 shadow-sm shadow-[#1E90FF]/10 animate-pulse-slow">
- <div className="w-12 h-12 bg-gradient-to-br from-[#1E90FF] to-[#1E90FF] rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm shadow-[#1E90FF]/10">
+ <div className="max-w-4xl mx-auto px-4 pt-5">
+ <div className="bg-gradient-to-r from-[#1E90FF]/20 via-blue-500/20 to-purple-500/20 border-2 border-[#1E90FF]/40 rounded-[12px] px-5 py-4 flex items-center gap-4 shadow-sm shadow-[#1E90FF]/10">
+ <div className="w-12 h-12 bg-gradient-to-br from-[#1E90FF] to-[#1E90FF] rounded-[10px] flex items-center justify-center flex-shrink-0 shadow-sm shadow-[#1E90FF]/10">
  <span className="text-2xl">👇</span>
  </div>
  <div>
- <p className="text-white font-bold text-base">Tap any game to start a watch party!</p>
+ <p className="text-white font-bold text-[15px]">Tap any game to start a watch party!</p>
  <p className="text-[#1E90FF]/80 text-xs mt-0.5">Pick a game, choose a venue, and invite your crew</p>
  </div>
  </div>
  </div>
 
  {/* GLOWING SCROLL DOWN ARROW */}
- <div className="flex flex-col items-center py-4">
- <p className="text-[#A0A4AB] text-xs uppercase tracking-widest mb-2 animate-pulse">Scroll for more games</p>
+ <div className="flex flex-col items-center py-5">
+ <p className="text-[#A0A4AB] text-xs uppercase tracking-widest mb-2 animate-pulse font-semibold">Scroll for more games</p>
  <div className="animate-scroll-bounce">
  <div className="w-10 h-10 rounded-full bg-[#1E90FF]/20 border border-[#1E90FF]/50 flex items-center justify-center shadow-sm shadow-[#1E90FF]/10 animate-scroll-glow">
  <svg className="w-5 h-5 text-[#1E90FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -4890,7 +4918,7 @@ const HuddleUpApp = () => {
  </div>
  </div>
 
- <div className="max-w-4xl mx-auto px-4 py-6 space-y-5" data-tour-id="game-cards">
+ <div className="max-w-4xl mx-auto px-4 py-5 space-y-[15px]" data-tour-id="game-cards">
  {filteredGames.map(game => {
  const gameParties = getPartiesForGame(game.id);
  return (
@@ -4901,7 +4929,7 @@ const HuddleUpApp = () => {
  setCurrentScreen('gameDetail');
  window.scrollTo(0, 0);
  }}
- className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36] hover:border-[#1E90FF]/50 cursor-pointer transform hover:scale-[1.02] transition-all duration-200 shadow-xl"
+ className="bg-[#151A22] p-6 rounded-[12px] border border-[#222A36] hover:border-[#1E90FF]/50 cursor-pointer transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-xl"
  >
  <div className="flex items-center justify-between mb-3">
  <span className="px-3 py-1 bg-[#1E90FF]/20 text-[#1E90FF] text-xs font-bold rounded-full border border-[#1E90FF]/30">
