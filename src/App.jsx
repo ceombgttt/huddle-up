@@ -301,16 +301,16 @@ const DEMO_MAIN_SPONSOR = {
  isDemo: true,
 };
 
-const MAIN_BANNER_HEIGHT = 28;
+const MAIN_BANNER_HEIGHT = 36;
 const MainSponsorBanner = ({ mainSponsor }) => {
  const sponsor = mainSponsor || DEMO_MAIN_SPONSOR;
  const bannerSrc = sponsor.bannerUrl || sponsor.logoUrl;
  return (
  <div
- className="w-full relative overflow-hidden"
+ className="w-full relative overflow-hidden bg-black"
  style={{ height: `${MAIN_BANNER_HEIGHT}px` }}
  >
- <img src={bannerSrc} alt={sponsor.name} className="absolute inset-0 w-full h-full object-cover" />
+ <img src={bannerSrc} alt={sponsor.name} className="absolute inset-0 w-full h-full object-contain" />
  {sponsor.isDemo && (
  <div className="absolute bottom-0.5 right-2 text-[9px] text-white/30 font-medium">AD</div>
  )}
