@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, Megaphone, MessageCircle, Gift, Award, Clock, Zap, Crown, Copy, Shield, ChevronRight, Info, Flame, TrendingUp } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, Megaphone, MessageCircle, Gift, Award, Clock, Zap, Crown, Copy, Shield, ChevronRight, Info, Flame, TrendingUp, Menu } from 'lucide-react';
 import { api } from './api.js';
 
 // Sample games data for different sports
@@ -239,7 +239,7 @@ const DEMO_MAIN_SPONSOR = {
  isDemo: true,
 };
 
-const MAIN_BANNER_HEIGHT = 56;
+const MAIN_BANNER_HEIGHT = 28;
 const MainSponsorBanner = ({ mainSponsor }) => {
  const sponsor = mainSponsor || DEMO_MAIN_SPONSOR;
  const bannerSrc = sponsor.bannerUrl || sponsor.logoUrl;
@@ -1148,7 +1148,8 @@ const HuddleUpApp = () => {
  const [showInviteReminder, setShowInviteReminder] = useState(false);
  const inviteReminderShown = useRef(false);
  const [showProScreen, setShowProScreen] = useState(false);
- const [myTeamsOnly, setMyTeamsOnly] = useState(false); // Filter by favorite teams
+ const [myTeamsOnly, setMyTeamsOnly] = useState(false);
+ const [hamburgerOpen, setHamburgerOpen] = useState(false);
  const [venues, setVenues] = useState(SAMPLE_VENUES);
  const [venueClaims, setVenueClaims] = useState([]);
  const [selectedVenue, setSelectedVenue] = useState(null);
@@ -4408,140 +4409,88 @@ const HuddleUpApp = () => {
  const gamesScreenJSX = () => (
  <div className="min-h-screen pt-2 bg-[#0F1115]">
  <div className="bg-[#0F1115]">
- <div className="max-w-4xl mx-auto px-4 pt-4 pb-2">
- <div className="flex items-center gap-3 mb-2">
+ <div className="max-w-4xl mx-auto px-4 pt-3 pb-2">
+ <div className="flex items-center justify-between" data-tour-id="nav-buttons">
  <div className="flex-shrink-0">
- <img src="/huddle-up-shield.png" alt="Huddle Up" className="h-12 drop-shadow-sm" />
+ <img src="/huddle-up-shield.png" alt="Huddle Up" className="h-10 drop-shadow-sm" />
  </div>
- <div className="flex-1 min-w-0 overflow-x-auto overflow-y-visible scrollbar-hide py-2" style={{ WebkitOverflowScrolling: 'touch' }}>
- <div className="flex gap-1.5 w-max" data-tour-id="nav-buttons">
+ <div className="flex items-center gap-4">
+ <button onClick={() => setCurrentScreen('trending')} data-tour-id="trending" className="relative p-2 rounded-xl hover:bg-pink-500/20 transition-colors active:scale-95">
+ <Zap className={`w-6 h-6 ${parties.some(p => p.attendees?.length > 0) ? 'text-pink-300 animate-pulse' : 'text-pink-400'}`} />
+ {parties.some(p => p.attendees?.length > 0) && <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-pink-400 rounded-full animate-pulse" />}
+ </button>
+ <button onClick={() => setCurrentScreen('invitations')} data-tour-id="alerts" className="relative p-2 rounded-xl hover:bg-[#222A36] transition-colors active:scale-95">
+ <Bell className="w-6 h-6 text-white" />
+ {totalAlerts > 0 && <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center font-bold">{totalAlerts}</span>}
+ </button>
+ <button onClick={() => setCurrentScreen('myCrew')} data-tour-id="my-crew" className="relative p-2 rounded-xl hover:bg-[#1E90FF]/20 transition-colors active:scale-95">
+ <Users className="w-6 h-6 text-[#1E90FF]" />
+ {(friendRequests.length + dmUnreadCount) > 0 && <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full text-white text-[8px] flex items-center justify-center font-bold">{friendRequests.length + dmUnreadCount}</span>}
+ </button>
+ <button onClick={() => setCurrentScreen('profile')} data-tour-id="profile" className="p-2 rounded-xl hover:bg-[#222A36] transition-colors active:scale-95">
+ {user.profilePicture ? <ProfileAvatar src={user.profilePicture} name={user.name} size="xs" className="border border-[#1E90FF]/50" /> : <User className="w-6 h-6 text-white" />}
+ </button>
+ <button onClick={() => setCurrentScreen('rewards')} data-tour-id="rewards" className="p-2 rounded-xl hover:bg-yellow-500/20 transition-colors active:scale-95">
+ <Gift className="w-6 h-6 text-yellow-400" />
+ </button>
+ <button onClick={() => setHamburgerOpen(true)} className="p-2 rounded-xl hover:bg-[#222A36] transition-colors active:scale-95">
+ <Menu className="w-6 h-6 text-white" />
+ </button>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ {hamburgerOpen && (
+ <>
+ <div className="fixed inset-0 bg-black/50 z-[70] transition-opacity" onClick={() => setHamburgerOpen(false)} />
+ <div className="fixed top-0 right-0 bottom-0 w-72 bg-[#151A22] z-[80] shadow-2xl overflow-y-auto" style={{ animation: 'slideInRight 300ms ease-in-out' }}>
+ <div className="flex items-center justify-between p-4 border-b border-[#222A36]">
+ <span className="text-white font-black text-lg" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>MENU</span>
+ <button onClick={() => setHamburgerOpen(false)} className="p-2 rounded-xl hover:bg-[#222A36] transition-colors active:scale-95">
+ <X className="w-6 h-6 text-white" />
+ </button>
+ </div>
+ <div className="p-3 space-y-1">
+ <button onClick={() => { setCurrentScreen('myParties'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-500/10 transition-colors text-left active:scale-[0.98]">
+ <Calendar className="w-5 h-5 text-orange-400" /><span className="text-white text-sm font-semibold">My Parties</span>
+ </button>
+ <button onClick={() => { setCurrentScreen('teamChats'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-teal-500/10 transition-colors text-left active:scale-[0.98]">
+ <MessageCircle className="w-5 h-5 text-teal-400" /><span className="text-white text-sm font-semibold">Team Chat</span>
+ </button>
+ <button onClick={() => { setCurrentScreen('fanFinder'); if (currentCity && nearbyFans.length === 0) searchNearbyFans(currentCity); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1E90FF]/10 transition-colors text-left active:scale-[0.98]">
+ <UserPlus className="w-5 h-5 text-[#1E90FF]" /><span className="text-white text-sm font-semibold">Find Fans</span>
+ </button>
+ <button onClick={() => { setCurrentScreen('fantasy'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-500/10 transition-colors text-left active:scale-[0.98]">
+ <Trophy className="w-5 h-5 text-orange-400" /><span className="text-white text-sm font-semibold">Fantasy</span>
+ </button>
+ <button onClick={() => { setShowQA(true); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-indigo-500/10 transition-colors text-left active:scale-[0.98]">
+ <Shield className="w-5 h-5 text-indigo-400" /><span className="text-white text-sm font-semibold">Q&A</span>
+ </button>
+ <button onClick={() => { shareApp(); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-500/10 transition-colors text-left active:scale-[0.98]">
+ <Share2 className="w-5 h-5 text-emerald-400" /><span className="text-white text-sm font-semibold">Share App</span>
+ </button>
+ <button onClick={() => { startSpotlightTour(); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1E90FF]/10 transition-colors text-left active:scale-[0.98]">
+ <Map className="w-5 h-5 text-[#1E90FF]" /><span className="text-white text-sm font-semibold">Learn The App</span>
+ </button>
  {userVenue && (
- <button
- onClick={() => setCurrentScreen('venueDashboard')}
- className="flex flex-col items-center px-2 py-1.5 bg-green-500/20 rounded-xl hover:bg-green-500/30 transition-colors border border-green-500/30"
- >
- <Building2 className="w-5 h-5 text-green-300" />
- <span className="text-[9px] text-green-300 mt-0.5 leading-none">Venue Hub</span>
+ <button onClick={() => { setCurrentScreen('venueDashboard'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-green-500/10 transition-colors text-left active:scale-[0.98]">
+ <Building2 className="w-5 h-5 text-green-400" /><span className="text-white text-sm font-semibold">Venue Hub</span>
  </button>
  )}
  {isAdmin && (
- <button
- onClick={() => setCurrentScreen('admin')}
- className="flex flex-col items-center px-2 py-1.5 bg-purple-500/20 rounded-xl hover:bg-purple-500/30 transition-colors border border-purple-500/30"
- >
- <Settings className="w-5 h-5 text-purple-300" />
- <span className="text-[9px] text-purple-300 mt-0.5 leading-none">Admin</span>
+ <button onClick={() => { setCurrentScreen('admin'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-purple-500/10 transition-colors text-left active:scale-[0.98]">
+ <Settings className="w-5 h-5 text-purple-400" /><span className="text-white text-sm font-semibold">Admin Panel</span>
  </button>
  )}
- <button
- onClick={() => setCurrentScreen('myParties')}
- className="flex flex-col items-center px-2 py-1.5 bg-orange-500/20 rounded-xl hover:bg-orange-500/30 transition-colors border border-orange-500/30"
- >
- <Calendar className="w-5 h-5 text-orange-300" />
- <span className="text-[9px] text-orange-300 mt-0.5 leading-none">Parties</span>
- </button>
- <button
- onClick={shareApp}
- className="flex flex-col items-center px-2 py-1.5 bg-emerald-500/20 rounded-xl hover:bg-emerald-500/30 transition-colors border border-emerald-500/30"
- >
- <Share2 className="w-5 h-5 text-emerald-300" />
- <span className="text-[9px] text-emerald-300 mt-0.5 leading-none">Share</span>
- </button>
- <button
- onClick={() => setCurrentScreen('myCrew')}
- className="flex flex-col items-center px-2 py-1.5 bg-[#1E90FF]/20 rounded-xl hover:bg-[#1E90FF]/30 transition-colors border border-[#1E90FF]/30 relative"
- data-tour-id="my-crew"
- >
- <Users className="w-5 h-5 text-[#1E90FF]" />
- <span className="text-[9px] text-[#1E90FF] mt-0.5 leading-none">My Crew</span>
- {(friendRequests.length + dmUnreadCount) > 0 && (
- <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-[8px] flex items-center justify-center font-bold">{friendRequests.length + dmUnreadCount}</span>
- )}
- </button>
- <button
- onClick={() => setCurrentScreen('rewards')}
- className="flex flex-col items-center px-2 py-1.5 bg-yellow-500/20 rounded-xl hover:bg-yellow-500/30 transition-colors border border-yellow-500/30"
- data-tour-id="rewards"
- >
- <Gift className="w-5 h-5 text-yellow-300" />
- <span className="text-[9px] text-yellow-300 mt-0.5 leading-none">Rewards</span>
- </button>
- <button
- onClick={() => { setCurrentScreen('fanFinder'); if (currentCity && nearbyFans.length === 0) searchNearbyFans(currentCity); }}
- className="flex flex-col items-center px-2 py-1.5 bg-[#1E90FF]/20 rounded-xl hover:bg-[#1E90FF]/30 transition-colors border border-[#1E90FF]/30"
- >
- <UserPlus className="w-5 h-5 text-[#1E90FF]/80" />
- <span className="text-[9px] text-[#1E90FF]/80 mt-0.5 leading-none">Find Fans</span>
- </button>
- <button
- onClick={() => setCurrentScreen('fantasy')}
- className="flex flex-col items-center px-2 py-1.5 bg-orange-500/20 rounded-xl hover:bg-orange-500/30 transition-colors border border-orange-500/30"
- >
- <Trophy className="w-5 h-5 text-orange-300" />
- <span className="text-[9px] text-orange-300 mt-0.5 leading-none">Fantasy</span>
- </button>
- <button
- onClick={() => setCurrentScreen('teamChats')}
- className="flex flex-col items-center px-2 py-1.5 bg-teal-500/20 rounded-xl hover:bg-teal-500/30 transition-colors border border-teal-500/30"
- >
- <MessageCircle className="w-5 h-5 text-teal-300" />
- <span className="text-[9px] text-teal-300 mt-0.5 leading-none">Team Chat</span>
- </button>
- <button
- onClick={() => setCurrentScreen('trending')}
- data-tour-id="trending"
- className={`flex flex-col items-center px-2 py-1.5 rounded-xl transition-colors border relative ${parties.some(p => p.attendees?.length > 0) ? 'bg-pink-500/30 border-pink-400/50 shadow-sm shadow-pink-500/20' : 'bg-pink-500/20 border-pink-500/30 hover:bg-pink-500/30'}`}
- >
- <Zap className={`w-5 h-5 ${parties.some(p => p.attendees?.length > 0) ? 'text-pink-200 animate-pulse' : 'text-pink-300'}`} />
- <span className={`text-[9px] mt-0.5 leading-none ${parties.some(p => p.attendees?.length > 0) ? 'text-pink-200 font-bold' : 'text-pink-300'}`}>Trending</span>
- {parties.some(p => p.attendees?.length > 0) && (
-   <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-pink-400 rounded-full animate-pulse" />
- )}
- </button>
- <button
- onClick={() => setShowQA(true)}
- className="flex flex-col items-center px-2 py-1.5 bg-indigo-500/20 rounded-xl hover:bg-indigo-500/30 transition-colors border border-indigo-500/30"
- >
- <Shield className="w-5 h-5 text-indigo-300" />
- <span className="text-[9px] text-indigo-300 mt-0.5 leading-none">Q&A</span>
- </button>
- <button
- onClick={() => setCurrentScreen('invitations')}
- className="flex flex-col items-center px-2 py-1.5 bg-[#151A22] rounded-xl hover:bg-[#222A36] transition-colors relative"
- data-tour-id="alerts"
- >
- <Bell className="w-5 h-5 text-white" />
- <span className="text-[9px] text-[#A0A4AB] mt-0.5 leading-none">Alerts</span>
- {totalAlerts > 0 && (
- <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-bold">
- {totalAlerts}
- </span>
- )}
- </button>
- <button
- onClick={() => setCurrentScreen('profile')}
- className="flex flex-col items-center px-2 py-1.5 bg-[#151A22] rounded-xl hover:bg-[#222A36] transition-colors"
- data-tour-id="profile"
- >
- {user.profilePicture ? (
- <ProfileAvatar src={user.profilePicture} name={user.name} size="xs" className="border border-[#1E90FF]/50" />
- ) : (
- <User className="w-5 h-5 text-white" />
- )}
- <span className="text-[9px] text-[#A0A4AB] mt-0.5 leading-none">Profile</span>
- </button>
- <button
- onClick={handleLogout}
- className="flex flex-col items-center px-2 py-1.5 bg-[#151A22] rounded-xl hover:bg-[#222A36] transition-colors"
- >
- <LogOut className="w-5 h-5 text-white" />
- <span className="text-[9px] text-[#A0A4AB] mt-0.5 leading-none">Logout</span>
+ <div className="border-t border-[#222A36] my-2" />
+ <button onClick={() => { handleLogout(); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-500/10 transition-colors text-left active:scale-[0.98]">
+ <LogOut className="w-5 h-5 text-red-400" /><span className="text-red-400 text-sm font-semibold">Logout</span>
  </button>
  </div>
  </div>
- </div>
- </div>
- </div>
+ </>
+ )}
 
  <div className="max-w-4xl mx-auto px-4">
 
@@ -4622,8 +4571,8 @@ const HuddleUpApp = () => {
  )}
  </div>
 
- <div className={`grid ${user?.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 ? 'grid-cols-3' : 'grid-cols-2'} gap-2 mb-3`}>
- <div className="relative col-span-1">
+ <div className={`grid ${user?.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 ? 'grid-cols-2' : 'grid-cols-1'} gap-2 mb-4`}>
+ <div className="relative">
  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#A0A4AB]" />
  <DebouncedInput
  type="text"
@@ -4635,16 +4584,6 @@ const HuddleUpApp = () => {
  />
  </div>
 
- <button
- onClick={startSpotlightTour}
- data-tour-id="take-a-tour"
- className="py-3 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5 bg-gradient-to-r from-[#1E90FF]/20 to-purple-500/20 border border-[#1E90FF]/30 text-[#1E90FF] hover:from-[#1E90FF]/30 hover:to-purple-500/30"
- >
- <Map className="w-4 h-4" />
- <span className="hidden sm:inline">Learn The App</span>
- <span className="sm:hidden">Tutorial</span>
- </button>
-
  {user?.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 && (
  <button
  onClick={() => setMyTeamsOnly(!myTeamsOnly)}
@@ -4655,8 +4594,7 @@ const HuddleUpApp = () => {
  }`}
  >
  <Star className={`w-4 h-4 ${myTeamsOnly ? 'fill-white' : ''}`} />
- <span className="hidden sm:inline">{myTeamsOnly ? 'My Teams' : 'My Teams'}</span>
- <span className="sm:hidden">{myTeamsOnly ? 'My Teams' : 'My Teams'}</span>
+ My Teams
  {myTeamsOnly && (
  <span className="px-1.5 py-0.5 bg-white/20 rounded-full text-[10px]">
  {Object.keys(user.favoriteTeams).length}
@@ -4666,7 +4604,7 @@ const HuddleUpApp = () => {
  )}
  </div>
 
- <h2 className="text-white font-black text-lg mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>FIND YOUR SPORT</h2>
+ <h2 className="text-white font-black text-lg mb-3 mt-1" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>FIND YOUR SPORT</h2>
  <div className="relative" data-tour-id="sports-scroller">
  <div
  ref={sportsScrollRef}
@@ -4676,7 +4614,7 @@ const HuddleUpApp = () => {
  setShowSportsScrollArrow(el.scrollLeft + el.clientWidth < el.scrollWidth - 10);
  }
  }}
- className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide"
+ className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide"
  >
  {(() => {
  const liveSports = new Set(games.filter(g => g.gameStatus === 'live').map(g => g.sport));
@@ -4952,7 +4890,7 @@ const HuddleUpApp = () => {
  </div>
  </div>
 
- <div className="max-w-4xl mx-auto px-4 py-6 space-y-4" data-tour-id="game-cards">
+ <div className="max-w-4xl mx-auto px-4 py-6 space-y-5" data-tour-id="game-cards">
  {filteredGames.map(game => {
  const gameParties = getPartiesForGame(game.id);
  return (

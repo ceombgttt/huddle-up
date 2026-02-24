@@ -1,0 +1,82 @@
+STYLING:
+- Keep dark background
+- Icons should be ~24-28px
+- Proper spacing between icons (15-20px)
+- Logo on far left
+- Hamburger menu on far right
+- Mobile-friendly (stack if needed)
+
+=== 6. PRESERVE ALL FUNCTIONALITY ===
+
+IMPORTANT:
+- Don't remove any features
+- Just reorganize them
+- All 13+ original nav items should still be accessible via hamburger menu
+- Maintain all event listeners and functionality
+- Keep notification badge count working
+
+=== 7. ANIMATION & UX ===
+
+HAMBURGER MENU:
+- Slide-in animation from right (300ms ease-in-out)
+- Dark overlay (rgba(0,0,0,0.5))
+- Tap overlay or X button to close
+- Smooth transitions
+
+BUTTONS:
+- Keep hover effects
+- Keep click/tap feedback
+- Maintain current color scheme (blue, pink, gold)
+
+=== 8. MOBILE RESPONSIVENESS ===
+
+ENSURE:
+- Top nav works on mobile (icons might need to be slightly smaller)
+- Hamburger menu is mobile-friendly
+- Sponsor banner scales properly on mobile
+- Touch targets are minimum 44x44px
+
+=== VISUAL IMPROVEMENTS ===
+
+ADD BREATHING ROOM:
+- Increase margin/padding between major sections by 10-15px
+- Add subtle divider lines between sections if needed
+- Ensure "Find Your Sport" icons aren't cramped
+
+SPONSOR BANNER:
+- Add subtle border or shadow to make it feel more integrated
+- Ensure text is still readable at smaller size
+- Compress image if needed for faster loading
+
+=== TESTING CHECKLIST ===
+
+After implementation, verify:
+- [ ] Top nav shows only 5 icons + hamburger
+- [ ] Hamburger menu opens/closes smoothly
+- [ ] All original features are accessible in menu
+- [ ] Sponsor banner is 50% shorter
+- [ ] "Learn The App" button is removed from main view
+- [ ] Only 2 CTA buttons remain (Location + My Teams)
+- [ ] Search bar still works
+- [ ] Create Party button works
+- [ ] Notifications badge shows count
+- [ ] Profile icon works
+- [ ] Mobile view is clean and functional
+
+=== PRESERVE CURRENT FEATURES ===
+
+DO NOT CHANGE:
+- Location functionality (Boca Raton, FL selector)
+- "My Teams" counter and functionality
+- Sport category icons and navigation
+- Upcoming events cards (they look good)
+- Overall color scheme (blue, pink, gold, dark background)
+- Any backend functionality
+
+ONLY CHANGE:
+- Visual layout and organization
+- Reduce number of visible top nav icons
+- Shrink sponsor banner height
+- Remove redundant CTA buttons
+
+Build this cleaner, less cluttered interface while maintaining all existing functionality.
