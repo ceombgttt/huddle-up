@@ -4666,6 +4666,7 @@ const HuddleUpApp = () => {
  )}
  </div>
 
+ <h2 className="text-white font-black text-lg mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>FIND YOUR SPORT</h2>
  <div className="relative" data-tour-id="sports-scroller">
  <div
  ref={sportsScrollRef}
@@ -4724,15 +4725,6 @@ const HuddleUpApp = () => {
  )}
  </div>
 
- <button
- onClick={loadGames}
- className="w-full py-2 bg-[#151A22] hover:bg-[#151A22] rounded-xl text-sm text-[#A0A4AB] hover:text-white transition-all border border-[#222A36] flex items-center justify-center gap-2"
- >
- <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
- </svg>
- Refresh scores
- </button>
 
  {(() => {
  const MAJOR_SPORTS = new Set(['UFC', 'Boxing', 'Formula 1', 'Champions League', 'FIFA World Cup']);
@@ -5045,6 +5037,17 @@ const HuddleUpApp = () => {
  <span className="text-[#1E90FF] text-xs">{game.broadcast}</span>
  )}
  </div>
+ </div>
+ <div className="mt-3 flex justify-center">
+ <button
+ onClick={(e) => { e.stopPropagation(); loadGames(); }}
+ className="px-4 py-1.5 bg-[#0F1115] hover:bg-[#1E90FF]/20 rounded-lg text-xs text-[#A0A4AB] hover:text-[#1E90FF] transition-all border border-[#222A36] hover:border-[#1E90FF]/30 flex items-center gap-1.5"
+ >
+ <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+ </svg>
+ Refresh
+ </button>
  </div>
  </div>
  );
