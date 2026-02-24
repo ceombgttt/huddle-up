@@ -62,8 +62,10 @@ self.addEventListener('push', (event) => {
     tag: data.tag || 'huddle-up',
     renotify: true,
     requireInteraction: false,
-    vibrate: [200, 100, 200],
-    data: data.data || {}
+    vibrate: [200, 100, 200, 100, 200],
+    sound: '/notification.mp3',
+    data: data.data || {},
+    silent: false
   };
 
   event.waitUntil(

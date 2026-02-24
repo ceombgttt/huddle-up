@@ -1216,6 +1216,7 @@ const HuddleUpApp = () => {
  const [editPartySaving, setEditPartySaving] = useState(false);
  const [invitations, setInvitations] = useState([]);
  const [notifications, setNotifications] = useState([]);
+ const notificationCountRef = useRef(0);
  const [fanSearchSport, setFanSearchSport] = useState('');
  const [fanSearchTeam, setFanSearchTeam] = useState('');
  const [fanResults, setFanResults] = useState([]);
@@ -1986,9 +1987,36 @@ const HuddleUpApp = () => {
  }
  };
 
+ const playNotificationSound = useCallback(() => {
+ try {
+ const ctx = new (window.AudioContext || window.webkitAudioContext)();
+ const playTone = (freq, startTime, dur) => {
+ const osc = ctx.createOscillator();
+ const gain = ctx.createGain();
+ osc.connect(gain);
+ gain.connect(ctx.destination);
+ osc.frequency.value = freq;
+ osc.type = 'sine';
+ gain.gain.setValueAtTime(0.3, startTime);
+ gain.gain.exponentialRampToValueAtTime(0.01, startTime + dur);
+ osc.start(startTime);
+ osc.stop(startTime + dur);
+ };
+ const now = ctx.currentTime;
+ playTone(880, now, 0.15);
+ playTone(1320, now + 0.12, 0.15);
+ playTone(1760, now + 0.24, 0.2);
+ } catch (e) {}
+ }, []);
+
  const loadNotifications = async () => {
  try {
  const data = await api.notifications.list();
+ const unreadCount = data.filter(n => !n.isRead).length;
+ if (unreadCount > notificationCountRef.current && notificationCountRef.current >= 0) {
+ playNotificationSound();
+ }
+ notificationCountRef.current = unreadCount;
  setNotifications(data);
  } catch (error) {
  setNotifications([]);

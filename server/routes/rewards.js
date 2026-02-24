@@ -168,6 +168,18 @@ router.post('/checkin', requireAuth, async (req, res) => {
     const { partyId } = req.body;
     if (!partyId) return res.status(400).json({ error: 'Party ID required' });
 
+    const partyInfo = await pool.query(
+      'SELECT game_time FROM parties WHERE id = $1',
+      [partyId]
+    );
+    if (partyInfo.rows.length > 0 && partyInfo.rows[0].game_time) {
+      const gameTime = new Date(partyInfo.rows[0].game_time);
+      const hoursAfterGame = (Date.now() - gameTime.getTime()) / (1000 * 60 * 60);
+      if (hoursAfterGame > 4) {
+        return res.status(400).json({ error: 'This party has ended. Check-ins are no longer available.' });
+      }
+    }
+
     const membership = await pool.query(
       'SELECT 1 FROM party_attendees WHERE party_id = $1 AND user_id = $2',
       [partyId, req.session.userId]

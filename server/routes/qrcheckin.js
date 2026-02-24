@@ -217,9 +217,9 @@ router.post('/scan', requireAuth, async (req, res) => {
         `SELECT p.id FROM parties p
          JOIN party_attendees pa ON pa.party_id = p.id
          WHERE p.venue_name = $1 AND pa.user_id = $2
-         AND p.game_date >= NOW() - INTERVAL '6 hours'
-         AND p.game_date <= NOW() + INTERVAL '6 hours'
-         ORDER BY ABS(EXTRACT(EPOCH FROM (p.game_date - NOW()))) ASC
+         AND p.game_time >= NOW() - INTERVAL '4 hours'
+         AND p.game_time <= NOW() + INTERVAL '6 hours'
+         ORDER BY ABS(EXTRACT(EPOCH FROM (p.game_time - NOW()))) ASC
          LIMIT 1`,
         [venueName, req.session.userId]
       );
@@ -230,6 +230,18 @@ router.post('/scan', requireAuth, async (req, res) => {
     }
 
     if (targetPartyId) {
+      const partyCheck = await pool.query(
+        'SELECT game_time FROM parties WHERE id = $1',
+        [targetPartyId]
+      );
+      if (partyCheck.rows.length > 0 && partyCheck.rows[0].game_time) {
+        const gameTime = new Date(partyCheck.rows[0].game_time);
+        const hoursAfterGame = (Date.now() - gameTime.getTime()) / (1000 * 60 * 60);
+        if (hoursAfterGame > 4) {
+          return res.status(400).json({ error: 'This party has ended. Check-ins are no longer available.' });
+        }
+      }
+
       const membership = await pool.query(
         'SELECT 1 FROM party_attendees WHERE party_id = $1 AND user_id = $2',
         [targetPartyId, req.session.userId]
