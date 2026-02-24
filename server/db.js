@@ -547,6 +547,35 @@ export async function initDB() {
       `);
     }
 
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS predictions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        game_id TEXT NOT NULL,
+        sport TEXT NOT NULL,
+        home_team TEXT,
+        away_team TEXT,
+        picked_team TEXT NOT NULL,
+        confidence INTEGER NOT NULL CHECK (confidence >= 1 AND confidence <= 10),
+        status TEXT DEFAULT 'pending',
+        winner TEXT,
+        points_earned INTEGER DEFAULT 0,
+        game_time TIMESTAMPTZ,
+        resolved_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(user_id, game_id)
+      );
+
+      CREATE TABLE IF NOT EXISTS prediction_streaks (
+        user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+        current_streak INTEGER DEFAULT 0,
+        best_streak INTEGER DEFAULT 0,
+        total_correct INTEGER DEFAULT 0,
+        total_predictions INTEGER DEFAULT 0,
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `);
+
     console.log('Database initialized successfully');
   } finally {
     client.release();

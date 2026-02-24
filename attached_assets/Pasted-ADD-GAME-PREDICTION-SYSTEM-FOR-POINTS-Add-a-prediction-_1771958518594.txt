@@ -1,0 +1,192 @@
+ADD GAME PREDICTION SYSTEM FOR POINTS
+
+Add a prediction/betting feature where users can predict game winners and earn points for correct predictions.
+
+=== WHAT TO BUILD ===
+
+1. PREDICTION INTERFACE
+
+For each upcoming game, add a "Make Prediction" section:
+
+SHOW:
+- Both teams with logos
+- Game date/time
+- "Pick the Winner" options (two buttons)
+- Confidence slider (1-10)
+- Potential points display
+- Countdown to game start
+- Submit button
+
+EXAMPLE:
+┌─────────────────────────────────┐
+│ Panthers  vs  Maple Leafs       │
+│  [logo]        [logo]            │
+│                                  │
+│ Who will win?                    │
+│ [Panthers] [Maple Leafs]        │
+│                                  │
+│ Confidence: ●─────── (5/10)     │
+│                                  │
+│ Win: +250 points                 │
+│ Locks in: 2h 15m                │
+│                                  │
+│ [Submit Prediction]              │
+└─────────────────────────────────┘
+
+2. POINTS CALCULATION
+
+FORMULA:
+- Base points: 50
+- Multiplier: Confidence level (1-10)
+- Total: 50 × confidence
+
+EXAMPLES:
+- Pick correctly at 10 confidence = 500 points
+- Pick correctly at 5 confidence = 250 points
+- Pick correctly at 1 confidence = 50 points
+- Pick incorrectly = 0 points (no penalty)
+
+BONUS POINTS:
+- 5 correct in a row: +100 bonus
+- 10 correct in a row: +250 bonus
+- Underdog wins (upset): +200 bonus
+
+3. WHERE TO SHOW PREDICTIONS
+
+ADD TO GAME/EVENT CARDS:
+- On home page game listings
+- On party detail pages
+- In "My Predictions" page (new)
+
+EXPANDABLE SECTION:
+- Show "Make Prediction" button
+- Click to expand prediction interface
+- Shows existing prediction if already made
+- Can change prediction until game starts
+
+4. PREDICTION STATES
+
+BEFORE GAME:
+- Show prediction interface
+- Allow user to pick/change
+- Show countdown to lockout
+
+DURING GAME:
+- Lock prediction (can't change)
+- Show "Your pick: Panthers (5/10 confidence)"
+- Show "Game in progress..."
+
+AFTER GAME:
+- Show result: ✅ "Correct! +250 pts" or ❌ "Incorrect"
+- Update user's points automatically
+- Show final score
+
+5. MY PREDICTIONS PAGE
+
+Create new page showing:
+
+UPCOMING:
+- All games user predicted
+- Current picks
+- Potential points
+
+PAST:
+- Previous predictions
+- Results (correct/incorrect)
+- Points earned
+- Win rate %
+
+STATS:
+- Total predictions: 47
+- Correct: 28 (59.6%)
+- Total points earned: 8,450
+- Current streak: 3 wins
+
+6. LEADERBOARD
+
+Add "Prediction Leaders" section:
+
+WEEKLY LEADERBOARD:
+- Top 10 predictors this week
+- Shows: Name, correct picks, points earned
+- Resets every Monday
+
+MONTHLY LEADERBOARD:
+- Top 20 this month
+- Same stats
+
+Show on home page or in dedicated Leaderboard tab.
+
+7. NOTIFICATIONS
+
+Send push notifications:
+
+REMINDER:
+- "Game starts in 1 hour - make your prediction!"
+
+RESULT:
+- "✅ You earned 350 points! Panthers won!"
+- "❌ Incorrect - try again next game!"
+
+STREAK:
+- "🔥 5 correct in a row! +100 bonus points!"
+
+8. INTEGRATION WITH EXISTING FEATURES
+
+ADD TO:
+- Event/game cards (prediction section)
+- User profile (prediction stats)
+- Points system (add prediction points to total)
+- Notifications (prediction reminders/results)
+
+USE EXISTING:
+- User accounts
+- Points system
+- Push notifications
+- Game/event data
+
+9. ADMIN CONTROLS
+
+Admin can:
+- Mark games as resolved (set winner)
+- Award points automatically
+- View prediction stats
+- See who predicted what
+- Handle disputed results
+
+10. RULES & FAIR PLAY
+
+ENFORCE:
+- Can't predict after game starts (locked)
+- Can change prediction until game time
+- One prediction per game per user
+- Points awarded automatically when game ends
+- No cheating possible
+
+11. LEGAL DISCLAIMER
+
+Add to prediction page:
+"🎮 For Entertainment Only - Points have no cash value"
+
+Add to Terms:
+"Predictions are for fun. Points cannot be redeemed for money. This is not gambling."
+
+=== IMPLEMENTATION NOTES ===
+
+- Use existing game/event data from ESPN API
+- Store predictions in database (user_id, game_id, pick, confidence, timestamp)
+- Auto-resolve predictions when game ends
+- Award points automatically
+- Send notifications for results
+- Keep it simple - just win/lose predictions (no spreads/over-under yet)
+
+=== UI/UX ===
+
+- Make prediction interface simple and fast
+- Show confidence slider clearly
+- Display potential points prominently
+- Lock predictions at game start (countdown timer)
+- Celebrate wins (confetti animation, sound)
+- Show stats to encourage engagement
+
+Build this prediction system and integrate it with the existing app.

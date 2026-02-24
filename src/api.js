@@ -296,6 +296,17 @@ export const api = {
     getVenuePromotions: (venueId) => request(`/venue-hub/venue/${venueId}/promotions`),
     getVenueDeals: (venueId) => request(`/venue-hub/venue/${venueId}/deals`),
   },
+  predictions: {
+    submit: (data) => request('/predictions/submit', { method: 'POST', body: JSON.stringify(data) }),
+    mine: () => request('/predictions/mine'),
+    forGame: (gameId) => request(`/predictions/game/${encodeURIComponent(gameId)}`),
+    stats: () => request('/predictions/stats'),
+    leaderboard: (period = 'weekly') => request(`/predictions/leaderboard?period=${period}`),
+    gamePredictions: (gameId) => request(`/predictions/game-predictions/${encodeURIComponent(gameId)}`),
+    adminResolve: (gameId, winner) => request('/predictions/admin/resolve', { method: 'POST', body: JSON.stringify({ gameId, winner }) }),
+    adminPendingGames: () => request('/predictions/admin/pending-games'),
+    adminGameDetail: (gameId) => request(`/predictions/admin/game-detail/${encodeURIComponent(gameId)}`),
+  },
   dm: {
     conversations: () => request('/dm/conversations'),
     messages: (userId) => request(`/dm/messages/${userId}`),

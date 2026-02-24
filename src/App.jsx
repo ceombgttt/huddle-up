@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, Megaphone, MessageCircle, Gift, Award, Clock, Zap, Crown, Copy, Shield, ChevronRight, Info, Flame, TrendingUp, Menu, ScanLine, Download, Smartphone } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, Megaphone, MessageCircle, Gift, Award, Clock, Zap, Crown, Copy, Shield, ChevronRight, Info, Flame, TrendingUp, Menu, ScanLine, Download, Smartphone, Target, CircleDot } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { api } from './api.js';
 
@@ -1367,6 +1367,18 @@ const qrScannerRef = useRef(null);
  const [shareParty, setShareParty] = useState(null);
  const [linkCopied, setLinkCopied] = useState(false);
 
+ const [myPredictions, setMyPredictions] = useState([]);
+ const [predictionStats, setPredictionStats] = useState(null);
+ const [predictionLeaderboard, setPredictionLeaderboard] = useState([]);
+ const [predictionLeaderPeriod, setPredictionLeaderPeriod] = useState('weekly');
+ const [predictionsTab, setPredictionsTab] = useState('upcoming');
+ const [predictionLoading, setPredictionLoading] = useState(false);
+ const [gamePredictionCache, setGamePredictionCache] = useState({});
+ const [expandedPrediction, setExpandedPrediction] = useState(null);
+ const [predictionConfidence, setPredictionConfidence] = useState(5);
+ const [adminPendingGames, setAdminPendingGames] = useState([]);
+ const [adminResolveGame, setAdminResolveGame] = useState(null);
+
  const generatePartyLink = (party) => {
  return `${window.location.origin}/party/${party.id}`;
  };
@@ -2274,6 +2286,45 @@ const qrScannerRef = useRef(null);
  } catch (e) {
  console.log('Rewards load error:', e);
  }
+ };
+
+ const loadPredictions = async () => {
+ if (!user) return;
+ try {
+ const [preds, stats] = await Promise.all([
+   api.predictions.mine(),
+   api.predictions.stats(),
+ ]);
+ setMyPredictions(preds);
+ setPredictionStats(stats);
+ } catch (e) { console.log('Predictions load error:', e); }
+ };
+
+ const loadPredictionLeaderboard = async (period) => {
+ try {
+ const data = await api.predictions.leaderboard(period || predictionLeaderPeriod);
+ setPredictionLeaderboard(data);
+ } catch (e) { console.log('Leaderboard error:', e); }
+ };
+
+ const submitPrediction = async (game, pickedTeam, confidence) => {
+ if (!user) { alert('Please log in to make predictions'); return; }
+ try {
+ setPredictionLoading(true);
+ await api.predictions.submit({
+   gameId: game.id,
+   sport: game.sport,
+   homeTeam: game.homeTeam,
+   awayTeam: game.awayTeam,
+   pickedTeam,
+   confidence,
+   gameTime: game.startTime,
+ });
+ setGamePredictionCache(prev => ({ ...prev, [game.id]: { picked_team: pickedTeam, confidence, status: 'pending' } }));
+ await loadPredictions();
+ setExpandedPrediction(null);
+ } catch (e) { alert(e.message); }
+ finally { setPredictionLoading(false); }
  };
 
  const openQrScanner = (partyId) => {
@@ -4632,6 +4683,9 @@ const qrScannerRef = useRef(null);
  <button onClick={() => { setCurrentScreen('fanFinder'); if (currentCity && nearbyFans.length === 0) searchNearbyFans(currentCity); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1E90FF]/10 transition-colors text-left active:scale-[0.98]">
  <UserPlus className="w-5 h-5 text-[#1E90FF]" /><span className="text-white text-sm font-semibold">Find Fans</span>
  </button>
+ <button onClick={() => { setCurrentScreen('predictions'); loadPredictions(); loadPredictionLeaderboard(); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-500/10 transition-colors text-left active:scale-[0.98]">
+ <Target className="w-5 h-5 text-emerald-400" /><span className="text-white text-sm font-semibold">Predictions</span>
+ </button>
  <button onClick={() => { setCurrentScreen('fantasy'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-500/10 transition-colors text-left active:scale-[0.98]">
  <Trophy className="w-5 h-5 text-orange-400" /><span className="text-white text-sm font-semibold">Fantasy</span>
  </button>
@@ -5360,6 +5414,55 @@ const qrScannerRef = useRef(null);
  <Plus className="w-5 h-5" />
  CREATE WATCH PARTY
  </button>
+
+ {user && selectedGame.gameStatus === 'scheduled' && (() => {
+   const existingPred = gamePredictionCache[selectedGame.id] || myPredictions.find(p => p.game_id === selectedGame.id);
+   const isLocked = new Date(selectedGame.startTime) <= new Date();
+   return (
+   <div className="bg-[#0D1117] border border-emerald-500/30 rounded-2xl p-4 mt-4">
+   <div className="flex items-center gap-2 mb-3">
+     <Target className="w-5 h-5 text-emerald-400" />
+     <h3 className="text-lg font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>PREDICT THE WINNER</h3>
+     <span className="ml-auto text-xs text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">+{predictionConfidence * 50} pts</span>
+   </div>
+   {existingPred && existingPred.status === 'pending' ? (
+     <div className="text-center py-2">
+       <p className="text-emerald-400 font-bold">Your pick: {existingPred.picked_team}</p>
+       <p className="text-[#A0A4AB] text-xs">Confidence: {existingPred.confidence}/10 | Potential: +{existingPred.confidence * 50} pts</p>
+       {!isLocked && <button onClick={() => setExpandedPrediction(selectedGame.id)} className="text-xs text-[#1E90FF] mt-2 underline">Change prediction</button>}
+     </div>
+   ) : null}
+   {(!existingPred || expandedPrediction === selectedGame.id) && !isLocked ? (
+     <>
+     <div className="flex gap-3 mb-3">
+       <button onClick={() => submitPrediction(selectedGame, selectedGame.homeTeam, predictionConfidence)}
+         disabled={predictionLoading}
+         className="flex-1 py-3 rounded-xl font-bold text-sm transition-all bg-[#151A22] border border-[#222A36] text-white hover:border-emerald-500/50 hover:bg-emerald-500/10 active:scale-95">
+         {selectedGame.homeLogo && <img src={selectedGame.homeLogo} alt="" className="w-8 h-8 object-contain mx-auto mb-1" />}
+         {selectedGame.homeTeam}
+       </button>
+       <button onClick={() => submitPrediction(selectedGame, selectedGame.awayTeam, predictionConfidence)}
+         disabled={predictionLoading}
+         className="flex-1 py-3 rounded-xl font-bold text-sm transition-all bg-[#151A22] border border-[#222A36] text-white hover:border-emerald-500/50 hover:bg-emerald-500/10 active:scale-95">
+         {selectedGame.awayLogo && <img src={selectedGame.awayLogo} alt="" className="w-8 h-8 object-contain mx-auto mb-1" />}
+         {selectedGame.awayTeam}
+       </button>
+     </div>
+     <div className="mb-2">
+       <div className="flex justify-between text-xs text-[#A0A4AB] mb-1"><span>Confidence</span><span>{predictionConfidence}/10</span></div>
+       <input type="range" min="1" max="10" value={predictionConfidence} onChange={e => setPredictionConfidence(parseInt(e.target.value))}
+         className="w-full h-2 rounded-full appearance-none cursor-pointer" style={{ background: `linear-gradient(to right, #10B981 0%, #F59E0B ${predictionConfidence * 10}%, #333 ${predictionConfidence * 10}%)` }} />
+       <div className="flex justify-between text-[10px] text-[#A0A4AB]/60 mt-1"><span>Safe bet</span><span>All in!</span></div>
+     </div>
+     <p className="text-xs text-[#A0A4AB] text-center">Win: <span className="text-emerald-400 font-bold">+{predictionConfidence * 50} points</span> | No penalty for wrong picks</p>
+     <p className="text-[10px] text-[#A0A4AB]/50 text-center mt-1">For entertainment only - points have no cash value</p>
+     </>
+   ) : isLocked && !existingPred ? (
+     <p className="text-center text-[#A0A4AB] text-sm py-2">Predictions locked - game has started</p>
+   ) : null}
+   </div>
+   );
+ })()}
  </div>
 
  <div>
@@ -6286,6 +6389,7 @@ const qrScannerRef = useRef(null);
  { id: 'management', label: 'Management', icon: Settings },
  { id: 'rewards', label: 'Rewards', icon: Gift },
  { id: 'affiliates', label: 'Influencers', icon: Users },
+ { id: 'predictions', label: 'Predictions', icon: Target },
  { id: 'seeddata', label: 'Seed Data', icon: Zap },
  ].map(tab => (
  <button key={tab.id} onClick={() => setAdminTab(tab.id)}
@@ -8029,6 +8133,76 @@ const qrScannerRef = useRef(null);
  </div>
  </div>
  </>
+ )}
+
+ {adminTab === 'predictions' && (
+ <div className="space-y-4">
+ <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>PREDICTION MANAGEMENT</h2>
+ <p className="text-[#A0A4AB] text-sm">Resolve game predictions by selecting the winning team. Points are awarded automatically to users with correct picks.</p>
+
+ <button onClick={async () => {
+   try {
+     const data = await api.predictions.adminPendingGames();
+     setAdminPendingGames(data);
+   } catch(e) { alert(e.message); }
+ }} className="px-4 py-2 bg-[#1E90FF] text-white font-bold rounded-xl text-sm hover:opacity-90">
+   Refresh Pending Games
+ </button>
+
+ {adminPendingGames.length === 0 ? (
+   <p className="text-[#A0A4AB] text-center py-6">No pending predictions to resolve. Click "Refresh Pending Games" to check.</p>
+ ) : (
+   <div className="space-y-3">
+   {adminPendingGames.map(game => (
+     <div key={game.game_id} className="bg-[#151A22] rounded-xl border border-[#222A36] p-4">
+       <div className="flex items-center justify-between mb-2">
+         <span className="text-xs text-[#1E90FF] bg-[#1E90FF]/10 px-2 py-0.5 rounded-full font-bold">{game.sport}</span>
+         <span className="text-xs text-[#A0A4AB]">{game.prediction_count} predictions</span>
+       </div>
+       <p className="text-white font-bold mb-2">{game.home_team} vs {game.away_team}</p>
+       <p className="text-[#A0A4AB] text-xs mb-3">Game time: {game.game_time ? new Date(game.game_time).toLocaleString() : 'N/A'}</p>
+
+       {adminResolveGame === game.game_id ? (
+         <div className="flex gap-2">
+           <button onClick={async () => {
+             if (!confirm(`Set ${game.home_team} as winner? This will award points to all correct predictions.`)) return;
+             try {
+               const result = await api.predictions.adminResolve(game.game_id, game.home_team);
+               alert(`Resolved! ${result.resolved} predictions processed. Winner: ${game.home_team}`);
+               setAdminResolveGame(null);
+               const data = await api.predictions.adminPendingGames();
+               setAdminPendingGames(data);
+             } catch(e) { alert(e.message); }
+           }} className="flex-1 py-2 bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 rounded-xl font-bold text-sm hover:bg-emerald-500/30">
+             {game.home_team} Wins
+           </button>
+           <button onClick={async () => {
+             if (!confirm(`Set ${game.away_team} as winner? This will award points to all correct predictions.`)) return;
+             try {
+               const result = await api.predictions.adminResolve(game.game_id, game.away_team);
+               alert(`Resolved! ${result.resolved} predictions processed. Winner: ${game.away_team}`);
+               setAdminResolveGame(null);
+               const data = await api.predictions.adminPendingGames();
+               setAdminPendingGames(data);
+             } catch(e) { alert(e.message); }
+           }} className="flex-1 py-2 bg-[#1E90FF]/20 border border-[#1E90FF]/40 text-[#1E90FF] rounded-xl font-bold text-sm hover:bg-[#1E90FF]/30">
+             {game.away_team} Wins
+           </button>
+           <button onClick={() => setAdminResolveGame(null)} className="px-3 py-2 bg-[#222A36] text-[#A0A4AB] rounded-xl text-sm">
+             Cancel
+           </button>
+         </div>
+       ) : (
+         <button onClick={() => setAdminResolveGame(game.game_id)}
+           className="w-full py-2 bg-orange-500/20 border border-orange-500/40 text-orange-400 rounded-xl font-bold text-sm hover:bg-orange-500/30">
+           Resolve Game
+         </button>
+       )}
+     </div>
+   ))}
+   </div>
+ )}
+ </div>
  )}
 
  {adminTab === 'seeddata' && (
@@ -10962,6 +11136,252 @@ const qrScannerRef = useRef(null);
  </div>
  );
 
+ const PredictionsScreen = () => {
+ useEffect(() => {
+   window.scrollTo({ top: 0, behavior: 'instant' });
+   loadPredictions();
+   loadPredictionLeaderboard();
+ }, []);
+
+ const upcomingPreds = myPredictions.filter(p => p.status === 'pending');
+ const pastPreds = myPredictions.filter(p => p.status !== 'pending');
+ const scheduledGames = games.filter(g => g.gameStatus === 'scheduled' && new Date(g.startTime) > new Date());
+
+ return (
+ <div className="min-h-screen pt-20 bg-[#0F1115]">
+ <div className="sticky top-14 z-10 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="max-w-4xl mx-auto px-4 py-2 flex items-center gap-3">
+ <button onClick={() => setCurrentScreen('home')} className="flex items-center gap-1.5 text-[#A0A4AB] hover:text-white transition-colors">
+ <ArrowLeft className="w-5 h-5" /><span className="text-sm font-medium">Back</span>
+ </button>
+ <h1 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>GAME PREDICTIONS</h1>
+ <Target className="w-5 h-5 text-emerald-400 ml-auto" />
+ </div>
+ </div>
+
+ <div className="max-w-4xl mx-auto px-4 py-4 space-y-4">
+
+ {predictionStats && (
+ <div className="grid grid-cols-4 gap-2">
+   <div className="bg-[#151A22] rounded-xl p-3 text-center border border-[#222A36]">
+     <div className="text-xl font-black text-white">{predictionStats.total}</div>
+     <div className="text-[10px] text-[#A0A4AB]">Total</div>
+   </div>
+   <div className="bg-[#151A22] rounded-xl p-3 text-center border border-emerald-500/30">
+     <div className="text-xl font-black text-emerald-400">{predictionStats.correct}</div>
+     <div className="text-[10px] text-[#A0A4AB]">Correct</div>
+   </div>
+   <div className="bg-[#151A22] rounded-xl p-3 text-center border border-[#222A36]">
+     <div className="text-xl font-black text-[#1E90FF]">{predictionStats.winRate}%</div>
+     <div className="text-[10px] text-[#A0A4AB]">Win Rate</div>
+   </div>
+   <div className="bg-[#151A22] rounded-xl p-3 text-center border border-orange-500/30">
+     <div className="text-xl font-black text-orange-400">{predictionStats.currentStreak}</div>
+     <div className="text-[10px] text-[#A0A4AB]">Streak</div>
+   </div>
+ </div>
+ )}
+
+ {predictionStats && (
+ <div className="bg-gradient-to-r from-emerald-500/10 to-[#1E90FF]/10 rounded-xl p-4 border border-emerald-500/20">
+   <div className="flex items-center justify-between">
+     <div>
+       <div className="text-sm text-[#A0A4AB]">Points Earned from Predictions</div>
+       <div className="text-2xl font-black text-emerald-400">{predictionStats.totalPointsEarned.toLocaleString()}</div>
+     </div>
+     <div className="text-right">
+       <div className="text-sm text-[#A0A4AB]">Best Streak</div>
+       <div className="text-2xl font-black text-orange-400">{predictionStats.bestStreak}</div>
+     </div>
+   </div>
+ </div>
+ )}
+
+ <div className="flex gap-2">
+   {['upcoming', 'past', 'predict', 'leaderboard'].map(tab => (
+     <button key={tab} onClick={() => setPredictionsTab(tab)}
+       className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex-shrink-0 ${
+         predictionsTab === tab ? 'bg-emerald-500 text-white' : 'bg-[#151A22] text-[#A0A4AB] hover:text-white'
+       }`}>
+       {tab === 'upcoming' ? 'Active' : tab === 'past' ? 'History' : tab === 'predict' ? 'Games' : 'Leaders'}
+     </button>
+   ))}
+ </div>
+
+ {predictionsTab === 'predict' && (
+ <div className="space-y-3">
+   <p className="text-[#A0A4AB] text-xs">Pick the winner for upcoming games to earn points!</p>
+   {scheduledGames.length === 0 ? (
+     <p className="text-center text-[#A0A4AB] py-8">No upcoming games to predict right now. Check back later!</p>
+   ) : scheduledGames.slice(0, 20).map(game => {
+     const existing = gamePredictionCache[game.id] || myPredictions.find(p => p.game_id === game.id);
+     const timeLeft = new Date(game.startTime) - new Date();
+     const hoursLeft = Math.floor(timeLeft / 3600000);
+     const minsLeft = Math.floor((timeLeft % 3600000) / 60000);
+     return (
+     <div key={game.id} className="bg-[#151A22] rounded-2xl border border-[#222A36] p-4">
+       <div className="flex items-center justify-between mb-2">
+         <span className="text-xs text-[#1E90FF] bg-[#1E90FF]/10 px-2 py-0.5 rounded-full font-bold">{game.sport}</span>
+         <span className="text-xs text-[#A0A4AB]">{hoursLeft > 0 ? `${hoursLeft}h ${minsLeft}m` : `${minsLeft}m`} until lock</span>
+       </div>
+       <div className="flex items-center justify-center gap-4 mb-3">
+         <div className="flex-1 text-center">
+           {game.homeLogo && <img src={game.homeLogo} alt="" className="w-10 h-10 object-contain mx-auto mb-1" />}
+           <div className="text-sm font-bold text-white">{game.homeTeam}</div>
+         </div>
+         <span className="text-lg font-black text-[#A0A4AB]">VS</span>
+         <div className="flex-1 text-center">
+           {game.awayLogo && <img src={game.awayLogo} alt="" className="w-10 h-10 object-contain mx-auto mb-1" />}
+           <div className="text-sm font-bold text-white">{game.awayTeam}</div>
+         </div>
+       </div>
+       {existing ? (
+         <div className="text-center py-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+           <p className="text-emerald-400 font-bold text-sm">Your pick: {existing.picked_team}</p>
+           <p className="text-[#A0A4AB] text-xs">Confidence: {existing.confidence}/10 | +{existing.confidence * 50} pts if correct</p>
+         </div>
+       ) : (
+         <>
+         <div className="flex gap-2 mb-2">
+           <button onClick={() => { setExpandedPrediction(expandedPrediction === game.id ? null : game.id); setPredictionConfidence(5); }}
+             className="flex-1 py-2.5 rounded-xl font-bold text-sm bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition-all active:scale-95">
+             Make Prediction
+           </button>
+         </div>
+         {expandedPrediction === game.id && (
+           <div className="mt-3 pt-3 border-t border-[#222A36]">
+             <p className="text-xs text-[#A0A4AB] mb-2 text-center">Who will win?</p>
+             <div className="flex gap-3 mb-3">
+               <button onClick={() => submitPrediction(game, game.homeTeam, predictionConfidence)}
+                 disabled={predictionLoading}
+                 className="flex-1 py-3 rounded-xl font-bold text-sm bg-[#0D1117] border border-[#222A36] text-white hover:border-emerald-500/50 active:scale-95">
+                 {game.homeTeam}
+               </button>
+               <button onClick={() => submitPrediction(game, game.awayTeam, predictionConfidence)}
+                 disabled={predictionLoading}
+                 className="flex-1 py-3 rounded-xl font-bold text-sm bg-[#0D1117] border border-[#222A36] text-white hover:border-emerald-500/50 active:scale-95">
+                 {game.awayTeam}
+               </button>
+             </div>
+             <div className="mb-2">
+               <div className="flex justify-between text-xs text-[#A0A4AB] mb-1"><span>Confidence</span><span>{predictionConfidence}/10</span></div>
+               <input type="range" min="1" max="10" value={predictionConfidence} onChange={e => setPredictionConfidence(parseInt(e.target.value))}
+                 className="w-full h-2 rounded-full appearance-none cursor-pointer" style={{ background: `linear-gradient(to right, #10B981 0%, #F59E0B ${predictionConfidence * 10}%, #333 ${predictionConfidence * 10}%)` }} />
+             </div>
+             <p className="text-xs text-[#A0A4AB] text-center">Win: <span className="text-emerald-400 font-bold">+{predictionConfidence * 50} pts</span></p>
+           </div>
+         )}
+         </>
+       )}
+     </div>
+     );
+   })}
+ </div>
+ )}
+
+ {predictionsTab === 'upcoming' && (
+ <div className="space-y-3">
+   {upcomingPreds.length === 0 ? (
+     <div className="text-center py-8">
+       <Target className="w-12 h-12 text-[#A0A4AB]/30 mx-auto mb-3" />
+       <p className="text-[#A0A4AB]">No active predictions</p>
+       <button onClick={() => setPredictionsTab('predict')} className="text-emerald-400 text-sm font-bold mt-2">Browse Games</button>
+     </div>
+   ) : upcomingPreds.map(pred => {
+     const timeLeft = new Date(pred.game_time) - new Date();
+     const hoursLeft = Math.max(0, Math.floor(timeLeft / 3600000));
+     const minsLeft = Math.max(0, Math.floor((timeLeft % 3600000) / 60000));
+     const isLocked = timeLeft <= 0;
+     return (
+     <div key={pred.id} className="bg-[#151A22] rounded-2xl border border-emerald-500/20 p-4">
+       <div className="flex items-center justify-between mb-2">
+         <span className="text-xs text-[#1E90FF] bg-[#1E90FF]/10 px-2 py-0.5 rounded-full font-bold">{pred.sport}</span>
+         {isLocked ? (
+           <span className="text-xs text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-full">Locked - In Progress</span>
+         ) : (
+           <span className="text-xs text-[#A0A4AB]">Locks in {hoursLeft}h {minsLeft}m</span>
+         )}
+       </div>
+       <div className="text-center">
+         <p className="text-white font-bold">{pred.home_team} vs {pred.away_team}</p>
+         <p className="text-emerald-400 text-sm mt-1">Your pick: <span className="font-bold">{pred.picked_team}</span></p>
+         <p className="text-[#A0A4AB] text-xs">Confidence: {pred.confidence}/10 | Potential: +{pred.confidence * 50} pts</p>
+       </div>
+     </div>
+     );
+   })}
+ </div>
+ )}
+
+ {predictionsTab === 'past' && (
+ <div className="space-y-3">
+   {pastPreds.length === 0 ? (
+     <p className="text-center text-[#A0A4AB] py-8">No resolved predictions yet</p>
+   ) : pastPreds.map(pred => (
+     <div key={pred.id} className={`bg-[#151A22] rounded-2xl border p-4 ${pred.status === 'correct' ? 'border-emerald-500/30' : 'border-red-500/20'}`}>
+       <div className="flex items-center justify-between mb-2">
+         <span className="text-xs text-[#1E90FF] bg-[#1E90FF]/10 px-2 py-0.5 rounded-full font-bold">{pred.sport}</span>
+         {pred.status === 'correct' ? (
+           <span className="text-xs text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-full font-bold flex items-center gap-1"><CheckCircle className="w-3 h-3" /> +{pred.points_earned} pts</span>
+         ) : (
+           <span className="text-xs text-red-400 bg-red-500/10 px-2 py-1 rounded-full font-bold">Incorrect</span>
+         )}
+       </div>
+       <div className="text-center">
+         <p className="text-white font-bold">{pred.home_team} vs {pred.away_team}</p>
+         <p className={`text-sm mt-1 ${pred.status === 'correct' ? 'text-emerald-400' : 'text-red-400'}`}>
+           Your pick: {pred.picked_team} ({pred.confidence}/10)
+         </p>
+         {pred.winner && <p className="text-[#A0A4AB] text-xs mt-1">Winner: {pred.winner}</p>}
+       </div>
+     </div>
+   ))}
+ </div>
+ )}
+
+ {predictionsTab === 'leaderboard' && (
+ <div className="space-y-3">
+   <div className="flex gap-2">
+     {['weekly', 'monthly', 'alltime'].map(p => (
+       <button key={p} onClick={() => { setPredictionLeaderPeriod(p); loadPredictionLeaderboard(p); }}
+         className={`px-3 py-1.5 rounded-lg text-xs font-bold ${predictionLeaderPeriod === p ? 'bg-[#1E90FF] text-white' : 'bg-[#151A22] text-[#A0A4AB]'}`}>
+         {p === 'weekly' ? 'This Week' : p === 'monthly' ? 'This Month' : 'All Time'}
+       </button>
+     ))}
+   </div>
+   {predictionLeaderboard.length === 0 ? (
+     <p className="text-center text-[#A0A4AB] py-8">No predictions yet for this period</p>
+   ) : predictionLeaderboard.map((leader, idx) => (
+     <div key={leader.id} className="bg-[#151A22] rounded-xl border border-[#222A36] p-3 flex items-center gap-3">
+       <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-sm ${
+         idx === 0 ? 'bg-yellow-500 text-black' : idx === 1 ? 'bg-gray-400 text-black' : idx === 2 ? 'bg-orange-600 text-white' : 'bg-[#222A36] text-[#A0A4AB]'
+       }`}>{idx + 1}</div>
+       {leader.profile_picture ? (
+         <img src={leader.profile_picture.startsWith('http') ? leader.profile_picture : `/api/uploads/serve/${leader.profile_picture.replace('/objects/', '')}`} alt="" className="w-8 h-8 rounded-full object-cover" />
+       ) : (
+         <div className="w-8 h-8 rounded-full bg-[#222A36] flex items-center justify-center"><User className="w-4 h-4 text-[#A0A4AB]" /></div>
+       )}
+       <div className="flex-1 min-w-0">
+         <p className="text-white font-bold text-sm truncate">{leader.name}</p>
+         <p className="text-[#A0A4AB] text-xs">{leader.correct_picks}/{leader.total_picks} correct</p>
+       </div>
+       <div className="text-right">
+         <p className="text-emerald-400 font-bold text-sm">{parseInt(leader.points_earned).toLocaleString()}</p>
+         <p className="text-[#A0A4AB] text-[10px]">pts earned</p>
+       </div>
+     </div>
+   ))}
+ </div>
+ )}
+
+ <div className="bg-[#151A22] rounded-xl p-3 border border-[#222A36]">
+   <p className="text-[#A0A4AB] text-xs text-center">For entertainment only - points have no cash value. This is not gambling.</p>
+ </div>
+ </div>
+ </div>
+ );
+ };
+
  const RewardsScreen = () => {
  const pointActions = [
  { action: 'Create a Party', points: 50, icon: <Plus className="w-5 h-5" />, color: 'from-[#1E90FF] to-[#1E90FF]' },
@@ -12974,6 +13394,7 @@ const qrScannerRef = useRef(null);
  {currentScreen === 'userProfile' && renderUserProfileScreen()}
  {currentScreen === 'alerts' && renderAlertsScreen()}
  {currentScreen === 'myTickets' && renderMyTicketsScreen()}
+ {currentScreen === 'predictions' && <PredictionsScreen />}
  {currentScreen === 'contactUs' && <ContactUsScreen />}
 
  {editProfileOpen && (

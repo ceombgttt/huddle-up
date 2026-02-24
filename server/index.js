@@ -34,6 +34,7 @@ import raffleRoutes from './routes/raffles.js';
 import affiliateRoutes from './routes/affiliates.js';
 import venueHubRoutes from './routes/venueHub.js';
 import dmRoutes from './routes/dm.js';
+import predictionRoutes from './routes/predictions.js';
 import { startScoreChecker } from './scoreChecker.js';
 import { WebhookHandlers } from './stripe/webhookHandlers.js';
 import { initStripe } from './stripe/init.js';
@@ -115,6 +116,7 @@ app.use('/api/raffles', raffleRoutes);
 app.use('/api/affiliates', affiliateRoutes);
 app.use('/api/venue-hub', venueHubRoutes);
 app.use('/api/dm', dmRoutes);
+app.use('/api/predictions', predictionRoutes);
 
 import { seedDemoData, clearDemoData, getSeedStats } from './seed.js';
 

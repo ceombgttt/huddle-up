@@ -30,6 +30,7 @@ The UI/UX emphasizes intuitive navigation and visual engagement, incorporating t
 - **Featured Venue System**: Two venue tiers (Regular and Featured) with Featured venues receiving priority placement, badges, and enhanced visibility.
 - **Fan vs. Venue Account System**: Distinct signup flows and dashboards for Fan and Venue users, with specific features tailored to each role.
 - **Interactive Spotlight Tour**: A step-by-step walkthrough of key app features for new users.
+- **Game Prediction System**: Users predict game winners with a confidence slider (1-10). Points: base 50 × confidence. Streak bonuses at 5 (+100) and 10 (+250) correct. Pro users get 3x multiplier. Features: prediction interface on game detail pages, dedicated "Predictions" screen with stats/history/leaderboard, admin panel to resolve games and award points. Database tables: `predictions`, `prediction_streaks`. Routes: `server/routes/predictions.js`.
 
 ## External Dependencies
 - **PostgreSQL**: Database.
