@@ -159,31 +159,37 @@ app.get('/api/seed/stats', async (req, res) => {
 });
 
 async function start() {
-  await initDB();
-
-  try {
-    await initStripe();
-    console.log('Stripe initialized successfully');
-  } catch (error) {
-    console.error('Stripe initialization failed (payments will be unavailable):', error.message);
-  }
-
   if (isProduction) {
     const distPath = path.resolve(__dirname, '..', 'dist');
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
+      if (req.path.startsWith('/api')) {
+        return res.status(404).json({ error: 'Not found' });
+      }
       res.sendFile(path.join(distPath, 'index.html'));
     });
-  } else {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa',
-    });
-    app.use(vite.middlewares);
   }
 
-  app.listen(5000, '0.0.0.0', () => {
+  app.listen(5000, '0.0.0.0', async () => {
     console.log('Huddle Up running on http://0.0.0.0:5000');
+
+    await initDB();
+
+    try {
+      await initStripe();
+      console.log('Stripe initialized successfully');
+    } catch (error) {
+      console.error('Stripe initialization failed (payments will be unavailable):', error.message);
+    }
+
+    if (!isProduction) {
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: 'spa',
+      });
+      app.use(vite.middlewares);
+    }
+
     startScoreChecker();
   });
 }
