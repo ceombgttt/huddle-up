@@ -11298,7 +11298,7 @@ const qrScannerRef = useRef(null);
          <>
          <div className="flex gap-2 mb-2">
            <button onClick={() => { setExpandedPrediction(expandedPrediction === game.id ? null : game.id); setPredictionConfidence(5); }}
-             className="flex-1 py-2.5 rounded-xl font-bold text-sm bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition-all active:scale-95">
+             className="flex-1 py-2.5 rounded-xl font-bold text-sm bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition-colors">
              Make Prediction
            </button>
          </div>
