@@ -199,6 +199,12 @@ const TEAM_LOGO_MAP = {
  'MLB': { league: 'mlb', teams: { 'Arizona Diamondbacks': 'ari', 'Atlanta Braves': 'atl', 'Baltimore Orioles': 'bal', 'Boston Red Sox': 'bos', 'Chicago Cubs': 'chc', 'Chicago White Sox': 'chw', 'Cincinnati Reds': 'cin', 'Cleveland Guardians': 'cle', 'Colorado Rockies': 'col', 'Detroit Tigers': 'det', 'Houston Astros': 'hou', 'Kansas City Royals': 'kc', 'LA Angels': 'laa', 'LA Dodgers': 'lad', 'Miami Marlins': 'mia', 'Milwaukee Brewers': 'mil', 'Minnesota Twins': 'min', 'NY Mets': 'nym', 'NY Yankees': 'nyy', 'Oakland Athletics': 'oak', 'Philadelphia Phillies': 'phi', 'Pittsburgh Pirates': 'pit', 'San Diego Padres': 'sd', 'San Francisco Giants': 'sf', 'Seattle Mariners': 'sea', 'St. Louis Cardinals': 'stl', 'Tampa Bay Rays': 'tb', 'Texas Rangers': 'tex', 'Toronto Blue Jays': 'tor', 'Washington Nationals': 'wsh' }},
  'NHL': { league: 'nhl', teams: { 'Anaheim Ducks': 'ana', 'Arizona Coyotes': 'ari', 'Boston Bruins': 'bos', 'Buffalo Sabres': 'buf', 'Calgary Flames': 'cgy', 'Carolina Hurricanes': 'car', 'Chicago Blackhawks': 'chi', 'Colorado Avalanche': 'col', 'Columbus Blue Jackets': 'cbj', 'Dallas Stars': 'dal', 'Detroit Red Wings': 'det', 'Edmonton Oilers': 'edm', 'Florida Panthers': 'fla', 'LA Kings': 'la', 'Minnesota Wild': 'min', 'Montreal Canadiens': 'mtl', 'Nashville Predators': 'nsh', 'New Jersey Devils': 'njd', 'NY Islanders': 'nyi', 'NY Rangers': 'nyr', 'Ottawa Senators': 'ott', 'Philadelphia Flyers': 'phi', 'Pittsburgh Penguins': 'pit', 'San Jose Sharks': 'sjs', 'Seattle Kraken': 'sea', 'St. Louis Blues': 'stl', 'Tampa Bay Lightning': 'tb', 'Toronto Maple Leafs': 'tor', 'Vancouver Canucks': 'van', 'Vegas Golden Knights': 'vgk', 'Washington Capitals': 'wsh', 'Winnipeg Jets': 'wpg' }},
  'MLS': { league: 'usa.1', teams: { 'LA Galaxy': 'lag', 'LAFC': 'lafc', 'Seattle Sounders': 'sea', 'Portland Timbers': 'por', 'Atlanta United': 'atl', 'Inter Miami': 'mia', 'NY Red Bulls': 'rbny', 'NYCFC': 'nyc', 'Toronto FC': 'tor', 'Vancouver Whitecaps': 'van', 'Austin FC': 'atx', 'Chicago Fire': 'chi' }},
+ 'College Football': { league: 'ncaa/500', idBased: true, teams: { 'Alabama': 333, 'Arizona': 12, 'Arizona State': 9, 'Arkansas': 8, 'Auburn': 2, 'Baylor': 239, 'Boise State': 68, 'Boston College': 103, 'BYU': 252, 'California': 25, 'Cincinnati': 2132, 'Clemson': 228, 'Colorado': 38, 'Duke': 150, 'Florida': 57, 'Florida State': 52, 'Georgia': 61, 'Georgia Tech': 59, 'Houston': 248, 'Illinois': 356, 'Indiana': 84, 'Iowa': 2294, 'Iowa State': 66, 'Kansas': 2305, 'Kansas State': 2306, 'Kentucky': 96, 'LSU': 99, 'Louisville': 97, 'Maryland': 120, 'Memphis': 235, 'Miami': 2390, 'Michigan': 130, 'Michigan State': 127, 'Minnesota': 135, 'Mississippi State': 344, 'Missouri': 142, 'NC State': 152, 'Nebraska': 158, 'North Carolina': 153, 'Northwestern': 77, 'Notre Dame': 87, 'Ohio State': 194, 'Oklahoma': 201, 'Oklahoma State': 197, 'Ole Miss': 145, 'Oregon': 2483, 'Oregon State': 204, 'Penn State': 213, 'Pittsburgh': 221, 'Purdue': 2509, 'Rutgers': 164, 'SMU': 2567, 'South Carolina': 2579, 'Stanford': 24, 'Syracuse': 183, 'TCU': 2628, 'Tennessee': 2633, 'Texas': 251, 'Texas A&M': 245, 'Texas Tech': 2641, 'Tulane': 2655, 'UAB': 5, 'UCF': 2116, 'UCLA': 26, 'USC': 30, 'Utah': 254, 'Vanderbilt': 238, 'Virginia': 258, 'Virginia Tech': 259, 'Wake Forest': 154, 'Washington': 264, 'Washington State': 265, 'West Virginia': 277, 'Wisconsin': 275 }},
+ 'College Basketball': { league: 'ncaa/500', idBased: true, teams: { 'Alabama': 333, 'Arizona': 12, 'Arkansas': 8, 'Auburn': 2, 'Baylor': 239, 'BYU': 252, 'Cincinnati': 2132, 'Clemson': 228, 'Colorado': 38, 'Connecticut': 41, 'Creighton': 156, 'Dayton': 2168, 'Duke': 150, 'Florida': 57, 'Georgetown': 46, 'Gonzaga': 2250, 'Houston': 248, 'Illinois': 356, 'Indiana': 84, 'Iowa': 2294, 'Iowa State': 66, 'Kansas': 2305, 'Kentucky': 96, 'LSU': 99, 'Louisville': 97, 'Marquette': 269, 'Maryland': 120, 'Memphis': 235, 'Miami': 2390, 'Michigan': 130, 'Michigan State': 127, 'Minnesota': 135, 'Missouri': 142, 'NC State': 152, 'North Carolina': 153, 'Northwestern': 77, 'Notre Dame': 87, 'Ohio State': 194, 'Oklahoma': 201, 'Oregon': 2483, 'Penn State': 213, 'Pittsburgh': 221, 'Providence': 2507, 'Purdue': 2509, 'Rutgers': 164, 'San Diego State': 21, 'Seton Hall': 2550, 'St. Johns': 2599, 'Stanford': 24, 'Syracuse': 183, 'TCU': 2628, 'Tennessee': 2633, 'Texas': 251, 'Texas A&M': 245, 'Texas Tech': 2641, 'UCLA': 26, 'USC': 30, 'Vanderbilt': 238, 'Villanova': 222, 'Virginia': 258, 'Wake Forest': 154, 'Washington': 264, 'West Virginia': 277, 'Wichita State': 2724, 'Wisconsin': 275, 'Xavier': 2752 }},
+ 'Premier League': { league: 'soccer/500', idBased: true, teams: { 'Arsenal': 359, 'Aston Villa': 362, 'Bournemouth': 349, 'Brentford': 337, 'Brighton': 331, 'Chelsea': 363, 'Crystal Palace': 384, 'Everton': 368, 'Fulham': 370, 'Ipswich Town': 373, 'Leicester City': 375, 'Liverpool': 364, 'Manchester City': 382, 'Manchester United': 360, 'Newcastle United': 361, 'Nottingham Forest': 393, 'Southampton': 376, 'Tottenham Hotspur': 367, 'West Ham United': 371, 'Wolverhampton': 380 }},
+ 'La Liga': { league: 'soccer/500', idBased: true, teams: { 'Athletic Bilbao': 93, 'Atletico Madrid': 1068, 'Barcelona': 83, 'Celta Vigo': 85, 'Espanyol': 88, 'Getafe': 9812, 'Girona': 12321, 'Las Palmas': 472, 'Leganes': 9864, 'Mallorca': 3709, 'Osasuna': 97, 'Rayo Vallecano': 98, 'Real Betis': 244, 'Real Madrid': 86, 'Real Sociedad': 89, 'Real Valladolid': 102, 'Sevilla': 243, 'Valencia': 94, 'Villarreal': 102 }},
+ 'Champions League': { league: 'soccer/500', idBased: true, teams: { 'Arsenal': 359, 'Barcelona': 83, 'Bayern Munich': 132, 'Benfica': 1903, 'Borussia Dortmund': 124, 'Chelsea': 363, 'Inter Milan': 110, 'Juventus': 111, 'Liverpool': 364, 'Manchester City': 382, 'AC Milan': 103, 'Paris Saint-Germain': 160, 'Porto': 37, 'Real Madrid': 86, 'Atletico Madrid': 1068 }},
+ 'Liga MX': { league: 'soccer/500', idBased: true, teams: { 'America': 47, 'Atlas': 12172, 'Chivas': 12171, 'Cruz Azul': 12167, 'Leon': 12164, 'Monterrey': 12170, 'Pachuca': 12168, 'Pumas': 12169, 'Santos Laguna': 12173, 'Tigres': 12166, 'Toluca': 12165 }},
 };
 
 const TEAM_COLORS = {
@@ -240,9 +246,12 @@ const getTeamColors = (sport, team) => {
 const getTeamLogoUrl = (sport, team) => {
  const sportData = TEAM_LOGO_MAP[sport];
  if (!sportData) return null;
- const abbr = sportData.teams?.[team];
- if (!abbr) return null;
- return `https://a.espncdn.com/i/teamlogos/${sportData.league}/500/${abbr}.png`;
+ const val = sportData.teams?.[team];
+ if (val === undefined || val === null) return null;
+ if (sportData.idBased) {
+ return `https://a.espncdn.com/i/teamlogos/${sportData.league}/${val}.png`;
+ }
+ return `https://a.espncdn.com/i/teamlogos/${sportData.league}/500/${val}.png`;
 };
 
 const COUNTRY_FLAGS = {
@@ -2180,8 +2189,10 @@ const qrScannerRef = useRef(null);
          setTimeout(() => setDmPopup(null), 4000);
        }
      }
+     if (count !== dmPrevUnreadRef.current) {
+       setDmUnreadCount(count);
+     }
      dmPrevUnreadRef.current = count;
-     setDmUnreadCount(count);
    } catch (e) {}
  };
 
