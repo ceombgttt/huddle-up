@@ -1261,6 +1261,7 @@ const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
  const [chatSending, setChatSending] = useState(false);
  const [chatTrashTalk, setChatTrashTalk] = useState(false);
  const chatEndRef = useRef(null);
+const chatInputRef = useRef(null);
  const chatPollRef = useRef(null);
  const [openPhotoPartyId, setOpenPhotoPartyId] = useState(null);
  const [partyPhotos, setPartyPhotos] = useState([]);
@@ -2554,11 +2555,13 @@ const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
  };
 
  const sendChatMessage = async (partyId) => {
- if (!chatInput.trim() || chatSending) return;
+ const inputVal = chatInputRef.current ? chatInputRef.current.value.trim() : chatInput.trim();
+ if (!inputVal || chatSending) return;
  setChatSending(true);
  try {
- const msg = await api.chat.sendMessage(partyId, chatInput.trim(), chatTrashTalk ? 'fantasy' : 'text');
+ const msg = await api.chat.sendMessage(partyId, inputVal, chatTrashTalk ? 'fantasy' : 'text');
  setChatMessages(prev => [...prev, msg]);
+ if (chatInputRef.current) chatInputRef.current.value = '';
  setChatInput('');
  setChatTrashTalk(false);
  setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
@@ -5629,9 +5632,9 @@ const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
  <Trophy className="w-4 h-4" />
  </button>
  <input
+ ref={chatInputRef}
  type="text"
- value={chatInput}
- onChange={(e) => setChatInput(e.target.value)}
+ defaultValue=""
  onKeyDown={(e) => e.key === 'Enter' && sendChatMessage(party.id)}
  placeholder={chatTrashTalk ? "Talk trash about their fantasy team..." : "Type a message..."}
  maxLength={500}
@@ -5639,7 +5642,7 @@ const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
  />
  <button
  onClick={() => sendChatMessage(party.id)}
- disabled={!chatInput.trim() || chatSending}
+ disabled={chatSending}
  className={`text-white p-2 rounded-full hover:opacity-90 transition-all disabled:opacity-50 ${chatTrashTalk ? 'bg-gradient-to-r from-orange-500 to-red-500' : 'bg-gradient-to-r from-purple-500 to-pink-500'}`}
  >
  <Send className="w-4 h-4" />
