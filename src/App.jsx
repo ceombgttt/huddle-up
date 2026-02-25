@@ -3287,13 +3287,17 @@ const qrScannerRef = useRef(null);
    if (target) {
      target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
      setTimeout(updateRect, 400);
+   } else {
+     setTimeout(updateRect, 300);
    }
 
    window.addEventListener('resize', updateRect);
    window.addEventListener('scroll', updateRect, true);
+   const scrollInterval = setInterval(updateRect, 1000);
    return () => {
      window.removeEventListener('resize', updateRect);
      window.removeEventListener('scroll', updateRect, true);
+     clearInterval(scrollInterval);
    };
  }, [spotlightTourActive, spotlightStep]);
 
@@ -3321,14 +3325,16 @@ const qrScannerRef = useRef(null);
      tooltipStyle.left = Math.max(16, Math.min(rect.left, window.innerWidth - tooltipWidth - 16));
      if (step.position === 'below') {
        const topPos = rect.top + rect.height + padding + 12;
-       tooltipStyle.top = Math.min(topPos, window.innerHeight - 250);
+       tooltipStyle.top = Math.min(topPos, window.innerHeight - 280);
      } else {
        const topPos = rect.top - padding - 230;
-       tooltipStyle.top = Math.max(16, topPos);
+       tooltipStyle.top = Math.max(60, topPos);
      }
+     if (tooltipStyle.top < 60) tooltipStyle.top = 60;
+     if (tooltipStyle.top > window.innerHeight - 280) tooltipStyle.top = window.innerHeight - 280;
    } else {
-     tooltipStyle.left = 16;
-     tooltipStyle.top = window.innerHeight / 2 - 100;
+     tooltipStyle.left = (window.innerWidth - tooltipWidth) / 2;
+     tooltipStyle.top = Math.max(60, window.innerHeight / 2 - 120);
    }
 
    return (
@@ -4695,7 +4701,7 @@ const qrScannerRef = useRef(null);
  <button onClick={() => { shareApp(); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-500/10 transition-colors text-left active:scale-[0.98]">
  <Share2 className="w-5 h-5 text-emerald-400" /><span className="text-white text-sm font-semibold">Share App</span>
  </button>
- <button onClick={() => { startSpotlightTour(); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1E90FF]/10 transition-colors text-left active:scale-[0.98]">
+ <button onClick={() => { setHamburgerOpen(false); if (currentScreen !== 'games') { setCurrentScreen('games'); setTimeout(() => startSpotlightTour(), 600); } else { startSpotlightTour(); } }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1E90FF]/10 transition-colors text-left active:scale-[0.98]">
  <Map className="w-5 h-5 text-[#1E90FF]" /><span className="text-white text-sm font-semibold">Learn The App</span>
  </button>
  {userVenue && (
