@@ -3647,7 +3647,7 @@ const qrScannerRef = useRef(null);
  <div className="text-4xl mb-4">🔒</div>
  <h2 className="text-xl font-bold text-white mb-2">Dashboard Not Found</h2>
  <p className="text-[#A0A4AB] mb-6">{dashError}</p>
- <button onClick={() => setCurrentScreen('landing')} className="px-6 py-2.5 bg-amber-500 text-black font-bold rounded-xl hover:bg-amber-400">Go Home</button>
+ <button onClick={() => setCurrentScreen('games')} className="px-6 py-2.5 bg-amber-500 text-black font-bold rounded-xl hover:bg-amber-400">Go Home</button>
  </div>
  </div>
  );
@@ -3766,7 +3766,7 @@ const qrScannerRef = useRef(null);
  )}
 
  <div className="text-center py-4">
- <button onClick={() => setCurrentScreen('landing')} className="text-[#A0A4AB] hover:text-white text-sm">← Back to Huddle Up</button>
+ <button onClick={() => setCurrentScreen('games')} className="text-[#A0A4AB] hover:text-white text-sm">← Back to Huddle Up</button>
  </div>
  </div>
  </div>
@@ -5323,10 +5323,10 @@ const qrScannerRef = useRef(null);
  Share App
  </button>
  <button
- onClick={() => setCurrentScreen('games')}
+ onClick={() => setCurrentScreen('createParty')}
  className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs rounded-full transition-all"
  >
- <Trophy className="w-3.5 h-3.5" />
+ <Plus className="w-3.5 h-3.5" />
  Create a Watch Party
  </button>
  </div>
@@ -6272,7 +6272,7 @@ const qrScannerRef = useRef(null);
  return (
  <div
  key={idx}
- onClick={() => { if (attendee.userId) { setViewingProfileId(attendee.userId); setCurrentScreen('viewProfile'); } }}
+ onClick={() => { if (attendee.userId) { setViewingProfileId(attendee.userId); setCurrentScreen('userProfile'); } }}
  className="flex items-center gap-1.5 px-3 py-1 bg-[#151A22] rounded-full border border-[#222A36] cursor-pointer hover:border-[#1E90FF]/30 transition-colors"
  >
  <ProfileAvatar src={attendee.profilePicture} name={attendee.name} size="xs" />
