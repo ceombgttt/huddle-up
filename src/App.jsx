@@ -302,18 +302,15 @@ const DEMO_MAIN_SPONSOR = {
 };
 
 const MAIN_BANNER_HEIGHT = 36;
-const MainSponsorBanner = ({ mainSponsor }) => {
- const sponsor = mainSponsor || DEMO_MAIN_SPONSOR;
- const bannerSrc = sponsor.bannerUrl || sponsor.logoUrl;
+const MainBrandBanner = () => {
  return (
  <div
- className="w-full relative overflow-hidden bg-black"
+ className="w-full flex items-center justify-center bg-gradient-to-r from-[#0D1117] via-[#151A22] to-[#0D1117] border-b border-[#222A36]"
  style={{ height: `${MAIN_BANNER_HEIGHT}px` }}
  >
- <img src={bannerSrc} alt={sponsor.name} className="absolute inset-0 w-full h-full object-cover" />
- {sponsor.isDemo && (
- <div className="absolute bottom-0.5 right-2 text-[9px] text-white/30 font-medium">AD</div>
- )}
+ <span className="text-sm font-black text-white tracking-wide" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.12em' }}>HUDDLE UP</span>
+ <span className="mx-2 text-[#A0A4AB] text-[10px]">|</span>
+ <span className="text-[11px] font-bold text-[#1E90FF]" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>FIND YOUR CREW. WATCH THE GAME.</span>
  </div>
  );
 };
@@ -9065,8 +9062,13 @@ const qrScannerRef = useRef(null);
  Hosted by {party.hostName} • {party.attendees.length} attendees
  </div>
  </div>
- <div className="text-right text-sm text-[#A0A4AB]/70">
+ <div className="flex flex-col items-end gap-1">
+ <div className="text-sm text-[#A0A4AB]/70">
  {new Date(party.createdAt).toLocaleDateString()}
+ </div>
+ <button onClick={(e) => { e.stopPropagation(); openShareMenu(party); }} className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 transition-colors">
+ <Share2 className="w-3 h-3" /> Share
+ </button>
  </div>
  </div>
  );
@@ -9941,6 +9943,9 @@ const qrScannerRef = useRef(null);
  <Users className="w-3 h-3" />
  {party.attendees.length} people joined
  </div>
+ <button onClick={() => openShareMenu(party)} className="flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 transition-colors mt-1">
+ <Share2 className="w-3 h-3" /> Share Party
+ </button>
  </div>
  </div>
  ))}
@@ -10411,6 +10416,9 @@ const qrScannerRef = useRef(null);
  <MapPin className="w-3 h-3" />
  <AddressLink address={party.venueName || party.location} />
  </div>
+ <button onClick={() => openShareMenu(party)} className="flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 transition-colors mt-1">
+ <Share2 className="w-3 h-3" /> Share Party
+ </button>
  </div>
  </div>
  ))}
@@ -12299,6 +12307,9 @@ const qrScannerRef = useRef(null);
  </div>
  </div>
  {party.hostName && <p className="text-xs text-[#A0A4AB]/70 mt-2">Hosted by {party.hostName}</p>}
+ <button onClick={() => openShareMenu(party)} className="mt-2 flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 transition-colors">
+ <Share2 className="w-3 h-3" /> Share
+ </button>
  </div>
  ))}
  </div>
@@ -13434,7 +13445,7 @@ const qrScannerRef = useRef(null);
  {user && !['welcome', 'login', 'signup', 'forgotPassword'].includes(currentScreen) && (
  <>
  <div className="fixed top-0 left-0 right-0 z-[60]" style={{ height: `${MAIN_BANNER_HEIGHT}px` }}>
- <MainSponsorBanner />
+ <MainBrandBanner />
  </div>
  <div style={{ height: `${MAIN_BANNER_HEIGHT}px` }} />
  </>

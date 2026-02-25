@@ -16,7 +16,7 @@ The UI/UX emphasizes intuitive navigation and visual engagement, incorporating t
 - **Seed Data System**: Admin-controlled demo data seeding via `server/seed.js`. Creates 50 realistic users, 28 watch parties, 12 real venues (Boca Raton/Fort Lauderdale area), chat messages, reviews, and check-ins. Managed via Admin Panel > Seed Data tab. Seed users use `@huddleup-seed.demo` emails for safe cleanup.
 - **PWA Install**: Full Progressive Web App support with install banner, iOS instructions modal, hamburger menu install option, service worker (`public/sw.js`), and manifest (`public/manifest.json`).
 - **Sponsor System**: Features 5 sponsor slots per sport league (Standard and Premium tiers) with dedicated banner display.
-- **Main Sponsor Banner**: A prominent, fixed banner at the top of all pages for the most premium advertising placement.
+- **Main Brand Banner**: A fixed "HUDDLE UP | FIND YOUR CREW. WATCH THE GAME." banner at the top of all pages (replaces sponsor banner).
 - **Fantasy League Integration**: Allows users to create and join fantasy leagues for various sports and platforms, with team management, standings, commissioner controls, and party integration. Includes a "Trash Talk" chat mode.
 - **Community & Engagement**:
     - **Party Reviews & Ratings**: Users can rate parties on atmosphere, food/drinks, and crowd energy.
