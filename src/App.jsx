@@ -5303,44 +5303,31 @@ const qrScannerRef = useRef(null);
 
  <div className="max-w-4xl mx-auto px-4">
 
- {/* PRE-LAUNCH BANNER */}
+ {/* SHARE & ENGAGE BANNER */}
  {!prelaunchDismissed && (
- <div className="mb-3 relative overflow-hidden rounded-2xl border border-amber-500/40 bg-gradient-to-r from-amber-900/60 via-orange-900/50 to-red-900/40">
- <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMDMpIi8+PC9zdmc+')] opacity-50" />
+ <div className="mb-3 relative overflow-hidden rounded-2xl border border-[#1E90FF]/30 bg-gradient-to-r from-[#1E90FF]/15 via-[#0066CC]/10 to-emerald-900/15">
  <button onClick={() => setPrelaunchDismissed(true)} className="absolute top-2 right-2 text-white/40 hover:text-white/80 z-10">
  <X className="w-4 h-4" />
  </button>
  <div className="relative p-4">
- <div className="flex items-center gap-2 mb-2">
- <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
- <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-300">PRE-LAUNCH MODE</span>
- </div>
- <h3 className="text-white font-black text-lg leading-tight mb-1" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>
- {user?.user_type === 'venue' ? 'GET YOUR VENUE READY' : 'ROAD TO 1 MILLION FANS'}
+ <h3 className="text-white font-black text-lg leading-tight mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>
+ SHARE THE APP WITH YOUR FRIENDS
  </h3>
- <p className="text-white/60 text-xs mb-3">{user?.user_type === 'venue' ? 'Set up your venue before launch so fans can find you on day one!' : 'Set up your profile now & be ready when we go live. Early members get exclusive perks!'}</p>
- <div className="relative h-3 bg-black/30 rounded-full overflow-hidden mb-2">
- <div
- className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 rounded-full transition-all duration-1000"
- style={{ width: `${Math.max(0.5, (prelaunchUserCount / 1000000) * 100)}%` }}
- />
- <div className="absolute inset-0 flex items-center justify-center">
- <span className="text-[9px] font-black text-white drop-shadow-sm">{prelaunchUserCount.toLocaleString()} / 1,000,000</span>
- </div>
- </div>
- <div className="flex items-center justify-between">
+ <p className="text-white/60 text-xs mb-3">Create a watch party, invite your crew, and earn points for every friend that joins!</p>
+ <div className="flex items-center gap-2 flex-wrap">
  <button
- onClick={() => setCurrentScreen(user?.user_type === 'venue' ? 'venueDashboard' : 'profile')}
- className="px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs rounded-full transition-all"
+ onClick={() => { if (navigator.share) { navigator.share({ title: 'Huddle Up', text: 'Join me on Huddle Up! Find watch parties for any game near you.', url: window.location.origin }); } else { navigator.clipboard.writeText(window.location.origin); setShowShareToast(true); setTimeout(() => setShowShareToast(false), 2000); } }}
+ className="flex items-center gap-1.5 px-4 py-2 bg-[#1E90FF] hover:bg-[#1E90FF]/80 text-white font-bold text-xs rounded-full transition-all"
  >
- {user?.user_type === 'venue' ? 'Set Up Venue' : 'Complete Your Profile'}
+ <Share2 className="w-3.5 h-3.5" />
+ Share App
  </button>
  <button
- onClick={() => { if (navigator.share) { navigator.share({ title: 'Huddle Up', text: 'Join Huddle Up - the ultimate watch party app! Be one of the first 1 million fans.', url: window.location.origin }); } else { navigator.clipboard.writeText(window.location.origin); } }}
- className="flex items-center gap-1 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-full transition-all"
+ onClick={() => setCurrentScreen('games')}
+ className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs rounded-full transition-all"
  >
- <Share2 className="w-3 h-3" />
- Invite Friends
+ <Trophy className="w-3.5 h-3.5" />
+ Create a Watch Party
  </button>
  </div>
  </div>
@@ -9932,20 +9919,10 @@ const qrScannerRef = useRef(null);
  {hubTab === 'dashboard' && (
  <div className="relative overflow-hidden rounded-2xl border border-green-500/40 bg-gradient-to-r from-green-900/60 via-emerald-900/50 to-teal-900/40 mb-2">
  <div className="p-4">
- <div className="flex items-center gap-2 mb-2">
- <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
- <span className="text-[10px] font-black uppercase tracking-[0.2em] text-green-300">PRE-LAUNCH MODE</span>
- </div>
  <h3 className="text-white font-black text-base leading-tight mb-1" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>
- GET YOUR VENUE READY FOR LAUNCH
+ SHARE YOUR VENUE WITH FANS
  </h3>
- <p className="text-white/60 text-xs mb-3">We're gathering 1 million fans before going live. Set up your venue now so fans can find you on day one!</p>
- <div className="relative h-3 bg-black/30 rounded-full overflow-hidden mb-3">
- <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-green-400 via-emerald-500 to-teal-500 rounded-full" style={{ width: `${Math.max(0.5, (prelaunchUserCount / 1000000) * 100)}%` }} />
- <div className="absolute inset-0 flex items-center justify-center">
- <span className="text-[9px] font-black text-white drop-shadow-sm">{prelaunchUserCount.toLocaleString()} / 1,000,000 fans joining</span>
- </div>
- </div>
+ <p className="text-white/60 text-xs mb-3">Get your venue set up so fans can find watch parties at your location!</p>
  <div className="grid grid-cols-3 gap-2 text-center">
  <div className="bg-black/20 rounded-xl p-2">
  <Camera className="w-4 h-4 text-green-300 mx-auto mb-1" />
@@ -14619,9 +14596,9 @@ const qrScannerRef = useRef(null);
  </div>
  </div>
  <div className="p-6 space-y-4">
- <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 text-center">
- <p className="text-amber-300 font-black text-sm mb-1" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>WE'RE BUILDING SOMETHING BIG</p>
- <p className="text-white/70 text-xs leading-relaxed">We're gathering <span className="text-amber-400 font-bold">1,000,000 fans & venues</span> before our official launch. You're in early — set up your profile now to be ready!</p>
+ <div className="bg-[#1E90FF]/10 border border-[#1E90FF]/30 rounded-xl p-4 text-center">
+ <p className="text-[#1E90FF] font-black text-sm mb-1" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>SHARE THE APP</p>
+ <p className="text-white/70 text-xs leading-relaxed">Share with your friends, create a watch party, and <span className="text-[#1E90FF] font-bold">earn points</span> for every friend that joins!</p>
  </div>
  <div className="space-y-2">
  <div className="flex items-start gap-3 p-3 bg-[#151A22] rounded-xl border border-[#222A36]">
@@ -14639,7 +14616,7 @@ const qrScannerRef = useRef(null);
  </div>
  <div>
  <p className="text-white font-bold text-sm">Invite Your Crew</p>
- <p className="text-white/50 text-xs">Share with friends & earn 100 points per referral when we launch</p>
+ <p className="text-white/50 text-xs">Share with friends & earn 100 points per referral</p>
  </div>
  </div>
  <div className="flex items-start gap-3 p-3 bg-[#151A22] rounded-xl border border-[#222A36]">
@@ -14647,15 +14624,9 @@ const qrScannerRef = useRef(null);
  <Trophy className="w-4 h-4 text-purple-400" />
  </div>
  <div>
- <p className="text-white font-bold text-sm">Early Bird Perks</p>
- <p className="text-white/50 text-xs">First users get a free trial, exclusive badges, and launch-day rewards</p>
+ <p className="text-white font-bold text-sm">Earn Points</p>
+ <p className="text-white/50 text-xs">Create parties, check in, and invite friends to rack up points</p>
  </div>
- </div>
- </div>
- <div className="relative h-3 bg-black/30 rounded-full overflow-hidden">
- <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 rounded-full" style={{ width: `${Math.max(0.5, (prelaunchUserCount / 1000000) * 100)}%` }} />
- <div className="absolute inset-0 flex items-center justify-center">
- <span className="text-[9px] font-black text-white drop-shadow-sm">{prelaunchUserCount.toLocaleString()} / 1,000,000 fans joined</span>
  </div>
  </div>
  <button
