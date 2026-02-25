@@ -331,9 +331,9 @@ const SAMPLE_VENUES = [
 // Multi-location venue pricing
 const VENUE_PRICING = {
  single: { name: "Single Location", featured: 49.99, featuredYearly: 29.99 },
- chain: { name: "Multi-Location (2-5)", featured: 149.99 },
- chainPlus: { name: "Regional Chain (6-20)", featured: 299.99 },
- enterprise: { name: "Enterprise (20+)", featured: "Custom" }
+ chain: { name: "Multi-Location (2-5)", featured: 49.99, featuredYearly: 29.99 },
+ chainPlus: { name: "Regional Chain (6-20)", featured: 49.99, featuredYearly: 29.99 },
+ enterprise: { name: "Enterprise (20+)", featured: 49.99, featuredYearly: 29.99 }
 };
 
 const getProfilePicUrl = (path) => {
