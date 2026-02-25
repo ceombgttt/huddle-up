@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import pool from '../db.js';
 import { requireAuth, requireAdmin } from '../middleware/auth.js';
+import { sendPushToUser } from './push.js';
 
 const router = Router();
 
@@ -226,6 +227,27 @@ router.post('/admin/resolve', requireAdmin, async (req, res) => {
           `Correct prediction: ${pred.picked_team} (${pred.confidence}/10 confidence)${newStreak >= 5 ? ` + ${newStreak} streak bonus!` : ''}`,
           pred.id
         );
+
+        sendPushToUser(pred.user_id, {
+          title: `You won! +${pointsEarned} points 🎉`,
+          body: `${pred.picked_team} won! Your prediction was correct.`,
+          url: '/predictions'
+        }, { prefType: 'prediction_results' });
+
+        if (newStreak === 5) {
+          sendPushToUser(pred.user_id, {
+            title: '5 game win streak! 🔥',
+            body: 'You\'re on fire! +100 bonus points earned.',
+            url: '/predictions'
+          }, { prefType: 'achievement_unlocks' });
+        }
+        if (newStreak === 10) {
+          sendPushToUser(pred.user_id, {
+            title: '10 game win streak! 🏆',
+            body: 'Legendary! +250 bonus points earned.',
+            url: '/predictions'
+          }, { prefType: 'achievement_unlocks' });
+        }
       } else {
         await pool.query(
           `INSERT INTO prediction_streaks (user_id, current_streak, best_streak, total_correct, total_predictions)

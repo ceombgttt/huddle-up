@@ -138,6 +138,8 @@ export async function initDB() {
         endpoint TEXT NOT NULL,
         p256dh TEXT NOT NULL,
         auth TEXT NOT NULL,
+        daily_push_count INTEGER DEFAULT 0,
+        last_push_date DATE DEFAULT CURRENT_DATE,
         created_at TIMESTAMPTZ DEFAULT NOW(),
         UNIQUE(endpoint)
       );
@@ -415,6 +417,14 @@ export async function initDB() {
         rivalry_alerts BOOLEAN DEFAULT TRUE,
         suggested_parties BOOLEAN DEFAULT TRUE,
         game_reminders BOOLEAN DEFAULT TRUE,
+        party_reminders BOOLEAN DEFAULT TRUE,
+        prediction_reminders BOOLEAN DEFAULT TRUE,
+        prediction_results BOOLEAN DEFAULT TRUE,
+        raffle_winners BOOLEAN DEFAULT TRUE,
+        nearby_parties BOOLEAN DEFAULT TRUE,
+        friend_activity BOOLEAN DEFAULT TRUE,
+        achievement_unlocks BOOLEAN DEFAULT TRUE,
+        push_enabled BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
 
@@ -573,6 +583,27 @@ export async function initDB() {
         total_correct INTEGER DEFAULT 0,
         total_predictions INTEGER DEFAULT 0,
         updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS venue_follows (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        venue_id UUID REFERENCES venues(id) ON DELETE CASCADE,
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(venue_id, user_id)
+      );
+
+      CREATE TABLE IF NOT EXISTS venue_reviews (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        venue_id UUID REFERENCES venues(id) ON DELETE CASCADE,
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+        atmosphere INTEGER CHECK (atmosphere >= 1 AND atmosphere <= 5),
+        service INTEGER CHECK (service >= 1 AND service <= 5),
+        value INTEGER CHECK (value >= 1 AND value <= 5),
+        comment TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(venue_id, user_id)
       );
     `);
 

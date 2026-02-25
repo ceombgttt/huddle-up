@@ -64,7 +64,7 @@ router.get('/', async (req, res) => {
         hostName: party.host_name,
         hostId: party.host_id,
         attendees: attendees.rows.map(a => a.email),
-        attendeeDetails: attendees.rows.map(a => ({ email: a.email, name: a.name, gender: a.gender, profilePicture: a.profile_picture, favoriteTeams: a.favorite_teams || {} })),
+        attendeeDetails: attendees.rows.map(a => ({ userId: a.id, email: a.email, name: a.name, gender: a.gender, profilePicture: a.profile_picture, favoriteTeams: a.favorite_teams || {} })),
         supportedTeam: party.supported_team,
         createdAt: party.created_at,
         venuePicture: party.venue_picture || null,
@@ -232,7 +232,7 @@ router.post('/:id/join', requireAuth, async (req, res) => {
           icon: '/huddle-up-logo-2.png',
           tag: `join-${req.params.id}`,
           data: { url: '/' }
-        }).catch(() => {});
+        }, { prefType: 'friend_activity' }).catch(() => {});
       }
     }
     res.json({ ok: true });
@@ -253,6 +253,57 @@ router.delete('/:id', requireAuth, async (req, res) => {
     res.json({ ok: true });
   } catch (error) {
     console.error('Delete party error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.get('/:id/calendar', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT p.*, u.name as host_name FROM parties p JOIN users u ON p.host_id = u.id WHERE p.id = $1',
+      [req.params.id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Party not found' });
+
+    const party = result.rows[0];
+    const title = party.title || `${party.away_team} @ ${party.home_team} Watch Party`;
+    const location = [party.venue_name, party.venue_address, party.city].filter(Boolean).join(', ');
+    const gameTime = party.game_time ? new Date(party.game_time) : new Date();
+    const endTime = new Date(gameTime.getTime() + 3 * 60 * 60 * 1000);
+    const now = new Date();
+
+    const formatIcsDate = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+
+    const description = `Watch Party hosted by ${party.host_name}\\n${party.home_team} vs ${party.away_team}\\n${party.venue_name ? 'Venue: ' + party.venue_name : ''}\\n${party.notes || ''}\\nJoin on Huddle Up: ${req.protocol}://${req.get('host')}`.replace(/\n/g, '\\n');
+
+    const ics = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Huddle Up//Watch Party//EN',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      'BEGIN:VEVENT',
+      `DTSTART:${formatIcsDate(gameTime)}`,
+      `DTEND:${formatIcsDate(endTime)}`,
+      `DTSTAMP:${formatIcsDate(now)}`,
+      `UID:party-${party.id}@huddleup`,
+      `SUMMARY:${title}`,
+      `DESCRIPTION:${description}`,
+      `LOCATION:${location}`,
+      'BEGIN:VALARM',
+      'TRIGGER:-PT60M',
+      'ACTION:DISPLAY',
+      `DESCRIPTION:${title} starts in 1 hour!`,
+      'END:VALARM',
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].join('\r\n');
+
+    res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="huddle-up-party-${party.id}.ics"`);
+    res.send(ics);
+  } catch (error) {
+    console.error('Calendar export error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });

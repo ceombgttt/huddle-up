@@ -50,6 +50,13 @@ export const api = {
     rejectClaim: (id) => request(`/venues/claims/${id}/reject`, { method: 'POST' }),
     updateMine: (data) => request('/venues/me', { method: 'PUT', body: JSON.stringify(data) }),
     adminUpdate: (id, data) => request(`/venues/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    detail: (id) => request(`/venues/${id}/detail`),
+    parties: (id, type) => request(`/venues/${id}/parties?type=${type || 'upcoming'}`),
+    follow: (id) => request(`/venues/${id}/follow`, { method: 'POST' }),
+    unfollow: (id) => request(`/venues/${id}/follow`, { method: 'DELETE' }),
+    getReviews: (id) => request(`/venues/${id}/reviews`),
+    submitReview: (id, data) => request(`/venues/${id}/reviews`, { method: 'POST', body: JSON.stringify(data) }),
+    getPhotos: (id) => request(`/venues/${id}/photos`),
   },
   users: {
     updateFavorite: (sport, team) =>
@@ -69,6 +76,7 @@ export const api = {
     removeFavorite: (sport) =>
       request(`/users/me/favorites/${encodeURIComponent(sport)}`, { method: 'DELETE' }),
     stats: () => request('/users/stats'),
+    search: (q) => request(`/users/search?q=${encodeURIComponent(q)}`),
     badge: () => request('/users/me/badge'),
     updateSmsSettings: (data) =>
       request('/users/me/sms-settings', { method: 'PUT', body: JSON.stringify(data) }),
@@ -102,6 +110,8 @@ export const api = {
     watchGame: (data) => request('/push/watch-game', { method: 'POST', body: JSON.stringify(data) }),
     unwatchGame: (gameId) => request(`/push/watch-game/${encodeURIComponent(gameId)}`, { method: 'DELETE' }),
     watchedGames: () => request('/push/watched-games'),
+    getPreferences: () => request('/push/preferences'),
+    updatePreferences: (prefs) => request('/push/preferences', { method: 'PUT', body: JSON.stringify(prefs) }),
   },
   fans: {
     byTeam: (sport, team) => {
@@ -124,6 +134,7 @@ export const api = {
     decline: (id) => request(`/friends/decline/${id}`, { method: 'POST' }),
     remove: (friendId) => request(`/friends/${friendId}`, { method: 'DELETE' }),
     status: (userId) => request(`/friends/status/${userId}`),
+    activity: () => request('/friends/activity'),
   },
   chat: {
     getMessages: (partyId, before) => {

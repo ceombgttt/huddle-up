@@ -52,6 +52,6 @@ run = ["npm", "start"]
 [userenv]
 
 [userenv.shared]
-VAPID_PUBLIC_KEY = "BPPxS9jO6rrbHHa7fHlzQDsKVw4x3t0lsFTMdb3D2N2oitMQguhM7CK2VFsjRIuJupNfQeG-WxwybSywtNqaGF0"
-VAPID_PRIVATE_KEY = "BcO1O-IVo0s3cF-epodSToqhsR2Pda3TBU5ZY6_0Xtc"
+VAPID_PUBLIC_KEY = "BF-A4Mx_yPcKDD_-5-tKkC-4vaaHWgAcCOTLyjcgVslOsEl5CmIRa2eaNV4KAps7mw7Sw2nlkHH1r4hnJWHa-gY"
+VAPID_PRIVATE_KEY = "mhMYW57EXdjDigbFFYNak7ljlPIUsmxyc9sLLe3J0Sc"
 VAPID_SUBJECT = "mailto:admin@huddleupusa.com"

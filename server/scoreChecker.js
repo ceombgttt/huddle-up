@@ -93,6 +93,63 @@ async function checkAndNotify() {
   }
 }
 
+async function sendPartyReminders() {
+  try {
+    const parties = await pool.query(
+      `SELECT p.id, p.home_team, p.away_team, p.venue_name, p.game_time, pa.user_id
+       FROM parties p
+       JOIN party_attendees pa ON pa.party_id = p.id
+       WHERE p.game_time IS NOT NULL
+       AND p.game_time ~ '^[0-9]{4}-'
+       AND p.game_time::timestamptz BETWEEN NOW() + INTERVAL '55 minutes' AND NOW() + INTERVAL '65 minutes'`
+    );
+    for (const row of parties.rows) {
+      sendPushToUser(row.user_id, {
+        title: 'Game starts soon! 🏒',
+        body: `${row.home_team} vs ${row.away_team}${row.venue_name ? ' at ' + row.venue_name : ''} in 1 hour`,
+        icon: '/huddle-up-logo-2.png',
+        tag: `party-reminder-${row.id}`,
+        data: { url: '/' }
+      }, { prefType: 'party_reminders' }).catch(() => {});
+    }
+  } catch (err) {
+    if (err.code !== '22007') console.error('Party reminder error:', err);
+  }
+}
+
+async function sendPredictionReminders() {
+  try {
+    const games = await pool.query(
+      `SELECT DISTINCT game_id, sport, home_team, away_team, game_time
+       FROM predictions
+       WHERE status = 'pending'
+       AND game_time IS NOT NULL
+       AND game_time BETWEEN NOW() + INTERVAL '25 minutes' AND NOW() + INTERVAL '35 minutes'`
+    );
+    for (const game of games.rows) {
+      const subs = await pool.query('SELECT DISTINCT user_id FROM push_subscriptions');
+      const alreadyPredicted = await pool.query(
+        `SELECT user_id FROM predictions WHERE game_id = $1 AND status = 'pending'`,
+        [game.game_id]
+      );
+      const predSet = new Set(alreadyPredicted.rows.map(r => r.user_id));
+      for (const u of subs.rows) {
+        if (!predSet.has(u.user_id)) {
+          sendPushToUser(u.user_id, {
+            title: 'Last chance to predict! ⚡',
+            body: `${game.home_team} vs ${game.away_team} starts in 30 minutes. Make your pick!`,
+            icon: '/huddle-up-logo-2.png',
+            tag: `predict-reminder-${game.game_id}`,
+            data: { url: '/predictions' }
+          }, { prefType: 'prediction_reminders' }).catch(() => {});
+        }
+      }
+    }
+  } catch (err) {
+    if (err.code !== '22007') console.error('Prediction reminder error:', err);
+  }
+}
+
 let intervalId = null;
 
 export function startScoreChecker() {
@@ -102,7 +159,13 @@ export function startScoreChecker() {
   }
   console.log('Score checker started - checking every 60 seconds');
   checkAndNotify();
-  intervalId = setInterval(checkAndNotify, 60 * 1000);
+  sendPartyReminders();
+  sendPredictionReminders();
+  intervalId = setInterval(() => {
+    checkAndNotify();
+    sendPartyReminders();
+    sendPredictionReminders();
+  }, 60 * 1000);
 }
 
 export function stopScoreChecker() {

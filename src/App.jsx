@@ -1208,6 +1208,9 @@ const HuddleUpApp = () => {
  const inviteReminderShown = useRef(false);
  const [showProScreen, setShowProScreen] = useState(false);
  const [myTeamsOnly, setMyTeamsOnly] = useState(false);
+ const [dateFilter, setDateFilter] = useState('All');
+ const [sortOption, setSortOption] = useState('Soonest');
+ const [showFilterPanel, setShowFilterPanel] = useState(false);
  const [hamburgerOpen, setHamburgerOpen] = useState(false);
  const [pwaInstallPrompt, setPwaInstallPrompt] = useState(null);
  const [showInstallBanner, setShowInstallBanner] = useState(false);
@@ -1217,6 +1220,7 @@ const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
  const [venues, setVenues] = useState(SAMPLE_VENUES);
  const [venueClaims, setVenueClaims] = useState([]);
  const [selectedVenue, setSelectedVenue] = useState(null);
+ const [selectedVenueId, setSelectedVenueId] = useState(null);
  const [games, setGames] = useState(SAMPLE_GAMES);
  const [loadingGames, setLoadingGames] = useState(false);
  
@@ -1301,6 +1305,11 @@ const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
  const [friendStatuses, setFriendStatuses] = useState({});
  const [crewTab, setCrewTab] = useState('friends');
  const [crewInvitePartyId, setCrewInvitePartyId] = useState(null);
+ const [crewSearchQuery, setCrewSearchQuery] = useState('');
+ const [crewSearchResults, setCrewSearchResults] = useState([]);
+ const [crewSearchLoading, setCrewSearchLoading] = useState(false);
+ const [friendActivity, setFriendActivity] = useState([]);
+ const [friendActivityLoading, setFriendActivityLoading] = useState(false);
  const [dmChatUser, setDmChatUser] = useState(null);
  const [dmMessages, setDmMessages] = useState([]);
  const [dmNewMsg, setDmNewMsg] = useState('');
@@ -1317,6 +1326,8 @@ const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
  const [pushEnabled, setPushEnabled] = useState(false);
  const [watchedGames, setWatchedGames] = useState([]);
  const [pushSubscription, setPushSubscription] = useState(null);
+ const [showPushBanner, setShowPushBanner] = useState(false);
+ const [notifPrefs, setNotifPrefs] = useState(null);
  const [openChatPartyId, setOpenChatPartyId] = useState(null);
  const [chatMessages, setChatMessages] = useState([]);
  const [chatInput, setChatInput] = useState('');
@@ -1363,6 +1374,8 @@ const qrScannerRef = useRef(null);
  const [showShareMenu, setShowShareMenu] = useState(false);
  const [shareParty, setShareParty] = useState(null);
  const [linkCopied, setLinkCopied] = useState(false);
+ const [showCalendarMenu, setShowCalendarMenu] = useState(false);
+ const [calendarParty, setCalendarParty] = useState(null);
 
  const [myPredictions, setMyPredictions] = useState([]);
  const [predictionStats, setPredictionStats] = useState(null);
@@ -1438,6 +1451,29 @@ const qrScannerRef = useRef(null);
  setShareParty(party);
  setLinkCopied(false);
  setShowShareMenu(true);
+ };
+
+ const openCalendarMenu = (party) => {
+ setCalendarParty(party);
+ setShowCalendarMenu(true);
+ };
+
+ const getCalendarUrls = (party) => {
+ const title = encodeURIComponent(party.title || `${party.hostName}'s Watch Party - ${party.homeTeam || ''} vs ${party.awayTeam || ''}`);
+ const location = encodeURIComponent([party.venueName, party.venueAddress, party.city].filter(Boolean).join(', '));
+ const gameTime = party.gameTime || party.customTime;
+ const startDate = gameTime ? new Date(gameTime) : new Date();
+ const endDate = new Date(startDate.getTime() + 3 * 60 * 60 * 1000);
+ const formatGoogleDate = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+ const details = encodeURIComponent(`Watch Party hosted by ${party.hostName}\n${party.venueName || ''}\nJoin on Huddle Up!`);
+ const start = formatGoogleDate(startDate);
+ const end = formatGoogleDate(endDate);
+ return {
+   google: `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&location=${location}&details=${details}`,
+   outlook: `https://outlook.live.com/calendar/0/action/compose?subject=${title}&startdt=${startDate.toISOString()}&enddt=${endDate.toISOString()}&location=${location}&body=${details}`,
+   yahoo: `https://calendar.yahoo.com/?v=60&title=${title}&st=${start}&et=${end}&in_loc=${location}&desc=${details}`,
+   ics: `/api/parties/${party.id}/calendar`
+ };
  };
 
  const shareApp = async () => {
@@ -1780,7 +1816,7 @@ const qrScannerRef = useRef(null);
  const activeSponsors = adminSponsors.filter(s => s.status === 'active');
 
  const formScreens = ['welcome', 'login', 'signup', 'forgotPassword', 'claimVenue', 'createParty'];
- const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', 'qrCheckin', 'myParties', 'myCrew', 'fanFinder', 'invitations', 'venueDashboard', 'sponsorDashboard', 'teamChats', 'trending', 'myTickets', 'alerts', 'userProfile', 'dmChat', 'proUpgrade', ...formScreens];
+ const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', 'qrCheckin', 'myParties', 'myCrew', 'fanFinder', 'invitations', 'venueDashboard', 'sponsorDashboard', 'teamChats', 'trending', 'myTickets', 'alerts', 'userProfile', 'dmChat', 'proUpgrade', 'venueDetail', 'inviteFriends', 'notificationSettings', ...formScreens];
  const isFormScreen = formScreens.includes(currentScreen);
  const isPauseScreen = pauseScreens.includes(currentScreen);
 
@@ -2011,6 +2047,12 @@ const qrScannerRef = useRef(null);
  loadBadgeStats();
  setupPushNotifications();
  api.push.watchedGames().then(ids => setWatchedGames(ids || [])).catch(() => {});
+ api.push.getPreferences().then(prefs => setNotifPrefs(prefs)).catch(() => {});
+ const visits = parseInt(localStorage.getItem('hu_visit_count') || '0') + 1;
+ localStorage.setItem('hu_visit_count', String(visits));
+ if (visits >= 2 && Notification.permission === 'default') {
+   setTimeout(() => setShowPushBanner(true), 3000);
+ }
  }
  } catch (error) {
  console.log('No saved user');
@@ -2534,6 +2576,58 @@ const qrScannerRef = useRef(null);
  }
  };
 
+ const searchUsers = async (query) => {
+ if (!query || query.trim().length < 2) { setCrewSearchResults([]); return; }
+ setCrewSearchLoading(true);
+ try {
+ const results = await api.users.search(query);
+ setCrewSearchResults(results);
+ } catch (e) {
+ console.error('User search error:', e);
+ }
+ setCrewSearchLoading(false);
+ };
+
+ const loadFriendActivity = async () => {
+ setFriendActivityLoading(true);
+ try {
+ const data = await api.friends.activity();
+ setFriendActivity(data);
+ } catch (e) {
+ console.error('Friend activity error:', e);
+ }
+ setFriendActivityLoading(false);
+ };
+
+ const shareReferralLink = async () => {
+ try {
+ const { referralCode } = await api.referrals.myCode();
+ const url = `${window.location.origin}?ref=${referralCode}`;
+ const shareData = { title: 'Join me on Huddle Up!', text: `Join me on Huddle Up! Use my referral code ${referralCode} for bonus points.`, url };
+ if (navigator.share) {
+ await navigator.share(shareData);
+ } else {
+ await navigator.clipboard.writeText(`${shareData.text} ${url}`);
+ setShowShareToast(true);
+ setTimeout(() => setShowShareToast(false), 2000);
+ }
+ } catch (e) {
+ console.error('Share referral error:', e);
+ }
+ };
+
+ const copyReferralLink = async () => {
+ try {
+ const { referralCode } = await api.referrals.myCode();
+ const url = `${window.location.origin}?ref=${referralCode}`;
+ await navigator.clipboard.writeText(url);
+ setShowShareToast(true);
+ setTimeout(() => setShowShareToast(false), 2000);
+ } catch (e) {
+ alert('Failed to copy link');
+ }
+ };
+
  const searchFans = async () => {
  if (!fanSearchSport || !fanSearchTeam) return;
  setFanSearchLoading(true);
@@ -2919,9 +3013,41 @@ const qrScannerRef = useRef(null);
  game.homeTeam.toLowerCase().includes(team.toLowerCase()) || 
  game.awayTeam.toLowerCase().includes(team.toLowerCase())
  );
+
+ let matchesDate = true;
+ if (dateFilter !== 'All') {
+   const now = new Date();
+   const gameDate = new Date(game.startTime);
+   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+   const todayEnd = new Date(todayStart); todayEnd.setDate(todayEnd.getDate() + 1);
+   const tomorrowEnd = new Date(todayStart); tomorrowEnd.setDate(tomorrowEnd.getDate() + 2);
+   const dayOfWeek = now.getDay();
+   const satStart = new Date(todayStart); satStart.setDate(satStart.getDate() + (6 - dayOfWeek));
+   const sunEnd = new Date(satStart); sunEnd.setDate(sunEnd.getDate() + 2);
+   const weekEnd = new Date(todayStart); weekEnd.setDate(weekEnd.getDate() + (7 - dayOfWeek));
+   const nextWeekEnd = new Date(weekEnd); nextWeekEnd.setDate(nextWeekEnd.getDate() + 7);
+   if (dateFilter === 'Today') matchesDate = gameDate >= todayStart && gameDate < todayEnd;
+   else if (dateFilter === 'Tomorrow') matchesDate = gameDate >= todayEnd && gameDate < tomorrowEnd;
+   else if (dateFilter === 'This Weekend') matchesDate = gameDate >= satStart && gameDate < sunEnd;
+   else if (dateFilter === 'This Week') matchesDate = gameDate >= todayStart && gameDate < weekEnd;
+   else if (dateFilter === 'Next Week') matchesDate = gameDate >= weekEnd && gameDate < nextWeekEnd;
+ }
  
- return matchesSport && matchesSearch && matchesMyTeams;
+ return matchesSport && matchesSearch && matchesMyTeams && matchesDate;
  }).sort((a, b) => {
+   if (sortOption === 'Soonest') {
+     return new Date(a.startTime) - new Date(b.startTime);
+   }
+   if (sortOption === 'Most Popular') {
+     const aParties = parties.filter(p => p.gameId === a.id);
+     const bParties = parties.filter(p => p.gameId === b.id);
+     const aAttendees = aParties.reduce((sum, p) => sum + (p.attendees?.length || 0), 0);
+     const bAttendees = bParties.reduce((sum, p) => sum + (p.attendees?.length || 0), 0);
+     return bAttendees - aAttendees || bParties.length - aParties.length;
+   }
+   if (sortOption === 'Newest') {
+     return new Date(b.startTime) - new Date(a.startTime);
+   }
    const aParties = parties.filter(p => p.gameId === a.id);
    const bParties = parties.filter(p => p.gameId === b.id);
    const aAttendees = aParties.reduce((sum, p) => sum + (p.attendees?.length || 0), 0);
@@ -2932,6 +3058,7 @@ const qrScannerRef = useRef(null);
    if (aHasParties && bHasParties) return bAttendees - aAttendees;
    return 0;
  });
+ const hasActiveFilters = dateFilter !== 'All' || sortOption !== 'Soonest' || selectedSport !== 'All' || searchTerm.trim() !== '';
 
  const isCityMatch = (partyCity) => {
  if (!currentCity || !partyCity) return false;
@@ -3913,6 +4040,382 @@ const qrScannerRef = useRef(null);
  </div>
  );
 
+ const VenueDetailScreen = () => {
+ const [venueData, setVenueData] = useState(null);
+ const [venueTab, setVenueTab] = useState('upcoming');
+ const [venueParties, setVenueParties] = useState([]);
+ const [venueReviews, setVenueReviews] = useState({ reviews: [], summary: { total: 0, avgRating: null, breakdown: {} } });
+ const [venuePhotos, setVenuePhotos] = useState([]);
+ const [venueLoading, setVenueLoading] = useState(true);
+ const [reviewForm, setReviewForm] = useState({ rating: 5, atmosphere: 5, service: 5, value: 5, comment: '' });
+ const [submittingReview, setSubmittingReview] = useState(false);
+ const [followLoading, setFollowLoading] = useState(false);
+
+ useEffect(() => {
+   if (!selectedVenueId) return;
+   setVenueLoading(true);
+   api.venues.detail(selectedVenueId).then(d => { setVenueData(d); setVenueLoading(false); }).catch(() => setVenueLoading(false));
+ }, [selectedVenueId]);
+
+ useEffect(() => {
+   if (!selectedVenueId) return;
+   if (venueTab === 'upcoming' || venueTab === 'past') {
+     api.venues.parties(selectedVenueId, venueTab === 'past' ? 'past' : 'upcoming').then(setVenueParties).catch(() => {});
+   } else if (venueTab === 'reviews') {
+     api.venues.getReviews(selectedVenueId).then(setVenueReviews).catch(() => {});
+   } else if (venueTab === 'photos') {
+     api.venues.getPhotos(selectedVenueId).then(setVenuePhotos).catch(() => {});
+   }
+ }, [selectedVenueId, venueTab]);
+
+ const toggleFollow = async () => {
+   if (!venueData || followLoading) return;
+   setFollowLoading(true);
+   try {
+     const res = venueData.isFollowing ? await api.venues.unfollow(selectedVenueId) : await api.venues.follow(selectedVenueId);
+     setVenueData(prev => ({ ...prev, isFollowing: res.following, followerCount: res.followerCount }));
+   } catch(e) {}
+   setFollowLoading(false);
+ };
+
+ const submitVenueReview = async () => {
+   setSubmittingReview(true);
+   try {
+     await api.venues.submitReview(selectedVenueId, reviewForm);
+     const data = await api.venues.getReviews(selectedVenueId);
+     setVenueReviews(data);
+     setReviewForm({ rating: 5, atmosphere: 5, service: 5, value: 5, comment: '' });
+     const detail = await api.venues.detail(selectedVenueId);
+     setVenueData(detail);
+   } catch(e) { alert(e.message); }
+   setSubmittingReview(false);
+ };
+
+ const openDirections = () => {
+   if (!venueData?.address) return;
+   window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(venueData.address)}`, '_blank');
+ };
+
+ if (venueLoading) return (
+   <div className="min-h-screen bg-[#0F1115] flex items-center justify-center"><Loader2 className="w-8 h-8 text-[#1E90FF] animate-spin" /></div>
+ );
+ if (!venueData) return (
+   <div className="min-h-screen bg-[#0F1115] flex items-center justify-center flex-col gap-4">
+     <p className="text-[#A0A4AB]">Venue not found</p>
+     <button onClick={goBack} className="text-[#1E90FF]">Go Back</button>
+   </div>
+ );
+
+ const tabs = [
+   { key: 'upcoming', label: 'Upcoming' },
+   { key: 'past', label: 'Past' },
+   { key: 'about', label: 'About' },
+   { key: 'reviews', label: 'Reviews' },
+   { key: 'photos', label: 'Photos' },
+ ];
+
+ const StarRating = ({ value, onChange, size = 'md' }) => {
+   const sz = size === 'sm' ? 'w-4 h-4' : 'w-6 h-6';
+   return (
+     <div className="flex gap-1">
+       {[1,2,3,4,5].map(s => (
+         <button key={s} onClick={() => onChange?.(s)} className="focus:outline-none">
+           <Star className={`${sz} ${s <= value ? 'text-amber-400 fill-amber-400' : 'text-[#A0A4AB]/30'}`} />
+         </button>
+       ))}
+     </div>
+   );
+ };
+
+ return (
+   <div className="min-h-screen bg-[#0F1115]">
+     <div className="relative">
+       {venueData.picture ? (
+         <div className="h-48 w-full">
+           <img src={`/api/uploads/serve/${venueData.picture.replace('/objects/', '')}`} alt={venueData.name} className="w-full h-full object-cover" />
+           <div className="absolute inset-0 bg-gradient-to-t from-[#0F1115] via-transparent to-transparent" />
+         </div>
+       ) : (
+         <div className="h-48 w-full bg-gradient-to-br from-[#1E90FF]/30 to-[#0F1115]">
+           <div className="absolute inset-0 bg-gradient-to-t from-[#0F1115] via-transparent to-transparent" />
+         </div>
+       )}
+       <button onClick={goBack} className="absolute top-4 left-4 z-10 w-10 h-10 bg-black/50 backdrop-blur rounded-full flex items-center justify-center">
+         <ArrowLeft className="w-5 h-5 text-white" />
+       </button>
+     </div>
+
+     <div className="px-4 -mt-12 relative z-10">
+       <div className="flex items-end gap-4 mb-4">
+         <div className="w-20 h-20 rounded-2xl bg-[#1A1D23] border-2 border-[#222A36] flex items-center justify-center overflow-hidden flex-shrink-0">
+           {venueData.logo ? (
+             <img src={`/api/uploads/serve/${venueData.logo.replace('/objects/', '')}`} alt="" className="w-full h-full object-cover" />
+           ) : (
+             <Building2 className="w-10 h-10 text-[#1E90FF]" />
+           )}
+         </div>
+         <div className="flex-1 min-w-0">
+           <div className="flex items-center gap-2">
+             <h1 className="text-xl font-black text-white truncate">{venueData.name}</h1>
+             {venueData.verified && <CheckCircle className="w-5 h-5 text-[#1E90FF] flex-shrink-0" />}
+           </div>
+           <p className="text-[#A0A4AB] text-sm truncate">{venueData.type}</p>
+         </div>
+       </div>
+
+       {venueData.avgRating && (
+         <div className="flex items-center gap-2 mb-3">
+           <div className="flex items-center gap-1">
+             <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+             <span className="text-white font-bold">{venueData.avgRating}</span>
+           </div>
+           <span className="text-[#A0A4AB] text-sm">({venueData.reviewCount} reviews)</span>
+         </div>
+       )}
+
+       <div className="flex items-center gap-2 mb-2">
+         <MapPin className="w-4 h-4 text-[#A0A4AB] flex-shrink-0" />
+         <p className="text-[#A0A4AB] text-sm">{venueData.address}</p>
+       </div>
+       {venueData.phone && (
+         <div className="flex items-center gap-2 mb-2">
+           <Phone className="w-4 h-4 text-[#A0A4AB] flex-shrink-0" />
+           <a href={`tel:${venueData.phone}`} className="text-[#1E90FF] text-sm">{venueData.phone}</a>
+         </div>
+       )}
+       {venueData.website && (
+         <div className="flex items-center gap-2 mb-3">
+           <Globe className="w-4 h-4 text-[#A0A4AB] flex-shrink-0" />
+           <a href={venueData.website.startsWith('http') ? venueData.website : `https://${venueData.website}`} target="_blank" rel="noopener noreferrer" className="text-[#1E90FF] text-sm truncate">{venueData.website}</a>
+         </div>
+       )}
+
+       <div className="flex gap-2 mb-4">
+         <button onClick={openDirections} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[#1E90FF] rounded-xl text-white font-bold text-sm">
+           <Navigation className="w-4 h-4" /> Get Directions
+         </button>
+         <button onClick={toggleFollow} disabled={followLoading} className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm border ${venueData.isFollowing ? 'bg-[#1E90FF]/20 border-[#1E90FF] text-[#1E90FF]' : 'bg-[#1A1D23] border-[#222A36] text-white'}`}>
+           {venueData.isFollowing ? <><Check className="w-4 h-4" /> Following</> : <><Heart className="w-4 h-4" /> Follow</>}
+         </button>
+       </div>
+       <p className="text-[#A0A4AB] text-xs mb-4">{venueData.followerCount} followers</p>
+     </div>
+
+     <div className="flex gap-1 px-4 mb-4 overflow-x-auto scrollbar-hide">
+       {tabs.map(t => (
+         <button key={t.key} onClick={() => setVenueTab(t.key)} className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${venueTab === t.key ? 'bg-[#1E90FF] text-white' : 'bg-[#1A1D23] text-[#A0A4AB] border border-[#222A36]'}`}>
+           {t.label}
+         </button>
+       ))}
+     </div>
+
+     <div className="px-4 pb-20">
+       {(venueTab === 'upcoming' || venueTab === 'past') && (
+         <div className="space-y-3">
+           {venueParties.length === 0 ? (
+             <div className="text-center py-12">
+               <Calendar className="w-12 h-12 text-[#A0A4AB]/30 mx-auto mb-3" />
+               <p className="text-[#A0A4AB]">{venueTab === 'upcoming' ? 'No upcoming parties' : 'No past parties'}</p>
+             </div>
+           ) : venueParties.map(p => (
+             <div key={p.id} onClick={() => { setSelectedGame({ id: p.gameId, sport: p.sport, homeTeam: p.homeTeam, awayTeam: p.awayTeam, startTime: p.gameTime }); setCurrentScreen('gameDetail'); }} className="bg-[#1A1D23] rounded-xl p-4 border border-[#222A36] cursor-pointer hover:border-[#1E90FF]/40 transition-all">
+               <div className="flex items-center justify-between mb-2">
+                 <span className="text-xs font-bold text-[#1E90FF] bg-[#1E90FF]/10 px-2 py-0.5 rounded">{p.sport}</span>
+                 <span className="text-[#A0A4AB] text-xs">{new Date(p.gameTime).toLocaleDateString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
+               </div>
+               <h3 className="text-white font-bold text-sm mb-1">{p.homeTeam} vs {p.awayTeam}</h3>
+               {p.title && <p className="text-[#A0A4AB] text-xs mb-2">{p.title}</p>}
+               <div className="flex items-center justify-between">
+                 <div className="flex items-center gap-2 text-[#A0A4AB] text-xs">
+                   <Users className="w-3.5 h-3.5" />
+                   <span>{p.attendeeCount} attending</span>
+                 </div>
+                 <span className="text-[#A0A4AB] text-xs">Hosted by {p.hostName}</span>
+               </div>
+             </div>
+           ))}
+         </div>
+       )}
+
+       {venueTab === 'about' && (
+         <div className="space-y-4">
+           <div className="grid grid-cols-2 gap-3">
+             <div className="bg-[#1A1D23] rounded-xl p-4 border border-[#222A36] text-center">
+               <p className="text-2xl font-black text-white">{venueData.totalParties}</p>
+               <p className="text-[#A0A4AB] text-xs">Total Parties</p>
+             </div>
+             <div className="bg-[#1A1D23] rounded-xl p-4 border border-[#222A36] text-center">
+               <p className="text-2xl font-black text-white">{venueData.totalFans}</p>
+               <p className="text-[#A0A4AB] text-xs">Total Fans</p>
+             </div>
+             <div className="bg-[#1A1D23] rounded-xl p-4 border border-[#222A36] text-center">
+               <p className="text-2xl font-black text-white">{venueData.avgAttendance || '—'}</p>
+               <p className="text-[#A0A4AB] text-xs">Avg Attendance</p>
+             </div>
+             <div className="bg-[#1A1D23] rounded-xl p-4 border border-[#222A36] text-center">
+               <p className="text-2xl font-black text-white">{venueData.popularSport || '—'}</p>
+               <p className="text-[#A0A4AB] text-xs">Popular Sport</p>
+             </div>
+           </div>
+           {venueData.avgRating && (
+             <div className="bg-[#1A1D23] rounded-xl p-4 border border-[#222A36] flex items-center gap-3">
+               <Star className="w-6 h-6 text-amber-400 fill-amber-400" />
+               <div>
+                 <p className="text-white font-bold">{venueData.avgRating} / 5</p>
+                 <p className="text-[#A0A4AB] text-xs">{venueData.reviewCount} reviews</p>
+               </div>
+             </div>
+           )}
+           {venueData.description && (
+             <div className="bg-[#1A1D23] rounded-xl p-4 border border-[#222A36]">
+               <h3 className="text-white font-bold mb-2">About</h3>
+               <p className="text-[#A0A4AB] text-sm leading-relaxed">{venueData.description}</p>
+             </div>
+           )}
+           {venueData.capacity && (
+             <div className="bg-[#1A1D23] rounded-xl p-4 border border-[#222A36] flex items-center gap-3">
+               <Users className="w-5 h-5 text-[#1E90FF]" />
+               <div>
+                 <p className="text-white font-bold">Capacity: {venueData.capacity}</p>
+                 <p className="text-[#A0A4AB] text-xs">Maximum capacity</p>
+               </div>
+             </div>
+           )}
+         </div>
+       )}
+
+       {venueTab === 'reviews' && (
+         <div className="space-y-4">
+           {venueReviews.summary.total > 0 && (
+             <div className="bg-[#1A1D23] rounded-xl p-4 border border-[#222A36]">
+               <div className="flex items-center gap-4 mb-3">
+                 <div className="text-center">
+                   <p className="text-3xl font-black text-white">{venueReviews.summary.avgRating}</p>
+                   <StarRating value={Math.round(venueReviews.summary.avgRating || 0)} size="sm" />
+                   <p className="text-[#A0A4AB] text-xs mt-1">{venueReviews.summary.total} reviews</p>
+                 </div>
+                 <div className="flex-1 space-y-1">
+                   {[5,4,3,2,1].map(s => (
+                     <div key={s} className="flex items-center gap-2">
+                       <span className="text-[#A0A4AB] text-xs w-3">{s}</span>
+                       <div className="flex-1 h-2 bg-[#222A36] rounded-full overflow-hidden">
+                         <div className="h-full bg-amber-400 rounded-full" style={{ width: `${venueReviews.summary.total ? ((venueReviews.summary.breakdown[s] || 0) / venueReviews.summary.total * 100) : 0}%` }} />
+                       </div>
+                       <span className="text-[#A0A4AB] text-xs w-6 text-right">{venueReviews.summary.breakdown[s] || 0}</span>
+                     </div>
+                   ))}
+                 </div>
+               </div>
+               {venueReviews.summary.avgAtmosphere && (
+                 <div className="grid grid-cols-3 gap-3 pt-3 border-t border-[#222A36]">
+                   <div className="text-center">
+                     <p className="text-white font-bold text-sm">{venueReviews.summary.avgAtmosphere}</p>
+                     <p className="text-[#A0A4AB] text-xs">Atmosphere</p>
+                   </div>
+                   <div className="text-center">
+                     <p className="text-white font-bold text-sm">{venueReviews.summary.avgService}</p>
+                     <p className="text-[#A0A4AB] text-xs">Service</p>
+                   </div>
+                   <div className="text-center">
+                     <p className="text-white font-bold text-sm">{venueReviews.summary.avgValue}</p>
+                     <p className="text-[#A0A4AB] text-xs">Value</p>
+                   </div>
+                 </div>
+               )}
+             </div>
+           )}
+
+           {user && (
+             <div className="bg-[#1A1D23] rounded-xl p-4 border border-[#222A36]">
+               <h3 className="text-white font-bold mb-3">Write a Review</h3>
+               <div className="space-y-3">
+                 <div>
+                   <label className="text-[#A0A4AB] text-xs mb-1 block">Overall Rating</label>
+                   <StarRating value={reviewForm.rating} onChange={v => setReviewForm(f => ({...f, rating: v}))} />
+                 </div>
+                 <div className="grid grid-cols-3 gap-3">
+                   <div>
+                     <label className="text-[#A0A4AB] text-xs mb-1 block">Atmosphere</label>
+                     <StarRating value={reviewForm.atmosphere} onChange={v => setReviewForm(f => ({...f, atmosphere: v}))} size="sm" />
+                   </div>
+                   <div>
+                     <label className="text-[#A0A4AB] text-xs mb-1 block">Service</label>
+                     <StarRating value={reviewForm.service} onChange={v => setReviewForm(f => ({...f, service: v}))} size="sm" />
+                   </div>
+                   <div>
+                     <label className="text-[#A0A4AB] text-xs mb-1 block">Value</label>
+                     <StarRating value={reviewForm.value} onChange={v => setReviewForm(f => ({...f, value: v}))} size="sm" />
+                   </div>
+                 </div>
+                 <textarea
+                   value={reviewForm.comment}
+                   onChange={e => setReviewForm(f => ({...f, comment: e.target.value}))}
+                   placeholder="Share your experience..."
+                   className="w-full bg-[#0F1115] border border-[#222A36] rounded-xl p-3 text-white text-sm resize-none h-20 focus:border-[#1E90FF] focus:outline-none"
+                 />
+                 <button onClick={submitVenueReview} disabled={submittingReview} className="w-full py-2.5 bg-[#1E90FF] text-white font-bold rounded-xl disabled:opacity-50">
+                   {submittingReview ? 'Submitting...' : 'Submit Review'}
+                 </button>
+               </div>
+             </div>
+           )}
+
+           <div className="space-y-3">
+             {venueReviews.reviews.length === 0 && (
+               <div className="text-center py-12">
+                 <Star className="w-12 h-12 text-[#A0A4AB]/30 mx-auto mb-3" />
+                 <p className="text-[#A0A4AB]">No reviews yet</p>
+                 <p className="text-[#A0A4AB]/60 text-sm">Be the first to review this venue!</p>
+               </div>
+             )}
+             {venueReviews.reviews.map(r => (
+               <div key={r.id} className="bg-[#1A1D23] rounded-xl p-4 border border-[#222A36]">
+                 <div className="flex items-center gap-3 mb-2">
+                   <ProfileAvatar src={r.profilePicture} name={r.userName} size="sm" />
+                   <div className="flex-1">
+                     <p className="text-white font-bold text-sm">{r.userName}</p>
+                     <p className="text-[#A0A4AB] text-xs">{new Date(r.createdAt).toLocaleDateString()}</p>
+                   </div>
+                   <div className="flex items-center gap-1">
+                     <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                     <span className="text-white font-bold text-sm">{r.rating}</span>
+                   </div>
+                 </div>
+                 {r.comment && <p className="text-[#A0A4AB] text-sm">{r.comment}</p>}
+               </div>
+             ))}
+           </div>
+         </div>
+       )}
+
+       {venueTab === 'photos' && (
+         <div>
+           {venuePhotos.length === 0 ? (
+             <div className="text-center py-12">
+               <Camera className="w-12 h-12 text-[#A0A4AB]/30 mx-auto mb-3" />
+               <p className="text-[#A0A4AB]">No photos yet</p>
+               <p className="text-[#A0A4AB]/60 text-sm">Photos from parties at this venue will appear here</p>
+             </div>
+           ) : (
+             <div className="grid grid-cols-3 gap-1">
+               {venuePhotos.map(photo => (
+                 <div key={photo.id} className="aspect-square rounded-lg overflow-hidden bg-[#1A1D23]">
+                   <img
+                     src={`/api/uploads/serve/${photo.objectPath.replace('/objects/', '')}`}
+                     alt={photo.caption || ''}
+                     className="w-full h-full object-cover"
+                   />
+                 </div>
+               ))}
+             </div>
+           )}
+         </div>
+       )}
+     </div>
+   </div>
+ );
+ };
+
  const ContactUsScreen = () => (
  <div className="min-h-screen pt-20 bg-[#0F1115]">
  <div className="sticky top-20 z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
@@ -4680,6 +5183,9 @@ const qrScannerRef = useRef(null);
  <button onClick={() => { setCurrentScreen('myParties'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-500/10 transition-colors text-left active:scale-[0.98]">
  <Calendar className="w-5 h-5 text-orange-400" /><span className="text-white text-sm font-semibold">My Parties</span>
  </button>
+ <button onClick={() => { setCurrentScreen('notificationSettings'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-yellow-500/10 transition-colors text-left active:scale-[0.98]">
+ <Bell className="w-5 h-5 text-yellow-400" /><span className="text-white text-sm font-semibold">Notification Settings</span>
+ </button>
  <button onClick={() => { setCurrentScreen('teamChats'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-teal-500/10 transition-colors text-left active:scale-[0.98]">
  <MessageCircle className="w-5 h-5 text-teal-400" /><span className="text-white text-sm font-semibold">Team Chat</span>
  </button>
@@ -4694,6 +5200,9 @@ const qrScannerRef = useRef(null);
  </button>
  <button onClick={() => { setShowQA(true); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-indigo-500/10 transition-colors text-left active:scale-[0.98]">
  <Shield className="w-5 h-5 text-indigo-400" /><span className="text-white text-sm font-semibold">Q&A</span>
+ </button>
+ <button onClick={() => { setCurrentScreen('inviteFriends'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-500/10 transition-colors text-left active:scale-[0.98]">
+ <UserPlus className="w-5 h-5 text-emerald-400" /><span className="text-white text-sm font-semibold">Invite Friends</span>
  </button>
  <button onClick={() => { shareApp(); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-500/10 transition-colors text-left active:scale-[0.98]">
  <Share2 className="w-5 h-5 text-emerald-400" /><span className="text-white text-sm font-semibold">Share App</span>
@@ -4906,8 +5415,9 @@ const qrScannerRef = useRef(null);
  {/* SECTION DIVIDER */}
  <div className="h-px bg-white/[0.08] my-[15px]" />
 
- {/* ROW 2: SEARCH BAR - FULL WIDTH */}
- <div className="relative mb-[15px]">
+ {/* ROW 2: SEARCH BAR + FILTER BUTTON */}
+ <div className="flex gap-2 mb-[15px]">
+ <div className="relative flex-1">
  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#A0A4AB]" />
  <DebouncedInput
  type="text"
@@ -4918,6 +5428,98 @@ const qrScannerRef = useRef(null);
  className="w-full pl-9 pr-3 h-[50px] bg-[#151A22] border border-[#222A36] rounded-[10px] text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
  />
  </div>
+ <button
+ onClick={() => setShowFilterPanel(!showFilterPanel)}
+ className={`h-[50px] w-[50px] flex-shrink-0 flex items-center justify-center rounded-[10px] transition-all active:scale-[0.95] ${
+   showFilterPanel || hasActiveFilters
+     ? 'bg-[#1E90FF] text-white shadow-sm shadow-[#1E90FF]/30'
+     : 'bg-[#151A22] border border-[#222A36] text-[#A0A4AB] hover:border-[#1E90FF]/40 hover:text-[#1E90FF]'
+ }`}
+ >
+ <Filter className="w-5 h-5" />
+ {hasActiveFilters && !showFilterPanel && (
+   <span className="absolute top-1 right-1 w-2 h-2 bg-[#1E90FF] rounded-full" />
+ )}
+ </button>
+ </div>
+
+ {showFilterPanel && (
+ <div className="mb-[15px] p-4 bg-[#151A22] border border-[#222A36] rounded-[12px] space-y-4" style={{ animation: 'slideDown 200ms ease-out' }}>
+ <div>
+ <h4 className="text-white/60 text-xs font-bold uppercase tracking-wider mb-2">Date</h4>
+ <div className="flex flex-wrap gap-2">
+ {['All', 'Today', 'Tomorrow', 'This Weekend', 'This Week', 'Next Week'].map(d => (
+   <button
+     key={d}
+     onClick={() => setDateFilter(d)}
+     className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all active:scale-[0.95] ${
+       dateFilter === d
+         ? 'bg-[#1E90FF] text-white'
+         : 'bg-[#0F1115] text-[#A0A4AB] border border-[#222A36] hover:border-[#1E90FF]/40'
+     }`}
+   >
+     {d}
+   </button>
+ ))}
+ </div>
+ </div>
+ <div>
+ <h4 className="text-white/60 text-xs font-bold uppercase tracking-wider mb-2">Sort By</h4>
+ <div className="flex flex-wrap gap-2">
+ {['Soonest', 'Most Popular', 'Newest'].map(s => (
+   <button
+     key={s}
+     onClick={() => setSortOption(s)}
+     className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all active:scale-[0.95] ${
+       sortOption === s
+         ? 'bg-[#1E90FF] text-white'
+         : 'bg-[#0F1115] text-[#A0A4AB] border border-[#222A36] hover:border-[#1E90FF]/40'
+     }`}
+   >
+     {s}
+   </button>
+ ))}
+ </div>
+ </div>
+ {hasActiveFilters && (
+ <button
+   onClick={() => { setDateFilter('All'); setSortOption('Soonest'); setSelectedSport('All'); setSearchTerm(''); }}
+   className="text-red-400 text-xs font-bold hover:text-red-300 transition-colors"
+ >
+   Clear All Filters
+ </button>
+ )}
+ </div>
+ )}
+
+ {hasActiveFilters && (
+ <div className="flex flex-wrap gap-2 mb-[15px]">
+ {selectedSport !== 'All' && (
+   <span className="inline-flex items-center gap-1 px-3 py-1 bg-[#1E90FF]/20 text-[#1E90FF] text-xs font-bold rounded-full border border-[#1E90FF]/30">
+     {SPORT_ICONS[selectedSport] || '🏅'} {selectedSport}
+     <button onClick={() => setSelectedSport('All')} className="ml-1 hover:text-white transition-colors"><X className="w-3 h-3" /></button>
+   </span>
+ )}
+ {dateFilter !== 'All' && (
+   <span className="inline-flex items-center gap-1 px-3 py-1 bg-purple-500/20 text-purple-300 text-xs font-bold rounded-full border border-purple-500/30">
+     <Calendar className="w-3 h-3" /> {dateFilter}
+     <button onClick={() => setDateFilter('All')} className="ml-1 hover:text-white transition-colors"><X className="w-3 h-3" /></button>
+   </span>
+ )}
+ {sortOption !== 'Soonest' && (
+   <span className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-bold rounded-full border border-emerald-500/30">
+     {sortOption}
+     <button onClick={() => setSortOption('Soonest')} className="ml-1 hover:text-white transition-colors"><X className="w-3 h-3" /></button>
+   </span>
+ )}
+ {searchTerm.trim() !== '' && (
+   <span className="inline-flex items-center gap-1 px-3 py-1 bg-orange-500/20 text-orange-300 text-xs font-bold rounded-full border border-orange-500/30">
+     <Search className="w-3 h-3" /> "{searchTerm}"
+     <button onClick={() => setSearchTerm('')} className="ml-1 hover:text-white transition-colors"><X className="w-3 h-3" /></button>
+   </span>
+ )}
+ </div>
+ )}
 
  {/* SECTION DIVIDER */}
  <div className="h-px bg-white/[0.08] my-[15px]" />
@@ -5215,6 +5817,29 @@ const qrScannerRef = useRef(null);
  </div>
 
  <div className="max-w-4xl mx-auto px-4 py-5 space-y-[15px]" data-tour-id="game-cards">
+ <div className="flex items-center justify-between mb-2">
+ <span className="text-[#A0A4AB] text-xs font-semibold">{filteredGames.length} {filteredGames.length === 1 ? 'game' : 'games'} found</span>
+ {hasActiveFilters && (
+   <button onClick={() => { setDateFilter('All'); setSortOption('Soonest'); setSelectedSport('All'); setSearchTerm(''); setMyTeamsOnly(false); }} className="text-[#1E90FF] text-xs font-bold hover:text-[#1E90FF]/80 transition-colors">
+     Clear Filters
+   </button>
+ )}
+ </div>
+ {filteredGames.length === 0 && (
+ <div className="flex flex-col items-center justify-center py-16 text-center">
+   <div className="w-16 h-16 bg-[#222A36] rounded-full flex items-center justify-center mb-4">
+     <Search className="w-8 h-8 text-[#A0A4AB]/50" />
+   </div>
+   <h3 className="text-white font-bold text-lg mb-2">No games match your search</h3>
+   <p className="text-[#A0A4AB] text-sm max-w-xs mb-4">Try adjusting your filters or search term to find more games</p>
+   <button
+     onClick={() => { setDateFilter('All'); setSortOption('Soonest'); setSelectedSport('All'); setSearchTerm(''); setMyTeamsOnly(false); }}
+     className="px-5 py-2 bg-[#1E90FF] text-white font-bold text-sm rounded-full hover:bg-[#1E90FF]/80 transition-colors active:scale-[0.95]"
+   >
+     Clear All Filters
+   </button>
+ </div>
+ )}
  {filteredGames.map(game => {
  const gameParties = getPartiesForGame(game.id);
  return (
@@ -5595,7 +6220,7 @@ const qrScannerRef = useRef(null);
  {party.venueName && (
  <div className="flex items-center gap-2">
  <Building2 className="w-4 h-4 text-[#1E90FF]" />
- <span className="text-white font-semibold">{party.venueName}</span>
+ <button onClick={() => { const mv = venues.find(v => v.name?.toLowerCase() === party.venueName?.toLowerCase()); if (mv?.id) { setSelectedVenueId(mv.id); setCurrentScreen('venueDetail'); } }} className="text-white font-semibold hover:text-[#1E90FF] transition-colors text-left">{party.venueName}</button>
  </div>
  )}
  <div className="flex items-center gap-2">
@@ -5617,6 +6242,17 @@ const qrScannerRef = useRef(null);
  {party.capacity ? ` of ${party.capacity}` : ''} attending
  </span>
  </div>
+ {(() => {
+ const friendIds = friendsList.map(f => f.id);
+ const friendsGoing = party.attendeeDetails?.filter(a => a.userId && friendIds.includes(a.userId)) || [];
+ if (friendsGoing.length > 0) return (
+ <div className="flex items-center gap-2">
+ <Heart className="w-4 h-4 text-pink-400" />
+ <span className="text-pink-300 font-semibold">{friendsGoing.length} friend{friendsGoing.length !== 1 ? 's' : ''} attending</span>
+ </div>
+ );
+ return null;
+ })()}
  </div>
  <VenueMap address={party.venueAddress || party.location} venueName={party.venueName || party.location} />
 
@@ -5768,6 +6404,13 @@ const qrScannerRef = useRef(null);
  className="w-full mt-2 py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-emerald-500/20 text-emerald-300 border-2 border-emerald-500/30 hover:bg-emerald-500/30 active:scale-[0.98]"
  >
  <Share2 className="w-4 h-4" /> Share Party
+ </button>
+
+ <button
+ onClick={(e) => { e.stopPropagation(); openCalendarMenu(party); }}
+ className="w-full mt-2 py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-[#1E90FF]/20 text-[#1E90FF] border-2 border-[#1E90FF]/30 hover:bg-[#1E90FF]/30 active:scale-[0.98]"
+ >
+ <Calendar className="w-4 h-4" /> Add to Calendar
  </button>
 
  {(isAttending || party.hostEmail === user.email) && (
@@ -9769,6 +10412,95 @@ const qrScannerRef = useRef(null);
  );
  };
 
+ const NotificationSettingsScreen = () => {
+ const [prefs, setPrefs] = useState(notifPrefs || {
+   pushEnabled: true, teamAlerts: true, rivalryAlerts: true, suggestedParties: true,
+   gameReminders: true, partyReminders: true, predictionReminders: true,
+   predictionResults: true, raffleWinners: true, nearbyParties: true,
+   friendActivity: true, achievementUnlocks: true
+ });
+ const [saving, setSaving] = useState(false);
+
+ const togglePref = async (key) => {
+   const updated = { ...prefs, [key]: !prefs[key] };
+   setPrefs(updated);
+   setSaving(true);
+   try {
+     await api.push.updatePreferences(updated);
+     setNotifPrefs(updated);
+   } catch (e) { console.error(e); }
+   setSaving(false);
+ };
+
+ const PrefToggle = ({ label, prefKey, description }) => (
+   <div className="flex items-center justify-between py-3 border-b border-[#222A36]">
+     <div>
+       <div className="text-white text-sm font-semibold">{label}</div>
+       {description && <div className="text-[#A0A4AB] text-xs mt-0.5">{description}</div>}
+     </div>
+     <button
+       onClick={() => togglePref(prefKey)}
+       className={`w-11 h-6 rounded-full transition-colors relative ${prefs[prefKey] ? 'bg-emerald-500' : 'bg-[#333]'}`}
+     >
+       <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${prefs[prefKey] ? 'translate-x-5.5 left-[1px]' : 'left-[2px]'}`} style={{ transform: prefs[prefKey] ? 'translateX(22px)' : 'translateX(0)' }} />
+     </button>
+   </div>
+ );
+
+ return (
+   <div className="min-h-screen pt-20 bg-[#0F1115]">
+     <div className="sticky top-20 z-10 bg-[#0F1115] border-b border-[#222A36]">
+       <div className="max-w-4xl mx-auto px-4 py-4">
+         <button onClick={() => setCurrentScreen('games')} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors">
+           <ArrowLeft className="w-5 h-5" /> Back
+         </button>
+       </div>
+     </div>
+     <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
+       <h2 className="text-3xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>NOTIFICATION SETTINGS</h2>
+
+       <div className="bg-[#151A22] rounded-2xl border border-[#222A36] p-5">
+         <h3 className="text-orange-300 font-bold text-sm mb-2 uppercase">Push Notifications</h3>
+         <PrefToggle label="Enable Push Notifications" prefKey="pushEnabled" description="Master toggle for all push notifications" />
+         {!pushEnabled && Notification.permission !== 'granted' && (
+           <button onClick={async () => { await enablePush(); }} className="mt-3 w-full py-2.5 bg-[#1E90FF] text-white font-bold rounded-xl text-sm">
+             Grant Browser Permission
+           </button>
+         )}
+       </div>
+
+       <div className="bg-[#151A22] rounded-2xl border border-[#222A36] p-5">
+         <h3 className="text-orange-300 font-bold text-sm mb-2 uppercase">Party & Events</h3>
+         <PrefToggle label="Party Reminders" prefKey="partyReminders" description="1 hour before party starts" />
+         <PrefToggle label="Suggested Parties" prefKey="suggestedParties" description="Parties you might like" />
+       </div>
+
+       <div className="bg-[#151A22] rounded-2xl border border-[#222A36] p-5">
+         <h3 className="text-orange-300 font-bold text-sm mb-2 uppercase">Predictions & Games</h3>
+         <PrefToggle label="Prediction Reminders" prefKey="predictionReminders" description="30 min before game starts" />
+         <PrefToggle label="Prediction Results" prefKey="predictionResults" description="When your predictions are resolved" />
+         <PrefToggle label="Game Reminders" prefKey="gameReminders" description="Reminders for watched games" />
+       </div>
+
+       <div className="bg-[#151A22] rounded-2xl border border-[#222A36] p-5">
+         <h3 className="text-orange-300 font-bold text-sm mb-2 uppercase">Social</h3>
+         <PrefToggle label="Friend Activity" prefKey="friendActivity" description="When friends join parties" />
+         <PrefToggle label="Team Alerts" prefKey="teamAlerts" description="Alerts for your favorite teams" />
+         <PrefToggle label="Rivalry Alerts" prefKey="rivalryAlerts" description="Classic rivalry game alerts" />
+       </div>
+
+       <div className="bg-[#151A22] rounded-2xl border border-[#222A36] p-5">
+         <h3 className="text-orange-300 font-bold text-sm mb-2 uppercase">Rewards</h3>
+         <PrefToggle label="Raffle Winners" prefKey="raffleWinners" description="When you win a raffle" />
+         <PrefToggle label="Achievement Unlocks" prefKey="achievementUnlocks" description="Badges, streaks, milestones" />
+       </div>
+
+       <p className="text-[#A0A4AB] text-xs text-center">Quiet hours: 10 PM - 8 AM (no notifications sent)</p>
+     </div>
+   </div>
+ );
+ };
+
  const MyPartiesScreen = () => {
  const [deletingPartyId, setDeletingPartyId] = useState(null);
  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
@@ -10322,6 +11054,11 @@ const qrScannerRef = useRef(null);
  <div className="text-center">
  <div className="text-2xl font-black text-white">{badgeStats.partiesAttended + badgeStats.partiesHosted}</div>
  <div className="text-[#A0A4AB] text-xs">Total</div>
+ </div>
+ <div className="w-px bg-[#222A36]" />
+ <div className="text-center">
+ <div className="text-2xl font-black text-white">{friendsList.length}</div>
+ <div className="text-[#A0A4AB] text-xs">Friends</div>
  </div>
  </div>
  {(() => {
@@ -13152,12 +13889,74 @@ const qrScannerRef = useRef(null);
  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-white text-xs flex items-center justify-center font-bold">{friendRequests.length}</span>
  )}
  </button>
+ <button
+ onClick={() => { setCrewTab('activity'); loadFriendActivity(); }}
+ type="button"
+ className={`flex-1 py-2 rounded-xl font-bold text-sm transition-all active:scale-95 cursor-pointer ${crewTab === 'activity' ? 'bg-emerald-500 text-white' : 'bg-[#151A22] text-[#A0A4AB]'}`}
+ >
+ Activity
+ </button>
+ </div>
+
+ <div className="mt-3">
+ <div className="relative">
+ <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0A4AB]" />
+ <input
+ type="text"
+ placeholder="Search users by name..."
+ value={crewSearchQuery}
+ onChange={(e) => { setCrewSearchQuery(e.target.value); searchUsers(e.target.value); }}
+ className="w-full pl-10 pr-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white text-sm placeholder-[#A0A4AB] focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
+ />
+ {crewSearchQuery && (
+ <button onClick={() => { setCrewSearchQuery(''); setCrewSearchResults([]); }} className="absolute right-3 top-1/2 -translate-y-1/2">
+ <X className="w-4 h-4 text-[#A0A4AB]" />
+ </button>
+ )}
+ </div>
  </div>
  </div>
  </div>
 
  <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
- {crewTab === 'friends' && (
+ {crewSearchQuery.length >= 2 && (
+ <div className="space-y-3">
+ <h3 className="text-sm font-bold text-[#A0A4AB] uppercase tracking-wider">Search Results</h3>
+ {crewSearchLoading ? (
+ <div className="text-center py-8"><Loader2 className="w-6 h-6 text-[#1E90FF] animate-spin mx-auto" /></div>
+ ) : crewSearchResults.length === 0 ? (
+ <p className="text-[#A0A4AB] text-sm text-center py-4">No users found</p>
+ ) : (
+ crewSearchResults.map(u => {
+ const isFriend = friendsList.some(f => f.id === u.id);
+ const isPending = friendStatuses[u.id] === 'sent';
+ return (
+ <div key={u.id} className="bg-[#151A22] rounded-xl border border-[#222A36] p-4 flex items-center gap-3">
+ <ProfileAvatar src={u.profilePicture} name={u.name} size="md" />
+ <div className="flex-1 min-w-0">
+ <span className="text-white font-bold">{u.name}</span>
+ {u.favoriteTeams && Object.values(u.favoriteTeams).length > 0 && (
+ <p className="text-[#A0A4AB] text-xs truncate">{Object.values(u.favoriteTeams).join(', ')}</p>
+ )}
+ <p className="text-[#A0A4AB]/60 text-xs">{u.partiesAttended} parties attended</p>
+ </div>
+ {isFriend ? (
+ <span className="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-xl">Friends</span>
+ ) : isPending ? (
+ <span className="px-3 py-1.5 bg-yellow-500/20 text-yellow-400 text-xs font-bold rounded-xl">Pending</span>
+ ) : (
+ <button onClick={() => sendFriendRequest(u.id)} className="px-3 py-1.5 bg-[#1E90FF] text-white text-xs font-bold rounded-xl active:scale-95 transition-all">
+ <UserPlus className="w-3 h-3 inline mr-1" /> Add
+ </button>
+ )}
+ </div>
+ );
+ })
+ )}
+ </div>
+ )}
+
+ {crewTab === 'friends' && !crewSearchQuery && (
  <>
  {friendsList.length === 0 ? (
  <div className="text-center py-16">
@@ -13278,7 +14077,7 @@ const qrScannerRef = useRef(null);
  </>
  )}
 
- {crewTab === 'messages' && (
+ {crewTab === 'messages' && !crewSearchQuery && (
  <>
  {dmConversations.length === 0 ? (
  <div className="text-center py-16">
@@ -13320,7 +14119,7 @@ const qrScannerRef = useRef(null);
  </>
  )}
 
- {crewTab === 'requests' && (
+ {crewTab === 'requests' && !crewSearchQuery && (
  <>
  {friendRequests.length === 0 ? (
  <div className="text-center py-16">
@@ -13367,6 +14166,117 @@ const qrScannerRef = useRef(null);
  )}
  </>
  )}
+
+ {crewTab === 'activity' && !crewSearchQuery && (
+ <>
+ {friendActivityLoading ? (
+ <div className="text-center py-16"><Loader2 className="w-8 h-8 text-[#1E90FF] animate-spin mx-auto" /></div>
+ ) : friendActivity.length === 0 ? (
+ <div className="text-center py-16">
+ <div className="text-4xl mb-3">📋</div>
+ <h3 className="text-xl font-bold text-white mb-2">No Activity Yet</h3>
+ <p className="text-[#A0A4AB] max-w-sm mx-auto">When your friends join watch parties, their activity will show up here.</p>
+ </div>
+ ) : (
+ friendActivity.map((act, idx) => (
+ <div key={idx} className="bg-[#151A22] rounded-xl border border-[#222A36] p-4 flex items-center gap-3">
+ <ProfileAvatar src={act.profilePicture} name={act.name} size="md" />
+ <div className="flex-1 min-w-0">
+ <p className="text-white text-sm">
+ <span className="font-bold">{act.name}</span>
+ {' joined a party for '}
+ <span className="text-[#1E90FF] font-semibold">{act.homeTeam} vs {act.awayTeam}</span>
+ </p>
+ <div className="flex items-center gap-2 mt-1">
+ {act.sport && <span className="text-xs text-[#A0A4AB]">{SPORT_ICONS[act.sport] || ''} {act.sport}</span>}
+ {act.venueName && <span className="text-xs text-[#A0A4AB]">at {act.venueName}</span>}
+ </div>
+ {act.activityTime && (
+ <p className="text-[#A0A4AB]/60 text-xs mt-1">{new Date(act.activityTime).toLocaleDateString([], { month: 'short', day: 'numeric' })}</p>
+ )}
+ </div>
+ </div>
+ ))
+ )}
+ </>
+ )}
+ </div>
+ </div>
+ );
+
+ const renderInviteFriendsScreen = () => (
+ <div className="min-h-screen pt-20 bg-[#0F1115] relative z-0">
+ <div className="max-w-4xl mx-auto px-4 py-6">
+ <div className="flex items-center gap-3 mb-6">
+ <button onClick={() => setCurrentScreen('games')} className="p-2 bg-[#151A22] rounded-xl hover:bg-[#222A36] active:bg-[#222A36] cursor-pointer" type="button">
+ <ArrowLeft className="w-5 h-5 text-white" />
+ </button>
+ <h1 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+ <UserPlus className="inline w-6 h-6 mr-2 text-emerald-400" />
+ INVITE FRIENDS
+ </h1>
+ </div>
+
+ <div className="space-y-4">
+ <div className="bg-gradient-to-br from-emerald-900/40 to-[#151A22] p-6 rounded-2xl border border-emerald-500/20 shadow-xl text-center">
+ <div className="text-5xl mb-3">🎉</div>
+ <h2 className="text-xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+ SHARE YOUR REFERRAL LINK
+ </h2>
+ <p className="text-[#A0A4AB] text-sm mb-4">
+ Invite friends to join Huddle Up and earn 100 bonus points for each friend who signs up!
+ </p>
+ <div className="bg-[#0F1115] rounded-xl p-4 mb-4 border border-[#222A36]">
+ <p className="text-[#A0A4AB] text-xs mb-1">Your referral link</p>
+ <p className="text-[#1E90FF] font-mono text-sm break-all">{window.location.origin}?ref={user?.referralCode || '...'}</p>
+ </div>
+ <div className="flex gap-3">
+ <button
+ onClick={copyReferralLink}
+ className="flex-1 py-3 bg-[#151A22] text-white font-bold rounded-xl border border-[#222A36] hover:border-[#1E90FF]/30 transition-all flex items-center justify-center gap-2 active:scale-95"
+ >
+ <Copy className="w-4 h-4" /> Copy Link
+ </button>
+ <button
+ onClick={shareReferralLink}
+ className="flex-1 py-3 bg-gradient-to-r from-emerald-500 to-green-500 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95"
+ >
+ <Share2 className="w-4 h-4" /> Share
+ </button>
+ </div>
+ </div>
+
+ <div className="bg-[#151A22] p-5 rounded-2xl border border-[#222A36]">
+ <h3 className="text-lg font-bold text-white mb-3">How It Works</h3>
+ <div className="space-y-3">
+ <div className="flex items-center gap-3">
+ <div className="w-8 h-8 rounded-full bg-[#1E90FF]/20 flex items-center justify-center flex-shrink-0">
+ <span className="text-[#1E90FF] font-bold text-sm">1</span>
+ </div>
+ <p className="text-[#A0A4AB] text-sm">Share your referral link with friends</p>
+ </div>
+ <div className="flex items-center gap-3">
+ <div className="w-8 h-8 rounded-full bg-[#1E90FF]/20 flex items-center justify-center flex-shrink-0">
+ <span className="text-[#1E90FF] font-bold text-sm">2</span>
+ </div>
+ <p className="text-[#A0A4AB] text-sm">They sign up using your link</p>
+ </div>
+ <div className="flex items-center gap-3">
+ <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+ <span className="text-emerald-400 font-bold text-sm">3</span>
+ </div>
+ <p className="text-[#A0A4AB] text-sm">You both earn bonus points!</p>
+ </div>
+ </div>
+ </div>
+
+ <button
+ onClick={() => { setCurrentScreen('myCrew'); loadFriends(); }}
+ className="w-full py-3 bg-[#1E90FF] text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95"
+ >
+ <Users className="w-5 h-5" /> Go to My Crew
+ </button>
+ </div>
  </div>
  </div>
  );
@@ -13454,6 +14364,29 @@ const qrScannerRef = useRef(null);
  </>
  )}
 
+ {showPushBanner && user && (
+ <div className="fixed bottom-20 left-4 right-4 z-[55] bg-gradient-to-r from-[#1E90FF] to-[#0066CC] rounded-2xl p-4 shadow-2xl border border-[#1E90FF]/50 animate-fadeIn max-w-md mx-auto">
+   <div className="flex items-start gap-3">
+     <Bell className="w-6 h-6 text-white flex-shrink-0 mt-0.5" />
+     <div className="flex-1">
+       <p className="text-white font-bold text-sm">Get notified about your parties and predictions?</p>
+       <p className="text-white/70 text-xs mt-1">We'll send reminders before games, prediction results, and raffle winners.</p>
+       <div className="flex gap-2 mt-3">
+         <button onClick={async () => { await enablePush(); setShowPushBanner(false); }} className="px-4 py-1.5 bg-white text-[#1E90FF] font-bold text-xs rounded-lg">
+           Allow
+         </button>
+         <button onClick={() => setShowPushBanner(false)} className="px-4 py-1.5 bg-white/20 text-white font-bold text-xs rounded-lg">
+           Not Now
+         </button>
+       </div>
+     </div>
+     <button onClick={() => setShowPushBanner(false)} className="text-white/60 hover:text-white">
+       <X className="w-4 h-4" />
+     </button>
+   </div>
+ </div>
+ )}
+
  {currentScreen === 'welcome' && <WelcomeScreen />}
  {currentScreen === 'login' && loginScreenJSX}
  {currentScreen === 'signupType' && signupTypeScreenJSX}
@@ -13467,6 +14400,7 @@ const qrScannerRef = useRef(null);
  {currentScreen === 'venueDashboard' && <VenueHubScreen />}
  {currentScreen === 'sponsorDashboard' && <SponsorDashboard />}
  {currentScreen === 'myParties' && <MyPartiesScreen />}
+ {currentScreen === 'notificationSettings' && <NotificationSettingsScreen />}
  {currentScreen === 'profile' && <ProfileScreen />}
  {currentScreen === 'proUpgrade' && <ProUpgradeScreen />}
  {currentScreen === 'influencerDashboard' && <InfluencerDashboard />}
@@ -13484,6 +14418,8 @@ const qrScannerRef = useRef(null);
  {currentScreen === 'myTickets' && renderMyTicketsScreen()}
  {currentScreen === 'predictions' && <PredictionsScreen />}
  {currentScreen === 'contactUs' && <ContactUsScreen />}
+ {currentScreen === 'venueDetail' && <VenueDetailScreen />}
+ {currentScreen === 'inviteFriends' && renderInviteFriendsScreen()}
 
  {editProfileOpen && (
  <EditProfileModal
@@ -13753,6 +14689,59 @@ const qrScannerRef = useRef(null);
  </div>
  </div>
  )}
+
+ {showCalendarMenu && calendarParty && (() => {
+ const urls = getCalendarUrls(calendarParty);
+ return (
+<div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center" onClick={() => setShowCalendarMenu(false)}>
+<div className="w-full max-w-md rounded-t-3xl sm:rounded-3xl border border-[#222A36] p-6 space-y-4 animate-fade-in" style={{ backgroundColor: '#151A22' }} onClick={e => e.stopPropagation()}>
+<div className="flex items-center justify-between mb-2">
+<h3 className="text-xl font-bold text-white">Add to Calendar</h3>
+<button onClick={() => setShowCalendarMenu(false)} className="p-2 rounded-full hover:bg-[#222A36] transition-colors"><X className="w-5 h-5 text-[#A0A4AB]" /></button>
+</div>
+<div className="bg-[#0F1115] rounded-xl p-4 border border-[#222A36]">
+<p className="text-white font-bold text-sm">{calendarParty.hostName}'s Party</p>
+<p className="text-[#A0A4AB] text-xs mt-1">{calendarParty.venueName || calendarParty.location}</p>
+<p className="text-[#A0A4AB] text-xs mt-1">{calendarParty.homeTeam} vs {calendarParty.awayTeam}</p>
+</div>
+<div className="space-y-3">
+<a href={urls.ics} download className="flex items-center gap-3 w-full py-3 px-4 rounded-xl font-bold text-white transition-all hover:opacity-90 bg-gradient-to-r from-gray-600 to-gray-700 border border-gray-500/30">
+<span className="text-2xl">📅</span>
+<div className="text-left">
+<div className="text-sm font-bold">Apple Calendar / iCal</div>
+<div className="text-xs text-gray-300">Download .ics file</div>
+</div>
+<Download className="w-5 h-5 ml-auto text-gray-300" />
+</a>
+<a href={urls.google} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 w-full py-3 px-4 rounded-xl font-bold text-white transition-all hover:opacity-90 border border-[#222A36]" style={{ backgroundColor: '#1a73e8' }}>
+<span className="text-2xl">📆</span>
+<div className="text-left">
+<div className="text-sm font-bold">Google Calendar</div>
+<div className="text-xs text-blue-200">Opens in new tab</div>
+</div>
+<ChevronRight className="w-5 h-5 ml-auto text-blue-200" />
+</a>
+<a href={urls.outlook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 w-full py-3 px-4 rounded-xl font-bold text-white transition-all hover:opacity-90 border border-[#222A36]" style={{ backgroundColor: '#0078d4' }}>
+<span className="text-2xl">📧</span>
+<div className="text-left">
+<div className="text-sm font-bold">Outlook Calendar</div>
+<div className="text-xs text-blue-200">Opens in new tab</div>
+</div>
+<ChevronRight className="w-5 h-5 ml-auto text-blue-200" />
+</a>
+<a href={urls.yahoo} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 w-full py-3 px-4 rounded-xl font-bold text-white transition-all hover:opacity-90 border border-[#222A36]" style={{ backgroundColor: '#720e9e' }}>
+<span className="text-2xl">📅</span>
+<div className="text-left">
+<div className="text-sm font-bold">Yahoo Calendar</div>
+<div className="text-xs text-purple-200">Opens in new tab</div>
+</div>
+<ChevronRight className="w-5 h-5 ml-auto text-purple-200" />
+</a>
+</div>
+</div>
+</div>
+ );
+ })()}
 
  {showShareMenu && shareParty && (
 <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center" onClick={() => setShowShareMenu(false)}>

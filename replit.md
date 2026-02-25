@@ -31,6 +31,11 @@ The UI/UX emphasizes intuitive navigation and visual engagement, incorporating t
 - **Fan vs. Venue Account System**: Distinct signup flows and dashboards for Fan and Venue users, with specific features tailored to each role.
 - **Interactive Spotlight Tour**: A step-by-step walkthrough of key app features for new users.
 - **Game Prediction System**: Users predict game winners with a confidence slider (1-10). Points: base 50 × confidence. Streak bonuses at 5 (+100) and 10 (+250) correct. Pro users get 3x multiplier. Features: prediction interface on game detail pages, dedicated "Predictions" screen with stats/history/leaderboard, admin panel to resolve games and award points. Database tables: `predictions`, `prediction_streaks`. Routes: `server/routes/predictions.js`.
+- **Push Notifications (Web Push API)**: Real push notifications via VAPID keys and `web-push`. Triggers: party reminders (1hr before), prediction reminders (30min before), prediction results, streak milestones, friend joins party. Rate limited (5/day), quiet hours (10PM-8AM), respects per-type preferences. Notification Settings screen accessible from hamburger menu. Permission banner on second visit. Backend: `server/routes/push.js`, scheduler in `server/scoreChecker.js`. DB tables: `push_subscriptions`, `notification_preferences`.
+- **Calendar Integration**: "Add to Calendar" button on party cards generates .ics file download or opens Google Calendar/Outlook/Yahoo Calendar links. Server endpoint: `GET /api/parties/:id/calendar`. Client-side URL generation for Google/Outlook/Yahoo.
+- **Friend System & Invites**: Friend requests, accept/decline, user search (`GET /api/users/search?q=`), friend activity feed, referral link sharing via native share API, "friends attending" indicator on party cards. Invite Friends screen in hamburger menu. DB: `friendships` table. Routes: `server/routes/friends.js`.
+- **Advanced Search & Filters**: Filter panel on games screen with date filters (Today, Tomorrow, This Weekend, This Week, Next Week), sort options (Soonest, Most Popular, Newest), active filter chips with remove, results count display, empty state with filter suggestions.
+- **Dedicated Venue Pages**: Full venue detail screen with 5 tabs (Upcoming Parties, Past Parties, About, Reviews, Photos). Venue header with verified badge, address, phone, website. Follow/unfollow venues. Venue reviews with star ratings (overall, atmosphere, service, value). Photo gallery. Stats (total parties, fans, avg attendance, popular sport). DB: `venue_follows`, `venue_reviews` tables. Routes: `server/routes/venues.js`.
 
 ## External Dependencies
 - **PostgreSQL**: Database.
@@ -45,3 +50,4 @@ The UI/UX emphasizes intuitive navigation and visual engagement, incorporating t
 - **Twilio**: SMS notifications.
 - **Google Maps API**: Maps and directions.
 - **Replit Object Storage (GCS-backed)**: Image storage.
+- **web-push**: Web Push API for browser push notifications (VAPID keys in env).

@@ -206,4 +206,31 @@ router.get('/stats', async (req, res) => {
   }
 });
 
+router.get('/search', requireAuth, async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.trim().length < 2) return res.json([]);
+    const result = await pool.query(
+      `SELECT u.id, u.name, u.gender, u.profile_picture,
+        (SELECT json_object_agg(ft.sport, ft.team) FROM user_favorite_teams ft WHERE ft.user_id = u.id) as favorite_teams,
+        (SELECT COUNT(*) FROM party_attendees WHERE user_id = u.id) as parties_attended
+       FROM users u
+       WHERE u.id != $1 AND (u.name ILIKE $2 OR u.email ILIKE $2)
+       ORDER BY u.name LIMIT 20`,
+      [req.session.userId, `%${q.trim()}%`]
+    );
+    res.json(result.rows.map(r => ({
+      id: r.id,
+      name: r.name,
+      gender: r.gender,
+      profilePicture: r.profile_picture,
+      favoriteTeams: r.favorite_teams || {},
+      partiesAttended: parseInt(r.parties_attended)
+    })));
+  } catch (error) {
+    console.error('User search error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 export default router;

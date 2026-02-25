@@ -185,4 +185,43 @@ router.get('/status/:userId', requireAuth, async (req, res) => {
   }
 });
 
+router.get('/activity', requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT
+        'party_joined' as type,
+        u.id as user_id, u.name, u.profile_picture,
+        p.id as party_id, p.venue_name, p.sport, p.home_team, p.away_team,
+        pa.joined_at as activity_time
+       FROM party_attendees pa
+       JOIN users u ON pa.user_id = u.id
+       JOIN parties p ON pa.party_id = p.id
+       WHERE pa.user_id IN (
+         SELECT CASE WHEN f.user_id = $1 THEN f.friend_id ELSE f.user_id END
+         FROM friendships f
+         WHERE (f.user_id = $1 OR f.friend_id = $1) AND f.status = 'accepted'
+       )
+       ORDER BY pa.joined_at DESC
+       LIMIT 20`,
+      [req.session.userId]
+    );
+
+    res.json(result.rows.map(r => ({
+      type: r.type,
+      userId: r.user_id,
+      name: r.name,
+      profilePicture: r.profile_picture,
+      partyId: r.party_id,
+      venueName: r.venue_name,
+      sport: r.sport,
+      homeTeam: r.home_team,
+      awayTeam: r.away_team,
+      activityTime: r.activity_time
+    })));
+  } catch (error) {
+    console.error('Friend activity error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 export default router;
