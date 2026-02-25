@@ -5574,97 +5574,6 @@ const qrScannerRef = useRef(null);
  </div>
 
 
- {/* SECTION DIVIDER */}
- <div className="h-px bg-white/[0.08] my-[15px]" />
-
- {(() => {
- const MAJOR_SPORTS = new Set(['UFC', 'Boxing', 'Formula 1', 'Champions League', 'FIFA World Cup']);
- const upcomingMajor = games
-   .filter(g => g.gameStatus === 'scheduled' && MAJOR_SPORTS.has(g.sport) && new Date(g.startTime) > new Date())
-   .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
-   .slice(0, 10);
- if (upcomingMajor.length === 0) return null;
-
- const GRADIENT_MAP = {
-   'UFC': 'from-red-900/80 to-red-700/40',
-   'Boxing': 'from-amber-900/80 to-amber-700/40',
-   'Formula 1': 'from-red-800/80 to-gray-900/60',
-   'Champions League': 'from-blue-900/80 to-indigo-800/40',
-   'FIFA World Cup': 'from-green-900/80 to-emerald-700/40',
- };
- const BORDER_MAP = {
-   'UFC': 'border-red-500/40',
-   'Boxing': 'border-amber-500/40',
-   'Formula 1': 'border-red-500/30',
-   'Champions League': 'border-blue-500/40',
-   'FIFA World Cup': 'border-green-500/40',
- };
-
- return (
-   <div className="mt-0 mb-[15px]">
-   <div className="flex items-center justify-between mb-[15px]">
-   <h3 className="text-white font-bold text-[14px] flex items-center gap-2 uppercase tracking-[1px]" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>
-   <Flame className="w-4 h-4 text-orange-400" />
-   UPCOMING EVENTS
-   </h3>
-   <span className="text-[10px] text-white/40 font-semibold">{upcomingMajor.length} events</span>
-   </div>
-   <div className="overflow-x-auto scrollbar-hide">
-   <div className="flex gap-[15px] w-max pb-1">
-   {upcomingMajor.map((event) => {
-   const eventDate = new Date(event.startTime);
-   const timeStr = eventDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-   const timeOfDay = eventDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-   return (
-   <div
-   key={event.id}
-   onClick={() => { setSelectedGame(event); setCurrentScreen('gameDetail'); window.scrollTo(0, 0); }}
-   className={`flex-shrink-0 w-64 p-[15px] rounded-[12px] border ${BORDER_MAP[event.sport] || 'border-[#222A36]'} bg-gradient-to-br ${GRADIENT_MAP[event.sport] || 'from-[#151A22] to-[#0F1115]'} cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all duration-200`}
-   >
-   <div className="flex items-center justify-between mb-2">
-   <span className="text-[10px] font-bold uppercase tracking-wider text-white/60">{event.sport}</span>
-   <span className="text-lg">{SPORT_ICONS[event.sport] || '🏅'}</span>
-   </div>
-   {event.eventTitle ? (
-   <p className="text-white/50 text-[10px] font-bold mb-0.5">{event.eventTitle}</p>
-   ) : null}
-   <div className="flex items-center gap-3 my-1.5">
-   {(() => { const homeLogo = event.homeLogo || getTeamLogoUrl(event.sport, event.homeTeam); const awayLogo = event.awayLogo || getTeamLogoUrl(event.sport, event.awayTeam); return (
-   <>
-   <div className="flex flex-col items-center gap-1 flex-1 min-w-0">
-   {homeLogo ? <img src={homeLogo} alt="" className="w-10 h-10 object-contain" onError={(e) => e.target.style.display='none'} /> : <span className="text-2xl">{SPORT_ICONS[event.sport] || '🏅'}</span>}
-   <span className="text-white font-bold text-[10px] leading-tight text-center truncate w-full">{event.homeTeam}</span>
-   </div>
-   <span className="text-white/40 font-black text-xs flex-shrink-0">VS</span>
-   <div className="flex flex-col items-center gap-1 flex-1 min-w-0">
-   {awayLogo ? <img src={awayLogo} alt="" className="w-10 h-10 object-contain" onError={(e) => e.target.style.display='none'} /> : <span className="text-2xl">{SPORT_ICONS[event.sport] || '🏅'}</span>}
-   <span className="text-white/70 font-bold text-[10px] leading-tight text-center truncate w-full">{event.awayTeam}</span>
-   </div>
-   </>
-   ); })()}
-   </div>
-   <div className="flex items-center gap-2 mt-2">
-   <Calendar className="w-3 h-3 text-white/50" />
-   <span className="text-white/70 text-[11px]">{timeStr} • {timeOfDay}</span>
-   </div>
-   {event.venue && (
-   <div className="flex items-center gap-2 mt-0.5">
-   <MapPin className="w-3 h-3 text-white/50" />
-   <span className="text-white/50 text-[10px] truncate">{event.venue}</span>
-   </div>
-   )}
-   </div>
-   );
-   })}
-   </div>
-   </div>
-   </div>
- );
- })()}
-
- {/* SECTION DIVIDER */}
- <div className="h-px bg-white/[0.08] my-[15px]" />
-
  </div>
 
  {/* MAIN SPONSOR BANNER - 5 slots per sport (visible to all users) */}
@@ -5930,6 +5839,92 @@ const qrScannerRef = useRef(null);
  );
  })}
  </div>
+
+ {/* UPCOMING EVENTS - Major sports events */}
+ {(() => {
+ const MAJOR_SPORTS = new Set(['UFC', 'Boxing', 'Formula 1', 'Champions League', 'FIFA World Cup']);
+ const upcomingMajor = games
+   .filter(g => g.gameStatus === 'scheduled' && MAJOR_SPORTS.has(g.sport) && new Date(g.startTime) > new Date())
+   .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
+   .slice(0, 10);
+ if (upcomingMajor.length === 0) return null;
+ const GRADIENT_MAP = {
+   'UFC': 'from-red-900/80 to-red-700/40',
+   'Boxing': 'from-amber-900/80 to-amber-700/40',
+   'Formula 1': 'from-red-800/80 to-gray-900/60',
+   'Champions League': 'from-blue-900/80 to-indigo-800/40',
+   'FIFA World Cup': 'from-green-900/80 to-emerald-700/40',
+ };
+ const BORDER_MAP = {
+   'UFC': 'border-red-500/40',
+   'Boxing': 'border-amber-500/40',
+   'Formula 1': 'border-red-500/30',
+   'Champions League': 'border-blue-500/40',
+   'FIFA World Cup': 'border-green-500/40',
+ };
+ return (
+   <div className="max-w-4xl mx-auto px-4 py-5">
+   <div className="h-px bg-white/[0.08] mb-[15px]" />
+   <div className="flex items-center justify-between mb-[15px]">
+   <h3 className="text-white font-bold text-[14px] flex items-center gap-2 uppercase tracking-[1px]" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>
+   <Flame className="w-4 h-4 text-orange-400" />
+   UPCOMING EVENTS
+   </h3>
+   <span className="text-[10px] text-white/40 font-semibold">{upcomingMajor.length} events</span>
+   </div>
+   <div className="overflow-x-auto scrollbar-hide">
+   <div className="flex gap-[15px] w-max pb-1">
+   {upcomingMajor.map((event) => {
+   const eventDate = new Date(event.startTime);
+   const timeStr = eventDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+   const timeOfDay = eventDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+   return (
+   <div
+   key={event.id}
+   onClick={() => { setSelectedGame(event); setCurrentScreen('gameDetail'); window.scrollTo(0, 0); }}
+   className={`flex-shrink-0 w-64 p-[15px] rounded-[12px] border ${BORDER_MAP[event.sport] || 'border-[#222A36]'} bg-gradient-to-br ${GRADIENT_MAP[event.sport] || 'from-[#151A22] to-[#0F1115]'} cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all duration-200`}
+   >
+   <div className="flex items-center justify-between mb-2">
+   <span className="text-[10px] font-bold uppercase tracking-wider text-white/60">{event.sport}</span>
+   <span className="text-lg">{SPORT_ICONS[event.sport] || '🏅'}</span>
+   </div>
+   {event.eventTitle ? (
+   <p className="text-white/50 text-[10px] font-bold mb-0.5">{event.eventTitle}</p>
+   ) : null}
+   <div className="flex items-center gap-3 my-1.5">
+   {(() => { const homeLogo = event.homeLogo || getTeamLogoUrl(event.sport, event.homeTeam); const awayLogo = event.awayLogo || getTeamLogoUrl(event.sport, event.awayTeam); return (
+   <>
+   <div className="flex flex-col items-center gap-1 flex-1 min-w-0">
+   {homeLogo ? <img src={homeLogo} alt="" className="w-10 h-10 object-contain" onError={(e) => e.target.style.display='none'} /> : <span className="text-2xl">{SPORT_ICONS[event.sport] || '🏅'}</span>}
+   <span className="text-white font-bold text-[10px] leading-tight text-center truncate w-full">{event.homeTeam}</span>
+   </div>
+   <span className="text-white/40 font-black text-xs flex-shrink-0">VS</span>
+   <div className="flex flex-col items-center gap-1 flex-1 min-w-0">
+   {awayLogo ? <img src={awayLogo} alt="" className="w-10 h-10 object-contain" onError={(e) => e.target.style.display='none'} /> : <span className="text-2xl">{SPORT_ICONS[event.sport] || '🏅'}</span>}
+   <span className="text-white/70 font-bold text-[10px] leading-tight text-center truncate w-full">{event.awayTeam}</span>
+   </div>
+   </>
+   ); })()}
+   </div>
+   <div className="flex items-center gap-2 mt-2">
+   <Calendar className="w-3 h-3 text-white/50" />
+   <span className="text-white/70 text-[11px]">{timeStr} • {timeOfDay}</span>
+   </div>
+   {event.venue && (
+   <div className="flex items-center gap-2 mt-0.5">
+   <MapPin className="w-3 h-3 text-white/50" />
+   <span className="text-white/50 text-[10px] truncate">{event.venue}</span>
+   </div>
+   )}
+   </div>
+   );
+   })}
+   </div>
+   </div>
+   </div>
+ );
+ })()}
+
  <CopyrightFooter />
  </div>
  );
