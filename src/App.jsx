@@ -5581,46 +5581,46 @@ const qrScannerRef = useRef(null);
  const sponsors = getSponsorsForSport(selectedSport);
  const sponsor = sponsors[sponsorIndex % sponsors.length];
  return (
- <div className="max-w-4xl mx-auto px-4 pt-5 pb-5">
+ <div className="max-w-4xl mx-auto px-4 pt-3 pb-2">
  <div
- className={`relative overflow-hidden rounded-[12px] border-2 ${sponsor.borderColor} bg-gradient-to-r ${sponsor.color} transition-all duration-200 shadow-sm shadow-black/20`}
+ className={`relative overflow-hidden rounded-[10px] border ${sponsor.borderColor} bg-gradient-to-r ${sponsor.color} transition-all duration-200`}
  >
  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-sponsor-shimmer pointer-events-none" />
- <div className="relative flex items-stretch min-h-[120px]">
- <div className="flex-shrink-0 w-[45%] bg-black/20 flex items-center justify-center overflow-hidden rounded-l-[12px]">
+ <div className="relative flex items-center">
+ <div className="flex-shrink-0 w-[30%] bg-black/20 flex items-center justify-center overflow-hidden rounded-l-[10px] h-[70px]">
  {sponsor.logoUrl ? (
  <img src={sponsor.logoUrl} alt={sponsor.name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling && (e.target.nextSibling.style.display = 'flex'); }} />
  ) : null}
  {sponsor.icon && !sponsor.logoUrl ? (
- <span className="text-6xl">{sponsor.icon}</span>
+ <span className="text-3xl">{sponsor.icon}</span>
  ) : null}
  {sponsor.logoUrl ? (
- <span className="text-6xl hidden items-center justify-center">{SPORT_ICONS[selectedSport] || '📢'}</span>
+ <span className="text-3xl hidden items-center justify-center">{SPORT_ICONS[selectedSport] || '📢'}</span>
  ) : null}
  </div>
- <div className="flex-1 flex flex-col justify-center p-5 min-w-0">
- <div className="flex items-center gap-2 mb-1 flex-wrap">
+ <div className="flex-1 flex flex-col justify-center p-3 min-w-0">
+ <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
  {sponsor.tier === 'premium' && (
- <span className="px-2 py-0.5 bg-gradient-to-r from-amber-500/30 to-yellow-500/30 text-yellow-300 text-xs font-bold uppercase rounded tracking-wider flex items-center gap-1">
- <Star className="w-3 h-3" fill="currentColor" /> Premium
+ <span className="px-1.5 py-0.5 bg-gradient-to-r from-amber-500/30 to-yellow-500/30 text-yellow-300 text-[9px] font-bold uppercase rounded tracking-wider flex items-center gap-0.5">
+ <Star className="w-2.5 h-2.5" fill="currentColor" /> Premium
  </span>
  )}
  {sponsor.isDemo && (
- <span className="px-2 py-0.5 bg-[#1E90FF]/20 text-[#1E90FF]/80 text-xs font-bold uppercase rounded tracking-wider">
+ <span className="px-1.5 py-0.5 bg-[#1E90FF]/20 text-[#1E90FF]/80 text-[9px] font-bold uppercase rounded tracking-wider">
  Example
  </span>
  )}
  {sponsor.isEmpty && (
- <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 text-xs font-bold uppercase rounded tracking-wider animate-pulse">
+ <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-300 text-[9px] font-bold uppercase rounded tracking-wider animate-pulse">
  Available
  </span>
  )}
  </div>
- <h3 className="text-white font-extrabold text-2xl sm:text-3xl truncate leading-tight">{sponsor.name}</h3>
- <p className="text-gray-200 text-base sm:text-lg mt-1 truncate">{sponsor.tagline}</p>
- <div className="flex gap-1.5 mt-3 pb-[10px]">
+ <h3 className="text-white font-extrabold text-base truncate leading-tight">{sponsor.name}</h3>
+ <p className="text-gray-200 text-xs truncate">{sponsor.tagline}</p>
+ <div className="flex gap-1 mt-1.5">
  {sponsors.map((_, i) => (
- <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i === sponsorIndex % sponsors.length ? 'bg-white w-6' : 'bg-white/25 w-1.5'}`} />
+ <div key={i} className={`h-1 rounded-full transition-all duration-300 ${i === sponsorIndex % sponsors.length ? 'bg-white w-4' : 'bg-white/25 w-1'}`} />
  ))}
  </div>
  </div>
@@ -5635,53 +5635,34 @@ const qrScannerRef = useRef(null);
  const wcGames = games.filter(g => g.sport === 'FIFA World Cup' || g.sport === 'FIFA Club World Cup');
  const wcHasStarted = wcGames.length > 0;
  return (
- <div className="max-w-4xl mx-auto px-4 pt-5 pb-5">
+ <div className="max-w-4xl mx-auto px-4 pt-2 pb-2">
  <button
  onClick={() => {
  if (wcHasStarted) {
  setSelectedSport('FIFA World Cup');
  }
  }}
- className={`w-full animate-wc-glow rounded-[12px] overflow-hidden ${!wcHasStarted ? 'cursor-default' : ''}`}
+ className={`w-full rounded-[10px] overflow-hidden ${!wcHasStarted ? 'cursor-default' : ''}`}
  >
- <div className="relative bg-gradient-to-r from-amber-900/80 via-yellow-700/60 to-amber-900/80 border-2 border-yellow-500/50 rounded-[12px] p-4 sm:p-5 overflow-hidden">
- <div className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-400/10 to-transparent animate-wc-shimmer pointer-events-none" />
- <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none" />
- <div className="absolute bottom-0 left-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
-
- <div className="relative flex items-center gap-4">
+ <div className="relative bg-gradient-to-r from-amber-900/80 via-yellow-700/60 to-amber-900/80 border border-yellow-500/40 rounded-[10px] p-3 overflow-hidden">
+ <div className="relative flex items-center gap-3">
  <div className="flex-shrink-0">
- <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-yellow-400 via-amber-500 to-yellow-600 flex items-center justify-center shadow-sm shadow-yellow-500/40 animate-flag-wave">
- <span className="text-3xl sm:text-4xl">🏆</span>
+ <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400 via-amber-500 to-yellow-600 flex items-center justify-center">
+ <span className="text-2xl">🏆</span>
  </div>
  </div>
-
  <div className="flex-1 min-w-0">
- <div className="flex items-center gap-2 mb-1">
- <span className="px-2 py-0.5 bg-red-500/80 text-white text-[10px] font-black uppercase rounded tracking-wider">Featured Event</span>
- {!wcHasStarted && <span className="px-2 py-0.5 bg-yellow-500/30 text-yellow-300 text-[10px] font-black uppercase rounded tracking-wider">Coming Soon</span>}
- {wcHasStarted && <span className="px-2 py-0.5 bg-green-500/30 text-green-300 text-[10px] font-black uppercase rounded tracking-wider animate-pulse">Live Now</span>}
+ <div className="flex items-center gap-1.5 mb-0.5">
+ <span className="px-1.5 py-0.5 bg-red-500/80 text-white text-[9px] font-black uppercase rounded tracking-wider">Featured</span>
+ {!wcHasStarted && <span className="px-1.5 py-0.5 bg-yellow-500/30 text-yellow-300 text-[9px] font-black uppercase rounded tracking-wider">Coming Soon</span>}
+ {wcHasStarted && <span className="px-1.5 py-0.5 bg-green-500/30 text-green-300 text-[9px] font-black uppercase rounded tracking-wider animate-pulse">Live Now</span>}
  </div>
- <h3 className="text-xl sm:text-2xl font-black text-white leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+ <h3 className="text-base font-black text-white leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
  FIFA WORLD CUP 2026
  </h3>
- <p className="text-yellow-200/80 text-xs sm:text-sm mt-0.5">
- USA, Mexico & Canada · June 2026
- </p>
- <div className="flex items-center gap-3 mt-2">
- <span className="text-lg">🇺🇸</span>
- <span className="text-lg">🇲🇽</span>
- <span className="text-lg">🇨🇦</span>
- <span className="text-lg">🇧🇷</span>
- <span className="text-lg">🇩🇪</span>
- <span className="text-lg">🏴󠁧󠁢󠁥󠁮󠁧󠁿</span>
- <span className="text-lg">🇦🇷</span>
- <span className="text-lg">🇫🇷</span>
- {wcHasStarted ? (
- <span className="text-yellow-300 text-xs font-bold ml-auto">Tap to view games →</span>
- ) : (
- <span className="text-yellow-300/60 text-xs font-bold ml-auto">Starts June 2026</span>
- )}
+ <div className="flex items-center gap-1.5 mt-1">
+ <span className="text-sm">🇺🇸</span><span className="text-sm">🇲🇽</span><span className="text-sm">🇨🇦</span><span className="text-sm">🇧🇷</span><span className="text-sm">🇩🇪</span><span className="text-sm">🇦🇷</span><span className="text-sm">🇫🇷</span>
+ <span className="text-yellow-300/60 text-[10px] font-bold ml-auto">{wcHasStarted ? 'View games →' : 'June 2026'}</span>
  </div>
  </div>
  </div>
@@ -5691,33 +5672,12 @@ const qrScannerRef = useRef(null);
  );
  })()}
 
- <div className="max-w-4xl mx-auto px-4 pt-5">
- <div className="bg-gradient-to-r from-[#1E90FF]/20 via-blue-500/20 to-purple-500/20 border-2 border-[#1E90FF]/40 rounded-[12px] px-5 py-4 flex items-center gap-4 shadow-sm shadow-[#1E90FF]/10">
- <div className="w-12 h-12 bg-gradient-to-br from-[#1E90FF] to-[#1E90FF] rounded-[10px] flex items-center justify-center flex-shrink-0 shadow-sm shadow-[#1E90FF]/10">
- <span className="text-2xl">👇</span>
- </div>
+ <div className="max-w-4xl mx-auto px-4 pt-4 pb-2" data-tour-id="game-cards">
+ <div className="flex items-center justify-between mb-3">
  <div>
- <p className="text-white font-bold text-[15px]">Tap any game to start a watch party!</p>
- <p className="text-[#1E90FF]/80 text-xs mt-0.5">Pick a game, choose a venue, and invite your crew</p>
+ <span className="text-white font-bold text-sm">Tap any game to start a watch party</span>
+ <span className="text-[#A0A4AB] text-xs ml-2">({filteredGames.length} {filteredGames.length === 1 ? 'game' : 'games'})</span>
  </div>
- </div>
- </div>
-
- {/* GLOWING SCROLL DOWN ARROW */}
- <div className="flex flex-col items-center py-5">
- <p className="text-[#A0A4AB] text-xs uppercase tracking-widest mb-2 animate-pulse font-semibold">Scroll for more games</p>
- <div className="animate-scroll-bounce">
- <div className="w-10 h-10 rounded-full bg-[#1E90FF]/20 border border-[#1E90FF]/50 flex items-center justify-center shadow-sm shadow-[#1E90FF]/10 animate-scroll-glow">
- <svg className="w-5 h-5 text-[#1E90FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
- </svg>
- </div>
- </div>
- </div>
-
- <div className="max-w-4xl mx-auto px-4 py-5 space-y-[15px]" data-tour-id="game-cards">
- <div className="flex items-center justify-between mb-2">
- <span className="text-[#A0A4AB] text-xs font-semibold">{filteredGames.length} {filteredGames.length === 1 ? 'game' : 'games'} found</span>
  {hasActiveFilters && (
    <button onClick={() => { setDateFilter('All'); setSortOption('Soonest'); setSelectedSport('All'); setSearchTerm(''); setMyTeamsOnly(false); }} className="text-[#1E90FF] text-xs font-bold hover:text-[#1E90FF]/80 transition-colors">
      Clear Filters
@@ -5725,20 +5685,22 @@ const qrScannerRef = useRef(null);
  )}
  </div>
  {filteredGames.length === 0 && (
- <div className="flex flex-col items-center justify-center py-16 text-center">
-   <div className="w-16 h-16 bg-[#222A36] rounded-full flex items-center justify-center mb-4">
-     <Search className="w-8 h-8 text-[#A0A4AB]/50" />
+ <div className="flex flex-col items-center justify-center py-12 text-center">
+   <div className="w-14 h-14 bg-[#222A36] rounded-full flex items-center justify-center mb-3">
+     <Search className="w-7 h-7 text-[#A0A4AB]/50" />
    </div>
-   <h3 className="text-white font-bold text-lg mb-2">No games match your search</h3>
-   <p className="text-[#A0A4AB] text-sm max-w-xs mb-4">Try adjusting your filters or search term to find more games</p>
+   <h3 className="text-white font-bold text-base mb-1">No games match your search</h3>
+   <p className="text-[#A0A4AB] text-xs max-w-xs mb-3">Try adjusting your filters or search term</p>
    <button
      onClick={() => { setDateFilter('All'); setSortOption('Soonest'); setSelectedSport('All'); setSearchTerm(''); setMyTeamsOnly(false); }}
-     className="px-5 py-2 bg-[#1E90FF] text-white font-bold text-sm rounded-full hover:bg-[#1E90FF]/80 transition-colors active:scale-[0.95]"
+     className="px-4 py-1.5 bg-[#1E90FF] text-white font-bold text-xs rounded-full hover:bg-[#1E90FF]/80 transition-colors active:scale-[0.95]"
    >
      Clear All Filters
    </button>
  </div>
  )}
+ <div className="overflow-x-auto scrollbar-hide pb-2">
+ <div className="flex gap-3 w-max">
  {filteredGames.map(game => {
  const gameParties = getPartiesForGame(game.id);
  return (
@@ -5749,95 +5711,85 @@ const qrScannerRef = useRef(null);
  setCurrentScreen('gameDetail');
  window.scrollTo(0, 0);
  }}
- className="bg-[#151A22] p-6 rounded-[12px] border border-[#222A36] hover:border-[#1E90FF]/50 cursor-pointer transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-xl"
+ className="flex-shrink-0 w-[260px] bg-[#151A22] p-4 rounded-[12px] border border-[#222A36] hover:border-[#1E90FF]/50 cursor-pointer active:scale-[0.98] transition-all duration-200"
  >
- <div className="flex items-center justify-between mb-3">
- <span className="px-3 py-1 bg-[#1E90FF]/20 text-[#1E90FF] text-xs font-bold rounded-full border border-[#1E90FF]/30">
+ <div className="flex items-center justify-between mb-2">
+ <span className="px-2 py-0.5 bg-[#1E90FF]/20 text-[#1E90FF] text-[10px] font-bold rounded-full border border-[#1E90FF]/30">
  {game.sport}
  </span>
- <div className="flex items-center gap-2">
+ <div className="flex items-center gap-1.5">
  {gameParties.length > 0 && (
- <span className="px-3 py-1 bg-purple-500/20 text-purple-300 text-xs font-bold rounded-full border border-purple-500/30">
+ <span className="px-2 py-0.5 bg-purple-500/20 text-purple-300 text-[10px] font-bold rounded-full border border-purple-500/30">
  {gameParties.length} {gameParties.length === 1 ? 'Party' : 'Parties'}
  </span>
  )}
  {user && (
  <button
  onClick={(e) => { e.stopPropagation(); toggleWatchGame(game); }}
- className={`p-1.5 rounded-full transition-all ${
+ className={`p-1 rounded-full transition-all ${
  watchedGames.includes(game.id)
  ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/40'
- : 'bg-[#151A22] text-[#A0A4AB]/70 border border-[#222A36] hover:text-yellow-400 hover:border-yellow-500/30'
+ : 'text-[#A0A4AB]/50 hover:text-yellow-400'
  }`}
- title={watchedGames.includes(game.id) ? 'Stop score alerts' : 'Get score alerts'}
  >
- <svg className="w-4 h-4" fill={watchedGames.includes(game.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+ <svg className="w-3.5 h-3.5" fill={watchedGames.includes(game.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
  </svg>
  </button>
  )}
  </div>
  </div>
- 
- <div className="text-center mb-4">
+
+ <div className="text-center mb-2">
  {game.gameStatus === 'live' || game.gameStatus === 'final' ? (
- <div className="mb-2">
- <div className="flex items-center justify-center gap-2 mb-2">
- <div className="flex-1 flex flex-col items-center gap-1">
- {game.homeLogo && <img src={game.homeLogo} alt="" className="w-14 h-14 object-contain" />}
- <span className="text-base font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.homeTeam}</span>
+ <div>
+ <div className="flex items-center justify-center gap-2 mb-1.5">
+ <div className="flex-1 flex flex-col items-center gap-0.5">
+ {game.homeLogo && <img src={game.homeLogo} alt="" className="w-10 h-10 object-contain" />}
+ <span className="text-[11px] font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.homeTeam}</span>
  </div>
- <div className="text-3xl font-black px-3 flex-shrink-0" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+ <div className="text-2xl font-black flex-shrink-0" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
  <span className={game.homeScore > game.awayScore ? 'text-emerald-400' : 'text-white'}>{game.homeScore}</span>
- <span className="text-[#A0A4AB]/70 mx-1">-</span>
+ <span className="text-[#A0A4AB]/70 mx-0.5">-</span>
  <span className={game.awayScore > game.homeScore ? 'text-emerald-400' : 'text-white'}>{game.awayScore}</span>
  </div>
- <div className="flex-1 flex flex-col items-center gap-1">
- {game.awayLogo && <img src={game.awayLogo} alt="" className="w-14 h-14 object-contain" />}
- <span className="text-base font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.awayTeam}</span>
+ <div className="flex-1 flex flex-col items-center gap-0.5">
+ {game.awayLogo && <img src={game.awayLogo} alt="" className="w-10 h-10 object-contain" />}
+ <span className="text-[11px] font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.awayTeam}</span>
  </div>
  </div>
- <span className={`px-3 py-1 text-xs font-bold rounded-full ${game.gameStatus === 'live' ? 'bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse' : 'bg-gray-500/20 text-[#A0A4AB] border border-gray-500/30'}`}>
+ <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${game.gameStatus === 'live' ? 'bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse' : 'bg-gray-500/20 text-[#A0A4AB] border border-gray-500/30'}`}>
  {game.statusDetail}
  </span>
  </div>
  ) : (
- <div className="flex items-center justify-center gap-4 mb-2">
- <div className="flex-1 flex flex-col items-center gap-1">
- {game.homeLogo && <img src={game.homeLogo} alt="" className="w-14 h-14 object-contain" />}
- <span className="text-base font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.homeTeam}</span>
+ <div className="flex items-center justify-center gap-3 mb-1.5">
+ <div className="flex-1 flex flex-col items-center gap-0.5">
+ {game.homeLogo && <img src={game.homeLogo} alt="" className="w-10 h-10 object-contain" />}
+ <span className="text-[11px] font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.homeTeam}</span>
  </div>
- <span className="text-lg font-black text-[#1E90FF] flex-shrink-0" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>VS</span>
- <div className="flex-1 flex flex-col items-center gap-1">
- {game.awayLogo && <img src={game.awayLogo} alt="" className="w-14 h-14 object-contain" />}
- <span className="text-base font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.awayTeam}</span>
+ <span className="text-sm font-black text-[#1E90FF] flex-shrink-0" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>VS</span>
+ <div className="flex-1 flex flex-col items-center gap-0.5">
+ {game.awayLogo && <img src={game.awayLogo} alt="" className="w-10 h-10 object-contain" />}
+ <span className="text-[11px] font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.awayTeam}</span>
  </div>
  </div>
  )}
- <div className="flex flex-col items-center gap-1 text-[#A0A4AB] text-sm">
+ <div className="flex flex-col items-center gap-0.5 text-[#A0A4AB] text-xs mt-1">
  <div className="flex items-center gap-1">
- <Calendar className="w-4 h-4" />
+ <Calendar className="w-3 h-3" />
  {formatDateTime(game.startTime)}
  </div>
  {game.broadcast && (
- <span className="text-[#1E90FF] text-xs">{game.broadcast}</span>
+ <span className="text-[#1E90FF] text-[10px]">{game.broadcast}</span>
  )}
  </div>
- </div>
- <div className="mt-3 flex justify-center">
- <button
- onClick={(e) => { e.stopPropagation(); loadGames(); }}
- className="px-4 py-1.5 bg-[#0F1115] hover:bg-[#1E90FF]/20 rounded-lg text-xs text-[#A0A4AB] hover:text-[#1E90FF] transition-all border border-[#222A36] hover:border-[#1E90FF]/30 flex items-center gap-1.5"
- >
- <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
- </svg>
- Refresh
- </button>
  </div>
  </div>
  );
  })}
+ </div>
+ </div>
  </div>
 
  {/* UPCOMING EVENTS - Major sports events */}
