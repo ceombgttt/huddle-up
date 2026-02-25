@@ -2050,7 +2050,7 @@ const qrScannerRef = useRef(null);
  api.push.getPreferences().then(prefs => setNotifPrefs(prefs)).catch(() => {});
  const visits = parseInt(localStorage.getItem('hu_visit_count') || '0') + 1;
  localStorage.setItem('hu_visit_count', String(visits));
- if (visits >= 2 && Notification.permission === 'default') {
+ if (visits >= 2 && typeof Notification !== 'undefined' && Notification.permission === 'default') {
    setTimeout(() => setShowPushBanner(true), 3000);
  }
  }
@@ -10600,7 +10600,7 @@ const qrScannerRef = useRef(null);
        <div className="bg-[#151A22] rounded-2xl border border-[#222A36] p-5">
          <h3 className="text-orange-300 font-bold text-sm mb-2 uppercase">Push Notifications</h3>
          <PrefToggle label="Enable Push Notifications" prefKey="pushEnabled" description="Master toggle for all push notifications" />
-         {!pushEnabled && Notification.permission !== 'granted' && (
+         {!pushEnabled && typeof Notification !== 'undefined' && Notification.permission !== 'granted' && (
            <button onClick={async () => { await enablePush(); }} className="mt-3 w-full py-2.5 bg-[#1E90FF] text-white font-bold rounded-xl text-sm">
              Grant Browser Permission
            </button>
