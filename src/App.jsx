@@ -1816,7 +1816,7 @@ const qrScannerRef = useRef(null);
  const activeSponsors = adminSponsors.filter(s => s.status === 'active');
 
  const formScreens = ['welcome', 'login', 'signup', 'forgotPassword', 'claimVenue', 'createParty'];
- const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', 'qrCheckin', 'myParties', 'myCrew', 'fanFinder', 'invitations', 'venueDashboard', 'sponsorDashboard', 'teamChats', 'trending', 'myTickets', 'alerts', 'userProfile', 'dmChat', 'proUpgrade', 'venueDetail', 'inviteFriends', 'notificationSettings', ...formScreens];
+ const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', 'qrCheckin', 'myParties', 'myCrew', 'fanFinder', 'invitations', 'venueDashboard', 'sponsorDashboard', 'teamChats', 'trending', 'myTickets', 'alerts', 'userProfile', 'dmChat', 'proUpgrade', 'venueDetail', 'inviteFriends', 'notificationSettings', 'nearbyParties', ...formScreens];
  const isFormScreen = formScreens.includes(currentScreen);
  const isPauseScreen = pauseScreens.includes(currentScreen);
 
@@ -5180,6 +5180,9 @@ const qrScannerRef = useRef(null);
  <Download className="w-5 h-5 text-[#1E90FF]" /><span className="text-[#1E90FF] text-sm font-bold">Install App</span>
  </button>
  )}
+ <button onClick={() => { setCurrentScreen('nearbyParties'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-[#1E90FF]/10 hover:bg-[#1E90FF]/20 transition-colors text-left active:scale-[0.98] border border-[#1E90FF]/20">
+ <MapPin className="w-5 h-5 text-[#1E90FF]" /><span className="text-[#1E90FF] text-sm font-bold">Watch Parties Near Me</span>
+ </button>
  <button onClick={() => { setCurrentScreen('myParties'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-500/10 transition-colors text-left active:scale-[0.98]">
  <Calendar className="w-5 h-5 text-orange-400" /><span className="text-white text-sm font-semibold">My Parties</span>
  </button>
@@ -10412,6 +10415,169 @@ const qrScannerRef = useRef(null);
  );
  };
 
+ const NearbyPartiesScreen = () => {
+ const [requestingLocation, setRequestingLocation] = useState(false);
+
+ const nearbyPartiesList = React.useMemo(() => {
+   if (!currentCity) return [];
+   const normalize = (s) => s?.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim() || '';
+   const userCityName = normalize(currentCity.split(',')[0]);
+
+   return parties.filter(party => {
+     const partyCity = normalize((party.city || '').split(',')[0]);
+     if (!partyCity) return false;
+     if (userCityName === partyCity) return true;
+     if (userCityName.length >= 4 && partyCity.length >= 4) {
+       if (partyCity.startsWith(userCityName) || userCityName.startsWith(partyCity)) return true;
+     }
+     return false;
+   }).sort((a, b) => {
+     const dateA = new Date(a.gameTime || a.date || 0);
+     const dateB = new Date(b.gameTime || b.date || 0);
+     return dateA - dateB;
+   });
+ }, [parties, currentCity]);
+
+ const requestLocation = async () => {
+   setRequestingLocation(true);
+   detectUserLocation();
+   setTimeout(() => setRequestingLocation(false), 3000);
+ };
+
+ const getSportIcon = (sport) => {
+   const icons = { 'NFL': '🏈', 'NBA': '🏀', 'NHL': '🏒', 'MLB': '⚾', 'MLS': '⚽', 'College Football': '🏈', 'College Basketball': '🏀', 'Premier League': '⚽', 'La Liga': '⚽', 'Liga MX': '⚽', 'Champions League': '⚽', 'UFC': '🥊', 'Boxing': '🥊' };
+   return icons[sport] || '🏟️';
+ };
+
+ return (
+   <div className="min-h-screen pt-20 bg-[#0F1115]">
+     <div className="sticky top-20 z-10 bg-[#0F1115] border-b border-[#222A36]">
+       <div className="max-w-4xl mx-auto px-4 py-4">
+         <button onClick={() => setCurrentScreen('games')} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors">
+           <ArrowLeft className="w-5 h-5" /> Back
+         </button>
+       </div>
+     </div>
+     <div className="max-w-4xl mx-auto px-4 py-6">
+       <div className="text-center mb-6">
+         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-[#1E90FF] to-[#0066CC] mb-4">
+           <MapPin className="w-8 h-8 text-white" />
+         </div>
+         <h2 className="text-3xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+           WATCH PARTIES NEAR ME
+         </h2>
+         {currentCity ? (
+           <p className="text-[#1E90FF] font-semibold mt-1">{currentCity}</p>
+         ) : (
+           <p className="text-[#A0A4AB] mt-1">Enable location to find parties near you</p>
+         )}
+       </div>
+
+       {!currentCity ? (
+         <div className="bg-[#151A22] rounded-2xl border border-[#222A36] p-8 text-center">
+           <MapPin className="w-12 h-12 text-[#1E90FF] mx-auto mb-4" />
+           <h3 className="text-white font-bold text-lg mb-2">Enable Location Access</h3>
+           <p className="text-[#A0A4AB] text-sm mb-6">
+             We need your location to show watch parties happening near you. Your location is never stored.
+           </p>
+           <button
+             onClick={requestLocation}
+             disabled={requestingLocation}
+             className="px-8 py-3 bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white font-bold rounded-xl hover:opacity-90 transition-all disabled:opacity-50"
+           >
+             {requestingLocation ? (
+               <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Detecting...</span>
+             ) : (
+               <span className="flex items-center gap-2"><MapPin className="w-4 h-4" /> Share My Location</span>
+             )}
+           </button>
+         </div>
+       ) : nearbyPartiesList.length === 0 ? (
+         <div className="bg-[#151A22] rounded-2xl border border-[#222A36] p-8 text-center">
+           <Search className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+           <h3 className="text-white font-bold text-lg mb-2">No Parties Nearby</h3>
+           <p className="text-[#A0A4AB] text-sm mb-4">
+             There aren't any watch parties in {currentCity} right now. Be the first to create one!
+           </p>
+           <button
+             onClick={() => setCurrentScreen('games')}
+             className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-xl"
+           >
+             Browse Games & Create Party
+           </button>
+         </div>
+       ) : (
+         <div className="space-y-3">
+           <div className="flex items-center justify-between mb-2">
+             <p className="text-[#A0A4AB] text-sm">{nearbyPartiesList.length} {nearbyPartiesList.length === 1 ? 'party' : 'parties'} near you</p>
+             <button onClick={requestLocation} className="text-xs text-[#1E90FF] hover:text-[#1E90FF]/80 flex items-center gap-1">
+               <MapPin className="w-3 h-3" /> Update Location
+             </button>
+           </div>
+           {nearbyPartiesList.map(party => (
+             <div
+               key={party.id}
+               onClick={() => {
+                 const game = games.find(g => g.id === party.gameId);
+                 if (game) { setSelectedGame(game); setCurrentScreen('gameDetail'); }
+               }}
+               className="bg-[#151A22] p-5 rounded-xl border border-[#222A36] hover:border-[#1E90FF]/30 transition-all cursor-pointer active:scale-[0.99]"
+             >
+               <div className="flex items-start justify-between mb-2">
+                 <div className="flex items-center gap-2">
+                   <span className="text-xl">{getSportIcon(party.sport)}</span>
+                   <div>
+                     <span className="text-white font-bold">{party.homeTeam} vs {party.awayTeam}</span>
+                     <span className="ml-2 px-2 py-0.5 bg-[#1E90FF]/20 text-[#1E90FF] text-xs font-bold rounded-full border border-[#1E90FF]/30">{party.sport}</span>
+                   </div>
+                 </div>
+               </div>
+               <div className="text-sm text-[#A0A4AB] space-y-1.5">
+                 <div className="flex items-center gap-2">
+                   <MapPin className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                   <span>{party.venueName || party.location || 'TBD'}</span>
+                 </div>
+                 {party.venueAddress && (
+                   <div className="flex items-center gap-2 ml-5">
+                     <span className="text-xs text-[#A0A4AB]/70">{party.venueAddress}</span>
+                   </div>
+                 )}
+                 <div className="flex items-center gap-2">
+                   <Calendar className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" />
+                   <span>{party.gameTime ? new Date(party.gameTime).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'TBD'}</span>
+                 </div>
+                 <div className="flex items-center gap-2">
+                   <Users className="w-3.5 h-3.5 text-[#1E90FF] flex-shrink-0" />
+                   <span>{party.attendees?.length || 0} people going</span>
+                 </div>
+                 <div className="flex items-center gap-2">
+                   <User className="w-3.5 h-3.5 text-yellow-400 flex-shrink-0" />
+                   <span>Hosted by {party.hostName}</span>
+                 </div>
+               </div>
+               <div className="flex items-center gap-2 mt-3">
+                 <button
+                   onClick={(e) => { e.stopPropagation(); openShareMenu(party); }}
+                   className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 transition-colors"
+                 >
+                   <Share2 className="w-3 h-3" /> Share
+                 </button>
+                 <button
+                   onClick={(e) => { e.stopPropagation(); openCalendarMenu(party); }}
+                   className="flex items-center gap-1 text-xs text-[#1E90FF] hover:text-[#1E90FF]/80 transition-colors"
+                 >
+                   <Calendar className="w-3 h-3" /> Add to Calendar
+                 </button>
+               </div>
+             </div>
+           ))}
+         </div>
+       )}
+     </div>
+   </div>
+ );
+ };
+
  const NotificationSettingsScreen = () => {
  const [prefs, setPrefs] = useState(notifPrefs || {
    pushEnabled: true, teamAlerts: true, rivalryAlerts: true, suggestedParties: true,
@@ -14401,6 +14567,7 @@ const qrScannerRef = useRef(null);
  {currentScreen === 'sponsorDashboard' && <SponsorDashboard />}
  {currentScreen === 'myParties' && <MyPartiesScreen />}
  {currentScreen === 'notificationSettings' && <NotificationSettingsScreen />}
+ {currentScreen === 'nearbyParties' && <NearbyPartiesScreen />}
  {currentScreen === 'profile' && <ProfileScreen />}
  {currentScreen === 'proUpgrade' && <ProUpgradeScreen />}
  {currentScreen === 'influencerDashboard' && <InfluencerDashboard />}
