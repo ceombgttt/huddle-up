@@ -9901,6 +9901,9 @@ const qrScannerRef = useRef(null);
  {party.notes && (
  <p className="text-[#A0A4AB]/70 text-xs mt-1">{party.notes}</p>
  )}
+ <button onClick={() => openShareMenu(party)} className="flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 transition-colors mt-1">
+ <Share2 className="w-3 h-3" /> Share Party
+ </button>
  </div>
  </div>
  ))}

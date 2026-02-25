@@ -1,0 +1,723 @@
+STAGE 3: NICE-TO-HAVE FEATURES - POLISH & SCALE
+
+Only implement Stage 3 after Stage 1 and Stage 2 are complete and tested.
+
+These features add polish and help scale but aren't critical for initial launch.
+
+=== 1. PUSH NOTIFICATIONS (REAL NOTIFICATIONS) ===
+
+Send actual push notifications to user's phone (not just in-app).
+
+NOTIFICATION TYPES:
+
+1. PARTY REMINDERS:
+   Title: "Game starts soon! 🏒"
+   Body: "Panthers vs Maple Leafs at Rocco's Tacos in 1 hour"
+   Action: Opens party page
+   Timing: 1 hour before party
+
+2. PREDICTION REMINDERS:
+   Title: "Last chance to predict! ⚡"
+   Body: "Game starts in 30 minutes. Make your pick!"
+   Action: Opens prediction interface
+   Timing: 30 minutes before game
+
+3. PREDICTION RESULTS:
+   Title: "You won! +350 points 🎉"
+   Body: "Panthers won! Your prediction was correct."
+   Action: Opens predictions page
+   Timing: Immediately after game ends
+
+4. RAFFLE WINNERS:
+   Title: "YOU WON THE RAFFLE! 🎉"
+   Body: "$100 gift card is yours! Tap to claim."
+   Action: Opens raffle winners page
+   Timing: Immediately after drawing
+
+5. CHECK-IN NEARBY:
+   Title: "Party happening now! 📍"
+   Body: "You're near Rocco's Tacos - join the watch party!"
+   Action: Opens nearby party
+   Timing: When user is within 0.5 miles
+   (Requires location permission)
+
+6. FRIEND ACTIVITY:
+   Title: "Mike just joined a party 👥"
+   Body: "Panthers game tonight - join him?"
+   Action: Opens party page
+   Timing: Real-time
+
+7. STREAK NOTIFICATIONS:
+   Title: "5 game win streak! 🔥"
+   Body: "You're on fire! +100 bonus points earned."
+   Action: Opens predictions page
+   Timing: After 5th consecutive correct prediction
+
+IMPLEMENTATION OPTIONS:
+
+OPTION A: Firebase Cloud Messaging (FCM)
+- Free
+- Works on iOS and Android
+- Easy integration
+- Google service
+
+OPTION B: OneSignal
+- Free tier available
+- Easy to implement
+- Good dashboard
+- Multi-platform
+
+OPTION C: Custom implementation
+- More control
+- More complex
+- Requires server infrastructure
+
+RECOMMENDED: Use OneSignal (easiest)
+
+SETUP:
+
+1. Create OneSignal account
+2. Add OneSignal SDK to app
+3. Request notification permission from user
+4. Store device token in database
+5. Send notifications from backend
+
+PERMISSION REQUEST:
+
+TIMING: Ask on second visit (not first)
+MESSAGE: "Get notified about your parties and predictions?"
+OPTIONS: [Allow] [Not Now]
+
+SETTINGS:
+
+Add notification preferences in user settings:
+
+NOTIFICATION SETTINGS PAGE:
+- [ ] Party Reminders (1 hour before)
+- [ ] Prediction Reminders (30 min before)
+- [ ] Prediction Results (after games)
+- [ ] Raffle Winners (when you win)
+- [ ] Nearby Parties (location-based)
+- [ ] Friend Activity (when friends join parties)
+- [ ] Achievement Unlocks (badges, streaks)
+
+USER CONTROL:
+- Toggle each notification type on/off
+- Can disable all notifications
+- Respects system settings
+
+QUIET HOURS:
+
+Don't send notifications:
+- 10:00 PM - 8:00 AM (user's local time)
+- Unless explicitly opted in
+
+RATE LIMITING:
+
+Max notifications per user:
+- 5 per day (prevents spam)
+- Exception: Critical notifications (raffle wins)
+
+ANALYTICS:
+
+Track in admin dashboard:
+- Notification sent
+- Notification delivered
+- Notification opened
+- Conversion rate
+
+=== 2. CALENDAR INTEGRATION ===
+
+Let users add parties to their phone calendar.
+
+ADD TO CALENDAR BUTTON:
+
+On party detail page, add button:
+"📅 Add to Calendar"
+
+WHEN CLICKED:
+
+Generate .ics file (iCalendar format):
+
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Huddle Up//EN
+BEGIN:VEVENT
+UID:party-12345@huddleupus.com
+DTSTAMP:20250225T120000Z
+DTSTART:20250226T190000
+DTEND:20250226T220000
+SUMMARY:Panthers vs Maple Leafs Watch Party
+LOCATION:Rocco's Tacos, 500 E Las Olas Blvd, Fort Lauderdale, FL
+DESCRIPTION:Join us for the Panthers game! 12 people going. https://huddleupus.com/party/12345
+STATUS:CONFIRMED
+SEQUENCE:0
+BEGIN:VALARM
+TRIGGER:-PT1H
+DESCRIPTION:Party starts in 1 hour!
+ACTION:DISPLAY
+END:VALARM
+END:VEVENT
+END:VCALENDAR
+
+BEHAVIOR:
+
+iOS: Downloads .ics file → Opens in Calendar app → User taps "Add"
+Android: Downloads .ics file → Opens in Google Calendar → User taps "Save"
+Desktop: Downloads .ics file → User opens in calendar app
+
+EVENT DETAILS:
+
+TITLE: "[Team] vs [Team] Watch Party"
+LOCATION: "[Venue Name], [Address]"
+START TIME: Game time
+END TIME: Game time + 3 hours
+REMINDER: 1 hour before
+DESCRIPTION: "Join us at [Venue]! [X] people going. View party: [link]"
+
+CALENDAR SERVICES:
+
+Also provide direct links:
+
+GOOGLE CALENDAR:
+https://calendar.google.com/calendar/render?action=TEMPLATE&text=...
+
+OUTLOOK:
+https://outlook.live.com/calendar/action/compose?subject=...
+
+APPLE CALENDAR:
+Use .ics file
+
+YAHOO CALENDAR:
+https://calendar.yahoo.com/?v=60&...
+
+Show options modal:
+"Add to Calendar"
+- Apple Calendar
+- Google Calendar
+- Outlook
+- Yahoo Calendar
+- Other (.ics file)
+
+UPDATE CALENDAR:
+
+If party details change (time, venue):
+- Can't auto-update (calendar limitation)
+- Show notification: "Party details changed! Update your calendar."
+
+=== 3. FRIEND INVITES & FRIEND SYSTEM ===
+
+Easy way to invite friends and build your network.
+
+INVITE FRIENDS PAGE:
+
+Access from:
+- Hamburger menu: "Invite Friends"
+- Profile page: "+ Add Friends"
+- Home page: "Invite Friends to Huddle Up"
+
+INVITE METHODS:
+
+1. CONTACT LIST:
+   - Request contacts permission
+   - Show list of phone contacts
+   - User selects friends
+   - Send SMS invite
+
+2. CUSTOM INVITE LINK:
+   - Generate personal referral link
+   - "huddleupus.com/join/MIKE2024"
+   - Copy to clipboard
+   - Share anywhere
+
+3. EMAIL INVITES:
+   - Enter email addresses
+   - Send email invitations
+   - Personalize message
+
+4. SCAN QR CODE:
+   - Generate personal QR code
+   - Friend scans code
+   - Auto-follows each other
+
+5. SEARCH USERS:
+   - Search by username
+   - Send friend request
+   - Accept/decline requests
+
+INVITE MESSAGE (SMS):
+
+"Hey! I'm using Huddle Up to find sports watch parties. Join me!
+
+Use my code for bonus points: MIKE2024
+
+Get the app: https://huddleupus.com/join/MIKE2024"
+
+INVITE MESSAGE (EMAIL):
+
+SUBJECT: "[Name] invited you to Huddle Up!"
+
+BODY:
+"[Friend Name] wants you to join Huddle Up!
+
+Huddle Up helps you find watch parties for your favorite teams.
+
+Use [Friend]'s code for 50 bonus points: MIKE2024
+
+[Join Huddle Up] (button)
+
+What is Huddle Up?
+- Find watch parties for any game
+- Connect with fans
+- Earn points and rewards
+- 100% free
+
+See you at the game!
+- Huddle Up Team"
+
+REFERRAL TRACKING:
+
+WHEN FRIEND JOINS VIA YOUR LINK:
+- You earn: +100 points
+- Friend earns: +50 points (signup bonus)
+- Friend auto-follows you
+- You get notification
+
+REFERRAL CODE:
+
+GENERATE UNIQUE CODE:
+- Format: [USERNAME][NUMBER]
+- Example: MIKE2024, SARAH789
+- Or: Random 6-character code
+
+FIND FRIENDS:
+
+AUTO-SUGGEST FRIENDS:
+- From contacts (if permission granted)
+- From Facebook friends (if connected)
+- Users who attended same parties
+- Users with same favorite teams
+
+FRIEND REQUESTS:
+
+Send request → Pending → Accept/Decline → Friends
+
+FRIENDS LIST:
+
+Show on profile:
+- Number of friends: "247 friends"
+- Clickable to see full list
+- Search within friends
+
+FRIEND ACTIVITY FEED:
+
+Show what friends are doing:
+- "Mike joined Panthers watch party"
+- "Sarah made a prediction"
+- "Tom won a raffle!"
+- "Lisa checked in at Rocco's Tacos"
+
+FRIEND BENEFITS:
+
+WITH FRIENDS:
+- See friends' predictions
+- Get notified when friends join parties
+- See "3 friends attending" on party cards
+- Priority to join parties friends are in
+- Friend leaderboards
+
+PRIVACY:
+
+SETTINGS:
+- Make profile public/private
+- Allow friend requests: Yes/No
+- Show my parties: Everyone/Friends Only/Just Me
+- Show my predictions: Everyone/Friends Only/Just Me
+
+INVITE LEADERBOARD:
+
+Show top inviters:
+- Most successful referrals
+- Award "Influencer" badge (10 referrals)
+- Award "Ambassador" badge (50 referrals)
+- Award "Legend" badge (100 referrals)
+
+=== 4. ADVANCED SEARCH & FILTERS ===
+
+Better search and filtering for parties.
+
+SEARCH BAR IMPROVEMENTS:
+
+CURRENT: Basic text search
+NEW: Smart search with filters
+
+FILTER PANEL:
+
+Add filter button next to search:
+🔍 [Search...] [⚙️ Filters]
+
+WHEN CLICKED, SHOW FILTER PANEL:
+
+SPORT FILTER:
+- [ ] All Sports
+- [ ] NFL
+- [ ] NBA
+- [ ] NHL
+- [ ] MLB
+- [ ] MLS
+- [ ] College Football
+- [ ] College Basketball
+- [ ] Soccer
+- [ ] UFC/Boxing
+
+TEAM FILTER:
+- Type to search teams
+- Select multiple teams
+- "My Teams" quick filter
+
+DATE FILTER:
+- ( ) Today
+- ( ) Tomorrow
+- ( ) This Weekend (Sat-Sun)
+- ( ) This Week
+- ( ) Next Week
+- ( ) Custom Date Range
+
+TIME FILTER:
+- [ ] Morning (8am-12pm)
+- [ ] Afternoon (12pm-5pm)
+- [ ] Evening (5pm-9pm)
+- [ ] Night (9pm-2am)
+
+DISTANCE FILTER:
+- Slider: 0 ──●── 50 miles
+- Options: 5mi, 10mi, 25mi, 50mi
+- Or: Within Boca Raton / Within 10mi / Anywhere
+
+PARTY SIZE:
+- ( ) Any size
+- ( ) Small (Under 10 people)
+- ( ) Medium (10-20 people)
+- ( ) Large (20+ people)
+
+VENUE TYPE:
+- [ ] Sports Bar
+- [ ] Restaurant
+- [ ] Brewery
+- [ ] Lounge
+- [ ] Other
+
+FEATURES:
+- [ ] Food Specials
+- [ ] Drink Specials
+- [ ] Free Parking
+- [ ] Outdoor Seating
+- [ ] Verified Venue
+
+[Apply Filters] button
+[Clear All] button
+
+SORT OPTIONS:
+
+Dropdown: "Sort by:"
+- Distance (Nearest first)
+- Date (Soonest first)
+- Popularity (Most attendees)
+- Newest (Recently created)
+- Relevance (if search query)
+
+SAVED SEARCHES:
+
+Allow saving favorite filter combinations:
+
+"⭐ Save This Search"
+Name it: "Panthers games near me"
+
+MY SAVED SEARCHES:
+- Panthers games near me
+- NFL Sundays
+- Heat home games
+- Weekend parties
+
+Quick access to saved searches
+
+SEARCH SUGGESTIONS:
+
+As user types, show suggestions:
+- "Panthers games near me"
+- "NFL parties this weekend"
+- "Heat games with drink specials"
+- "Hockey in Fort Lauderdale"
+
+SEARCH HISTORY:
+
+Show recent searches:
+- Panthers
+- NFL
+- Rocco's Tacos
+- This weekend
+
+ACTIVE FILTERS DISPLAY:
+
+Show active filters as chips:
+[NHL ✕] [This Weekend ✕] [Within 10mi ✕]
+
+Click X to remove filter
+
+RESULTS COUNT:
+
+Show: "142 parties found"
+Or: "No parties found. Try adjusting filters."
+
+EMPTY STATE:
+
+If no results:
+"No parties match your search.
+Try:
+- Expanding distance
+- Choosing different dates
+- Removing some filters
+
+Or be the first to [Create a Party]!"
+
+=== 5. DEDICATED VENUE PAGES ===
+
+Each venue gets its own page showing all info.
+
+URL STRUCTURE:
+
+https://huddleupus.com/venue/roccos-tacos
+
+VENUE PAGE LAYOUT:
+
+HEADER SECTION:
+- Venue photo/banner (if available)
+- Venue logo
+- Venue name (large, prominent)
+- "VERIFIED" badge (if verified venue)
+- Address
+- Phone number (clickable to call)
+- Website link
+- Operating hours
+- [Get Directions] button (opens maps)
+- [Follow Venue] button
+
+TABS:
+
+1. UPCOMING PARTIES
+2. PAST PARTIES
+3. ABOUT
+4. REVIEWS
+5. PHOTOS
+
+TAB 1: UPCOMING PARTIES
+
+Show all upcoming parties at this venue:
+- Next 30 days
+- Sorted by date
+- Same party card design as home page
+- "12 parties in the next 30 days"
+
+Empty state:
+"No upcoming parties at this venue yet.
+[Create a Party] button"
+
+TAB 2: PAST PARTIES
+
+Show history:
+- Last 90 days
+- Photos from parties
+- Attendance numbers
+- "Hosted 47 parties in last 3 months"
+
+TAB 3: ABOUT
+
+VENUE STATS:
+- Total parties hosted: 47
+- Total fans: 1,247
+- Average attendance: 26.5
+- Most popular sport: NFL (42%)
+- Rating: 4.8★ (124 reviews)
+
+DESCRIPTION:
+Venue can add description:
+"Rocco's Tacos is Fort Lauderdale's premier Mexican restaurant and sports bar. 20+ HD TVs, full bar, amazing tacos!"
+
+AMENITIES:
+- ✅ Full Bar
+- ✅ Food Service
+- ✅ 20+ TVs
+- ✅ Outdoor Seating
+- ✅ Free Parking
+- ✅ Happy Hour
+
+HOURS:
+Monday: 11am - 11pm
+Tuesday: 11am - 11pm
+...
+
+MENU:
+[View Menu] button (links to venue website)
+Or upload PDF menu
+
+SPECIALS:
+List current specials:
+- "Half-price wings during NFL games"
+- "$5 domestic beers"
+- "Happy Hour 4-7pm daily"
+
+TAB 4: REVIEWS
+
+USER REVIEWS:
+Show reviews from users who attended parties here
+
+REVIEW CARD:
+- User avatar + name
+- Star rating (1-5 stars)
+- Review text
+- Date
+- Helpful count
+- [👍 Helpful] button
+
+WRITE REVIEW:
+[Write a Review] button
+- Star rating selector
+- Text field
+- [Submit] button
+
+AVERAGE RATING:
+4.8 ★★★★★ (124 reviews)
+
+RATING BREAKDOWN:
+5★ ████████████ 85 reviews
+4★ ████░░░░░░░░ 28 reviews
+3★ ██░░░░░░░░░░ 8 reviews
+2★ ░░░░░░░░░░░░ 2 reviews
+1★ ░░░░░░░░░░░░ 1 review
+
+TAB 5: PHOTOS
+
+PHOTO GALLERY:
+- Grid of photos from parties
+- Click to view full-size
+- Shows: Game being watched, venue interior, crowd
+
+UPLOAD PHOTO:
+Users can upload photos:
+[+ Add Photo] button
+
+VENUE STATS SECTION:
+
+POPULAR TEAMS AT THIS VENUE:
+1. Panthers (42 parties)
+2. Heat (35 parties)
+3. Dolphins (28 parties)
+
+BUSIEST DAYS:
+1. Sunday (NFL)
+2. Saturday (College FB)
+3. Thursday (NHL)
+
+PEAK TIMES:
+- Evenings: 7pm-10pm
+- Weekends busiest
+
+FOLLOW VENUE:
+
+[Follow] button (or [Following] if already following)
+
+WHEN FOLLOWING:
+- Get notified of new parties
+- See "Following" badge on your profile
+- Show follower count: "1,247 followers"
+
+VENUE CLAIM:
+
+If unclaimed venue:
+"Own this venue? [Claim It]"
+
+Links to venue signup/claim process
+
+CONTACT VENUE:
+
+[Contact Venue] button
+Opens:
+- Call
+- Email
+- Visit Website
+
+SHARE VENUE:
+
+[Share] button
+Share options:
+- Copy link
+- Share to social media
+
+ADMIN FEATURES (VENUE OWNER):
+
+If logged in as venue owner:
+- [Edit Venue Info] button
+- Can update hours, photos, description
+- View analytics
+- Create parties
+- Respond to reviews
+
+SEO:
+
+Each venue page has:
+- Unique meta title
+- Meta description
+- Schema.org markup (LocalBusiness)
+- OpenGraph tags
+
+=== FINAL TESTING FOR STAGE 3 ===
+
+Test all Stage 3 features:
+
+PUSH NOTIFICATIONS:
+- [ ] Can request permission
+- [ ] Party reminders send
+- [ ] Prediction reminders send
+- [ ] Results notifications work
+- [ ] Can toggle notifications in settings
+
+CALENDAR:
+- [ ] "Add to Calendar" button works
+- [ ] .ics file downloads
+- [ ] Event appears in phone calendar
+- [ ] All event details correct
+
+FRIEND INVITES:
+- [ ] Can invite via SMS
+- [ ] Can invite via email
+- [ ] Referral code works
+- [ ] Both users earn points
+- [ ] Friend requests work
+
+ADVANCED SEARCH:
+- [ ] Filters apply correctly
+- [ ] Can save searches
+- [ ] Results count accurate
+- [ ] Sort options work
+
+VENUE PAGES:
+- [ ] Each venue has page
+- [ ] All tabs display
+- [ ] Can follow venue
+- [ ] Can review venue
+- [ ] Stats calculate correctly
+
+=== DEPLOYMENT NOTES ===
+
+After all 3 stages complete:
+
+1. Full QA testing
+2. Deploy to staging
+3. Test on staging
+4. Deploy to production (huddleupus.com)
+5. Monitor for bugs
+6. Fix critical issues immediately
+
+APP IS NOW 100% LAUNCH READY.
+
+Build Stage 3 features. Test thoroughly. LAUNCH!
