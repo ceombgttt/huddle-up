@@ -5511,7 +5511,140 @@ const qrScannerRef = useRef(null);
  </div>
  )}
 
- {/* SECTION DIVIDER */}
+ </div>
+
+ <div className="max-w-4xl mx-auto px-4 pt-4 pb-2" data-tour-id="game-cards">
+ <div className="flex items-center justify-between mb-3">
+ <div>
+ <span className="text-white font-bold text-sm">Tap any game to start a watch party</span>
+ <span className="text-[#A0A4AB] text-xs ml-2">({filteredGames.length} {filteredGames.length === 1 ? 'game' : 'games'})</span>
+ </div>
+ {hasActiveFilters && (
+   <button onClick={() => { setDateFilter('All'); setSortOption('Soonest'); setSelectedSport('All'); setSearchTerm(''); setMyTeamsOnly(false); }} className="text-[#1E90FF] text-xs font-bold hover:text-[#1E90FF]/80 transition-colors">
+     Clear Filters
+   </button>
+ )}
+ </div>
+ {filteredGames.length === 0 && (
+ <div className="flex flex-col items-center justify-center py-12 text-center">
+   <div className="w-14 h-14 bg-[#222A36] rounded-full flex items-center justify-center mb-3">
+     <Search className="w-7 h-7 text-[#A0A4AB]/50" />
+   </div>
+   <h3 className="text-white font-bold text-base mb-1">No games match your search</h3>
+   <p className="text-[#A0A4AB] text-xs max-w-xs mb-3">Try adjusting your filters or search term</p>
+   <button
+     onClick={() => { setDateFilter('All'); setSortOption('Soonest'); setSelectedSport('All'); setSearchTerm(''); setMyTeamsOnly(false); }}
+     className="px-4 py-1.5 bg-[#1E90FF] text-white font-bold text-xs rounded-full hover:bg-[#1E90FF]/80 transition-colors active:scale-[0.95]"
+   >
+     Clear All Filters
+   </button>
+ </div>
+ )}
+ {filteredGames.length > 0 && (
+ <>
+ <div className="overflow-x-auto scrollbar-hide pb-2" id="games-scroll-container" onScroll={(e) => { const el = e.target; const scrollPercentage = el.scrollLeft / (el.scrollWidth - el.clientWidth); const totalDots = Math.min(Math.ceil(filteredGames.length / 2), 8); const activeIdx = Math.round(scrollPercentage * (totalDots - 1)); const dotsEl = document.getElementById('games-scroll-dots'); if (dotsEl) { dotsEl.dataset.active = activeIdx; dotsEl.querySelectorAll('[data-dot]').forEach((d, i) => { d.className = i === activeIdx ? 'w-5 h-1.5 rounded-full bg-[#1E90FF] transition-all duration-300' : 'w-1.5 h-1.5 rounded-full bg-white/20 transition-all duration-300'; }); } }}>
+ <div className="flex gap-3 w-max">
+ {filteredGames.map(game => {
+ const gameParties = getPartiesForGame(game.id);
+ return (
+ <div
+ key={game.id}
+ onClick={() => {
+ setSelectedGame(game);
+ setCurrentScreen('gameDetail');
+ window.scrollTo(0, 0);
+ }}
+ className="flex-shrink-0 w-[280px] bg-[#151A22] p-5 rounded-[12px] border border-[#222A36] hover:border-[#1E90FF]/50 cursor-pointer active:scale-[0.98] transition-all duration-200"
+ >
+ <div className="flex items-center justify-between mb-2">
+ <span className="px-2 py-0.5 bg-[#1E90FF]/20 text-[#1E90FF] text-[10px] font-bold rounded-full border border-[#1E90FF]/30">
+ {game.sport}
+ </span>
+ <div className="flex items-center gap-1.5">
+ {gameParties.length > 0 && (
+ <span className="px-2 py-0.5 bg-purple-500/20 text-purple-300 text-[10px] font-bold rounded-full border border-purple-500/30">
+ {gameParties.length} {gameParties.length === 1 ? 'Party' : 'Parties'}
+ </span>
+ )}
+ {user && (
+ <button
+ onClick={(e) => { e.stopPropagation(); toggleWatchGame(game); }}
+ className={`p-1 rounded-full transition-all ${
+ watchedGames.includes(game.id)
+ ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/40'
+ : 'text-[#A0A4AB]/50 hover:text-yellow-400'
+ }`}
+ >
+ <svg className="w-3.5 h-3.5" fill={watchedGames.includes(game.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+ <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+ </svg>
+ </button>
+ )}
+ </div>
+ </div>
+
+ <div className="text-center mb-3">
+ {game.gameStatus === 'live' || game.gameStatus === 'final' ? (
+ <div>
+ <div className="flex items-center justify-center gap-2 mb-2">
+ <div className="flex-1 flex flex-col items-center gap-1">
+ {game.homeLogo && <img src={game.homeLogo} alt="" className="w-12 h-12 object-contain" />}
+ <span className="text-xs font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.homeTeam}</span>
+ </div>
+ <div className="text-2xl font-black flex-shrink-0" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+ <span className={game.homeScore > game.awayScore ? 'text-emerald-400' : 'text-white'}>{game.homeScore}</span>
+ <span className="text-[#A0A4AB]/70 mx-0.5">-</span>
+ <span className={game.awayScore > game.homeScore ? 'text-emerald-400' : 'text-white'}>{game.awayScore}</span>
+ </div>
+ <div className="flex-1 flex flex-col items-center gap-1">
+ {game.awayLogo && <img src={game.awayLogo} alt="" className="w-12 h-12 object-contain" />}
+ <span className="text-xs font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.awayTeam}</span>
+ </div>
+ </div>
+ <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${game.gameStatus === 'live' ? 'bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse' : 'bg-gray-500/20 text-[#A0A4AB] border border-gray-500/30'}`}>
+ {game.statusDetail}
+ </span>
+ </div>
+ ) : (
+ <div className="flex items-center justify-center gap-3 mb-2">
+ <div className="flex-1 flex flex-col items-center gap-1">
+ {game.homeLogo && <img src={game.homeLogo} alt="" className="w-12 h-12 object-contain" />}
+ <span className="text-xs font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.homeTeam}</span>
+ </div>
+ <span className="text-base font-black text-[#1E90FF] flex-shrink-0" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>VS</span>
+ <div className="flex-1 flex flex-col items-center gap-1">
+ {game.awayLogo && <img src={game.awayLogo} alt="" className="w-12 h-12 object-contain" />}
+ <span className="text-xs font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.awayTeam}</span>
+ </div>
+ </div>
+ )}
+ <div className="flex flex-col items-center gap-0.5 text-[#A0A4AB] text-xs mt-1">
+ <div className="flex items-center gap-1">
+ <Calendar className="w-3 h-3" />
+ {formatDateTime(game.startTime)}
+ </div>
+ {game.broadcast && (
+ <span className="text-[#1E90FF] text-[10px]">{game.broadcast}</span>
+ )}
+ </div>
+ </div>
+ </div>
+ );
+ })}
+ </div>
+ </div>
+ <div id="games-scroll-dots" className="flex items-center justify-center gap-1.5 pt-3 pb-1">
+ {Array.from({ length: Math.min(Math.ceil(filteredGames.length / 2), 8) }).map((_, i) => (
+   <div key={i} data-dot className={i === 0 ? 'w-5 h-1.5 rounded-full bg-[#1E90FF] transition-all duration-300' : 'w-1.5 h-1.5 rounded-full bg-white/20 transition-all duration-300'} />
+ ))}
+ </div>
+ <p className="text-center text-[#A0A4AB]/60 text-[10px] pb-1">Swipe to see more games</p>
+ </>
+ )}
+ </div>
+
+ <div className="max-w-4xl mx-auto px-4">
+
  <div className="h-px bg-white/[0.08] my-[15px]" />
 
  <h2 className="text-white font-bold text-[15px] mb-[15px] uppercase tracking-[1px]" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>FIND YOUR SPORT</h2>
@@ -5671,126 +5804,6 @@ const qrScannerRef = useRef(null);
  </div>
  );
  })()}
-
- <div className="max-w-4xl mx-auto px-4 pt-4 pb-2" data-tour-id="game-cards">
- <div className="flex items-center justify-between mb-3">
- <div>
- <span className="text-white font-bold text-sm">Tap any game to start a watch party</span>
- <span className="text-[#A0A4AB] text-xs ml-2">({filteredGames.length} {filteredGames.length === 1 ? 'game' : 'games'})</span>
- </div>
- {hasActiveFilters && (
-   <button onClick={() => { setDateFilter('All'); setSortOption('Soonest'); setSelectedSport('All'); setSearchTerm(''); setMyTeamsOnly(false); }} className="text-[#1E90FF] text-xs font-bold hover:text-[#1E90FF]/80 transition-colors">
-     Clear Filters
-   </button>
- )}
- </div>
- {filteredGames.length === 0 && (
- <div className="flex flex-col items-center justify-center py-12 text-center">
-   <div className="w-14 h-14 bg-[#222A36] rounded-full flex items-center justify-center mb-3">
-     <Search className="w-7 h-7 text-[#A0A4AB]/50" />
-   </div>
-   <h3 className="text-white font-bold text-base mb-1">No games match your search</h3>
-   <p className="text-[#A0A4AB] text-xs max-w-xs mb-3">Try adjusting your filters or search term</p>
-   <button
-     onClick={() => { setDateFilter('All'); setSortOption('Soonest'); setSelectedSport('All'); setSearchTerm(''); setMyTeamsOnly(false); }}
-     className="px-4 py-1.5 bg-[#1E90FF] text-white font-bold text-xs rounded-full hover:bg-[#1E90FF]/80 transition-colors active:scale-[0.95]"
-   >
-     Clear All Filters
-   </button>
- </div>
- )}
- <div className="overflow-x-auto scrollbar-hide pb-2">
- <div className="flex gap-3 w-max">
- {filteredGames.map(game => {
- const gameParties = getPartiesForGame(game.id);
- return (
- <div
- key={game.id}
- onClick={() => {
- setSelectedGame(game);
- setCurrentScreen('gameDetail');
- window.scrollTo(0, 0);
- }}
- className="flex-shrink-0 w-[260px] bg-[#151A22] p-4 rounded-[12px] border border-[#222A36] hover:border-[#1E90FF]/50 cursor-pointer active:scale-[0.98] transition-all duration-200"
- >
- <div className="flex items-center justify-between mb-2">
- <span className="px-2 py-0.5 bg-[#1E90FF]/20 text-[#1E90FF] text-[10px] font-bold rounded-full border border-[#1E90FF]/30">
- {game.sport}
- </span>
- <div className="flex items-center gap-1.5">
- {gameParties.length > 0 && (
- <span className="px-2 py-0.5 bg-purple-500/20 text-purple-300 text-[10px] font-bold rounded-full border border-purple-500/30">
- {gameParties.length} {gameParties.length === 1 ? 'Party' : 'Parties'}
- </span>
- )}
- {user && (
- <button
- onClick={(e) => { e.stopPropagation(); toggleWatchGame(game); }}
- className={`p-1 rounded-full transition-all ${
- watchedGames.includes(game.id)
- ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/40'
- : 'text-[#A0A4AB]/50 hover:text-yellow-400'
- }`}
- >
- <svg className="w-3.5 h-3.5" fill={watchedGames.includes(game.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
- </svg>
- </button>
- )}
- </div>
- </div>
-
- <div className="text-center mb-2">
- {game.gameStatus === 'live' || game.gameStatus === 'final' ? (
- <div>
- <div className="flex items-center justify-center gap-2 mb-1.5">
- <div className="flex-1 flex flex-col items-center gap-0.5">
- {game.homeLogo && <img src={game.homeLogo} alt="" className="w-10 h-10 object-contain" />}
- <span className="text-[11px] font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.homeTeam}</span>
- </div>
- <div className="text-2xl font-black flex-shrink-0" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
- <span className={game.homeScore > game.awayScore ? 'text-emerald-400' : 'text-white'}>{game.homeScore}</span>
- <span className="text-[#A0A4AB]/70 mx-0.5">-</span>
- <span className={game.awayScore > game.homeScore ? 'text-emerald-400' : 'text-white'}>{game.awayScore}</span>
- </div>
- <div className="flex-1 flex flex-col items-center gap-0.5">
- {game.awayLogo && <img src={game.awayLogo} alt="" className="w-10 h-10 object-contain" />}
- <span className="text-[11px] font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.awayTeam}</span>
- </div>
- </div>
- <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${game.gameStatus === 'live' ? 'bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse' : 'bg-gray-500/20 text-[#A0A4AB] border border-gray-500/30'}`}>
- {game.statusDetail}
- </span>
- </div>
- ) : (
- <div className="flex items-center justify-center gap-3 mb-1.5">
- <div className="flex-1 flex flex-col items-center gap-0.5">
- {game.homeLogo && <img src={game.homeLogo} alt="" className="w-10 h-10 object-contain" />}
- <span className="text-[11px] font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.homeTeam}</span>
- </div>
- <span className="text-sm font-black text-[#1E90FF] flex-shrink-0" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>VS</span>
- <div className="flex-1 flex flex-col items-center gap-0.5">
- {game.awayLogo && <img src={game.awayLogo} alt="" className="w-10 h-10 object-contain" />}
- <span className="text-[11px] font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.awayTeam}</span>
- </div>
- </div>
- )}
- <div className="flex flex-col items-center gap-0.5 text-[#A0A4AB] text-xs mt-1">
- <div className="flex items-center gap-1">
- <Calendar className="w-3 h-3" />
- {formatDateTime(game.startTime)}
- </div>
- {game.broadcast && (
- <span className="text-[#1E90FF] text-[10px]">{game.broadcast}</span>
- )}
- </div>
- </div>
- </div>
- );
- })}
- </div>
- </div>
- </div>
 
  {/* UPCOMING EVENTS - Major sports events */}
  {(() => {
