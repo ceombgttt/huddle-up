@@ -5511,6 +5511,67 @@ const qrScannerRef = useRef(null);
  </div>
  )}
 
+ <div className="h-px bg-white/[0.08] my-[15px]" />
+
+ <h2 className="text-white font-bold text-[15px] mb-[15px] uppercase tracking-[1px]" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>FIND YOUR SPORT</h2>
+ <div className="relative" data-tour-id="sports-scroller">
+ <div
+ ref={sportsScrollRef}
+ onScroll={() => {
+ if (sportsScrollRef.current) {
+ const el = sportsScrollRef.current;
+ setShowSportsScrollArrow(el.scrollLeft + el.clientWidth < el.scrollWidth - 10);
+ }
+ }}
+ className="flex gap-[12px] overflow-x-auto pb-3 scrollbar-hide"
+ >
+ {(() => {
+ const liveSports = new Set(games.filter(g => g.gameStatus === 'live').map(g => g.sport));
+ const activeSports = new Set(games.map(g => g.sport));
+ const sorted = ['All', ...SPORTS.filter(s => s !== 'All' && liveSports.has(s)), ...SPORTS.filter(s => s !== 'All' && !liveSports.has(s) && activeSports.has(s)), ...SPORTS.filter(s => s !== 'All' && !activeSports.has(s))];
+ const unique = [...new Set(sorted)];
+ return unique.map(sport => {
+ const isLive = liveSports.has(sport);
+ return (
+ <button
+ key={sport}
+ onClick={() => setSelectedSport(sport)}
+ className={`flex flex-col items-center justify-center min-w-[60px] px-2 py-2 rounded-[10px] font-bold transition-all active:scale-[0.98] ${
+ selectedSport === sport
+ ? 'bg-[#1E90FF] text-white shadow-sm shadow-[#1E90FF]/30'
+ : isLive
+ ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
+ : !activeSports.has(sport) && sport !== 'All'
+ ? 'bg-[#151A22]/50 text-[#A0A4AB]/50'
+ : 'bg-[#151A22] text-[#A0A4AB] hover:bg-[#222A36]'
+ }`}
+ >
+ <span className="text-lg leading-none">{SPORT_ICONS[sport] || '🏅'}</span>
+ <span className="text-[11px] font-semibold leading-tight mt-[6px] text-center whitespace-nowrap">{({'College Football':'NCAAF','College Basketball':'NCAA BB','Champions League':'UCL','Premier League':'EPL','Formula 1':'F1'})[sport] || sport}</span>
+ {isLive && sport !== 'All' && <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse mt-0.5" />}
+ </button>
+ );
+ });
+ })()}
+ </div>
+ {showSportsScrollArrow && (
+ <button
+ onClick={() => {
+ if (sportsScrollRef.current) {
+ sportsScrollRef.current.scrollBy({ left: 200, behavior: 'smooth' });
+ }
+ }}
+ className="absolute right-0 top-0 bottom-2 w-10 flex items-center justify-end bg-gradient-to-l from-[#0F1115] via-[#0F1115]/95 to-transparent pr-0.5"
+ >
+ <span className="w-6 h-6 rounded-full bg-[#1E90FF]/20 border border-[#1E90FF]/40 flex items-center justify-center">
+ <svg className="w-3 h-3 text-[#1E90FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+ </svg>
+ </span>
+ </button>
+ )}
+ </div>
+
  </div>
 
  <div className="max-w-4xl mx-auto px-4 pt-4 pb-2" data-tour-id="game-cards">
@@ -5641,72 +5702,6 @@ const qrScannerRef = useRef(null);
  <p className="text-center text-[#A0A4AB]/60 text-[10px] pb-1">Swipe to see more games</p>
  </>
  )}
- </div>
-
- <div className="max-w-4xl mx-auto px-4">
-
- <div className="h-px bg-white/[0.08] my-[15px]" />
-
- <h2 className="text-white font-bold text-[15px] mb-[15px] uppercase tracking-[1px]" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>FIND YOUR SPORT</h2>
- <div className="relative" data-tour-id="sports-scroller">
- <div
- ref={sportsScrollRef}
- onScroll={() => {
- if (sportsScrollRef.current) {
- const el = sportsScrollRef.current;
- setShowSportsScrollArrow(el.scrollLeft + el.clientWidth < el.scrollWidth - 10);
- }
- }}
- className="flex gap-[12px] overflow-x-auto pb-3 scrollbar-hide"
- >
- {(() => {
- const liveSports = new Set(games.filter(g => g.gameStatus === 'live').map(g => g.sport));
- const activeSports = new Set(games.map(g => g.sport));
- const sorted = ['All', ...SPORTS.filter(s => s !== 'All' && liveSports.has(s)), ...SPORTS.filter(s => s !== 'All' && !liveSports.has(s) && activeSports.has(s)), ...SPORTS.filter(s => s !== 'All' && !activeSports.has(s))];
- const unique = [...new Set(sorted)];
- return unique.map(sport => {
- const isLive = liveSports.has(sport);
- return (
- <button
- key={sport}
- onClick={() => setSelectedSport(sport)}
- className={`flex flex-col items-center justify-center min-w-[60px] px-2 py-2 rounded-[10px] font-bold transition-all active:scale-[0.98] ${
- selectedSport === sport
- ? 'bg-[#1E90FF] text-white shadow-sm shadow-[#1E90FF]/30'
- : isLive
- ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
- : !activeSports.has(sport) && sport !== 'All'
- ? 'bg-[#151A22]/50 text-[#A0A4AB]/50'
- : 'bg-[#151A22] text-[#A0A4AB] hover:bg-[#222A36]'
- }`}
- >
- <span className="text-lg leading-none">{SPORT_ICONS[sport] || '🏅'}</span>
- <span className="text-[11px] font-semibold leading-tight mt-[6px] text-center whitespace-nowrap">{({'College Football':'NCAAF','College Basketball':'NCAA BB','Champions League':'UCL','Premier League':'EPL','Formula 1':'F1'})[sport] || sport}</span>
- {isLive && sport !== 'All' && <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse mt-0.5" />}
- </button>
- );
- });
- })()}
- </div>
- {showSportsScrollArrow && (
- <button
- onClick={() => {
- if (sportsScrollRef.current) {
- sportsScrollRef.current.scrollBy({ left: 200, behavior: 'smooth' });
- }
- }}
- className="absolute right-0 top-0 bottom-2 w-10 flex items-center justify-end bg-gradient-to-l from-[#0F1115] via-[#0F1115]/95 to-transparent pr-0.5"
- >
- <span className="w-6 h-6 rounded-full bg-[#1E90FF]/20 border border-[#1E90FF]/40 flex items-center justify-center">
- <svg className="w-3 h-3 text-[#1E90FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
- </svg>
- </span>
- </button>
- )}
- </div>
-
-
  </div>
 
  {/* MAIN SPONSOR BANNER - 5 slots per sport (visible to all users) */}
@@ -8940,7 +8935,54 @@ const qrScannerRef = useRef(null);
  setCpSupportedTeam('');
  };
 
- const createPartyScreenJSX = () => selectedGame ? (
+ const createPartyScreenJSX = () => !selectedGame ? (
+ <div className="min-h-screen pt-20 bg-[#0F1115]">
+ <div className="sticky top-20 z-10 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="max-w-4xl mx-auto px-4 py-4">
+ <button
+ onClick={() => setCurrentScreen('games')}
+ className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors"
+ >
+ <ArrowLeft className="w-5 h-5" />
+ Back to Games
+ </button>
+ </div>
+ </div>
+ <div className="max-w-2xl mx-auto px-4 py-10">
+ <div className="text-center mb-8">
+ <h2 className="text-3xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>CREATE WATCH PARTY</h2>
+ <p className="text-[#A0A4AB] text-sm">Pick a game below to create a watch party for it</p>
+ </div>
+ <div className="space-y-3">
+ {games.filter(g => g.gameStatus === 'scheduled' && new Date(g.startTime) > new Date()).sort((a, b) => new Date(a.startTime) - new Date(b.startTime)).slice(0, 20).map(game => (
+ <div
+ key={game.id}
+ onClick={() => { setSelectedGame(game); }}
+ className="bg-[#151A22] p-4 rounded-xl border border-[#222A36] hover:border-[#1E90FF]/50 cursor-pointer active:scale-[0.98] transition-all"
+ >
+ <div className="flex items-center gap-3">
+ <div className="flex-shrink-0 flex items-center gap-2">
+ {game.homeLogo && <img src={game.homeLogo} alt="" className="w-8 h-8 object-contain" />}
+ </div>
+ <div className="flex-1 min-w-0">
+ <p className="text-white font-bold text-sm truncate">{game.homeTeam} vs {game.awayTeam}</p>
+ <p className="text-[#A0A4AB] text-xs">{formatDateTime(game.startTime)} · {game.sport}</p>
+ </div>
+ <div className="flex-shrink-0">
+ {game.awayLogo && <img src={game.awayLogo} alt="" className="w-8 h-8 object-contain" />}
+ </div>
+ </div>
+ </div>
+ ))}
+ {games.filter(g => g.gameStatus === 'scheduled' && new Date(g.startTime) > new Date()).length === 0 && (
+ <div className="text-center py-12">
+ <p className="text-[#A0A4AB] text-sm">No upcoming games found. Check back later!</p>
+ </div>
+ )}
+ </div>
+ </div>
+ </div>
+) : (
  <div className="min-h-screen pt-20 bg-[#0F1115]">
  <div className="sticky top-20 z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
@@ -9173,7 +9215,7 @@ const qrScannerRef = useRef(null);
  </div>
  </div>
  </div>
- ) : null;
+ );
 
  const VenueAnalyticsDashboard = () => {
  const startEditing = () => {
