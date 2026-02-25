@@ -14601,7 +14601,10 @@ const qrScannerRef = useRef(null);
  <p className="text-white/70 text-xs leading-relaxed">Share with your friends, create a watch party, and <span className="text-[#1E90FF] font-bold">earn points</span> for every friend that joins!</p>
  </div>
  <div className="space-y-2">
- <div className="flex items-start gap-3 p-3 bg-[#151A22] rounded-xl border border-[#222A36]">
+ <button
+ onClick={() => { setShowPrelaunchModal(false); setCurrentScreen(user?.user_type === 'venue' ? 'venueDashboard' : 'profile'); }}
+ className="w-full flex items-start gap-3 p-3 bg-[#151A22] rounded-xl border border-[#222A36] hover:border-[#1E90FF]/40 transition-colors text-left"
+ >
  <div className="w-8 h-8 bg-[#1E90FF]/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
  <User className="w-4 h-4 text-[#1E90FF]" />
  </div>
@@ -14609,8 +14612,11 @@ const qrScannerRef = useRef(null);
  <p className="text-white font-bold text-sm">{user?.user_type === 'venue' ? 'Set Up Your Venue' : 'Complete Your Profile'}</p>
  <p className="text-white/50 text-xs">{user?.user_type === 'venue' ? 'Add your logo, photos, and details so fans can find you' : 'Add your photo, favorite teams, and bio to connect with fans'}</p>
  </div>
- </div>
- <div className="flex items-start gap-3 p-3 bg-[#151A22] rounded-xl border border-[#222A36]">
+ </button>
+ <button
+ onClick={() => { setShowPrelaunchModal(false); setCurrentScreen('inviteFriends'); }}
+ className="w-full flex items-start gap-3 p-3 bg-[#151A22] rounded-xl border border-[#222A36] hover:border-emerald-500/40 transition-colors text-left"
+ >
  <div className="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
  <Users className="w-4 h-4 text-emerald-400" />
  </div>
@@ -14618,16 +14624,19 @@ const qrScannerRef = useRef(null);
  <p className="text-white font-bold text-sm">Invite Your Crew</p>
  <p className="text-white/50 text-xs">Share with friends & earn 100 points per referral</p>
  </div>
- </div>
- <div className="flex items-start gap-3 p-3 bg-[#151A22] rounded-xl border border-[#222A36]">
+ </button>
+ <button
+ onClick={() => { setShowPrelaunchModal(false); setCurrentScreen('createParty'); }}
+ className="w-full flex items-start gap-3 p-3 bg-[#151A22] rounded-xl border border-[#222A36] hover:border-purple-500/40 transition-colors text-left"
+ >
  <div className="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
- <Trophy className="w-4 h-4 text-purple-400" />
+ <Plus className="w-4 h-4 text-purple-400" />
  </div>
  <div>
- <p className="text-white font-bold text-sm">Earn Points</p>
- <p className="text-white/50 text-xs">Create parties, check in, and invite friends to rack up points</p>
+ <p className="text-white font-bold text-sm">Create a Watch Party</p>
+ <p className="text-white/50 text-xs">Host a party, invite fans, and earn points</p>
  </div>
- </div>
+ </button>
  </div>
  <button
  onClick={() => { setShowPrelaunchModal(false); setCurrentScreen('profile'); }}
