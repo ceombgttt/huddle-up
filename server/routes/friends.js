@@ -185,38 +185,75 @@ router.get('/status/:userId', requireAuth, async (req, res) => {
   }
 });
 
+router.get('/referral-code', requireAuth, async (req, res) => {
+  try {
+    const existing = await pool.query('SELECT referral_code FROM users WHERE id = $1', [req.session.userId]);
+    if (existing.rows[0]?.referral_code) {
+      return res.json({ referralCode: existing.rows[0].referral_code });
+    }
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let code = '';
+    for (let i = 0; i < 8; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+    await pool.query('UPDATE users SET referral_code = $1 WHERE id = $2', [code, req.session.userId]);
+    res.json({ referralCode: code });
+  } catch (error) {
+    if (error.code === '23505') {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      let code = '';
+      for (let i = 0; i < 8; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+      try {
+        await pool.query('UPDATE users SET referral_code = $1 WHERE id = $2', [code, req.session.userId]);
+        return res.json({ referralCode: code });
+      } catch (retryErr) {
+        console.error('Referral code retry error:', retryErr);
+        return res.status(500).json({ error: 'Server error' });
+      }
+    }
+    console.error('Referral code error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 router.get('/activity', requireAuth, async (req, res) => {
   try {
+    const friendSubquery = `
+      SELECT CASE WHEN f.user_id = $1 THEN f.friend_id ELSE f.user_id END
+      FROM friendships f
+      WHERE (f.user_id = $1 OR f.friend_id = $1) AND f.status = 'accepted'
+    `;
+
     const result = await pool.query(
-      `SELECT
-        'party_joined' as type,
-        u.id as user_id, u.name, u.profile_picture,
-        p.id as party_id, p.venue_name, p.sport, p.home_team, p.away_team,
-        pa.joined_at as activity_time
+      `(SELECT
+        u.id as user_id, u.name as user_name,
+        'party_joined' as action,
+        COALESCE(p.home_team, '') || ' vs ' || COALESCE(p.away_team, '') || ' at ' || COALESCE(p.venue_name, '') as detail,
+        pa.joined_at as timestamp
        FROM party_attendees pa
        JOIN users u ON pa.user_id = u.id
        JOIN parties p ON pa.party_id = p.id
-       WHERE pa.user_id IN (
-         SELECT CASE WHEN f.user_id = $1 THEN f.friend_id ELSE f.user_id END
-         FROM friendships f
-         WHERE (f.user_id = $1 OR f.friend_id = $1) AND f.status = 'accepted'
-       )
-       ORDER BY pa.joined_at DESC
-       LIMIT 20`,
+       WHERE pa.user_id IN (${friendSubquery})
+       AND pa.joined_at >= NOW() - INTERVAL '7 days')
+      UNION ALL
+      (SELECT
+        u.id as user_id, u.name as user_name,
+        'prediction_made' as action,
+        COALESCE(pr.home_team, '') || ' vs ' || COALESCE(pr.away_team, '') || ' - Picked ' || COALESCE(pr.picked_team, '') as detail,
+        pr.created_at as timestamp
+       FROM predictions pr
+       JOIN users u ON pr.user_id = u.id
+       WHERE pr.user_id IN (${friendSubquery})
+       AND pr.created_at >= NOW() - INTERVAL '7 days')
+      ORDER BY timestamp DESC
+      LIMIT 50`,
       [req.session.userId]
     );
 
     res.json(result.rows.map(r => ({
-      type: r.type,
       userId: r.user_id,
-      name: r.name,
-      profilePicture: r.profile_picture,
-      partyId: r.party_id,
-      venueName: r.venue_name,
-      sport: r.sport,
-      homeTeam: r.home_team,
-      awayTeam: r.away_team,
-      activityTime: r.activity_time
+      userName: r.user_name,
+      action: r.action,
+      detail: r.detail,
+      timestamp: r.timestamp
     })));
   } catch (error) {
     console.error('Friend activity error:', error);

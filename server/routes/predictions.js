@@ -228,25 +228,34 @@ router.post('/admin/resolve', requireAdmin, async (req, res) => {
           pred.id
         );
 
-        sendPushToUser(pred.user_id, {
-          title: `You won! +${pointsEarned} points 🎉`,
-          body: `${pred.picked_team} won! Your prediction was correct.`,
-          url: '/predictions'
-        }, { prefType: 'prediction_results' });
+        try {
+          await sendPushToUser(pred.user_id, {
+            title: `You won! +${pointsEarned} points 🎉`,
+            body: `${pred.picked_team} won! Your prediction was correct.`,
+            icon: '/huddle-up-logo-2.png',
+            url: '/predictions'
+          }, { prefType: 'prediction_results' });
+        } catch (pushErr) {}
 
         if (newStreak === 5) {
-          sendPushToUser(pred.user_id, {
-            title: '5 game win streak! 🔥',
-            body: 'You\'re on fire! +100 bonus points earned.',
-            url: '/predictions'
-          }, { prefType: 'achievement_unlocks' });
+          try {
+            await sendPushToUser(pred.user_id, {
+              title: '5 game win streak! 🔥',
+              body: 'You\'re on fire! +100 bonus points earned.',
+              icon: '/huddle-up-logo-2.png',
+              url: '/predictions'
+            }, { prefType: 'achievement_unlocks' });
+          } catch (pushErr) {}
         }
         if (newStreak === 10) {
-          sendPushToUser(pred.user_id, {
-            title: '10 game win streak! 🏆',
-            body: 'Legendary! +250 bonus points earned.',
-            url: '/predictions'
-          }, { prefType: 'achievement_unlocks' });
+          try {
+            await sendPushToUser(pred.user_id, {
+              title: '10 game win streak! 🏆',
+              body: 'Legendary! +250 bonus points earned.',
+              icon: '/huddle-up-logo-2.png',
+              url: '/predictions'
+            }, { prefType: 'achievement_unlocks' });
+          } catch (pushErr) {}
         }
       } else {
         await pool.query(

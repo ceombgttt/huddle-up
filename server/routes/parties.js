@@ -223,16 +223,44 @@ router.post('/:id/join', requireAuth, async (req, res) => {
 
       const partyInfo = await pool.query('SELECT host_id, home_team, away_team, venue_name FROM parties WHERE id = $1', [req.params.id]);
       const joinerInfo = await pool.query('SELECT name FROM users WHERE id = $1', [req.session.userId]);
-      if (partyInfo.rows.length > 0 && partyInfo.rows[0].host_id !== req.session.userId) {
-        const p = partyInfo.rows[0];
-        const joinerName = joinerInfo.rows[0]?.name || 'Someone';
-        sendPushToUser(p.host_id, {
-          title: 'Someone joined your party!',
-          body: `${joinerName} just joined your ${p.home_team} vs ${p.away_team} watch party${p.venue_name ? ' at ' + p.venue_name : ''}.`,
-          icon: '/huddle-up-logo-2.png',
-          tag: `join-${req.params.id}`,
-          data: { url: '/' }
-        }, { prefType: 'friend_activity' }).catch(() => {});
+      const p = partyInfo.rows[0];
+      const joinerName = joinerInfo.rows[0]?.name || 'Someone';
+
+      if (p && p.host_id !== req.session.userId) {
+        try {
+          await sendPushToUser(p.host_id, {
+            title: 'Someone joined your party!',
+            body: `${joinerName} just joined your ${p.home_team} vs ${p.away_team} watch party${p.venue_name ? ' at ' + p.venue_name : ''}.`,
+            icon: '/huddle-up-logo-2.png',
+            url: '/'
+          }, { prefType: 'friend_activity' });
+        } catch (pushErr) {}
+      }
+
+      if (p) {
+        try {
+          const friendsInParty = await pool.query(
+            `SELECT pa.user_id FROM party_attendees pa
+             JOIN friendships f ON (
+               (f.user_id = $1 AND f.friend_id = pa.user_id)
+               OR (f.friend_id = $1 AND f.user_id = pa.user_id)
+             )
+             WHERE pa.party_id = $2
+             AND f.status = 'accepted'
+             AND pa.user_id != $1`,
+            [req.session.userId, req.params.id]
+          );
+          for (const friend of friendsInParty.rows) {
+            try {
+              await sendPushToUser(friend.user_id, {
+                title: 'Your friend joined the party! 🎉',
+                body: `${joinerName} just joined the ${p.home_team} vs ${p.away_team} watch party${p.venue_name ? ' at ' + p.venue_name : ''}.`,
+                icon: '/huddle-up-logo-2.png',
+                url: '/'
+              }, { prefType: 'friend_activity' });
+            } catch (pushErr) {}
+          }
+        } catch (friendErr) {}
       }
     }
     res.json({ ok: true });
@@ -266,15 +294,31 @@ router.get('/:id/calendar', async (req, res) => {
     if (result.rows.length === 0) return res.status(404).json({ error: 'Party not found' });
 
     const party = result.rows[0];
-    const title = party.title || `${party.away_team} @ ${party.home_team} Watch Party`;
-    const location = [party.venue_name, party.venue_address, party.city].filter(Boolean).join(', ');
-    const gameTime = party.game_time ? new Date(party.game_time) : new Date();
+    const title = party.title || `${party.home_team} vs ${party.away_team} Watch Party`;
+    const location = [party.venue_name, party.venue_address].filter(Boolean).join(', ');
+
+    let gameTime;
+    if (party.game_time && /^\d+$/.test(party.game_time.trim())) {
+      const epoch = Number(party.game_time.trim());
+      gameTime = new Date(epoch < 1e12 ? epoch * 1000 : epoch);
+    } else {
+      gameTime = party.game_time ? new Date(party.game_time) : new Date();
+    }
+    if (isNaN(gameTime.getTime())) gameTime = new Date();
+
     const endTime = new Date(gameTime.getTime() + 3 * 60 * 60 * 1000);
     const now = new Date();
 
     const formatIcsDate = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 
-    const description = `Watch Party hosted by ${party.host_name}\\n${party.home_team} vs ${party.away_team}\\n${party.venue_name ? 'Venue: ' + party.venue_name : ''}\\n${party.notes || ''}\\nJoin on Huddle Up: ${req.protocol}://${req.get('host')}`.replace(/\n/g, '\\n');
+    const partyUrl = `${req.protocol}://${req.get('host')}`;
+    const descParts = [];
+    if (party.notes) descParts.push(party.notes);
+    descParts.push(`Watch Party hosted by ${party.host_name}`);
+    descParts.push(`${party.home_team} vs ${party.away_team}`);
+    if (party.venue_name) descParts.push(`Venue: ${party.venue_name}`);
+    descParts.push(`Join on Huddle Up: ${partyUrl}`);
+    const description = descParts.join('\\n');
 
     const ics = [
       'BEGIN:VCALENDAR',
@@ -291,7 +335,7 @@ router.get('/:id/calendar', async (req, res) => {
       `DESCRIPTION:${description}`,
       `LOCATION:${location}`,
       'BEGIN:VALARM',
-      'TRIGGER:-PT60M',
+      'TRIGGER:-PT1H',
       'ACTION:DISPLAY',
       `DESCRIPTION:${title} starts in 1 hour!`,
       'END:VALARM',
