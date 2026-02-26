@@ -265,7 +265,7 @@
 
 .score-led {
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 4px currentColor;
+  text-shadow: 0 0 2px currentColor;
   letter-spacing: 0.05em;
 }
 
