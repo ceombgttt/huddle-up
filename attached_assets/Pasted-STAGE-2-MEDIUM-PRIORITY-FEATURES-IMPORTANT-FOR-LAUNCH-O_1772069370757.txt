@@ -1,0 +1,521 @@
+STAGE 2: MEDIUM PRIORITY FEATURES - IMPORTANT FOR LAUNCH
+
+Only implement Stage 2 after Stage 1 is complete and tested.
+
+These features significantly improve user experience but aren't absolute blockers.
+
+=== 1. ONBOARDING FLOW (FIRST-TIME USER EXPERIENCE) ===
+
+New users need guidance on how to use the app.
+
+TRIGGER:
+Show onboarding only on first app visit (never seen before).
+
+WELCOME SCREEN:
+
+Full-screen overlay (dark background, 80% opacity).
+
+CENTER CONTENT:
+Logo (large)
+"Welcome to Huddle Up! 🔥"
+"Find watch parties. Make friends. Earn rewards."
+[Get Started] button (Electric Blue)
+[Skip] link (small, gray, bottom)
+
+TUTORIAL SCREENS (4 screens total):
+
+SCREEN 1: Find Your Team
+Visual: Image of team selection interface
+Text: "Pick Your Favorite Teams"
+Subtext: "We'll show you parties for the teams you love"
+Button: [Next]
+
+SCREEN 2: Join a Party
+Visual: Image of party card
+Text: "Find Watch Parties Near You"
+Subtext: "Browse parties by sport, team, or location"
+Button: [Next]
+
+SCREEN 3: Check In & Earn
+Visual: Image of QR code scanning
+Text: "Scan QR Code at Venue"
+Subtext: "Earn 75 points every time you check in!"
+Button: [Next]
+
+SCREEN 4: Compete & Win
+Visual: Image of leaderboard
+Text: "Make Predictions, Win Raffles, Unlock Badges"
+Subtext: "Climb the leaderboard and earn rewards"
+Button: [Get Started]
+
+NAVIGATION:
+- Swipe left/right to navigate
+- Dots at bottom show progress (4 dots)
+- Can skip at any time
+- Can go back
+
+COMPLETION:
+- Mark user as "onboarded" (database flag)
+- Never show again
+- Jump to team selection (if they haven't selected teams yet)
+- Or jump to home page (if teams already selected)
+
+STYLING:
+- Dark background (#0F1115)
+- Electric Blue buttons
+- Gold accents
+- Large, clear text
+- Beautiful visuals/screenshots
+- Smooth transitions between screens
+
+SKIP OPTION:
+- Always available
+- Small gray text at bottom
+- "Skip tutorial"
+- Confirms: "Skip and jump right in?"
+
+=== 2. EMAIL VERIFICATION ===
+
+Verify user emails to reduce fake accounts and enable email marketing.
+
+SIGNUP FLOW UPDATE:
+
+CURRENT:
+1. User creates account
+2. Logged in immediately
+
+NEW:
+1. User creates account
+2. Account created BUT email unverified
+3. Send verification email immediately
+4. User can browse but limited features until verified
+5. User clicks link in email
+6. Email verified ✓
+7. Full access granted
+
+VERIFICATION EMAIL:
+
+FROM: Huddle Up <noreply@huddleupus.com>
+SUBJECT: "Verify your Huddle Up account 🔥"
+
+BODY (HTML):
+"
+[Huddle Up Logo]
+
+Hey [Name]!
+
+Welcome to Huddle Up! You're one step away from finding your crew and watching the game.
+
+[Verify Email] (big blue button)
+
+This link expires in 24 hours.
+
+Can't see the button? Copy and paste:
+https://huddleupus.com/verify?token=abc123
+
+Questions? Hit reply or email contact@huddleupus.com
+
+See you at the game!
+- The Huddle Up Team
+
+[Footer: © 2025 Huddle Up | Privacy | Unsubscribe]
+"
+
+VERIFICATION LINK:
+
+URL FORMAT:
+https://huddleupus.com/verify?token=abc123def456&email=user@email.com
+
+TOKEN:
+- Generate unique 32-character token
+- Store in database with email and expiration (24 hours)
+- One-time use only
+
+VERIFICATION PAGE:
+
+When user clicks link:
+
+SUCCESS:
+"✅ Email Verified!
+Your account is now fully activated.
+[Continue to Huddle Up] button"
+
+ALREADY VERIFIED:
+"✅ Email Already Verified
+You're all set!
+[Go to Home] button"
+
+EXPIRED:
+"⏰ Verification Link Expired
+This link is no longer valid.
+[Resend Verification Email] button"
+
+INVALID:
+"❌ Invalid Verification Link
+This link is not recognized.
+[Contact Support] button"
+
+UNVERIFIED STATE:
+
+Show banner at top of app:
+"⚠️ Please verify your email to unlock all features
+[Resend Email] button"
+
+LIMITATIONS WHILE UNVERIFIED:
+- Can browse parties (view only)
+- CANNOT join parties
+- CANNOT create parties
+- CANNOT check in
+- CANNOT make predictions
+- CANNOT enter raffles
+- Can view leaderboards
+- Can edit profile
+
+RESEND VERIFICATION:
+
+Button available:
+- On banner
+- In profile settings
+- On verification expired page
+
+RATE LIMITING:
+- Max 1 verification email per hour
+- Prevent spam
+
+ADMIN VIEW:
+
+Admin can:
+- See verified vs unverified users
+- Manually verify email (if needed)
+- View verification rate
+- Resend verification on behalf of user
+
+=== 3. PASSWORD RESET FLOW ===
+
+Users need to reset forgotten passwords.
+
+LOGIN PAGE UPDATE:
+
+Add link below password field:
+"Forgot password?" (small, blue)
+
+FORGOT PASSWORD PAGE:
+
+TITLE: "Reset Your Password"
+
+FORM:
+- Email input field
+- [Send Reset Link] button
+- "Remember it? [Log in]" link
+
+VALIDATION:
+- Require valid email format
+- Check if email exists in database
+
+EMAIL EXISTS:
+Send reset email
+Show: "✅ Reset link sent! Check your email."
+
+EMAIL DOESN'T EXIST:
+For security, still show success message (don't reveal if email exists)
+Show: "✅ If that email exists, we sent a reset link."
+
+PASSWORD RESET EMAIL:
+
+FROM: Huddle Up <noreply@huddleupus.com>
+SUBJECT: "Reset your Huddle Up password"
+
+BODY:
+"
+[Huddle Up Logo]
+
+Hey!
+
+We received a request to reset your password.
+
+[Reset Password] (big button)
+
+This link expires in 1 hour.
+
+Didn't request this? Ignore this email - your password won't change.
+
+Can't see the button? Copy and paste:
+https://huddleupus.com/reset-password?token=xyz789
+
+- Huddle Up Team
+"
+
+RESET LINK:
+
+URL FORMAT:
+https://huddleupus.com/reset-password?token=xyz789abc
+
+TOKEN:
+- Generate unique token
+- Store with user ID and expiration (1 hour)
+- One-time use
+
+RESET PASSWORD PAGE:
+
+VALID TOKEN:
+Show form:
+- New password field
+- Confirm password field
+- Password strength indicator
+- [Update Password] button
+
+REQUIREMENTS:
+- Minimum 8 characters
+- At least one letter
+- At least one number
+- Passwords must match
+
+SUCCESS:
+"✅ Password Updated!
+You can now log in with your new password.
+[Log In] button"
+
+EXPIRED TOKEN:
+"⏰ Reset Link Expired
+This link is no longer valid.
+[Request New Link] button"
+
+INVALID TOKEN:
+"❌ Invalid Reset Link
+[Request New Link] button"
+
+SECURITY:
+- Hash passwords (bcrypt)
+- Invalidate old sessions on password change
+- Log password reset events
+- Rate limit reset requests (max 3 per hour)
+
+=== 4. SOCIAL SHARING (VIRAL GROWTH) ===
+
+Make it easy to share parties and invite friends.
+
+SHARE PARTY BUTTON:
+
+On every party page, prominent button:
+"🔗 Share Party"
+
+WHEN CLICKED:
+
+Show modal with sharing options:
+
+TITLE: "Share This Party"
+
+OPTIONS:
+1. 📋 Copy Link
+   - Copies to clipboard
+   - Shows: "✓ Link copied!"
+
+2. 📱 SMS/iMessage
+   - Opens SMS app with pre-filled message
+
+3. 📧 Email
+   - Opens email client with pre-filled email
+
+4. 📘 Facebook
+   - Share to Facebook
+
+5. 🐦 Twitter/X
+   - Share to Twitter
+
+6. 📷 Instagram Story
+   - Special Instagram sharing
+
+7. 💬 WhatsApp
+   - Share to WhatsApp
+
+8. 📋 QR Code
+   - Generate QR code for party
+   - User can screenshot to share
+
+PRE-FILLED MESSAGE (SMS/EMAIL):
+
+"Check out this watch party on Huddle Up!
+
+🏒 Panthers vs Maple Leafs
+📍 Rocco's Tacos
+📅 Thu, Feb 26 at 7:00 PM
+
+Join me! https://huddleupus.com/party/12345"
+
+SHARE LINK FORMAT:
+
+https://huddleupus.com/party/12345?ref=johndoe
+
+REFERRAL TRACKING:
+- ref parameter identifies who shared
+- Track when someone joins via share link
+- Award sharer bonus points
+
+REFERRAL REWARDS:
+
+SHARER EARNS:
++100 points for each friend who:
+- Clicks link
+- Creates account
+- Joins the party
+
+FRIEND GETS:
++50 bonus points for joining via referral
+
+OPEN GRAPH TAGS:
+
+Add to party pages (for nice previews when shared):
+
+<meta property="og:type" content="event">
+<meta property="og:title" content="Panthers vs Maple Leafs Watch Party">
+<meta property="og:description" content="Join us at Rocco's Tacos! Thu, Feb 26 at 7:00 PM. 12 people going.">
+<meta property="og:image" content="https://huddleupus.com/party-images/12345.jpg">
+<meta property="og:url" content="https://huddleupus.com/party/12345">
+
+TWITTER CARD:
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Panthers vs Maple Leafs Watch Party">
+<meta name="twitter:description" content="Join us at Rocco's Tacos! Thu, Feb 26 at 7:00 PM">
+<meta name="twitter:image" content="https://huddleupus.com/party-images/12345.jpg">
+
+ANALYTICS:
+
+Track in admin dashboard:
+- Total shares
+- Shares by platform
+- Conversion rate (shares → signups)
+- Most viral parties
+- Most viral sharers
+
+LEADERBOARD:
+
+Add "Share Leaders" leaderboard:
+- Top users by successful referrals
+- Award "Influencer" badge at 10 referrals
+- Award "Ambassador" badge at 50 referrals
+
+=== 5. DEEP LINKING (OPEN SPECIFIC CONTENT) ===
+
+Links should open specific content in app.
+
+URL STRUCTURE:
+
+PARTY LINKS:
+https://huddleupus.com/party/12345
+→ Opens party #12345
+
+USER PROFILES:
+https://huddleupus.com/user/johndoe
+OR
+https://huddleupus.com/@johndoe
+→ Opens John Doe's profile
+
+VENUE PAGES:
+https://huddleupus.com/venue/roccos-tacos
+→ Opens Rocco's Tacos venue page
+
+RAFFLE PAGES:
+https://huddleupus.com/raffle/weekly-100
+→ Opens specific raffle
+
+SPORT PAGES:
+https://huddleupus.com/nhl
+→ Opens NHL parties only
+
+TEAM PAGES:
+https://huddleupus.com/team/panthers
+→ Opens all Panthers parties
+
+BEHAVIOR:
+
+IF USER HAS APP INSTALLED:
+- Link opens in installed app (not browser)
+- Direct to specific content
+
+IF USER DOESN'T HAVE APP:
+- Link opens in mobile web browser
+- Shows content
+- Shows install prompt at top
+
+IMPLEMENTATION:
+
+For iOS (Universal Links):
+- Create apple-app-site-association file
+- Host at: https://huddleupus.com/.well-known/apple-app-site-association
+- Configure associated domains
+
+For Android (App Links):
+- Create assetlinks.json file
+- Host at: https://huddleupus.com/.well-known/assetlinks.json
+- Configure intent filters
+
+ROUTE HANDLING:
+
+App must handle all these routes:
+- /party/:id
+- /user/:username
+- /@:username
+- /venue/:slug
+- /raffle/:slug
+- /:sport (nfl, nba, nhl, etc.)
+- /team/:team-name
+
+404 HANDLING:
+
+If content not found:
+"Oops! This party was deleted or doesn't exist.
+[Browse All Parties] button"
+
+SHARE DETECTION:
+
+When user arrives via deep link:
+- Track referrer
+- Award points to sharer (if applicable)
+- Show welcome message (if new user)
+
+=== TESTING CHECKLIST FOR STAGE 2 ===
+
+Before moving to Stage 3, verify:
+
+ONBOARDING:
+- [ ] Shows on first visit only
+- [ ] 4 screens display correctly
+- [ ] Can swipe between screens
+- [ ] Can skip at any time
+- [ ] Completes and never shows again
+
+EMAIL VERIFICATION:
+- [ ] Verification email sends on signup
+- [ ] Email contains working link
+- [ ] Clicking link verifies email
+- [ ] Unverified users see banner
+- [ ] Can resend verification email
+- [ ] Verified users have full access
+
+PASSWORD RESET:
+- [ ] "Forgot password" link works
+- [ ] Reset email sends
+- [ ] Reset link works
+- [ ] Can set new password
+- [ ] Can log in with new password
+- [ ] Old password doesn't work
+
+SOCIAL SHARING:
+- [ ] Share button on party pages
+- [ ] All share options work
+- [ ] Link copies to clipboard
+- [ ] SMS pre-fills message
+- [ ] Referral tracking works
+- [ ] Sharer earns points
+
+DEEP LINKING:
+- [ ] /party/123 opens specific party
+- [ ] /user/john opens user profile
+- [ ] Links work in browser
+- [ ] Links open in app (if installed)
+- [ ] 404 page shows for invalid links
+
+ALL MEDIUM PRIORITY FEATURES MUST WORK BEFORE STAGE 3.
+
+Build Stage 2 features now. Test thoroughly. Report any issues.
