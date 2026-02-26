@@ -5214,7 +5214,7 @@ const qrScannerRef = useRef(null);
  <button onClick={() => { setCurrentScreen('fanFinder'); if (currentCity && nearbyFans.length === 0) searchNearbyFans(currentCity); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1E90FF]/10 transition-colors text-left active:scale-[0.98]">
  <UserPlus className="w-5 h-5 text-[#1E90FF]" /><span className="text-white text-sm font-semibold">Find Fans</span>
  </button>
- <button onClick={() => { setCurrentScreen('predictions'); loadPredictions(); loadPredictionLeaderboard(); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-500/10 transition-colors text-left active:scale-[0.98]">
+ <button onClick={() => { setCurrentScreen('predictions'); loadPredictions(); loadPredictionLeaderboard(); window.scrollTo({ top: 0, behavior: 'instant' }); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-500/10 transition-colors text-left active:scale-[0.98]">
  <Target className="w-5 h-5 text-emerald-400" /><span className="text-white text-sm font-semibold">Predictions</span>
  </button>
  <button onClick={() => { setCurrentScreen('fantasy'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-500/10 transition-colors text-left active:scale-[0.98]">
@@ -12156,12 +12156,6 @@ const qrScannerRef = useRef(null);
  );
 
  const PredictionsScreen = () => {
- useEffect(() => {
-   window.scrollTo({ top: 0, behavior: 'instant' });
-   loadPredictions();
-   loadPredictionLeaderboard();
- }, []);
-
  const upcomingPreds = myPredictions.filter(p => p.status === 'pending');
  const pastPreds = myPredictions.filter(p => p.status !== 'pending');
  const scheduledGames = games.filter(g => g.gameStatus !== 'final');
@@ -14642,7 +14636,7 @@ const qrScannerRef = useRef(null);
  {currentScreen === 'userProfile' && renderUserProfileScreen()}
  {currentScreen === 'alerts' && renderAlertsScreen()}
  {currentScreen === 'myTickets' && renderMyTicketsScreen()}
- {currentScreen === 'predictions' && <PredictionsScreen />}
+ {currentScreen === 'predictions' && PredictionsScreen()}
  {currentScreen === 'contactUs' && <ContactUsScreen />}
  {currentScreen === 'venueDetail' && <VenueDetailScreen />}
  {currentScreen === 'inviteFriends' && renderInviteFriendsScreen()}
