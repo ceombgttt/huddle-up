@@ -301,16 +301,16 @@ const DEMO_MAIN_SPONSOR = {
  isDemo: true,
 };
 
-const MAIN_BANNER_HEIGHT = 36;
+const MAIN_BANNER_HEIGHT = 48;
 const MainBrandBanner = () => {
  return (
  <div
  className="w-full flex items-center justify-center bg-gradient-to-r from-[#0D1117] via-[#151A22] to-[#0D1117] border-b border-[#222A36] brand-banner-glow"
  style={{ height: `${MAIN_BANNER_HEIGHT}px` }}
  >
- <span className="text-sm font-black text-white tracking-wide" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.12em' }}>HUDDLE UP</span>
- <span className="mx-2 text-[#A0A4AB] text-[10px]">|</span>
- <span className="text-[11px] font-bold text-[#1E90FF] brand-text-glow" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>FIND YOUR CREW. WATCH THE GAME.</span>
+ <span className="text-xl font-black text-white tracking-wide" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.12em' }}>HUDDLE UP</span>
+ <span className="mx-2.5 text-[#A0A4AB] text-sm">|</span>
+ <span className="text-sm font-bold text-[#1E90FF] brand-text-glow" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>FIND YOUR CREW. WATCH THE GAME.</span>
  </div>
  );
 };
