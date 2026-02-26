@@ -4502,21 +4502,21 @@ const qrScannerRef = useRef(null);
 
  // FEATURE 4: EMPTY PARTY STATE - When no parties exist for a game
  const EmptyPartyState = ({ gameName, onCreateParty }) => (
- <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-2 border-purple-500/30 rounded-2xl p-8 text-center">
- <div className="text-6xl mb-4">🎉</div>
- <h3 className="text-2xl font-black text-white mb-3" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
- No Parties Yet - Be The Hero!
+ <div className="bg-gradient-to-br from-[#1E90FF]/10 to-emerald-500/10 border border-[#1E90FF]/30 rounded-2xl p-8 text-center">
+ <div className="text-5xl mb-4">🏟️</div>
+ <h3 className="text-xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+ No parties yet — but you can be the first!
  </h3>
- <p className="text-[#A0A4AB] mb-6">
- Be the first to create a watch party for {gameName}. Other fans are waiting for someone like you to start the fun!
+ <p className="text-[#A0A4AB] text-sm mb-5 leading-relaxed">
+ We're just launching in Boca Raton, so some days might be quiet. Create a party and we'll help promote it to local fans.
  </p>
  <button
  onClick={onCreateParty}
- className="px-8 py-4 bg-[#1E90FF] text-white font-bold text-lg rounded-xl shadow-sm hover:opacity-90 transition-all"
+ className="px-8 py-3.5 bg-[#1E90FF] text-white font-bold text-sm rounded-xl shadow-sm hover:opacity-90 transition-all"
  >
- 🚀 Create First Party
+ Create First Party
  </button>
- <p className="text-[#A0A4AB]/70 text-sm mt-4">Don't be shy - someone has to be first!</p>
+ <p className="text-[#A0A4AB]/50 text-xs mt-3">🚀 Soft launch — early hosts get extra visibility</p>
  </div>
  );
 
@@ -6169,7 +6169,10 @@ const qrScannerRef = useRef(null);
  </h2>
  
  {gameParties.length === 0 ? (
- <p className="text-[#A0A4AB] text-sm text-center py-3">No watch parties yet. Be the first to create one!</p>
+ <div className="text-center py-6">
+ <p className="text-white font-bold text-sm mb-1">No parties yet — but you can be the first!</p>
+ <p className="text-[#A0A4AB] text-xs leading-relaxed">We're just launching in Boca Raton, so some days might be quiet. Create a party and we'll help promote it to local fans.</p>
+ </div>
  ) : (
  <div className="space-y-4">
  {gameParties.map(party => {
@@ -6650,7 +6653,8 @@ const qrScannerRef = useRef(null);
  ) : chatMessages.length === 0 ? (
  <div className="flex flex-col items-center justify-center h-full gap-3">
  <MessageCircle className="w-8 h-8 text-purple-400/30" />
- <p className="text-[#A0A4AB]/70 text-sm">No messages yet</p>
+ <p className="text-white font-bold text-sm">Start the conversation!</p>
+ <p className="text-[#A0A4AB]/70 text-xs text-center leading-relaxed max-w-xs">Say hi, share your predictions, or ask who's sitting where. Every great party starts with someone breaking the ice.</p>
  <div className="flex flex-wrap justify-center gap-1.5">
  {['Say hi! 👋', "Who's coming?", 'Lets go! 🔥'].map((starter) => (
  <button
@@ -7585,8 +7589,9 @@ const qrScannerRef = useRef(null);
  </h2>
  
  {Object.keys(sportStats).length === 0 ? (
- <div className="text-center py-8 text-[#A0A4AB]">
- No watch parties created yet
+ <div className="text-center py-8">
+ <p className="text-white font-bold text-sm mb-1">No watch parties created yet</p>
+ <p className="text-[#A0A4AB] text-xs">We're in soft launch — data will populate as fans create parties.</p>
  </div>
  ) : (
  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -7624,8 +7629,9 @@ const qrScannerRef = useRef(null);
  </h2>
  
  {venuePerformance.length === 0 ? (
- <div className="text-center py-8 text-[#A0A4AB]">
- No venues yet
+ <div className="text-center py-8">
+ <p className="text-white font-bold text-sm mb-1">No venues yet</p>
+ <p className="text-[#A0A4AB] text-xs">We're in soft launch — venues will appear as owners claim their spots.</p>
  </div>
  ) : (
  <div className="space-y-3">
@@ -9731,8 +9737,9 @@ const qrScannerRef = useRef(null);
  </h2>
  
  {Object.keys(sportBreakdown).length === 0 ? (
- <div className="text-center py-8 text-[#A0A4AB]">
- No watch parties yet
+ <div className="text-center py-8">
+ <p className="text-white font-bold text-sm mb-1">No watch parties yet</p>
+ <p className="text-[#A0A4AB] text-xs">We're in soft launch — parties will show up as fans start hosting at your venue.</p>
  </div>
  ) : (
  <div className="space-y-4">
@@ -9766,8 +9773,9 @@ const qrScannerRef = useRef(null);
  </h2>
  
  {recentParties.length === 0 ? (
- <div className="text-center py-8 text-[#A0A4AB]">
- No watch parties yet. People will start hosting at your venue soon!
+ <div className="text-center py-8">
+ <p className="text-white font-bold text-sm mb-1">No watch parties yet</p>
+ <p className="text-[#A0A4AB] text-xs">We're in soft launch — people will start hosting at your venue soon!</p>
  </div>
  ) : (
  <div className="space-y-3">
@@ -10520,9 +10528,9 @@ const qrScannerRef = useRef(null);
        ) : nearbyPartiesList.length === 0 ? (
          <div className="bg-[#151A22] rounded-2xl border border-[#222A36] p-8 text-center">
            <Search className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-           <h3 className="text-white font-bold text-lg mb-2">No Parties Nearby</h3>
-           <p className="text-[#A0A4AB] text-sm mb-4">
-             There aren't any watch parties in {currentCity} right now. Be the first to create one!
+           <h3 className="text-white font-bold text-lg mb-2">No Parties Nearby — Yet!</h3>
+           <p className="text-[#A0A4AB] text-sm mb-4 leading-relaxed">
+             We're just launching in Boca Raton, so some days might be quiet. Create a party and we'll help promote it to local fans.
            </p>
            <button
              onClick={() => setCurrentScreen('games')}
@@ -10746,7 +10754,8 @@ const qrScannerRef = useRef(null);
  {myParties.length === 0 ? (
  <div className="bg-[#151A22] backdrop-blur-lg p-8 rounded-2xl border border-[#222A36] text-center">
  <Users className="w-12 h-12 text-gray-600 mx-auto mb-3" />
- <p className="text-[#A0A4AB] mb-4">You haven't joined any watch parties yet</p>
+ <p className="text-white font-bold text-sm mb-1">No watch parties yet</p>
+ <p className="text-[#A0A4AB] text-xs mb-4">We're in soft launch — browse games and join or create a watch party. Early joiners get bonus points!</p>
  <button
  onClick={() => setCurrentScreen('games')}
  className="px-6 py-3 bg-[#1E90FF] text-white font-bold rounded-xl"
@@ -11339,7 +11348,8 @@ const qrScannerRef = useRef(null);
  {myParties.length === 0 ? (
  <div className="bg-[#151A22] backdrop-blur-lg p-8 rounded-2xl border border-[#222A36] text-center">
  <Users className="w-12 h-12 text-gray-600 mx-auto mb-3" />
- <p className="text-[#A0A4AB] mb-4">You haven't joined any watch parties yet</p>
+ <p className="text-white font-bold text-sm mb-1">No watch parties yet</p>
+ <p className="text-[#A0A4AB] text-xs mb-4">We're in soft launch — browse games and join or create a watch party. Early joiners get bonus points!</p>
  <button
  onClick={() => setCurrentScreen('games')}
  className="px-6 py-3 bg-[#1E90FF] text-white font-bold rounded-xl"
@@ -13125,9 +13135,11 @@ const qrScannerRef = useRef(null);
  </div>
  <div className="p-4 pb-24 space-y-3 max-w-2xl mx-auto">
  {teamChatMessages.length === 0 && (
- <div className="text-center py-12 text-[#A0A4AB]">
- <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
- <p>No messages yet. Start the conversation!</p>
+ <div className="text-center py-12">
+ <MessageCircle className="w-12 h-12 mx-auto mb-3 text-[#A0A4AB]/30" />
+ <p className="text-white font-bold text-sm mb-1">Start the conversation!</p>
+ <p className="text-[#A0A4AB] text-xs leading-relaxed max-w-xs mx-auto">Say hi, share your predictions, or talk game day strategy. Every great fan community starts with someone breaking the ice.</p>
+ <p className="text-[#A0A4AB]/50 text-xs mt-2">💡 Tip: Ask "Anyone tailgating before?"</p>
  </div>
  )}
  {teamChatMessages.map(msg => (
@@ -13993,7 +14005,8 @@ const qrScannerRef = useRef(null);
          {dmMessages.length === 0 && (
            <div className="text-center py-12">
              <MessageCircle className="w-12 h-12 text-[#1E90FF]/30 mx-auto mb-3" />
-             <p className="text-[#A0A4AB] text-sm">No messages yet. Say hi to {dmChatUser.name}!</p>
+             <p className="text-white font-bold text-sm mb-1">Start the conversation!</p>
+             <p className="text-[#A0A4AB] text-xs">Say hi to {dmChatUser.name} — talk game day plans, share predictions, or just say what's up.</p>
            </div>
          )}
          {dmMessages.map((msg, i) => {
@@ -14294,7 +14307,7 @@ const qrScannerRef = useRef(null);
  <div className="text-center py-16">
  <MessageCircle className="w-16 h-16 text-[#1E90FF]/20 mx-auto mb-4" />
  <h3 className="text-xl font-bold text-white mb-2">No Messages Yet</h3>
- <p className="text-[#A0A4AB] mb-4 max-w-sm mx-auto">Tap the message icon on any crew member to start a conversation.</p>
+ <p className="text-[#A0A4AB] text-sm mb-4 max-w-sm mx-auto">We're in soft launch — your crew is just getting started. Tap the message icon on any crew member to start a conversation!</p>
  <button type="button" onClick={() => setCrewTab('friends')} className="px-6 py-3 bg-[#1E90FF] text-white font-bold rounded-xl active:scale-95 transition-all">
  View My Crew
  </button>
