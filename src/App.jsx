@@ -3218,12 +3218,10 @@ const qrScannerRef = useRef(null);
  // FEATURE 1: ONBOARDING TUTORIAL OVERLAY
  const OnboardingOverlay = () => {
  const steps = [
- { title: "Welcome to Huddle Up! 🎉", description: "Find watch parties for any game, in any city. Let's show you how it works!", icon: "👋" },
- { title: "Tap a Game to Start 🏈", description: "Browse the schedule and tap any game you want to watch. From there, you can create a watch party or join one that already exists!", icon: "📅" },
- { title: "Search Any City 📍", description: "Traveling? Type any city in the location bar to find parties near you. Dallas, Miami, NYC - we've got you covered!", icon: "🌎" },
- { title: "Use the Menu Icons 🧭", description: "Share the app, find fans of your team, check your alerts and invitations, or view your profile and badges - it's all at the top!", icon: "📱" },
- { title: "Level Up Your Badge! 🏆", description: "Every party you join or host earns you badge points. Climb from New Fan all the way to Legend status!", icon: "⭐" },
- { title: "Show Up & Have Fun! 🍻", description: "That's it! Meet new people, watch the game, and enjoy. Ready to find your first party?", icon: "🎯" }
+ { title: "Find Parties by Sport or Team 🏈", description: "Browse games by sport, search for your favorite teams, and discover watch parties happening near you!", icon: "🔍" },
+ { title: "Join Parties & Chat with Fans 💬", description: "Join a watch party, chat with other fans in real-time, and connect with your crew on game day!", icon: "🎉" },
+ { title: "Check In with QR Code 📱", description: "Scan the QR code at the venue to check in, earn points, and unlock badges. The more you show up, the higher you climb!", icon: "📍" },
+ { title: "Make Predictions & Win Raffles 🏆", description: "Predict game winners, build win streaks, and earn points you can use for raffle entries and prizes!", icon: "🎯" }
  ];
  
  if (!showOnboarding) return null;
@@ -3965,46 +3963,47 @@ const qrScannerRef = useRef(null);
 
  const WelcomePopup = () => {
  if (!showWelcomePopup) return null;
- const features = [
- { icon: '🏈', title: 'Find Watch Parties', desc: 'Discover parties for NFL, NBA, MLB, NHL, Soccer, and 10+ more sports near you' },
- { icon: '🎉', title: 'Host Your Own', desc: 'Create watch parties at your favorite venues and invite friends' },
- { icon: '📊', title: 'Live Scores', desc: 'Get real-time game scores and updates right in the app' },
- { icon: '👥', title: 'Find Fans', desc: 'Connect with fans of your favorite teams in your area' },
- { icon: '💬', title: 'Team Chat Rooms', desc: 'Chat with other fans about your teams in dedicated chat rooms' },
- { icon: '🏆', title: 'Earn Rewards', desc: 'Get points for hosting, attending, and engaging - redeem for prizes' },
- { icon: '📍', title: 'Discover Venues', desc: 'Find sports bars and venues hosting game day events near you' },
- { icon: '🔥', title: 'Trending Feed', desc: 'See the hottest parties and most popular venues in your area' },
- ];
  return (
- <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-[70] flex items-center justify-center p-4 overflow-y-auto">
- <div className="rounded-2xl p-6 sm:p-8 max-w-lg w-full shadow-2xl my-4" style={{ backgroundColor: '#161A22', border: '2px solid rgba(30, 144, 255, 0.3)' }}>
- <div className="text-center mb-5">
+ <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[70] flex items-center justify-center p-4 overflow-y-auto">
+ <div className="rounded-2xl p-6 sm:p-8 w-[90%] max-w-[500px] shadow-2xl my-4" style={{ backgroundColor: '#0F1115', border: '2px solid rgba(30, 144, 255, 0.4)' }}>
+ <div className="text-center mb-6">
  <div className="text-5xl mb-3">🎉</div>
- <h2 className="text-3xl font-extrabold text-white mb-2" style={{ fontFamily: "'Inter', 'Montserrat', sans-serif" }}>Welcome to Huddle Up USA!</h2>
- <p className="text-sm font-semibold" style={{ color: '#F5B400' }}>Find Your Crew. Watch The Game.</p>
+ <h2 className="text-2xl sm:text-3xl font-black text-white mb-1" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '1px' }}>Welcome to Huddle Up!</h2>
  </div>
- <div className="mb-5 p-4 bg-gradient-to-br from-green-500/15 to-emerald-500/10 border border-green-500/30 rounded-2xl text-center">
- <p className="text-white font-bold text-lg mb-1">100% Free. No Strings Attached.</p>
- <p className="text-green-300 text-sm mb-2">All core features are <span className="font-black text-green-200 text-base">completely FREE forever</span></p>
- <p className="text-[#A0A4AB] text-xs">Optional Pro upgrade ($2.99/mo) for premium perks</p>
+ <div className="mb-5 p-4 bg-gradient-to-br from-[#F5B400]/10 to-[#F5B400]/5 border border-[#F5B400]/30 rounded-xl text-center">
+ <p className="text-white font-bold text-base sm:text-lg mb-1">You're one of the first 100 members</p>
+ <p className="text-[#F5B400] text-sm font-semibold">to join during our soft launch!</p>
  </div>
- <div className="space-y-2 mb-5 max-h-[35vh] overflow-y-auto pr-1">
- <p className="text-[#A0A4AB] text-sm font-medium text-center mb-2">Everything you get for free:</p>
- {features.map((f, i) => (
- <div key={i} className="flex items-start gap-3 bg-[#151A22] rounded-xl p-3 border border-[#222A36]">
- <span className="text-2xl flex-shrink-0">{f.icon}</span>
- <div>
- <p className="text-white font-bold text-sm">{f.title}</p>
- <p className="text-[#A0A4AB] text-xs">{f.desc}</p>
+ <div className="mb-5">
+ <p className="text-[#A0A4AB] text-sm font-semibold mb-3">Here's what that means:</p>
+ <div className="space-y-2">
+ <div className="flex items-center gap-3 bg-[#151A22] rounded-xl px-4 py-3 border border-[#222A36]">
+ <span className="text-green-400 text-lg font-bold flex-shrink-0">✓</span>
+ <span className="text-white font-semibold text-sm">Lifetime Pro FREE</span>
+ </div>
+ <div className="flex items-center gap-3 bg-[#151A22] rounded-xl px-4 py-3 border border-[#222A36]">
+ <span className="text-green-400 text-lg font-bold flex-shrink-0">✓</span>
+ <span className="text-white font-semibold text-sm">Exclusive "Founder" badge</span>
+ </div>
+ <div className="flex items-center gap-3 bg-[#151A22] rounded-xl px-4 py-3 border border-[#222A36]">
+ <span className="text-green-400 text-lg font-bold flex-shrink-0">✓</span>
+ <span className="text-white font-semibold text-sm">Help shape our features</span>
  </div>
  </div>
- ))}
  </div>
- <button onClick={() => { setShowWelcomePopup(false); setShowOnboarding(true); setOnboardingStep(0); }} className="w-full py-3 text-white font-bold transition-colors text-lg hover:opacity-90" style={{ backgroundColor: '#1E90FF', borderRadius: '12px' }}>
- Get Started
- </button>
- <button onClick={() => setShowWelcomePopup(false)} className="w-full py-2 text-[#A0A4AB] hover:text-white text-sm mt-2 transition-colors">
- Skip Tour
+ <div className="mb-5 p-4 bg-[#151A22] rounded-xl border border-[#222A36]">
+ <p className="text-[#A0A4AB] text-sm font-semibold mb-2">We're just getting started in Boca Raton, so you might see:</p>
+ <div className="space-y-1.5 text-sm text-[#A0A4AB]">
+ <p>• Some parties with few attendees</p>
+ <p>• New features being added weekly</p>
+ <p>• Bugs (please report them!)</p>
+ </div>
+ </div>
+ <div className="mb-6 text-center">
+ <p className="text-[#A0A4AB] text-sm">Your feedback matters! Message us anytime with suggestions.</p>
+ </div>
+ <button onClick={() => { setShowWelcomePopup(false); setShowOnboarding(true); setOnboardingStep(0); setUser(prev => prev ? ({ ...prev, onboardingCompleted: true }) : prev); fetch('/api/users/onboarding-complete', { method: 'POST', credentials: 'include' }).catch(() => {}); }} className="w-full py-3.5 text-white font-black transition-all text-lg hover:opacity-90 active:scale-[0.98]" style={{ backgroundColor: '#1E90FF', borderRadius: '14px' }}>
+ Let's Go!
  </button>
  </div>
  </div>

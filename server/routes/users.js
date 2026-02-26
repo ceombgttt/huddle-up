@@ -273,4 +273,14 @@ router.post('/claim-founder', requireAuth, async (req, res) => {
   }
 });
 
+router.post('/onboarding-complete', requireAuth, async (req, res) => {
+  try {
+    await pool.query('UPDATE users SET onboarding_completed = true WHERE id = $1', [req.session.userId]);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Onboarding complete error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 export default router;
