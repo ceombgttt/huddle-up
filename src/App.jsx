@@ -5622,7 +5622,7 @@ const qrScannerRef = useRef(null);
  setCurrentScreen('gameDetail');
  window.scrollTo(0, 0);
  }}
- className={`flex-shrink-0 w-[280px] bg-[#151A22] p-5 rounded-[12px] border border-[#222A36] hover:border-[#1E90FF]/50 cursor-pointer active:scale-[0.98] transition-all duration-200 sport-card-glow card-corner-accents ${game.gameStatus === 'live' ? 'sport-card-live' : ''}`}
+ className={`flex-shrink-0 w-[280px] bg-[#151A22] p-5 rounded-[12px] border border-[#222A36] hover:border-[#1E90FF]/50 cursor-pointer active:scale-[0.98] transition-all duration-200 sport-card-glow ${game.gameStatus === 'live' ? 'sport-card-live' : ''}`}
  >
  <div className="flex items-center justify-between mb-2">
  <span className="px-2 py-0.5 bg-[#1E90FF]/20 text-[#1E90FF] text-[10px] font-bold rounded-full border border-[#1E90FF]/30">
@@ -5634,6 +5634,15 @@ const qrScannerRef = useRef(null);
  {gameParties.length} {gameParties.length === 1 ? 'Party' : 'Parties'}
  </span>
  )}
+ <button
+ onClick={(e) => { e.stopPropagation(); loadGames(); }}
+ className="p-1 rounded-full text-[#A0A4AB]/50 hover:text-[#1E90FF] transition-all active:rotate-180"
+ title="Refresh scores"
+ >
+ <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+ <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+ </svg>
+ </button>
  {user && (
  <button
  onClick={(e) => { e.stopPropagation(); toggleWatchGame(game); }}
@@ -6101,7 +6110,7 @@ const qrScannerRef = useRef(null);
  return (
  <div
  key={party.id}
- className={`relative overflow-hidden rounded-2xl border shadow-xl sport-card-glow ${venue.featured ? 'featured-shimmer' : ''}`}
+ className={`relative overflow-hidden rounded-2xl border shadow-xl ${venue.featured ? 'featured-shimmer promoted-glow' : 'sport-card-glow'}`}
  style={teamColors ? {
  borderColor: `${teamColors[1]}60`,
  background: `linear-gradient(135deg, ${teamColors[0]}dd 0%, ${teamColors[0]}99 40%, ${teamColors[1]}44 100%)`
