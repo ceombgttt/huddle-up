@@ -27,7 +27,7 @@ The UI/UX emphasizes intuitive navigation and visual engagement, incorporating t
     - **Event Tickets & Promoted Parties**: Hosts can set up ticketing and promote parties.
     - **Party Highlights/Recaps**: Hosts can create textual and photo highlights for past parties.
 - **Affiliate Program**: Influencers get unique codes that give users 50% off Pro ($1.50/mo instead of $2.99). Influencers earn recurring commissions (30% default) on each paying user. Managed via admin panel with public influencer dashboards.
-- **Featured Venue System**: Two venue tiers (Regular and Featured) with Featured venues receiving priority placement, badges, and enhanced visibility. Featured pricing: $29.99/month (annual) or $49.99/month.
+- **Featured Venue System**: Two venue tiers (Base at $29.99/month and Featured at $49.99/month) with Featured venues receiving priority placement, badges, and enhanced visibility. No annual pricing option for venues.
 - **Fan vs. Venue Account System**: Distinct signup flows and dashboards for Fan and Venue users, with specific features tailored to each role.
 - **Interactive Spotlight Tour**: A step-by-step walkthrough of key app features for new users.
 - **Game Prediction System**: Users predict game winners with a confidence slider (1-10). Points: base 50 × confidence. Streak bonuses at 5 (+100) and 10 (+250) correct. Pro users get 3x multiplier. Features: prediction interface on game detail pages, dedicated "Predictions" screen with stats/history/leaderboard, admin panel to resolve games and award points. Database tables: `predictions`, `prediction_streaks`. Routes: `server/routes/predictions.js`.

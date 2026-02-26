@@ -327,10 +327,10 @@ const SAMPLE_VENUES = [
 
 // Multi-location venue pricing
 const VENUE_PRICING = {
- single: { name: "Single Location", featured: 49.99, featuredYearly: 29.99 },
- chain: { name: "Multi-Location (2-5)", featured: 49.99, featuredYearly: 29.99 },
- chainPlus: { name: "Regional Chain (6-20)", featured: 49.99, featuredYearly: 29.99 },
- enterprise: { name: "Enterprise (20+)", featured: 49.99, featuredYearly: 29.99 }
+ single: { name: "Single Location", base: 29.99, featured: 49.99 },
+ chain: { name: "Multi-Location (2-5)", base: 29.99, featured: 49.99 },
+ chainPlus: { name: "Regional Chain (6-20)", base: 29.99, featured: 49.99 },
+ enterprise: { name: "Enterprise (20+)", base: 29.99, featured: 49.99 }
 };
 
 const getProfilePicUrl = (path) => {
@@ -6738,7 +6738,7 @@ const qrScannerRef = useRef(null);
  </div>
  </div>
  <p className="text-[#A0A4AB] text-sm leading-relaxed">
- Try <strong>Featured</strong> status absolutely FREE for 14 days. See the results for yourself - more visibility, more parties, more customers. After the trial, plans start at just $29.99/month (annual) or $49.99/month. Cancel anytime, no questions asked.
+ Try <strong>Featured</strong> status absolutely FREE for 14 days. See the results for yourself - more visibility, more parties, more customers. After the trial, base venue is $29.99/month and Featured is $49.99/month. Cancel anytime, no questions asked.
  </p>
  <div className="mt-3 flex items-center gap-2 text-xs text-green-400">
  <CheckCircle className="w-4 h-4" />
@@ -6926,7 +6926,7 @@ const qrScannerRef = useRef(null);
  // Revenue Calculations
  const featuredVenues = venues.filter(v => v.featured && v.verified);
  const regularVenues = venues.filter(v => !v.featured && v.verified);
- const monthlyRecurringRevenue = (featuredVenues.length * 49.99) + (regularVenues.length * 0); // Free tier = $0
+ const monthlyRecurringRevenue = (featuredVenues.length * 49.99) + (regularVenues.length * 29.99);
  const projectedAnnualRevenue = monthlyRecurringRevenue * 12;
  
  const activeParties = parties.filter(p => {
@@ -7410,7 +7410,7 @@ const qrScannerRef = useRef(null);
  ${monthlyRecurringRevenue.toLocaleString()}
  </div>
  <div className="text-xs text-[#A0A4AB]">
- {featuredVenues.length} Featured venues × $49.99/mo
+ {featuredVenues.length} Featured × $49.99/mo + {regularVenues.length} Base × $29.99/mo
  </div>
  </div>
  
@@ -7692,8 +7692,8 @@ const qrScannerRef = useRef(null);
  ⭐ FEATURED ($49.99/mo)
  </span>
  ) : (
- <span className="px-1.5 py-0.5 bg-gray-500/20 text-[#A0A4AB] text-[10px] font-bold rounded-full whitespace-nowrap">
- FREE TIER
+ <span className="px-1.5 py-0.5 bg-blue-500/20 text-blue-300 text-[10px] font-bold rounded-full whitespace-nowrap">
+ BASE ($29.99/mo)
  </span>
  )}
  </div>
@@ -7713,7 +7713,7 @@ const qrScannerRef = useRef(null);
  <div>
  <div className="text-[#A0A4AB] text-[10px]">Revenue</div>
  <div className="text-green-400 font-bold text-sm">
- ${venue.featured ? '49.99' : '0'}/mo
+ ${venue.featured ? '49.99' : '29.99'}/mo
  </div>
  </div>
  </div>
@@ -10037,25 +10037,13 @@ const qrScannerRef = useRef(null);
  <div>
  <p className="text-amber-300 text-xs font-bold uppercase tracking-wider">Featured Venue</p>
  <div className="flex items-baseline gap-1 mt-1">
- <span className="text-3xl font-black text-white">$29</span>
+ <span className="text-3xl font-black text-white">$49</span>
  <span className="text-lg text-white">.99</span>
  <span className="text-[#A0A4AB] text-sm">/month</span>
  </div>
- <p className="text-green-300 text-xs font-bold">Billed annually ($359.88/yr)</p>
  </div>
  <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/30">
  <Star className="w-7 h-7 text-white fill-white" />
- </div>
- </div>
- <div className="flex items-center gap-3 mb-3 bg-black/20 rounded-xl p-3">
- <div className="text-center flex-1">
- <p className="text-white font-black text-lg">$29.99<span className="text-[#A0A4AB] text-xs font-normal">/mo</span></p>
- <p className="text-amber-300 text-[10px] font-bold">ANNUAL (SAVE 40%)</p>
- </div>
- <div className="text-[#A0A4AB] text-sm font-bold">or</div>
- <div className="text-center flex-1">
- <p className="text-white font-black text-lg">$49.99<span className="text-[#A0A4AB] text-xs font-normal">/mo</span></p>
- <p className="text-[#A0A4AB] text-[10px] font-bold">MONTHLY</p>
  </div>
  </div>
  <p className="text-white/60 text-xs mb-4">Everything in your current plan, plus all featured perks above. Cancel anytime.</p>
@@ -10081,7 +10069,7 @@ const qrScannerRef = useRef(null);
  </div>
 
  <div className="rounded-2xl border border-[#222A36] bg-[#151A22] p-4">
- <h3 className="text-white font-bold text-sm mb-3">Regular vs Featured Comparison</h3>
+ <h3 className="text-white font-bold text-sm mb-3">Base vs Featured Comparison</h3>
  <div className="space-y-2">
  {[
  { feature: 'Listed on platform', regular: true, featured: true },
@@ -10107,7 +10095,7 @@ const qrScannerRef = useRef(null);
  <div className="flex items-center justify-between pt-2">
  <span className="text-white/40 text-[10px]"></span>
  <div className="flex items-center gap-6">
- <span className="text-[10px] text-[#A0A4AB] w-16 text-center font-bold">$29.99/mo</span>
+ <span className="text-[10px] text-blue-300 w-16 text-center font-bold">$29.99/mo</span>
  <span className="text-[10px] text-amber-300 w-16 text-center font-bold">$49.99/mo</span>
  </div>
  </div>
