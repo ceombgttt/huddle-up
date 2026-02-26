@@ -161,7 +161,7 @@ const SPORT_ICONS = {
  'Premier League': '⚽',
  'Liga MX': '⚽',
  'La Liga': '⚽',
- 'Champions League': '🏆',
+ 'Champions League': '⭐⚽',
  'MLS': '⚽',
  'Formula 1': '🏎️',
  'Tennis': '🎾',
@@ -5633,7 +5633,7 @@ const qrScannerRef = useRef(null);
  }`}
  >
  <span className="text-lg leading-none">{SPORT_ICONS[sport] || '🏅'}</span>
- <span className="text-[11px] font-semibold leading-tight mt-[6px] text-center whitespace-nowrap">{({'College Football':'NCAAF','College Basketball':'NCAA BB','Champions League':'UCL','Premier League':'EPL','Formula 1':'F1'})[sport] || sport}</span>
+ <span className="text-[11px] font-semibold leading-tight mt-[6px] text-center whitespace-nowrap">{({'College Football':'NCAAF','College Basketball':'NCAA BB','Champions League':'CHL','Premier League':'EPL','Formula 1':'F1'})[sport] || sport}</span>
  {isLive && sport !== 'All' && <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse mt-0.5" />}
  </button>
  );
