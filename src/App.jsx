@@ -3100,7 +3100,7 @@ const qrScannerRef = useRef(null);
 
  const getMapsEmbedUrl = (address) => `https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`;
 
- const VenueDealsPreview = ({ venueId }) => {
+ const VenueDealsPreview = ({ venueId, homeTeam, awayTeam }) => {
  const [deals, setDeals] = useState([]);
  const [promos, setPromos] = useState([]);
  const [loaded, setLoaded] = useState(false);
@@ -3110,8 +3110,15 @@ const qrScannerRef = useRef(null);
  Promise.all([
  api.venueHub.getVenueDeals(venueId).catch(() => []),
  api.venueHub.getVenuePromotions(venueId).catch(() => [])
- ]).then(([d, p]) => { setDeals(d); setPromos(p); setLoaded(true); });
- }, [venueId]);
+ ]).then(([d, p]) => {
+ const filteredPromos = (homeTeam || awayTeam) ? p.filter(pr => {
+   const matchHome = homeTeam && pr.home_team && pr.home_team.toLowerCase().includes(homeTeam.toLowerCase());
+   const matchAway = awayTeam && pr.away_team && pr.away_team.toLowerCase().includes(awayTeam.toLowerCase());
+   return matchHome || matchAway;
+ }) : p;
+ setDeals(d); setPromos(filteredPromos); setLoaded(true);
+ });
+ }, [venueId, homeTeam, awayTeam]);
 
  if (!loaded || (deals.length === 0 && promos.length === 0)) return null;
 
@@ -3119,7 +3126,7 @@ const qrScannerRef = useRef(null);
  <div className="mt-3 space-y-2">
  {promos.length > 0 && (
  <div className="p-3 bg-green-500/10 rounded-xl border border-green-500/20">
- <p className="text-green-300 text-xs font-bold mb-1.5 flex items-center gap-1">📢 Game Promotions</p>
+ <p className="text-green-300 text-xs font-bold mb-1.5 flex items-center gap-1">📢 Game Day Specials</p>
  {promos.slice(0, 2).map(p => (
  <div key={p.id} className="text-xs text-white mb-1">
  <span className="font-semibold">{p.title}</span>
@@ -6201,7 +6208,7 @@ const qrScannerRef = useRef(null);
  </div>
  <VenueMap address={party.venueAddress || party.location} venueName={party.venueName || party.location} />
 
- {matchedVenue?.id && <VenueDealsPreview venueId={matchedVenue.id} />}
+ {matchedVenue?.id && <VenueDealsPreview venueId={matchedVenue.id} homeTeam={party.homeTeam} awayTeam={party.awayTeam} />}
 
  {party.notes && (
  <p className="mt-3 text-[#A0A4AB] text-sm">{party.notes}</p>
@@ -10113,26 +10120,19 @@ const qrScannerRef = useRef(null);
 
  {hubTab === 'promotions' && (
  <div className="space-y-4">
- <div className="flex items-center justify-between">
  <div>
- <h2 className="text-xl font-black text-white">Promote Your Games</h2>
- <p className="text-sm text-[#A0A4AB]">Let fans know which games you're showing and what specials you're running</p>
- </div>
- <button onClick={() => setShowNewPromo(true)} className="px-4 py-2 bg-green-500 text-white font-bold rounded-xl text-sm hover:bg-green-600 transition-colors flex items-center gap-1.5">
- <Plus className="w-4 h-4" /> New Promotion
- </button>
+ <h2 className="text-xl font-black text-white">Promote Your Watch Parties</h2>
+ <p className="text-sm text-[#A0A4AB]">Create a watch party first, then promote it to attract more fans</p>
  </div>
 
  {!showNewPromo && (() => {
  const myParties = parties.filter(p => (p.creatorId === user?.id || p.hostId === user?.id) && new Date(p.date || p.gameTime) >= new Date());
- const now = new Date();
- const upcomingGames = games.filter(g => new Date(g.startTime) > now).sort((a, b) => new Date(a.startTime) - new Date(b.startTime)).slice(0, 15);
  return (
  <div className="space-y-4">
- {myParties.length > 0 && (
+ {myParties.length > 0 ? (
  <div className="bg-[#151A22] p-5 rounded-2xl border border-green-500/20 space-y-3">
  <h3 className="text-lg font-bold text-white flex items-center gap-2"><Calendar className="w-5 h-5 text-green-400" /> Your Watch Parties</h3>
- <p className="text-xs text-[#A0A4AB]">Quickly promote a party you've already created</p>
+ <p className="text-xs text-[#A0A4AB]">Promote a party you've created to let fans know about your specials</p>
  <div className="space-y-2">
  {myParties.map(p => {
  const partyDate = p.date || p.gameTime;
@@ -10166,49 +10166,16 @@ const qrScannerRef = useRef(null);
  })}
  </div>
  </div>
- )}
-
- {upcomingGames.length > 0 && (
- <div className="bg-[#151A22] p-5 rounded-2xl border border-[#222A36] space-y-3">
- <h3 className="text-lg font-bold text-white flex items-center gap-2"><Zap className="w-5 h-5 text-amber-400" /> Upcoming Games</h3>
- <p className="text-xs text-[#A0A4AB]">Pick a game to promote at your venue — add your specials and attract fans</p>
- <div className="space-y-2 max-h-[400px] overflow-y-auto">
- {upcomingGames.map(g => {
- const alreadyPromoted = promotions.some(pr => pr.home_team === g.homeTeam && pr.away_team === g.awayTeam && pr.game_date && new Date(pr.game_date).toDateString() === new Date(g.startTime).toDateString());
- return (
- <div key={g.id} className="flex items-center justify-between bg-[#0F1115] rounded-xl p-3 border border-[#222A36] hover:border-amber-500/30 transition-colors">
- <div className="flex-1 min-w-0">
- <div className="flex items-center gap-2 flex-wrap">
- <span className="px-1.5 py-0.5 bg-[#1E90FF]/20 text-[#1E90FF] text-[10px] font-bold rounded-full">{g.sport}</span>
- <span className="text-white font-bold text-sm">{g.awayTeam} <span className="text-[#A0A4AB] font-normal">@</span> {g.homeTeam}</span>
- </div>
- <div className="flex items-center gap-3 mt-1 text-xs text-[#A0A4AB]">
- <span>{new Date(g.startTime).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
- {g.venue && <span className="truncate">{g.venue}</span>}
- </div>
- </div>
- {alreadyPromoted ? (
- <span className="px-3 py-1.5 bg-green-500/10 text-green-400 text-xs font-bold rounded-lg border border-green-500/20 flex-shrink-0">Promoted</span>
  ) : (
- <button onClick={() => {
- setPromoForm({ title: `${g.awayTeam} @ ${g.homeTeam} Watch Party`, sport: g.sport || '', gameDate: new Date(g.startTime).toISOString().slice(0, 16), homeTeam: g.homeTeam || '', awayTeam: g.awayTeam || '', description: '', specials: '' });
- setShowNewPromo(true);
- }} className="px-3 py-1.5 bg-amber-500 text-black text-xs font-bold rounded-lg hover:bg-amber-400 transition-colors flex-shrink-0 flex items-center gap-1">
- <Megaphone className="w-3 h-3" /> Promote
- </button>
- )}
- </div>
- );
- })}
- </div>
- </div>
- )}
-
- <div className="text-center">
- <button onClick={() => setShowNewPromo(true)} className="px-5 py-2.5 bg-[#222A36] text-[#A0A4AB] font-bold rounded-xl text-sm hover:text-white hover:bg-[#2a3340] transition-colors inline-flex items-center gap-2">
- <Plus className="w-4 h-4" /> Create Custom Promotion
+ <div className="bg-[#151A22] p-8 rounded-2xl border border-[#222A36] text-center">
+ <div className="text-4xl mb-3">🎉</div>
+ <h3 className="text-lg font-bold text-white mb-2">Create a Watch Party First</h3>
+ <p className="text-[#A0A4AB] text-sm mb-4">To promote a game at your venue, you need to create a watch party for it first. Then you can add specials and boost visibility.</p>
+ <button onClick={() => setCurrentScreen('games')} className="px-5 py-2.5 bg-[#1E90FF] text-white font-bold rounded-xl text-sm hover:bg-[#1E90FF]/80 transition-colors inline-flex items-center gap-2">
+ <Plus className="w-4 h-4" /> Browse Games & Create Party
  </button>
  </div>
+ )}
  </div>
  );
  })()}
@@ -10261,9 +10228,11 @@ const qrScannerRef = useRef(null);
  ) : promotions.length === 0 && !showNewPromo ? (
  <div className="bg-[#151A22] p-8 rounded-2xl border border-[#222A36] text-center">
  <div className="text-4xl mb-3">📢</div>
- <h3 className="text-lg font-bold text-white mb-2">No Promotions Yet</h3>
- <p className="text-[#A0A4AB] text-sm mb-4">Create your first game promotion to let fans know what's happening at your venue!</p>
- <button onClick={() => setShowNewPromo(true)} className="px-5 py-2.5 bg-green-500 text-white font-bold rounded-xl text-sm">Create First Promotion</button>
+ <h3 className="text-lg font-bold text-white mb-2">No Active Promotions</h3>
+ <p className="text-[#A0A4AB] text-sm mb-4">Create a watch party first, then come back here to promote it with specials and deals!</p>
+ <button onClick={() => setCurrentScreen('games')} className="px-5 py-2.5 bg-[#1E90FF] text-white font-bold rounded-xl text-sm hover:bg-[#1E90FF]/80 transition-colors inline-flex items-center gap-2">
+ <Plus className="w-4 h-4" /> Browse Games & Create Party
+ </button>
  </div>
  ) : (
  <div className="space-y-3">
