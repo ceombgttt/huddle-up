@@ -11194,6 +11194,59 @@ const qrScannerRef = useRef(null);
  </div>
  </div>
 
+ <div className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36] shadow-xl">
+ {isPro ? (
+ <div className="flex items-center justify-between">
+ <div className="flex items-center gap-3">
+ <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center"><Crown className="w-5 h-5 text-amber-400" /></div>
+ <div>
+ <p className="text-amber-300 font-bold text-sm">Pro Member</p>
+ <p className="text-[#A0A4AB] text-xs">$2.99/month - All premium perks active</p>
+ </div>
+ </div>
+ <button onClick={() => setCurrentScreen('proUpgrade')} className="px-3 py-1.5 bg-amber-500/20 text-amber-300 font-bold rounded-lg text-xs border border-amber-500/30">Manage</button>
+ </div>
+ ) : (
+ <div>
+ <div className="flex items-center justify-between mb-2">
+ <h3 className="text-lg font-bold text-white">Upgrade to Pro</h3>
+ <span className="text-amber-300 text-xs font-bold">$2.99/mo</span>
+ </div>
+ <p className="text-[#A0A4AB] text-xs mb-3">Get VIP badge, 3x points, priority placement, custom themes, and more.</p>
+ <button onClick={() => setCurrentScreen('proUpgrade')} className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-black font-bold rounded-xl text-sm hover:opacity-90 transition-all">
+ See Pro Features
+ </button>
+ </div>
+ )}
+ </div>
+
+ <div className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36] shadow-xl space-y-3">
+ <h3 className="text-lg font-bold text-white mb-1">Help & Info</h3>
+ <button onClick={() => { setCurrentScreen('games'); setTimeout(() => startSpotlightTour(), 500); }} className="w-full flex items-center gap-3 p-3 bg-[#1E90FF]/10 hover:bg-[#1E90FF]/20 border border-[#1E90FF]/20 rounded-xl transition-colors text-left">
+ <Map className="w-5 h-5 text-[#1E90FF]" />
+ <span className="text-white font-medium text-sm">Learn How To Use The App</span>
+ <span className="text-[#A0A4AB]/70 text-xs ml-1">Interactive app walkthrough</span>
+ <ChevronRight className="w-4 h-4 text-[#A0A4AB]/70 ml-auto" />
+ </button>
+ <button onClick={() => setShowInviteReminder(true)} className="w-full flex items-center gap-3 p-3 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 rounded-xl transition-colors text-left">
+ <Share2 className="w-5 h-5 text-purple-400" />
+ <span className="text-white font-medium text-sm">Invite Friends</span>
+ <span className="text-[#A0A4AB]/70 text-xs ml-1">Share the app & earn points</span>
+ <ChevronRight className="w-4 h-4 text-[#A0A4AB]/70 ml-auto" />
+ </button>
+ <button onClick={() => setShowQA(true)} className="w-full flex items-center gap-3 p-3 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 rounded-xl transition-colors text-left">
+ <Shield className="w-5 h-5 text-indigo-400" />
+ <span className="text-white font-medium text-sm">Q & A</span>
+ <ChevronRight className="w-4 h-4 text-[#A0A4AB]/70 ml-auto" />
+ </button>
+ <button onClick={() => setCurrentScreen('contactUs')} className="w-full flex items-center gap-3 p-3 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 rounded-xl transition-colors text-left">
+ <Send className="w-5 h-5 text-orange-400" />
+ <span className="text-white font-medium text-sm">Contact Us</span>
+ <span className="text-[#A0A4AB]/70 text-xs ml-1">Partnerships, Sponsorships, Events</span>
+ <ChevronRight className="w-4 h-4 text-[#A0A4AB]/70 ml-auto" />
+ </button>
+ </div>
+
  <div>
  <h2 className="text-2xl font-black text-white mb-4" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
  My Watch Parties
@@ -11489,59 +11542,6 @@ const qrScannerRef = useRef(null);
  );
  })}
  </div>
- </div>
-
- <div className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36] shadow-xl">
- {isPro ? (
- <div className="flex items-center justify-between">
- <div className="flex items-center gap-3">
- <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center"><Crown className="w-5 h-5 text-amber-400" /></div>
- <div>
- <p className="text-amber-300 font-bold text-sm">Pro Member</p>
- <p className="text-[#A0A4AB] text-xs">$2.99/month - All premium perks active</p>
- </div>
- </div>
- <button onClick={() => setCurrentScreen('proUpgrade')} className="px-3 py-1.5 bg-amber-500/20 text-amber-300 font-bold rounded-lg text-xs border border-amber-500/30">Manage</button>
- </div>
- ) : (
- <div>
- <div className="flex items-center justify-between mb-2">
- <h3 className="text-lg font-bold text-white">Upgrade to Pro</h3>
- <span className="text-amber-300 text-xs font-bold">$2.99/mo</span>
- </div>
- <p className="text-[#A0A4AB] text-xs mb-3">Get VIP badge, 3x points, priority placement, custom themes, and more.</p>
- <button onClick={() => setCurrentScreen('proUpgrade')} className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-black font-bold rounded-xl text-sm hover:opacity-90 transition-all">
- See Pro Features
- </button>
- </div>
- )}
- </div>
-
- <div className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36] shadow-xl space-y-3">
- <h3 className="text-lg font-bold text-white mb-1">Help & Info</h3>
- <button onClick={() => { setCurrentScreen('games'); setTimeout(() => startSpotlightTour(), 500); }} className="w-full flex items-center gap-3 p-3 bg-[#1E90FF]/10 hover:bg-[#1E90FF]/20 border border-[#1E90FF]/20 rounded-xl transition-colors text-left">
- <Map className="w-5 h-5 text-[#1E90FF]" />
- <span className="text-white font-medium text-sm">Learn How To Use The App</span>
- <span className="text-[#A0A4AB]/70 text-xs ml-1">Interactive app walkthrough</span>
- <ChevronRight className="w-4 h-4 text-[#A0A4AB]/70 ml-auto" />
- </button>
- <button onClick={() => setShowInviteReminder(true)} className="w-full flex items-center gap-3 p-3 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 rounded-xl transition-colors text-left">
- <Share2 className="w-5 h-5 text-purple-400" />
- <span className="text-white font-medium text-sm">Invite Friends</span>
- <span className="text-[#A0A4AB]/70 text-xs ml-1">Share the app & earn points</span>
- <ChevronRight className="w-4 h-4 text-[#A0A4AB]/70 ml-auto" />
- </button>
- <button onClick={() => setShowQA(true)} className="w-full flex items-center gap-3 p-3 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 rounded-xl transition-colors text-left">
- <Shield className="w-5 h-5 text-indigo-400" />
- <span className="text-white font-medium text-sm">Q & A</span>
- <ChevronRight className="w-4 h-4 text-[#A0A4AB]/70 ml-auto" />
- </button>
- <button onClick={() => setCurrentScreen('contactUs')} className="w-full flex items-center gap-3 p-3 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 rounded-xl transition-colors text-left">
- <Send className="w-5 h-5 text-orange-400" />
- <span className="text-white font-medium text-sm">Contact Us</span>
- <span className="text-[#A0A4AB]/70 text-xs ml-1">Partnerships, Sponsorships, Events</span>
- <ChevronRight className="w-4 h-4 text-[#A0A4AB]/70 ml-auto" />
- </button>
  </div>
 
  </div>
