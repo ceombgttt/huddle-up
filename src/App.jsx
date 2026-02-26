@@ -9959,7 +9959,7 @@ const qrScannerRef = useRef(null);
  </div>
  </div>
  )}
- {hubTab === 'dashboard' && <VenueAnalyticsDashboard />}
+ {hubTab === 'dashboard' && VenueAnalyticsDashboard()}
 
  {hubTab === 'featured' && (
  <div className="space-y-4">
