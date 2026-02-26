@@ -12055,14 +12055,24 @@ const qrScannerRef = useRef(null);
  const scheduledGames = games.filter(g => g.gameStatus !== 'final');
 
  return (
- <div className="min-h-screen pt-20 bg-[#0F1115]">
- <div className="sticky top-14 z-10 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="min-h-screen bg-[#0F1115]" style={{ paddingTop: `${MAIN_BANNER_HEIGHT}px` }}>
+ <div className="sticky bg-[#0F1115] border-b border-[#222A36] z-[61]" style={{ top: `${MAIN_BANNER_HEIGHT}px` }}>
  <div className="max-w-4xl mx-auto px-4 py-2 flex items-center gap-3">
  <button onClick={() => setCurrentScreen('games')} className="flex items-center gap-1.5 text-[#A0A4AB] hover:text-white transition-colors">
  <ArrowLeft className="w-5 h-5" /><span className="text-sm font-medium">Back</span>
  </button>
  <h1 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>GAME PREDICTIONS</h1>
  <Target className="w-5 h-5 text-emerald-400 ml-auto" />
+ </div>
+ <div className="max-w-4xl mx-auto px-4 pb-2 flex gap-2 overflow-x-auto scrollbar-hide">
+   {['upcoming', 'past', 'predict', 'leaderboard'].map(tab => (
+     <button key={tab} onClick={() => { setPredictionsTab(tab); if (tab === 'leaderboard') loadPredictionLeaderboard(); }}
+       className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors flex-shrink-0 cursor-pointer ${
+         predictionsTab === tab ? 'bg-emerald-500 text-white' : 'bg-[#151A22] text-[#A0A4AB] hover:text-white border border-[#222A36]'
+       }`}>
+       {tab === 'upcoming' ? 'Active' : tab === 'past' ? 'History' : tab === 'predict' ? 'Games' : 'Leaders'}
+     </button>
+   ))}
  </div>
  </div>
 
@@ -12103,17 +12113,6 @@ const qrScannerRef = useRef(null);
    </div>
  </div>
  )}
-
- <div className="flex gap-2 mb-3">
-   {['upcoming', 'past', 'predict', 'leaderboard'].map(tab => (
-     <button key={tab} onClick={() => { setPredictionsTab(tab); if (tab === 'leaderboard') loadPredictionLeaderboard(); }}
-       className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors flex-shrink-0 cursor-pointer ${
-         predictionsTab === tab ? 'bg-emerald-500 text-white' : 'bg-[#151A22] text-[#A0A4AB] hover:text-white'
-       }`}>
-       {tab === 'upcoming' ? 'Active' : tab === 'past' ? 'History' : tab === 'predict' ? 'Games' : 'Leaders'}
-     </button>
-   ))}
- </div>
 
  {predictionsTab === 'predict' && (
  <div className="space-y-3">
@@ -12273,10 +12272,10 @@ const qrScannerRef = useRef(null);
 
  {predictionsTab === 'leaderboard' && (
  <div className="space-y-3">
-   <div className="flex gap-2">
+   <div className="flex gap-2 relative z-[5]">
      {['weekly', 'monthly', 'alltime'].map(p => (
        <button key={p} onClick={() => { setPredictionLeaderPeriod(p); loadPredictionLeaderboard(p); }}
-         className={`px-3 py-1.5 rounded-lg text-xs font-bold ${predictionLeaderPeriod === p ? 'bg-[#1E90FF] text-white' : 'bg-[#151A22] text-[#A0A4AB]'}`}>
+         className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors cursor-pointer active:scale-[0.95] ${predictionLeaderPeriod === p ? 'bg-[#1E90FF] text-white' : 'bg-[#151A22] text-[#A0A4AB] hover:text-white border border-[#222A36]'}`}>
          {p === 'weekly' ? 'This Week' : p === 'monthly' ? 'This Month' : 'All Time'}
        </button>
      ))}
