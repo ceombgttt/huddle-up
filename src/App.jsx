@@ -5137,15 +5137,15 @@ const qrScannerRef = useRef(null);
  );
 
  const gamesScreenJSX = () => (
- <div className="min-h-screen pt-2 bg-[#0F1115]">
- <div className="bg-[#0F1115]">
+ <div className="min-h-screen pt-2 bg-[#0F1115] sports-tech-bg">
+ <div className="bg-[#0F1115] relative z-[1]">
  <div className="max-w-4xl mx-auto px-4 pt-3 pb-2">
- <div className="flex items-center justify-between" data-tour-id="nav-buttons">
+ <div className="flex items-center justify-between nav-glow-bar pb-3" data-tour-id="nav-buttons">
  <div className="flex-shrink-0">
  <img src="/huddle-up-shield.png" alt="Huddle Up" className="h-10 drop-shadow-sm" />
  </div>
  <div className="flex items-center gap-4">
- <button onClick={() => setCurrentScreen('trending')} data-tour-id="trending" className="relative p-2 rounded-xl hover:bg-pink-500/20 transition-colors active:scale-95">
+ <button onClick={() => setCurrentScreen('trending')} data-tour-id="trending" className="relative p-2 rounded-xl hover:bg-pink-500/20 transition-colors active:scale-95 nav-icon-glow">
  <Zap className={`w-6 h-6 ${parties.some(p => p.attendees?.length > 0) ? 'text-pink-300 animate-pulse' : 'text-pink-400'}`} />
  {parties.some(p => p.attendees?.length > 0) && <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-pink-400 rounded-full animate-pulse" />}
  </button>
@@ -5410,7 +5410,7 @@ const qrScannerRef = useRef(null);
  </div>
 
  {/* SECTION DIVIDER */}
- <div className="h-px bg-white/[0.08] my-[15px]" />
+ <div className="glow-divider my-[15px]" />
 
  {/* ROW 2: SEARCH BAR + FILTER BUTTON */}
  <div className="flex gap-2 mb-[15px]">
@@ -5518,9 +5518,9 @@ const qrScannerRef = useRef(null);
  </div>
  )}
 
- <div className="h-px bg-white/[0.08] my-[15px]" />
+ <div className="glow-divider my-[15px]" />
 
- <h2 className="text-white font-bold text-[15px] mb-[15px] uppercase tracking-[1px]" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>FIND YOUR SPORT</h2>
+ <h2 className="text-white font-bold text-[15px] mb-[15px] uppercase tracking-[1px] section-header-glow" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>FIND YOUR SPORT</h2>
  <div className="relative" data-tour-id="sports-scroller">
  <div
  ref={sportsScrollRef}
@@ -5622,7 +5622,7 @@ const qrScannerRef = useRef(null);
  setCurrentScreen('gameDetail');
  window.scrollTo(0, 0);
  }}
- className="flex-shrink-0 w-[280px] bg-[#151A22] p-5 rounded-[12px] border border-[#222A36] hover:border-[#1E90FF]/50 cursor-pointer active:scale-[0.98] transition-all duration-200"
+ className={`flex-shrink-0 w-[280px] bg-[#151A22] p-5 rounded-[12px] border border-[#222A36] hover:border-[#1E90FF]/50 cursor-pointer active:scale-[0.98] transition-all duration-200 sport-card-glow ${game.status === 'live' ? 'sport-card-live' : ''}`}
  >
  <div className="flex items-center justify-between mb-2">
  <span className="px-2 py-0.5 bg-[#1E90FF]/20 text-[#1E90FF] text-[10px] font-bold rounded-full border border-[#1E90FF]/30">
@@ -5659,7 +5659,7 @@ const qrScannerRef = useRef(null);
  {game.homeLogo && <img src={game.homeLogo} alt="" className="w-12 h-12 object-contain" />}
  <span className="text-xs font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.homeTeam}</span>
  </div>
- <div className="text-2xl font-black flex-shrink-0" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+ <div className={`text-2xl font-black flex-shrink-0 ${game.gameStatus === 'live' ? 'score-led' : ''}`} style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
  <span className={game.homeScore > game.awayScore ? 'text-emerald-400' : 'text-white'}>{game.homeScore}</span>
  <span className="text-[#A0A4AB]/70 mx-0.5">-</span>
  <span className={game.awayScore > game.homeScore ? 'text-emerald-400' : 'text-white'}>{game.awayScore}</span>
@@ -5831,9 +5831,9 @@ const qrScannerRef = useRef(null);
  };
  return (
    <div className="max-w-4xl mx-auto px-4 py-5">
-   <div className="h-px bg-white/[0.08] mb-[15px]" />
+   <div className="glow-divider-amber mb-[15px]" />
    <div className="flex items-center justify-between mb-[15px]">
-   <h3 className="text-white font-bold text-[14px] flex items-center gap-2 uppercase tracking-[1px]" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>
+   <h3 className="text-white font-bold text-[14px] flex items-center gap-2 uppercase tracking-[1px] section-header-glow" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>
    <Flame className="w-4 h-4 text-orange-400" />
    UPCOMING EVENTS
    </h3>
@@ -5904,8 +5904,8 @@ const qrScannerRef = useRef(null);
  }, []);
 
  return (
- <div className="min-h-screen pt-20 bg-[#0F1115]">
- <div className="sticky top-14 z-10 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="min-h-screen pt-20 bg-[#0F1115] sports-tech-bg">
+ <div className="sticky top-14 z-10 bg-[#0F1115] border-b border-[#222A36] relative z-[1]">
  <div className="max-w-4xl mx-auto px-4 py-2 flex items-center justify-between">
  <button
  onClick={() => setCurrentScreen('games')}
@@ -5949,7 +5949,7 @@ const qrScannerRef = useRef(null);
  <div className="text-base font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{selectedGame.homeTeam}</div>
  {selectedGame.homeRecord && <div className="text-xs text-[#A0A4AB]/70">{selectedGame.homeRecord}</div>}
  </div>
- <div className="text-5xl font-black flex-shrink-0" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+ <div className={`text-5xl font-black flex-shrink-0 ${selectedGame.gameStatus === 'live' ? 'score-led' : ''}`} style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
  <span className={selectedGame.homeScore > selectedGame.awayScore ? 'text-emerald-400' : 'text-white'}>{selectedGame.homeScore}</span>
  <span className="text-[#A0A4AB]/70 mx-2">-</span>
  <span className={selectedGame.awayScore > selectedGame.homeScore ? 'text-emerald-400' : 'text-white'}>{selectedGame.awayScore}</span>
@@ -6075,7 +6075,8 @@ const qrScannerRef = useRef(null);
  </div>
 
  <div>
- <h2 className="text-2xl font-black text-white mb-4" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+ <div className="glow-divider mb-4" />
+ <h2 className="text-2xl font-black text-white mb-4 section-header-glow" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
  Watch Parties ({gameParties.length})
  </h2>
  
@@ -6100,7 +6101,7 @@ const qrScannerRef = useRef(null);
  return (
  <div
  key={party.id}
- className="relative overflow-hidden rounded-2xl border shadow-xl"
+ className={`relative overflow-hidden rounded-2xl border shadow-xl sport-card-glow ${venue.featured ? 'featured-shimmer' : ''}`}
  style={teamColors ? {
  borderColor: `${teamColors[1]}60`,
  background: `linear-gradient(135deg, ${teamColors[0]}dd 0%, ${teamColors[0]}99 40%, ${teamColors[1]}44 100%)`
