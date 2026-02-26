@@ -2110,7 +2110,7 @@ const qrScannerRef = useRef(null);
  try {
    const founderRes = await fetch('/api/users/claim-founder', { method: 'POST', credentials: 'include' });
    const founderData = await founderRes.json();
-   if (founderData.success) { userData.isFounder = true; userData.subscriptionTier = 'pro'; }
+   if (founderData.success) { userData.isFounder = true; userData.founderNumber = founderData.founderNumber || null; userData.subscriptionTier = 'pro'; }
  } catch {}
  setUser(userData);
  setShowWelcomePopup(true);
@@ -5366,7 +5366,7 @@ const qrScannerRef = useRef(null);
      const res = await fetch('/api/users/claim-founder', { method: 'POST', credentials: 'include' });
      const data = await res.json();
      if (data.alreadyFounder) { alert(data.message); }
-     else if (data.success) { alert(data.message); setUser(prev => ({ ...prev, isFounder: true, subscriptionTier: 'pro' })); }
+     else if (data.success) { alert(data.message); setUser(prev => ({ ...prev, isFounder: true, founderNumber: data.founderNumber || null, subscriptionTier: 'pro' })); }
      else { alert(data.error || 'Something went wrong'); }
    } catch { alert('Failed to claim founder status'); }
  }}
@@ -6331,6 +6331,9 @@ const qrScannerRef = useRef(null);
  >
  <ProfileAvatar src={attendee.profilePicture} name={attendee.name} size="xs" />
  <span className="text-white text-sm">{attendee.name}</span>
+ {attendee.isFounder && (
+ <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg font-bold" style={{ fontSize: '9px', backgroundColor: '#F5B400', color: '#0F1115' }} title="Founding Member">⭐ Founder</span>
+ )}
  {genderIcon && (
  <span className={`${genderColor} font-bold`}>{genderIcon}</span>
  )}
@@ -6678,6 +6681,7 @@ const qrScannerRef = useRef(null);
  <div className="flex items-center gap-1.5 mb-1">
  <ProfileAvatar src={msg.profile_picture} name={msg.user_name} size="xs" />
  <span className="text-xs text-[#A0A4AB] font-medium">{msg.user_name}</span>
+ {msg.is_founder && <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded-md font-bold" style={{ fontSize: '8px', backgroundColor: '#F5B400', color: '#0F1115' }}>⭐</span>}
  </div>
  )}
  {isFantasy && (
@@ -11164,8 +11168,8 @@ const qrScannerRef = useRef(null);
  </span>
  )}
  {user.isFounder && (
- <span className="inline-flex items-center gap-1 px-3 py-1 mt-1 rounded-full text-xs font-bold border bg-gradient-to-r from-[#1E90FF]/20 to-[#F5B400]/20 text-[#F5B400] border-[#F5B400]/30">
- 🚀 Founding Member
+ <span className="inline-flex items-center gap-1 px-2 py-1 mt-1 rounded-xl font-bold border" style={{ fontSize: '11px', backgroundColor: '#F5B400', color: '#0F1115', borderColor: '#F5B400' }} title="One of the first 100 members to join Huddle Up">
+ ⭐ Founder{user.founderNumber ? ` #${user.founderNumber}` : ''}
  </span>
  )}
  {user.subscriptionTier && !['free', 'pro'].includes(user.subscriptionTier) && (
@@ -12399,7 +12403,7 @@ const qrScannerRef = useRef(null);
          <div className="w-8 h-8 rounded-full bg-[#222A36] flex items-center justify-center"><User className="w-4 h-4 text-[#A0A4AB]" /></div>
        )}
        <div className="flex-1 min-w-0">
-         <p className="text-white font-bold text-sm truncate">{leader.name}</p>
+         <p className="text-white font-bold text-sm truncate flex items-center gap-1.5">{leader.name} {leader.is_founder && <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg font-bold flex-shrink-0" style={{ fontSize: '9px', backgroundColor: '#F5B400', color: '#0F1115' }}>⭐</span>}</p>
          <p className="text-[#A0A4AB] text-xs">{leader.correct_picks}/{leader.total_picks} correct</p>
        </div>
        <div className="text-right">
@@ -13142,7 +13146,7 @@ const qrScannerRef = useRef(null);
  {msg.userName?.[0] || '?'}
  </div>
  <div className={`max-w-[70%] ${msg.userId === user?.id ? 'bg-teal-600/30 border-teal-500/30' : 'bg-[#151A22] border-[#222A36]'} border rounded-2xl px-4 py-2`}>
- <p className="text-xs text-teal-300 font-medium mb-1">{msg.userName}</p>
+ <p className="text-xs text-teal-300 font-medium mb-1">{msg.userName} {msg.isFounder && <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded-md font-bold" style={{ fontSize: '8px', backgroundColor: '#F5B400', color: '#0F1115' }}>⭐</span>}</p>
  <p className="text-white text-sm">{msg.message}</p>
  <p className="text-xs text-[#A0A4AB]/70 mt-1">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
  </div>
@@ -13340,6 +13344,11 @@ const qrScannerRef = useRef(null);
  {p.profilePicture ? <img src={p.profilePicture} className="w-20 h-20 rounded-full object-cover" alt="" /> : (p.name?.[0] || '?')}
  </div>
  <h3 className="text-2xl font-black text-white">{p.name}</h3>
+ {p.isFounder && (
+ <span className="inline-flex items-center gap-1 px-2 py-1 mt-1 rounded-xl font-bold border" style={{ fontSize: '11px', backgroundColor: '#F5B400', color: '#0F1115', borderColor: '#F5B400' }} title="One of the first 100 members to join Huddle Up">
+ ⭐ Founder{p.founderNumber ? ` #${p.founderNumber}` : ''}
+ </span>
+ )}
  {p.bio && <p className="text-[#A0A4AB] text-sm mt-1">{p.bio}</p>}
  <p className="text-xs text-[#A0A4AB]/70 mt-1">Joined {new Date(p.createdAt || p.created_at).toLocaleDateString()}</p>
  </div>

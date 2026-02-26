@@ -261,11 +261,12 @@ router.post('/claim-founder', requireAuth, async (req, res) => {
     const founderCount = parseInt(countResult.rows[0].count);
     if (founderCount >= 100) return res.status(400).json({ error: 'All 100 Founding Member spots have been claimed!' });
 
+    const founderNumber = founderCount + 1;
     await pool.query(
-      "UPDATE users SET is_founder = true, subscription_tier = 'pro' WHERE id = $1",
-      [req.session.userId]
+      "UPDATE users SET is_founder = true, founder_number = $2, subscription_tier = 'pro' WHERE id = $1",
+      [req.session.userId, founderNumber]
     );
-    res.json({ success: true, message: 'Welcome, Founding Member! You now have lifetime Pro access.' });
+    res.json({ success: true, founderNumber, message: `Welcome, Founding Member #${founderNumber}! You now have lifetime Pro access.` });
   } catch (error) {
     console.error('Claim founder error:', error);
     res.status(500).json({ error: 'Server error' });

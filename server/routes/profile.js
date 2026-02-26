@@ -83,7 +83,7 @@ router.get('/users/:userId', async (req, res) => {
     
     // Get user profile
     const userQuery = await pool.query(
-      'SELECT id, name, profile_picture, joined_at, bio FROM users WHERE id = $1',
+      'SELECT id, name, profile_picture, joined_at, bio, is_founder, founder_number FROM users WHERE id = $1',
       [userId]
     );
     
@@ -111,6 +111,8 @@ router.get('/users/:userId', async (req, res) => {
       profilePicture: user.profile_picture,
       createdAt: user.joined_at,
       bio: user.bio || null,
+      isFounder: user.is_founder || false,
+      founderNumber: user.founder_number || null,
       favoriteTeams: favoriteTeams,
       partiesHosted: parseInt(stats.parties_hosted),
       partiesAttended: parseInt(stats.parties_attended),

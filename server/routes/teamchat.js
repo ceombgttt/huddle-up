@@ -53,7 +53,7 @@ router.get('/rooms/:roomId/messages', requireAuth, async (req, res) => {
 
     let query = `
       SELECT tcm.id, tcm.message, tcm.created_at,
-        u.id as user_id, u.name as user_name, u.profile_picture
+        u.id as user_id, u.name as user_name, u.profile_picture, u.is_founder, u.founder_number
       FROM team_chat_messages tcm
       JOIN users u ON tcm.user_id = u.id
       WHERE tcm.room_id = $1
@@ -74,7 +74,9 @@ router.get('/rooms/:roomId/messages', requireAuth, async (req, res) => {
       createdAt: m.created_at,
       userId: m.user_id,
       userName: m.user_name,
-      profilePicture: m.profile_picture
+      profilePicture: m.profile_picture,
+      isFounder: m.is_founder || false,
+      founderNumber: m.founder_number || null
     }));
     res.json({ messages });
   } catch (error) {

@@ -117,7 +117,8 @@ router.post('/signup', async (req, res) => {
       userType: user.user_type || 'fan',
       subscriptionTier: user.subscription_tier || 'free',
       subscriptionStatus: user.subscription_status || 'active',
-      isFounder: user.is_founder || false
+      isFounder: user.is_founder || false,
+      founderNumber: user.founder_number || null
     });
   } catch (error) {
     console.error('Signup error:', error);
@@ -174,7 +175,8 @@ router.post('/login', async (req, res) => {
       userType: user.user_type || 'fan',
       subscriptionTier: user.subscription_tier || 'free',
       subscriptionStatus: user.subscription_status || 'active',
-      isFounder: user.is_founder || false
+      isFounder: user.is_founder || false,
+      founderNumber: user.founder_number || null
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -261,7 +263,7 @@ router.get('/me', async (req, res) => {
     return res.json(null);
   }
   try {
-    const result = await pool.query('SELECT id, email, name, gender, country, profile_picture, date_of_birth, is_admin, joined_at, notifications_enabled, phone_number, user_city, sms_notifications, subscription_tier, subscription_status, trial_ends_at, user_type, is_founder FROM users WHERE id = $1', [req.session.userId]);
+    const result = await pool.query('SELECT id, email, name, gender, country, profile_picture, date_of_birth, is_admin, joined_at, notifications_enabled, phone_number, user_city, sms_notifications, subscription_tier, subscription_status, trial_ends_at, user_type, is_founder, founder_number FROM users WHERE id = $1', [req.session.userId]);
     if (result.rows.length === 0) {
       return res.json(null);
     }
@@ -289,7 +291,8 @@ router.get('/me', async (req, res) => {
       userType: user.user_type || 'fan',
       subscriptionTier: user.subscription_tier || 'free',
       subscriptionStatus: user.subscription_status || 'active',
-      isFounder: user.is_founder || false
+      isFounder: user.is_founder || false,
+      founderNumber: user.founder_number || null
     });
   } catch (error) {
     console.error('Auth me error:', error);

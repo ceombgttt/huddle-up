@@ -149,14 +149,14 @@ router.get('/leaderboard', async (req, res) => {
     }
 
     const result = await pool.query(
-      `SELECT u.id, u.name, u.profile_picture,
+      `SELECT u.id, u.name, u.profile_picture, u.is_founder, u.founder_number,
               COUNT(*) FILTER (WHERE p.status = 'correct') as correct_picks,
               COUNT(*) as total_picks,
               COALESCE(SUM(p.points_earned), 0) as points_earned
        FROM predictions p
        JOIN users u ON u.id = p.user_id
        WHERE p.status IN ('correct', 'incorrect') ${dateFilter}
-       GROUP BY u.id, u.name, u.profile_picture
+       GROUP BY u.id, u.name, u.profile_picture, u.is_founder, u.founder_number
        HAVING COUNT(*) >= 1
        ORDER BY correct_picks DESC, points_earned DESC
        LIMIT ${period === 'monthly' ? 20 : 10}`

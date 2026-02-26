@@ -23,7 +23,7 @@ router.get('/parties/:partyId/messages', requireAuth, async (req, res) => {
 
     let query = `
       SELECT pm.id, pm.message, pm.created_at, pm.message_type, pm.fantasy_context,
-        u.id as user_id, u.name as user_name, u.profile_picture
+        u.id as user_id, u.name as user_name, u.profile_picture, u.is_founder, u.founder_number
       FROM party_messages pm
       JOIN users u ON pm.user_id = u.id
       WHERE pm.party_id = $1
