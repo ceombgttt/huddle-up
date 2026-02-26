@@ -233,4 +233,43 @@ router.get('/search', requireAuth, async (req, res) => {
   }
 });
 
+router.get('/soft-launch-stats', async (req, res) => {
+  try {
+    const [usersResult, partiesResult, venuesResult] = await Promise.all([
+      pool.query('SELECT COUNT(*) as count FROM users'),
+      pool.query("SELECT COUNT(*) as count FROM parties WHERE game_time ~ '^[0-9]{4}-' AND game_time::timestamptz > NOW() OR game_time !~ '^[0-9]{4}-'"),
+      pool.query('SELECT COUNT(*) as count FROM venues')
+    ]);
+    res.json({
+      users: parseInt(usersResult.rows[0].count),
+      parties: parseInt(partiesResult.rows[0].count),
+      venues: parseInt(venuesResult.rows[0].count)
+    });
+  } catch (error) {
+    console.error('Soft launch stats error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/claim-founder', requireAuth, async (req, res) => {
+  try {
+    const userCheck = await pool.query('SELECT is_founder, subscription_tier FROM users WHERE id = $1', [req.session.userId]);
+    if (!userCheck.rows.length) return res.status(404).json({ error: 'User not found' });
+    if (userCheck.rows[0].is_founder) return res.json({ alreadyFounder: true, message: 'You already have Founding Member status!' });
+
+    const countResult = await pool.query('SELECT COUNT(*) as count FROM users WHERE is_founder = true');
+    const founderCount = parseInt(countResult.rows[0].count);
+    if (founderCount >= 100) return res.status(400).json({ error: 'All 100 Founding Member spots have been claimed!' });
+
+    await pool.query(
+      "UPDATE users SET is_founder = true, subscription_tier = 'pro' WHERE id = $1",
+      [req.session.userId]
+    );
+    res.json({ success: true, message: 'Welcome, Founding Member! You now have lifetime Pro access.' });
+  } catch (error) {
+    console.error('Claim founder error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 export default router;

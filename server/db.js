@@ -484,6 +484,7 @@ export async function initDB() {
       );
 
       ALTER TABLE users ADD COLUMN IF NOT EXISTS affiliate_code TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS is_founder BOOLEAN DEFAULT FALSE;
 
       ALTER TABLE parties ADD COLUMN IF NOT EXISTS ticket_price_cents INTEGER DEFAULT 0;
       ALTER TABLE parties ADD COLUMN IF NOT EXISTS is_promoted BOOLEAN DEFAULT FALSE;

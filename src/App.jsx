@@ -1201,6 +1201,12 @@ const HuddleUpApp = () => {
  const [prelaunchUserCount, setPrelaunchUserCount] = useState(0);
  const [showPrelaunchModal, setShowPrelaunchModal] = useState(false);
  const [prelaunchDismissed, setPrelaunchDismissed] = useState(false);
+ const [softLaunchDismissed, setSoftLaunchDismissed] = useState(() => {
+   const stored = localStorage.getItem('softlaunch_banner_dismissed');
+   if (!stored) return false;
+   try { const parsed = JSON.parse(stored); return Date.now() - parsed.time < 7 * 24 * 60 * 60 * 1000; } catch { return false; }
+ });
+ const [softLaunchStats, setSoftLaunchStats] = useState({ users: 0, parties: 0, venues: 0 });
  const [tourTab, setTourTab] = useState('fans');
  const [spotlightTourActive, setSpotlightTourActive] = useState(false);
  const [spotlightStep, setSpotlightStep] = useState(0);
@@ -1867,6 +1873,7 @@ const qrScannerRef = useRef(null);
  detectUserLocation();
  api.sponsors.banners().then(b => setSponsorBanners(b || [])).catch(() => {});
  api.auth.userCount().then(d => setPrelaunchUserCount(170924 + (d?.count || 0))).catch(() => setPrelaunchUserCount(170924));
+ fetch('/api/users/soft-launch-stats').then(r => r.json()).then(d => setSoftLaunchStats(d)).catch(() => {});
 
  if (!localStorage.getItem('huddle_prelaunch_seen')) {
    setTimeout(() => {
@@ -2100,6 +2107,11 @@ const qrScannerRef = useRef(null);
  const handleSignUp = async (email, password, name, gender, dateOfBirth, rememberMe = true, referralCode = '', userType = 'fan', venueName = '', venueAddress = '', affiliateCode = '') => {
  try {
  const userData = await api.auth.signup(email, password, name, gender, dateOfBirth, rememberMe, referralCode, userType, venueName, venueAddress, affiliateCode);
+ try {
+   const founderRes = await fetch('/api/users/claim-founder', { method: 'POST', credentials: 'include' });
+   const founderData = await founderRes.json();
+   if (founderData.success) { userData.isFounder = true; userData.subscriptionTier = 'pro'; }
+ } catch {}
  setUser(userData);
  setShowWelcomePopup(true);
  setShowOnboarding(false);
@@ -5309,6 +5321,73 @@ const qrScannerRef = useRef(null);
  )}
 
  <div className="max-w-4xl mx-auto px-4">
+
+ {/* SOFT LAUNCH BANNER */}
+ {!softLaunchDismissed && (
+ <div className="mb-3 relative overflow-hidden rounded-2xl" style={{ background: 'linear-gradient(135deg, #1E90FF 0%, #0066CC 40%, #F5B400 100%)', animation: 'slideDown 300ms ease-out' }}>
+ <button onClick={() => { setSoftLaunchDismissed(true); localStorage.setItem('softlaunch_banner_dismissed', JSON.stringify({ time: Date.now() })); }} className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center bg-black/20 hover:bg-black/40 rounded-full text-white/80 hover:text-white transition-all z-10">
+ <X className="w-4 h-4" />
+ </button>
+ <div className="p-5 md:p-6">
+ <div className="flex items-center gap-2 mb-2">
+ <span className="text-2xl">🚀</span>
+ <h2 className="text-xl md:text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>SOFT LAUNCH — BOCA RATON</h2>
+ </div>
+ <p className="text-white/90 text-sm mb-3">We're launching in South Florida first!</p>
+ <div className="bg-black/15 rounded-xl p-3 mb-3">
+ <p className="text-white font-bold text-sm mb-1.5">First 100 members get:</p>
+ <ul className="space-y-1 text-white/90 text-sm">
+ <li className="flex items-center gap-2"><Star className="w-3.5 h-3.5 text-yellow-300 flex-shrink-0" /> Lifetime Pro FREE ($2.99/mo value)</li>
+ <li className="flex items-center gap-2"><Award className="w-3.5 h-3.5 text-yellow-300 flex-shrink-0" /> Exclusive "Founder" badge on profile</li>
+ <li className="flex items-center gap-2"><Zap className="w-3.5 h-3.5 text-yellow-300 flex-shrink-0" /> Shape the future of Huddle Up</li>
+ </ul>
+ </div>
+ <div className="flex items-center gap-2 text-white/70 text-xs font-bold mb-3">
+ <span>{softLaunchStats.users} members</span>
+ <span className="text-white/40">•</span>
+ <span>{softLaunchStats.parties} parties</span>
+ <span className="text-white/40">•</span>
+ <span>{softLaunchStats.venues} venues</span>
+ </div>
+ {user ? (
+ user.isFounder ? (
+ <div className="flex items-center gap-2 px-4 py-2.5 bg-white/20 rounded-xl">
+ <Star className="w-5 h-5 text-yellow-300 fill-yellow-300" />
+ <span className="text-white font-bold text-sm">You're a Founding Member!</span>
+ </div>
+ ) : softLaunchStats.users >= 100 ? (
+ <div className="px-4 py-2.5 bg-white/10 rounded-xl text-center">
+ <span className="text-white/80 font-bold text-sm">Founding Member spots filled! {softLaunchStats.users}/100</span>
+ </div>
+ ) : (
+ <button
+ onClick={async () => {
+   try {
+     const res = await fetch('/api/users/claim-founder', { method: 'POST', credentials: 'include' });
+     const data = await res.json();
+     if (data.alreadyFounder) { alert(data.message); }
+     else if (data.success) { alert(data.message); setUser(prev => ({ ...prev, isFounder: true, subscriptionTier: 'pro' })); }
+     else { alert(data.error || 'Something went wrong'); }
+   } catch { alert('Failed to claim founder status'); }
+ }}
+ className="w-full md:w-auto px-6 py-3 bg-white text-[#0F1115] font-black text-sm rounded-xl hover:bg-white/90 transition-all active:scale-[0.97]"
+ style={{ animation: 'pulse 2s ease-in-out infinite' }}
+ >
+ Join as Founding Member
+ </button>
+ )
+ ) : (
+ <button
+ onClick={() => setCurrentScreen('signup')}
+ className="w-full md:w-auto px-6 py-3 bg-white text-[#0F1115] font-black text-sm rounded-xl hover:bg-white/90 transition-all active:scale-[0.97]"
+ style={{ animation: 'pulse 2s ease-in-out infinite' }}
+ >
+ Join as Founding Member
+ </button>
+ )}
+ </div>
+ </div>
+ )}
 
  {/* SHARE & ENGAGE BANNER */}
  {!prelaunchDismissed && (
@@ -11073,6 +11152,11 @@ const qrScannerRef = useRef(null);
  {user.subscriptionTier === 'pro' && (
  <span className="inline-flex items-center gap-1 px-3 py-1 mt-1 rounded-full text-xs font-bold border bg-amber-500/20 text-amber-300 border-amber-500/30">
  ⭐ Pro Member
+ </span>
+ )}
+ {user.isFounder && (
+ <span className="inline-flex items-center gap-1 px-3 py-1 mt-1 rounded-full text-xs font-bold border bg-gradient-to-r from-[#1E90FF]/20 to-[#F5B400]/20 text-[#F5B400] border-[#F5B400]/30">
+ 🚀 Founding Member
  </span>
  )}
  {user.subscriptionTier && !['free', 'pro'].includes(user.subscriptionTier) && (

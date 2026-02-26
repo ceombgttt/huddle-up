@@ -1,0 +1,123 @@
+ADD SOFT LAUNCH BANNER TO HOME PAGE
+
+Add a prominent banner at the top of the home page (below navigation, above party listings) that announces we're in soft launch.
+
+=== BANNER DESIGN ===
+
+POSITION:
+- Top of home page
+- Below main navigation
+- Above "Find Parties" section
+- Full width, sticky (stays visible when scrolling)
+
+VISUAL DESIGN:
+- Background: Gradient from Electric Blue (#1E90FF) to Athletic Gold (#F5B400)
+- Text color: White (#FFFFFF)
+- Height: 120px on desktop, 160px on mobile
+- Border radius: 8px
+- Box shadow: Subtle shadow for depth
+- Padding: 20px
+
+CONTENT:
+┌────────────────────────────────────────────────────┐
+│ 🚀 SOFT LAUNCH - BOCA RATON                       │
+│                                                     │
+│ We're launching in South Florida first!            │
+│                                                     │
+│ First 100 members get:                             │
+│ • Lifetime Pro FREE ($2.99/mo value)               │
+│ • Exclusive "Founder" badge on profile             │
+│ • Shape the future of Huddle Up                    │
+│                                                     │
+│ [DYNAMIC] members • [DYNAMIC] parties • [DYNAMIC] venues │
+│                                                     │
+│ [Join as Founding Member] button                   │
+│ [X] Close button (top right corner)                │
+└────────────────────────────────────────────────────┘
+
+=== DYNAMIC COUNTERS ===
+
+Show REAL-TIME counts:
+- Total users (count from users table)
+- Total upcoming parties (count from parties table where status = 'upcoming')
+- Total venues (count from venues table)
+
+Update every time page loads.
+
+Format: "47 members • 23 parties • 8 venues"
+
+=== FOUNDING MEMBER LOGIC ===
+
+When user clicks "Join as Founding Member" button:
+
+IF user not logged in:
+- Redirect to signup page
+- After signup, automatically grant:
+  * is_pro = true
+  * is_founder = true
+  * pro_expiry = null (lifetime)
+  * Add "⭐ Founder" badge to profile
+
+IF user already logged in:
+- Show modal: "You're already a member! Enjoy your Founder benefits."
+
+IF more than 100 users exist:
+- Change button to "Join Waitlist"
+- Or remove button and show: "Founding Member spots filled! 127/100"
+
+=== CLOSE BUTTON ===
+
+Small X button in top-right corner:
+- When clicked, hide banner
+- Store in localStorage: softlaunch_banner_dismissed = true
+- Don't show again this session
+- Show again after 7 days (check timestamp)
+
+=== MOBILE RESPONSIVE ===
+
+On mobile (< 768px):
+- Stack content vertically
+- Larger text (18px for heading)
+- Full-width button
+- Shorter height (140px)
+
+=== ANIMATION ===
+
+On page load:
+- Slide down from top (0.3s ease-in)
+- Subtle pulse animation on button (draw attention)
+
+=== WHERE TO PLACE ===
+
+In App.jsx, add banner component:
+- Show on home page only (currentScreen === 'home')
+- Don't show on other pages
+- Don't show if user dismissed it
+
+=== EXAMPLE CODE STRUCTURE ===
+
+<div className="soft-launch-banner" style={{background: 'linear-gradient(90deg, #1E90FF, #F5B400)'}}>
+  <div className="banner-content">
+    <h2>🚀 SOFT LAUNCH - BOCA RATON</h2>
+    <p>We're launching in South Florida first!</p>
+    
+    <div className="founder-benefits">
+      <p>First 100 members get:</p>
+      <ul>
+        <li>Lifetime Pro FREE ($2.99/mo value)</li>
+        <li>Exclusive "Founder" badge</li>
+        <li>Shape the future of Huddle Up</li>
+      </ul>
+    </div>
+    
+    <div className="stats">
+      {userCount} members • {partyCount} parties • {venueCount} venues
+    </div>
+    
+    <button className="cta-button">Join as Founding Member</button>
+  </div>
+  
+  <button className="close-btn" onClick={dismissBanner}>×</button>
+</div>
+
+Build this soft launch banner now and make it prominent on the home page.
