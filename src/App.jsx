@@ -12104,8 +12104,7 @@ const qrScannerRef = useRef(null);
  </div>
  )}
 
- <div className="sticky top-[52px] z-10 bg-[#0F1115] py-3 -mx-4 px-4">
-   <div className="flex gap-2">
+ <div className="flex gap-2 mb-3">
    {['upcoming', 'past', 'predict', 'leaderboard'].map(tab => (
      <button key={tab} onClick={() => { setPredictionsTab(tab); if (tab === 'leaderboard') loadPredictionLeaderboard(); }}
        className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors flex-shrink-0 cursor-pointer ${
@@ -12114,7 +12113,6 @@ const qrScannerRef = useRef(null);
        {tab === 'upcoming' ? 'Active' : tab === 'past' ? 'History' : tab === 'predict' ? 'Games' : 'Leaders'}
      </button>
    ))}
-   </div>
  </div>
 
  {predictionsTab === 'predict' && (
@@ -14403,17 +14401,18 @@ const qrScannerRef = useRef(null);
      if (el.scrollWidth > el.clientWidth + 5) { inScrollable = true; break; }
      el = el.parentElement;
    }
+   const screenW = window.innerWidth || 400;
    swipeRef.current = {
      startX,
      startY: e.touches[0].clientY,
-     valid: startX < 40 && !inScrollable && !authScreens.includes(currentScreen)
+     valid: startX < Math.max(60, screenW * 0.25) && !inScrollable && !authScreens.includes(currentScreen)
    };
  }, [currentScreen]);
  const handleTouchEnd = useCallback((e) => {
    if (!swipeRef.current.valid) return;
    const dx = e.changedTouches[0].clientX - swipeRef.current.startX;
    const dy = e.changedTouches[0].clientY - swipeRef.current.startY;
-   if (dx > 80 && Math.abs(dy) < Math.abs(dx)) {
+   if (dx > 60 && Math.abs(dy) < Math.abs(dx)) {
      goBack();
    }
  }, [goBack]);
