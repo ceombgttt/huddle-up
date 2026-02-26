@@ -305,12 +305,12 @@ const MAIN_BANNER_HEIGHT = 36;
 const MainBrandBanner = () => {
  return (
  <div
- className="w-full flex items-center justify-center bg-gradient-to-r from-[#0D1117] via-[#151A22] to-[#0D1117] border-b border-[#222A36]"
+ className="w-full flex items-center justify-center bg-gradient-to-r from-[#0D1117] via-[#151A22] to-[#0D1117] border-b border-[#222A36] brand-banner-glow"
  style={{ height: `${MAIN_BANNER_HEIGHT}px` }}
  >
  <span className="text-sm font-black text-white tracking-wide" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.12em' }}>HUDDLE UP</span>
  <span className="mx-2 text-[#A0A4AB] text-[10px]">|</span>
- <span className="text-[11px] font-bold text-[#1E90FF]" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>FIND YOUR CREW. WATCH THE GAME.</span>
+ <span className="text-[11px] font-bold text-[#1E90FF] brand-text-glow" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>FIND YOUR CREW. WATCH THE GAME.</span>
  </div>
  );
 };
@@ -5141,7 +5141,7 @@ const qrScannerRef = useRef(null);
  <div className="bg-[#0F1115] relative z-[1]">
  <div className="max-w-4xl mx-auto px-4 pt-3 pb-2">
  <div className="flex items-center justify-between nav-glow-bar pb-3" data-tour-id="nav-buttons">
- <div className="flex-shrink-0">
+ <div className="flex-shrink-0 energy-dot">
  <img src="/huddle-up-shield.png" alt="Huddle Up" className="h-10 drop-shadow-sm" />
  </div>
  <div className="flex items-center gap-4">
@@ -5545,9 +5545,9 @@ const qrScannerRef = useRef(null);
  onClick={() => setSelectedSport(sport)}
  className={`flex flex-col items-center justify-center min-w-[60px] px-2 py-2 rounded-[10px] font-bold transition-all active:scale-[0.98] ${
  selectedSport === sport
- ? 'bg-[#1E90FF] text-white shadow-sm shadow-[#1E90FF]/30'
+ ? 'bg-[#1E90FF] text-white shadow-sm shadow-[#1E90FF]/30 sport-pill-active'
  : isLive
- ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
+ ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 sport-pill-live'
  : !activeSports.has(sport) && sport !== 'All'
  ? 'bg-[#151A22]/50 text-[#A0A4AB]/50'
  : 'bg-[#151A22] text-[#A0A4AB] hover:bg-[#222A36]'
@@ -5622,7 +5622,7 @@ const qrScannerRef = useRef(null);
  setCurrentScreen('gameDetail');
  window.scrollTo(0, 0);
  }}
- className={`flex-shrink-0 w-[280px] bg-[#151A22] p-5 rounded-[12px] border border-[#222A36] hover:border-[#1E90FF]/50 cursor-pointer active:scale-[0.98] transition-all duration-200 sport-card-glow ${game.status === 'live' ? 'sport-card-live' : ''}`}
+ className={`flex-shrink-0 w-[280px] bg-[#151A22] p-5 rounded-[12px] border border-[#222A36] hover:border-[#1E90FF]/50 cursor-pointer active:scale-[0.98] transition-all duration-200 sport-card-glow card-corner-accents ${game.gameStatus === 'live' ? 'sport-card-live' : ''}`}
  >
  <div className="flex items-center justify-between mb-2">
  <span className="px-2 py-0.5 bg-[#1E90FF]/20 text-[#1E90FF] text-[10px] font-bold rounded-full border border-[#1E90FF]/30">
@@ -5989,7 +5989,7 @@ const qrScannerRef = useRef(null);
 
  <button
  onClick={() => setCurrentScreen('createParty')}
- className="w-full py-4 bg-[#1E90FF] text-white font-bold text-lg rounded-2xl shadow-sm hover:opacity-90 transition-all duration-200 flex items-center justify-center gap-2"
+ className="w-full py-4 bg-[#1E90FF] text-white font-bold text-lg rounded-2xl shadow-sm hover:opacity-90 transition-all duration-200 flex items-center justify-center gap-2 btn-glow"
  >
  <Plus className="w-5 h-5" />
  CREATE WATCH PARTY
@@ -6660,7 +6660,7 @@ const qrScannerRef = useRef(null);
  className={`w-full mt-2 py-3 rounded-xl font-bold transition-all active:scale-[0.98] ${
  isFull
  ? 'bg-gray-500/20 text-[#A0A4AB]/70 border-2 border-gray-500/30 cursor-not-allowed'
- : 'bg-[#1E90FF] text-white shadow-sm hover:opacity-90'
+ : 'bg-[#1E90FF] text-white shadow-sm hover:opacity-90 btn-glow'
  }`}
  >
  {isFull ? 'PARTY FULL' : 'JOIN PARTY'}

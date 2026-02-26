@@ -269,16 +269,245 @@
   letter-spacing: 0.05em;
 }
 
+@keyframes banner-glow-sweep {
+  0% { left: -30%; }
+  50% { left: 130%; }
+  100% { left: 130%; }
+}
+
+@keyframes energy-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.3); opacity: 0.8; }
+}
+
+@keyframes corner-flash {
+  0%, 90%, 100% { opacity: 0.15; }
+  95% { opacity: 0.5; }
+}
+
+@keyframes text-glow-pulse {
+  0%, 100% { text-shadow: 0 0 8px rgba(30, 144, 255, 0.3); }
+  50% { text-shadow: 0 0 16px rgba(30, 144, 255, 0.6), 0 0 32px rgba(30, 144, 255, 0.2); }
+}
+
+@keyframes sport-pill-glow {
+  0%, 100% { box-shadow: 0 0 0px transparent; }
+  50% { box-shadow: 0 0 12px rgba(30, 144, 255, 0.3); }
+}
+
+.brand-banner-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.brand-banner-glow::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(30, 144, 255, 0.4),
+    rgba(245, 158, 11, 0.4),
+    rgba(30, 144, 255, 0.4),
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: glow-line-sweep 6s ease-in-out infinite;
+}
+
+.brand-banner-glow::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -30%;
+  width: 20%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent);
+  transform: skewX(-20deg);
+  animation: banner-glow-sweep 8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.brand-text-glow {
+  animation: text-glow-pulse 4s ease-in-out infinite;
+}
+
+.sport-pill-active {
+  position: relative;
+  overflow: hidden;
+}
+
+.sport-pill-active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transform: skewX(-20deg);
+  animation: banner-glow-sweep 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.sport-pill-live {
+  position: relative;
+}
+
+.sport-pill-live::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 1px solid transparent;
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0.3), rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.3)) border-box;
+  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: glow-pulse 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.card-corner-accents {
+  position: relative;
+}
+
+.card-corner-accents::before,
+.card-corner-accents::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+  opacity: 0.25;
+  transition: opacity 0.3s ease;
+}
+
+.card-corner-accents::before {
+  top: 4px;
+  left: 4px;
+  border-top: 2px solid rgba(30, 144, 255, 0.6);
+  border-left: 2px solid rgba(30, 144, 255, 0.6);
+  border-radius: 2px 0 0 0;
+}
+
+.card-corner-accents::after {
+  bottom: 4px;
+  right: 4px;
+  border-bottom: 2px solid rgba(30, 144, 255, 0.6);
+  border-right: 2px solid rgba(30, 144, 255, 0.6);
+  border-radius: 0 0 2px 0;
+}
+
+.card-corner-accents:hover::before,
+.card-corner-accents:hover::after,
+.card-corner-accents:active::before,
+.card-corner-accents:active::after {
+  opacity: 0.6;
+}
+
+.btn-glow {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.btn-glow::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.4s ease, height 0.4s ease;
+  pointer-events: none;
+}
+
+.btn-glow:active::after {
+  width: 200%;
+  height: 200%;
+}
+
+.energy-dot {
+  position: relative;
+}
+
+.energy-dot::before {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(30, 144, 255, 0.6);
+  top: -3px;
+  right: -3px;
+  animation: energy-pulse 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.glow-divider-green {
+  position: relative;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(16, 185, 129, 0.1) 15%,
+    rgba(16, 185, 129, 0.4) 50%,
+    rgba(16, 185, 129, 0.1) 85%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: glow-line-sweep 4s ease-in-out infinite;
+}
+
+.stat-card-glow {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.stat-card-glow::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(30, 144, 255, 0.5),
+    transparent
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.stat-card-glow:hover::before {
+  opacity: 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .glow-divider,
   .glow-divider-amber,
+  .glow-divider-green,
   .sport-card-glow::after,
   .sport-card-live::before,
   .featured-shimmer::after,
   .sports-tech-bg::before,
   .nav-glow-bar::before,
   .nav-icon-glow::after,
-  .live-indicator-ring::after {
+  .live-indicator-ring::after,
+  .brand-banner-glow::before,
+  .brand-banner-glow::after,
+  .brand-text-glow,
+  .sport-pill-active::before,
+  .sport-pill-live::after,
+  .energy-dot::before {
     animation: none !important;
   }
   .sport-card-live {
