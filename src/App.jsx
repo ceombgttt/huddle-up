@@ -314,7 +314,7 @@ const MainBrandBanner = ({ userCount = 0 }) => {
  >
  <span className="text-xl font-black text-white tracking-wide" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.12em' }}>HUDDLE UP</span>
  <span className="mx-2.5 text-[#A0A4AB] text-sm">|</span>
- <span className="text-sm font-bold text-[#1E90FF] brand-text-glow hidden sm:inline" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>FIND YOUR CREW. WATCH THE GAME.</span>
+ <span className="text-[10px] sm:text-sm font-bold text-[#1E90FF] brand-text-glow" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>FIND YOUR CREW. WATCH THE GAME.</span>
  {showBadge && (
  <div className="absolute right-3 group">
  <span
@@ -9059,26 +9059,85 @@ const qrScannerRef = useRef(null);
  setCpSupportedTeam('');
  };
 
+ const [cpSearchTerm, setCpSearchTerm] = useState('');
+ const [cpSportFilter, setCpSportFilter] = useState('All');
  const createPartyScreenJSX = () => !selectedGame ? (
  <div className="min-h-screen pt-20 bg-[#0F1115]">
  <div className="sticky top-20 z-10 bg-[#0F1115] border-b border-[#222A36]">
- <div className="max-w-4xl mx-auto px-4 py-4">
+ <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
  <button
  onClick={() => setCurrentScreen('games')}
  className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors"
  >
  <ArrowLeft className="w-5 h-5" />
- Back to Games
+ Back
+ </button>
+ <button
+ onClick={() => setCurrentScreen('games')}
+ className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1E90FF]/10 border border-[#1E90FF]/30 text-[#1E90FF] font-bold text-xs rounded-full hover:bg-[#1E90FF]/20 transition-all"
+ >
+ <Search className="w-3.5 h-3.5" />
+ Browse All Games
  </button>
  </div>
  </div>
- <div className="max-w-2xl mx-auto px-4 py-10">
- <div className="text-center mb-8">
+ <div className="max-w-2xl mx-auto px-4 py-6">
+ <div className="text-center mb-6">
  <h2 className="text-3xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>CREATE WATCH PARTY</h2>
- <p className="text-[#A0A4AB] text-sm">Pick a game below to create a watch party for it</p>
+ <p className="text-[#A0A4AB] text-sm">Follow these steps to host your watch party</p>
  </div>
+ <div className="flex items-center gap-3 mb-6">
+ <div className="flex items-center gap-2">
+ <div className="w-7 h-7 rounded-full bg-[#1E90FF] flex items-center justify-center text-white text-xs font-black">1</div>
+ <span className="text-white font-bold text-sm">Find a Game</span>
+ </div>
+ <div className="flex-1 h-0.5 bg-[#222A36]" />
+ <div className="flex items-center gap-2 opacity-40">
+ <div className="w-7 h-7 rounded-full bg-[#222A36] flex items-center justify-center text-[#A0A4AB] text-xs font-black">2</div>
+ <span className="text-[#A0A4AB] font-bold text-sm">Set Details</span>
+ </div>
+ <div className="flex-1 h-0.5 bg-[#222A36]" />
+ <div className="flex items-center gap-2 opacity-40">
+ <div className="w-7 h-7 rounded-full bg-[#222A36] flex items-center justify-center text-[#A0A4AB] text-xs font-black">3</div>
+ <span className="text-[#A0A4AB] font-bold text-sm">Publish</span>
+ </div>
+ </div>
+ <div className="relative mb-4">
+ <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0A4AB]" />
+ <input
+ type="text"
+ placeholder="Search by team name..."
+ value={cpSearchTerm}
+ onChange={e => setCpSearchTerm(e.target.value)}
+ className="w-full pl-10 pr-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white text-sm placeholder-[#A0A4AB]/50 focus:outline-none focus:border-[#1E90FF]/50"
+ />
+ </div>
+ <div className="flex gap-2 overflow-x-auto pb-3 scrollbar-hide mb-4">
+ {['All', ...new Set(games.map(g => g.sport))].map(sport => (
+ <button
+ key={sport}
+ onClick={() => setCpSportFilter(sport)}
+ className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${cpSportFilter === sport ? 'bg-[#1E90FF] text-white' : 'bg-[#151A22] text-[#A0A4AB] border border-[#222A36] hover:border-[#1E90FF]/30'}`}
+ >
+ {SPORT_ICONS[sport] || '🏅'} {({'College Football':'NCAAF','College Basketball':'NCAA BB','Champions League':'CHL','Premier League':'EPL','Formula 1':'F1'})[sport] || sport}
+ </button>
+ ))}
+ </div>
+ {(() => {
+ const upcoming = games
+ .filter(g => g.gameStatus === 'scheduled' && new Date(g.startTime) > new Date())
+ .filter(g => cpSportFilter === 'All' || g.sport === cpSportFilter)
+ .filter(g => {
+ if (!cpSearchTerm.trim()) return true;
+ const q = cpSearchTerm.toLowerCase();
+ return g.homeTeam.toLowerCase().includes(q) || g.awayTeam.toLowerCase().includes(q) || g.sport.toLowerCase().includes(q);
+ })
+ .sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+ return (
+ <>
+ <p className="text-[#A0A4AB] text-xs mb-3">{upcoming.length} {upcoming.length === 1 ? 'game' : 'games'} found</p>
  <div className="space-y-3">
- {games.filter(g => g.gameStatus === 'scheduled' && new Date(g.startTime) > new Date()).sort((a, b) => new Date(a.startTime) - new Date(b.startTime)).slice(0, 20).map(game => (
+ {upcoming.slice(0, 30).map(game => (
  <div
  key={game.id}
  onClick={() => { setSelectedGame(game); }}
@@ -9098,12 +9157,19 @@ const qrScannerRef = useRef(null);
  </div>
  </div>
  ))}
- {games.filter(g => g.gameStatus === 'scheduled' && new Date(g.startTime) > new Date()).length === 0 && (
+ </div>
+ {upcoming.length === 0 && (
  <div className="text-center py-12">
- <p className="text-[#A0A4AB] text-sm">No upcoming games found. Check back later!</p>
+ <Search className="w-10 h-10 text-[#A0A4AB]/30 mx-auto mb-3" />
+ <p className="text-[#A0A4AB] text-sm mb-1">No games match your search</p>
+ <p className="text-[#A0A4AB]/60 text-xs mb-4">Try a different team or sport, or browse all games</p>
+ <button onClick={() => { setCpSearchTerm(''); setCpSportFilter('All'); }} className="px-4 py-2 bg-[#151A22] text-[#1E90FF] font-bold text-xs rounded-full border border-[#1E90FF]/30 hover:bg-[#1E90FF]/10 transition-all mr-2">Clear Filters</button>
+ <button onClick={() => setCurrentScreen('games')} className="px-4 py-2 bg-[#1E90FF] text-white font-bold text-xs rounded-full hover:opacity-90 transition-all">Browse Games</button>
  </div>
  )}
- </div>
+ </>
+ );
+ })()}
  </div>
  </div>
 ) : (
