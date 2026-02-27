@@ -309,20 +309,22 @@ const MainBrandBanner = ({ userCount = 0 }) => {
  const isNew = userCount >= 100 || daysSinceLaunch >= 30;
  return (
  <div
- className="w-full flex items-center justify-center bg-gradient-to-r from-[#0D1117] via-[#151A22] to-[#0D1117] border-b border-[#222A36] brand-banner-glow relative"
+ className="w-full flex items-center bg-gradient-to-r from-[#0D1117] via-[#151A22] to-[#0D1117] border-b border-[#222A36] brand-banner-glow px-3"
  style={{ height: `${MAIN_BANNER_HEIGHT}px` }}
  >
- <span className="text-xl font-black text-white tracking-wide" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.12em' }}>HUDDLE UP</span>
- <span className="mx-2.5 text-[#A0A4AB] text-sm">|</span>
- <span className="text-[10px] sm:text-sm font-bold text-[#1E90FF] brand-text-glow" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>FIND YOUR CREW. WATCH THE GAME.</span>
+ <div className="flex items-center justify-center flex-1 min-w-0">
+ <span className="text-base sm:text-xl font-black text-white tracking-wide whitespace-nowrap" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.12em' }}>HUDDLE UP</span>
+ <span className="mx-1.5 sm:mx-2.5 text-[#A0A4AB] text-xs sm:text-sm">|</span>
+ <span className="text-[9px] sm:text-sm font-bold text-[#1E90FF] brand-text-glow whitespace-nowrap" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>FIND YOUR CREW. WATCH THE GAME.</span>
+ </div>
  {showBadge && (
- <div className="absolute right-3 group">
+ <div className="flex-shrink-0 ml-2 group relative">
  <span
- className="inline-flex items-center gap-1 px-2 py-1 rounded-xl text-white font-bold cursor-default"
- style={{ fontSize: '10px', backgroundColor: isNew ? '#10B981' : '#F97316', animation: 'pulse 2s ease-in-out infinite' }}
+ className="inline-flex items-center gap-1 px-2 py-1 rounded-xl text-white font-bold cursor-default whitespace-nowrap"
+ style={{ fontSize: '9px', backgroundColor: isNew ? '#10B981' : '#F97316', animation: 'pulse 2s ease-in-out infinite' }}
  >
  {isNew ? 'New!' : 'Soft Launch'}
- {!isNew && <span style={{ fontSize: '8px' }}>🔸</span>}
+ {!isNew && <span style={{ fontSize: '7px' }}>🔸</span>}
  </span>
  <div className="absolute right-0 top-full mt-2 w-56 p-3 bg-[#151A22] border border-[#222A36] rounded-xl shadow-xl text-xs text-[#A0A4AB] opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-[100]">
  <p className="text-white font-bold mb-1">We're launching in Boca Raton first!</p>
