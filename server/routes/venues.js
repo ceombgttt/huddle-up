@@ -36,7 +36,9 @@ router.get('/', async (req, res) => {
       logo: v.logo,
       picture: v.picture,
       totalParties: parseInt(v.total_parties),
-      totalFans: parseInt(v.total_fans)
+      totalFans: parseInt(v.total_fans),
+      venueTrialEndsAt: v.venue_trial_ends_at,
+      onTrial: v.venue_trial_ends_at && new Date(v.venue_trial_ends_at) > new Date() && !['venue', 'featured_venue', 'sponsor'].includes(v.owner_tier)
     }));
 
     res.json(venues);
@@ -100,8 +102,8 @@ router.post('/claims/:id/approve', requireAdmin, async (req, res) => {
 
     const c = claim.rows[0];
     await pool.query(
-      `INSERT INTO venues (name, address, type, verified, featured, claimed_by, phone, website)
-       VALUES ($1, $2, $3, TRUE, FALSE, $4, $5, $6)`,
+      `INSERT INTO venues (name, address, type, verified, featured, claimed_by, phone, website, venue_trial_ends_at)
+       VALUES ($1, $2, $3, TRUE, FALSE, $4, $5, $6, NOW() + INTERVAL '3 months')`,
       [c.venue_name, c.address, c.venue_type, c.submitted_by, c.phone, c.website]
     );
 

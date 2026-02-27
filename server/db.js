@@ -45,6 +45,7 @@ export async function initDB() {
         city TEXT,
         capacity INTEGER,
         description TEXT,
+        venue_trial_ends_at TIMESTAMPTZ,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
 
@@ -190,6 +191,7 @@ export async function initDB() {
       ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_completed BOOLEAN DEFAULT FALSE;
       ALTER TABLE venues ADD COLUMN IF NOT EXISTS logo TEXT;
       ALTER TABLE venues ADD COLUMN IF NOT EXISTS picture TEXT;
+      ALTER TABLE venues ADD COLUMN IF NOT EXISTS venue_trial_ends_at TIMESTAMPTZ;
 
       CREATE TABLE IF NOT EXISTS referral_conversions (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

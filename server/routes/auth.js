@@ -90,7 +90,7 @@ router.post('/signup', async (req, res) => {
         const existingVenue = await pool.query('SELECT id FROM venues WHERE LOWER(name) = LOWER($1)', [venueName.trim()]);
         if (existingVenue.rows.length === 0) {
           await pool.query(
-            'INSERT INTO venues (name, address, claimed_by) VALUES ($1, $2, $3)',
+            'INSERT INTO venues (name, address, claimed_by, venue_trial_ends_at) VALUES ($1, $2, $3, NOW() + INTERVAL \'3 months\')',
             [venueName.trim(), venueAddress?.trim() || '', user.id]
           );
         }

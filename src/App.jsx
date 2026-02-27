@@ -10541,9 +10541,13 @@ const qrScannerRef = useRef(null);
 
  const SPORTS_LIST = ['NFL', 'NBA', 'MLB', 'NHL', 'MLS', 'Premier League', 'La Liga', 'Champions League', 'College Football', 'College Basketball', 'UFC/MMA', 'Boxing', 'NASCAR', 'F1', 'Tennis', 'Golf'];
 
+ const trialActive = userVenue.onTrial;
+ const trialEndsAt = userVenue.venueTrialEndsAt ? new Date(userVenue.venueTrialEndsAt) : null;
+ const trialDaysLeft = trialEndsAt ? Math.max(0, Math.ceil((trialEndsAt - new Date()) / (1000 * 60 * 60 * 24))) : 0;
+
  const tabs = [
  { id: 'dashboard', label: 'Dashboard', icon: '📊' },
- { id: 'featured', label: 'Go Featured', icon: '⭐' },
+ { id: 'featured', label: 'Plans & Pricing', icon: '⭐' },
  { id: 'promotions', label: 'Promote Games', icon: '📢' },
  { id: 'deals', label: 'Deals & Specials', icon: '🏷️' },
  ];
@@ -10579,6 +10583,23 @@ const qrScannerRef = useRef(null);
  </div>
 
  <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
+ {hubTab === 'dashboard' && trialActive && (
+ <div className="relative overflow-hidden rounded-2xl border border-blue-500/40 bg-gradient-to-r from-blue-900/60 via-indigo-900/50 to-blue-900/40 mb-2">
+ <div className="p-4">
+ <div className="flex items-center gap-2 mb-2">
+ <div className="w-8 h-8 bg-blue-500/30 rounded-lg flex items-center justify-center"><Gift className="w-4 h-4 text-blue-300" /></div>
+ <div>
+ <h3 className="text-white font-black text-sm">FREE TRIAL ACTIVE</h3>
+ <p className="text-blue-200 text-[10px]">{trialDaysLeft} days remaining</p>
+ </div>
+ </div>
+ <p className="text-white/60 text-xs mb-2">You're on a free 3-month trial. All Base tier features are available. Choose a plan before your trial ends to keep your venue listed.</p>
+ <button onClick={() => setHubTab('featured')} className="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 font-bold rounded-xl text-xs border border-blue-500/30 transition-all">
+ View Plans & Pricing
+ </button>
+ </div>
+ </div>
+ )}
  {hubTab === 'dashboard' && (
  <div className="relative overflow-hidden rounded-2xl border border-green-500/40 bg-gradient-to-r from-green-900/60 via-emerald-900/50 to-teal-900/40 mb-2">
  <div className="p-4">
@@ -10607,6 +10628,18 @@ const qrScannerRef = useRef(null);
 
  {hubTab === 'featured' && (
  <div className="space-y-4">
+ {trialActive && (
+ <div className="relative overflow-hidden rounded-2xl border border-blue-500/40 bg-gradient-to-r from-blue-900/40 via-indigo-900/30 to-blue-900/40">
+ <div className="p-4">
+ <div className="flex items-center gap-2 mb-2">
+ <Gift className="w-5 h-5 text-blue-300" />
+ <h3 className="text-white font-black text-sm">FREE TRIAL - {trialDaysLeft} DAYS LEFT</h3>
+ </div>
+ <p className="text-white/60 text-xs">Your 3-month free trial includes all Base tier features. Choose a plan below to continue after your trial ends{trialEndsAt ? ` on ${trialEndsAt.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}` : ''}.</p>
+ </div>
+ </div>
+ )}
+
  {userVenue.featured ? (
  <div className="relative overflow-hidden rounded-2xl border border-amber-500/40 bg-gradient-to-br from-amber-900/40 via-orange-900/30 to-yellow-900/20">
  <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full -translate-y-1/2 translate-x-1/2" />
@@ -10650,42 +10683,78 @@ const qrScannerRef = useRef(null);
  </button>
  </div>
  </div>
- ) : (
- <div className="space-y-4">
- <div className="relative overflow-hidden rounded-2xl border border-[#222A36] bg-gradient-to-br from-[#151A22] via-[#1A1F2B] to-[#151A22]">
- <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+ ) : userVenue.subscribed ? (
+ <div className="relative overflow-hidden rounded-2xl border border-blue-500/40 bg-gradient-to-br from-blue-900/40 via-[#151A22] to-blue-900/20">
  <div className="p-5">
- <div className="flex items-center gap-2 mb-1">
- <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
- <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-300">UPGRADE YOUR VENUE</span>
- </div>
- <h2 className="text-2xl font-black text-white mb-1" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>GO FEATURED</h2>
- <p className="text-[#A0A4AB] text-sm mb-4">Get more fans through your door with premium placement and visibility across the platform.</p>
-
- <div className="grid grid-cols-1 gap-3 mb-5">
- {[
- { icon: <TrendingUp className="w-5 h-5" />, title: 'Priority in Search Results', desc: 'Your venue appears at the top when fans search for watch party spots nearby' },
- { icon: <Award className="w-5 h-5" />, title: 'Featured Badge', desc: 'A gold star badge on your venue card so fans know you\'re a top-tier spot' },
- { icon: <Flame className="w-5 h-5" />, title: 'Trending Feed Boost', desc: 'Get boosted placement in the trending feed so more fans discover you' },
- { icon: <Bell className="w-5 h-5" />, title: 'Fan Notifications', desc: 'Nearby fans get notified when you\'re hosting games or running specials' },
- { icon: <BarChart3 className="w-5 h-5" />, title: 'Enhanced Analytics', desc: 'See detailed data on views, check-ins, and fan engagement at your venue' },
- { icon: <Zap className="w-5 h-5" />, title: 'Promoted Parties', desc: 'Watch parties at your venue get highlighted with a "Featured" label' },
- ].map((perk, i) => (
- <div key={i} className="flex items-start gap-3 p-3 bg-black/20 rounded-xl border border-[#222A36]">
- <div className="w-9 h-9 bg-amber-500/20 rounded-lg flex items-center justify-center flex-shrink-0 text-amber-400">
- {perk.icon}
+ <div className="flex items-center gap-3 mb-3">
+ <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+ <Building2 className="w-6 h-6 text-white" />
  </div>
  <div>
- <p className="text-white font-bold text-sm">{perk.title}</p>
- <p className="text-white/50 text-xs">{perk.desc}</p>
+ <h2 className="text-xl font-black text-white">Base Venue Plan</h2>
+ <p className="text-blue-300 text-xs font-bold">$29.99/month - Active</p>
  </div>
  </div>
+ <p className="text-white/60 text-xs mb-4">You're on the Base plan. Upgrade to Featured for priority placement and more visibility.</p>
+ <div className="flex gap-3">
+ <button
+ onClick={async () => { try { const d = await api.stripe.portal(); if (d?.url) window.location.href = d.url; } catch(e) { console.error(e); } }}
+ className="flex-1 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-sm transition-all"
+ >
+ Manage Subscription
+ </button>
+ </div>
+ </div>
+ </div>
+ ) : null}
+
+ {!userVenue.featured && (
+ <div className="space-y-4">
+ <h3 className="text-white font-black text-lg" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>CHOOSE YOUR PLAN</h3>
+
+ <div className="rounded-2xl border border-blue-500/40 bg-gradient-to-r from-blue-900/20 via-[#151A22] to-blue-900/20">
+ <div className="p-5">
+ <div className="flex items-center justify-between mb-3">
+ <div>
+ <p className="text-blue-300 text-xs font-bold uppercase tracking-wider">Base Venue</p>
+ <div className="flex items-baseline gap-1 mt-1">
+ <span className="text-3xl font-black text-white">$29</span>
+ <span className="text-lg text-white">.99</span>
+ <span className="text-[#A0A4AB] text-sm">/month</span>
+ </div>
+ </div>
+ <div className="w-14 h-14 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+ <Building2 className="w-7 h-7 text-white" />
+ </div>
+ </div>
+ <ul className="space-y-2 mb-4">
+ {['Listed on platform', 'Create watch parties', 'Post deals & specials', 'QR code check-ins', 'Basic analytics'].map((f, i) => (
+ <li key={i} className="flex items-center gap-2 text-white/70 text-xs"><CheckCircle className="w-4 h-4 text-blue-400 flex-shrink-0" />{f}</li>
  ))}
- </div>
+ </ul>
+ {!userVenue.subscribed && (
+ <button
+ onClick={async () => {
+ try {
+ const products = await api.stripe.products();
+ const baseProduct = products.find(p => p.metadata?.tier === 'venue');
+ if (baseProduct && baseProduct.prices.length > 0) {
+ const result = await api.stripe.checkout(baseProduct.prices[0].id);
+ if (result?.url) window.location.href = result.url;
+ } else { alert('Base Venue plan is being set up. Please try again shortly.'); }
+ } catch(e) { console.error(e); alert('Something went wrong. Please try again.'); }
+ }}
+ className="w-full py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white font-black rounded-xl text-sm transition-all shadow-lg shadow-blue-500/20"
+ style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}
+ >
+ {trialActive ? 'SELECT BASE PLAN' : 'SUBSCRIBE TO BASE'}
+ </button>
+ )}
  </div>
  </div>
 
  <div className="relative overflow-hidden rounded-2xl border-2 border-amber-500/60 bg-gradient-to-r from-amber-900/30 via-orange-900/20 to-amber-900/30">
+ <div className="absolute top-2 right-2 px-2 py-0.5 bg-amber-500 text-black text-[10px] font-black rounded-full uppercase">Most Popular</div>
  <div className="p-5">
  <div className="flex items-center justify-between mb-3">
  <div>
@@ -10700,7 +10769,11 @@ const qrScannerRef = useRef(null);
  <Star className="w-7 h-7 text-white fill-white" />
  </div>
  </div>
- <p className="text-white/60 text-xs mb-4">Everything in your current plan, plus all featured perks above. Cancel anytime.</p>
+ <ul className="space-y-2 mb-4">
+ {['Everything in Base, plus:', 'Priority search placement', 'Featured badge on profile', 'Trending feed boost', 'Fan notifications', 'Enhanced analytics', 'Promoted parties'].map((f, i) => (
+ <li key={i} className={`flex items-center gap-2 text-xs ${i === 0 ? 'text-amber-300 font-bold' : 'text-white/70'}`}>{i > 0 && <CheckCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />}{f}</li>
+ ))}
+ </ul>
  <button
  onClick={async () => {
  try {
@@ -10709,39 +10782,37 @@ const qrScannerRef = useRef(null);
  if (featuredProduct && featuredProduct.prices.length > 0) {
  const result = await api.stripe.checkout(featuredProduct.prices[0].id);
  if (result?.url) window.location.href = result.url;
- } else {
- alert('Featured Venue plan is being set up. Please try again shortly.');
- }
+ } else { alert('Featured Venue plan is being set up. Please try again shortly.'); }
  } catch(e) { console.error(e); alert('Something went wrong. Please try again.'); }
  }}
  className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black rounded-xl text-sm transition-all shadow-lg shadow-amber-500/20"
  style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}
  >
- UPGRADE TO FEATURED
+ {trialActive ? 'SELECT FEATURED PLAN' : 'UPGRADE TO FEATURED'}
  </button>
  </div>
  </div>
 
  <div className="rounded-2xl border border-[#222A36] bg-[#151A22] p-4">
- <h3 className="text-white font-bold text-sm mb-3">Base vs Featured Comparison</h3>
+ <h3 className="text-white font-bold text-sm mb-3">Plan Comparison</h3>
  <div className="space-y-2">
  {[
- { feature: 'Listed on platform', regular: true, featured: true },
- { feature: 'Create watch parties', regular: true, featured: true },
- { feature: 'Post deals & specials', regular: true, featured: true },
- { feature: 'QR code check-ins', regular: true, featured: true },
- { feature: 'Basic analytics', regular: true, featured: true },
- { feature: 'Priority search placement', regular: false, featured: true },
- { feature: 'Featured badge', regular: false, featured: true },
- { feature: 'Trending feed boost', regular: false, featured: true },
- { feature: 'Fan notifications', regular: false, featured: true },
- { feature: 'Enhanced analytics', regular: false, featured: true },
- { feature: 'Promoted parties', regular: false, featured: true },
+ { feature: 'Listed on platform', base: true, featured: true },
+ { feature: 'Create watch parties', base: true, featured: true },
+ { feature: 'Post deals & specials', base: true, featured: true },
+ { feature: 'QR code check-ins', base: true, featured: true },
+ { feature: 'Basic analytics', base: true, featured: true },
+ { feature: 'Priority search placement', base: false, featured: true },
+ { feature: 'Featured badge', base: false, featured: true },
+ { feature: 'Trending feed boost', base: false, featured: true },
+ { feature: 'Fan notifications', base: false, featured: true },
+ { feature: 'Enhanced analytics', base: false, featured: true },
+ { feature: 'Promoted parties', base: false, featured: true },
  ].map((row, i) => (
  <div key={i} className="flex items-center justify-between py-1.5 border-b border-[#222A36] last:border-0">
  <span className="text-white/70 text-xs">{row.feature}</span>
  <div className="flex items-center gap-6">
- <span className="text-xs w-16 text-center">{row.regular ? <CheckCircle className="w-4 h-4 text-green-400 mx-auto" /> : <X className="w-4 h-4 text-[#333] mx-auto" />}</span>
+ <span className="text-xs w-16 text-center">{row.base ? <CheckCircle className="w-4 h-4 text-blue-400 mx-auto" /> : <X className="w-4 h-4 text-[#333] mx-auto" />}</span>
  <span className="text-xs w-16 text-center"><CheckCircle className="w-4 h-4 text-amber-400 mx-auto" /></span>
  </div>
  </div>
