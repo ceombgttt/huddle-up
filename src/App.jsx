@@ -11111,9 +11111,10 @@ const qrScannerRef = useRef(null);
  }, [parties, currentCity]);
 
  const allSports = React.useMemo(() => {
-   const sportSet = new Set();
+   const defaultSports = ['NFL', 'NBA', 'MLB', 'NHL', 'MLS', 'College Football', 'College Basketball', 'Premier League', 'La Liga', 'Champions League', 'UFC/MMA', 'Boxing', 'NASCAR', 'F1', 'Tennis', 'Golf'];
+   const sportSet = new Set(defaultSports);
    parties.forEach(p => { if (p.sport) sportSet.add(p.sport); });
-   return Array.from(sportSet).sort();
+   return defaultSports.filter(s => sportSet.has(s)).concat([...sportSet].filter(s => !defaultSports.includes(s)));
  }, [parties]);
 
  const now = new Date();
