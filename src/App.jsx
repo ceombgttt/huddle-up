@@ -10774,6 +10774,7 @@ const qrScannerRef = useRef(null);
        <div className="bg-[#151A22] rounded-2xl border border-[#222A36] p-5">
          <h3 className="text-orange-300 font-bold text-sm mb-2 uppercase">Social</h3>
          <PrefToggle label="Friend Activity" prefKey="friendActivity" description="When friends join parties" />
+         <PrefToggle label="Nearby Parties" prefKey="nearbyParties" description="New parties near your location" />
          <PrefToggle label="Team Alerts" prefKey="teamAlerts" description="Alerts for your favorite teams" />
          <PrefToggle label="Rivalry Alerts" prefKey="rivalryAlerts" description="Classic rivalry game alerts" />
        </div>
@@ -14707,24 +14708,24 @@ const qrScannerRef = useRef(null);
  {currentScreen === 'signup' && signUpScreenJSX}
  {currentScreen === 'forgotPassword' && forgotPasswordScreenJSX}
  {currentScreen === 'games' && gamesScreenJSX()}
- {currentScreen === 'gameDetail' && GameDetailScreen()}
+ {currentScreen === 'gameDetail' && <GameDetailScreen />}
  {currentScreen === 'createParty' && createPartyScreenJSX()}
  {currentScreen === 'claimVenue' && claimVenueScreenJSX()}
  {currentScreen === 'admin' && AdminPanelScreen()}
- {currentScreen === 'venueDashboard' && VenueHubScreen()}
- {currentScreen === 'sponsorDashboard' && SponsorDashboard()}
- {currentScreen === 'myParties' && MyPartiesScreen()}
- {currentScreen === 'notificationSettings' && NotificationSettingsScreen()}
- {currentScreen === 'nearbyParties' && NearbyPartiesScreen()}
- {currentScreen === 'profile' && ProfileScreen()}
- {currentScreen === 'proUpgrade' && ProUpgradeScreen()}
- {currentScreen === 'influencerDashboard' && InfluencerDashboard()}
+ {currentScreen === 'venueDashboard' && <VenueHubScreen />}
+ {currentScreen === 'sponsorDashboard' && <SponsorDashboard />}
+ {currentScreen === 'myParties' && <MyPartiesScreen />}
+ {currentScreen === 'notificationSettings' && <NotificationSettingsScreen />}
+ {currentScreen === 'nearbyParties' && <NearbyPartiesScreen />}
+ {currentScreen === 'profile' && <ProfileScreen />}
+ {currentScreen === 'proUpgrade' && <ProUpgradeScreen />}
+ {currentScreen === 'influencerDashboard' && <InfluencerDashboard />}
  {currentScreen === 'fanFinder' && renderFanFinderScreen()}
  {currentScreen === 'myCrew' && renderMyCrewScreen()}
  {currentScreen === 'dmChat' && renderDmChatScreen()}
- {currentScreen === 'rewards' && RewardsScreen()}
- {currentScreen === 'invitations' && InvitationsScreen()}
- {currentScreen === 'qrCheckin' && QrCheckinScreen()}
+ {currentScreen === 'rewards' && <RewardsScreen />}
+ {currentScreen === 'invitations' && <InvitationsScreen />}
+ {currentScreen === 'qrCheckin' && <QrCheckinScreen />}
  {currentScreen === 'fantasy' && renderFantasyScreen()}
  {currentScreen === 'teamChats' && renderTeamChatsScreen()}
  {currentScreen === 'trending' && renderTrendingScreen()}
@@ -14732,8 +14733,8 @@ const qrScannerRef = useRef(null);
  {currentScreen === 'alerts' && renderAlertsScreen()}
  {currentScreen === 'myTickets' && renderMyTicketsScreen()}
  {currentScreen === 'predictions' && PredictionsScreen()}
- {currentScreen === 'contactUs' && ContactUsScreen()}
- {currentScreen === 'venueDetail' && VenueDetailScreen()}
+ {currentScreen === 'contactUs' && <ContactUsScreen />}
+ {currentScreen === 'venueDetail' && <VenueDetailScreen />}
  {currentScreen === 'inviteFriends' && renderInviteFriendsScreen()}
 
  {editProfileOpen && (
