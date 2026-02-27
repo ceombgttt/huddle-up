@@ -1843,7 +1843,7 @@ const qrScannerRef = useRef(null);
  const activeSponsors = adminSponsors.filter(s => s.status === 'active');
 
  const formScreens = ['welcome', 'login', 'signup', 'forgotPassword', 'claimVenue', 'createParty'];
- const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', 'qrCheckin', 'myParties', 'myCrew', 'fanFinder', 'invitations', 'venueDashboard', 'sponsorDashboard', 'teamChats', 'trending', 'myTickets', 'alerts', 'userProfile', 'dmChat', 'proUpgrade', 'venueDetail', 'inviteFriends', 'notificationSettings', 'nearbyParties', ...formScreens];
+ const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', 'qrCheckin', 'myParties', 'myCrew', 'fanFinder', 'invitations', 'venueDashboard', 'sponsorDashboard', 'teamChats', 'trending', 'myTickets', 'alerts', 'userProfile', 'dmChat', 'proUpgrade', 'venueDetail', 'inviteFriends', 'notificationSettings', 'nearbyParties', 'browseParties', ...formScreens];
  const isFormScreen = formScreens.includes(currentScreen);
  const isPauseScreen = pauseScreens.includes(currentScreen);
 
@@ -5686,6 +5686,9 @@ const qrScannerRef = useRef(null);
  <Download className="w-5 h-5 text-[#1E90FF]" /><span className="text-[#1E90FF] text-sm font-bold">Install App</span>
  </button>
  )}
+ <button onClick={() => { setCurrentScreen('browseParties'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 transition-colors text-left active:scale-[0.98] border border-orange-500/30">
+ <Search className="w-5 h-5 text-orange-400" /><span className="text-orange-400 text-sm font-bold">Browse All Parties</span>
+ </button>
  <button onClick={() => { setCurrentScreen('nearbyParties'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-[#1E90FF]/10 hover:bg-[#1E90FF]/20 transition-colors text-left active:scale-[0.98] border border-[#1E90FF]/20">
  <MapPin className="w-5 h-5 text-[#1E90FF]" /><span className="text-[#1E90FF] text-sm font-bold">Watch Parties Near Me</span>
  </button>
@@ -5906,6 +5909,20 @@ const qrScannerRef = useRef(null);
  </div>
  </div>
  )}
+
+ <div onClick={() => setCurrentScreen('browseParties')} className="mb-3 relative overflow-hidden rounded-2xl border border-orange-500/40 bg-gradient-to-r from-orange-900/40 via-[#151A22] to-orange-900/30 cursor-pointer hover:border-orange-500/60 transition-all active:scale-[0.99]">
+ <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+ <div className="p-4 flex items-center gap-4">
+ <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30 flex-shrink-0">
+ <Search className="w-6 h-6 text-white" />
+ </div>
+ <div className="flex-1 min-w-0">
+ <h3 className="text-white font-black text-sm" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>BROWSE ALL PARTIES</h3>
+ <p className="text-white/50 text-xs">Find watch parties near you — {parties.filter(p => { const gt = new Date(p.gameTime); return gt >= new Date(); }).length} upcoming</p>
+ </div>
+ <ChevronRight className="w-5 h-5 text-orange-400 flex-shrink-0" />
+ </div>
+ </div>
 
  {/* ROW 1: LOCATION DROPDOWN + MY TEAMS - SIDE BY SIDE */}
  <div className="grid grid-cols-2 gap-[10px] mt-5 mb-[10px]" data-tour-id="location-search">
@@ -11076,6 +11093,377 @@ const qrScannerRef = useRef(null);
  );
  };
 
+ const BrowsePartiesScreen = () => {
+ const savedFilters = React.useMemo(() => {
+   try { const s = localStorage.getItem('bp_filters'); return s ? JSON.parse(s) : null; } catch { return null; }
+ }, []);
+ const [bpSearch, setBpSearch] = useState(savedFilters?.search || '');
+ const [bpSport, setBpSport] = useState(savedFilters?.sport || 'All');
+ const [bpCity, setBpCity] = useState(savedFilters?.city || (currentCity || 'All'));
+ const [bpSort, setBpSort] = useState(savedFilters?.sort || (userCoords ? 'closest' : 'soonest'));
+ const [bpCollapsed, setBpCollapsed] = useState({});
+
+ React.useEffect(() => {
+   localStorage.setItem('bp_filters', JSON.stringify({ search: bpSearch, sport: bpSport, city: bpCity, sort: bpSort }));
+ }, [bpSearch, bpSport, bpCity, bpSort]);
+
+ const sportIcons = { 'NFL': '🏈', 'NBA': '🏀', 'NHL': '🏒', 'MLB': '⚾', 'MLS': '⚽', 'College Football': '🏈', 'College Basketball': '🏀', 'Premier League': '⚽', 'La Liga': '⚽', 'Liga MX': '⚽', 'Champions League': '⚽', 'UFC/MMA': '🥊', 'Boxing': '🥊', 'NASCAR': '🏁', 'F1': '🏎️', 'Tennis': '🎾', 'Golf': '⛳' };
+ const getSportIcon = (sport) => sportIcons[sport] || '🏟️';
+
+ const allCities = React.useMemo(() => {
+   const citySet = new Set();
+   parties.forEach(p => { if (p.city) citySet.add(p.city); });
+   return ['All', ...Array.from(citySet).sort()];
+ }, [parties]);
+
+ const allSports = React.useMemo(() => {
+   const sportSet = new Set();
+   parties.forEach(p => { if (p.sport) sportSet.add(p.sport); });
+   return Array.from(sportSet).sort();
+ }, [parties]);
+
+ const now = new Date();
+ const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+ const tomorrowStart = new Date(todayStart); tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+ const tomorrowEnd = new Date(todayStart); tomorrowEnd.setDate(tomorrowEnd.getDate() + 2);
+ const dayOfWeek = now.getDay();
+ const weekendStart = new Date(todayStart); weekendStart.setDate(weekendStart.getDate() + (5 - dayOfWeek + 7) % 7);
+ const weekendEnd = new Date(weekendStart); weekendEnd.setDate(weekendEnd.getDate() + (dayOfWeek >= 5 ? (7 - dayOfWeek + 1) : 3));
+ const thisWeekEnd = new Date(todayStart); thisWeekEnd.setDate(thisWeekEnd.getDate() + (7 - dayOfWeek));
+ const nextWeekEnd = new Date(thisWeekEnd); nextWeekEnd.setDate(nextWeekEnd.getDate() + 7);
+
+ const filteredParties = React.useMemo(() => {
+   const fourteenDaysOut = new Date(now); fourteenDaysOut.setDate(fourteenDaysOut.getDate() + 14);
+   let filtered = parties.filter(p => {
+     const gt = new Date(p.gameTime);
+     const threeHoursAgo = new Date(now.getTime() - 3 * 60 * 60 * 1000);
+     return gt >= threeHoursAgo && gt <= fourteenDaysOut;
+   });
+   if (bpSport !== 'All') filtered = filtered.filter(p => p.sport === bpSport);
+   if (bpCity !== 'All') filtered = filtered.filter(p => p.city === bpCity);
+   if (bpSearch.trim()) {
+     const q = bpSearch.toLowerCase().trim();
+     filtered = filtered.filter(p =>
+       (p.homeTeam || '').toLowerCase().includes(q) ||
+       (p.awayTeam || '').toLowerCase().includes(q) ||
+       (p.venueName || '').toLowerCase().includes(q) ||
+       (p.hostName || '').toLowerCase().includes(q) ||
+       (p.title || '').toLowerCase().includes(q) ||
+       (`${p.homeTeam} vs ${p.awayTeam}`).toLowerCase().includes(q)
+     );
+   }
+   if (bpSort === 'soonest' || bpSort === 'closest') filtered.sort((a, b) => new Date(a.gameTime) - new Date(b.gameTime));
+   else if (bpSort === 'popular') filtered.sort((a, b) => (b.attendees?.length || 0) - (a.attendees?.length || 0));
+   else if (bpSort === 'newest') filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+   if (bpSort === 'closest' && userCoords) {
+     const cityOrder = {};
+     if (currentCity) cityOrder[currentCity.toLowerCase()] = 0;
+     filtered.sort((a, b) => {
+       const ca = (a.city || '').toLowerCase();
+       const cb = (b.city || '').toLowerCase();
+       const da = ca === (currentCity || '').toLowerCase() ? 0 : 1;
+       const db = cb === (currentCity || '').toLowerCase() ? 0 : 1;
+       if (da !== db) return da - db;
+       return new Date(a.gameTime) - new Date(b.gameTime);
+     });
+   }
+   return filtered;
+ }, [parties, bpSport, bpCity, bpSearch, bpSort, userCoords, currentCity]);
+
+ const groupedParties = React.useMemo(() => {
+   const groups = [];
+   const happeningNow = [];
+   const today = [];
+   const tomorrow = [];
+   const thisWeekend = [];
+   const thisWeek = [];
+   const nextWeek = [];
+   const later = [];
+
+   filteredParties.forEach(p => {
+     const gt = new Date(p.gameTime);
+     const gameEnd = new Date(gt.getTime() + 3 * 60 * 60 * 1000);
+     if (gt <= now && gameEnd >= now) happeningNow.push(p);
+     else if (gt >= now && gt < tomorrowStart) today.push(p);
+     else if (gt >= tomorrowStart && gt < tomorrowEnd) tomorrow.push(p);
+     else if (dayOfWeek < 5 && gt >= weekendStart && gt < weekendEnd) thisWeekend.push(p);
+     else if (gt >= now && gt < thisWeekEnd) thisWeek.push(p);
+     else if (gt >= thisWeekEnd && gt < nextWeekEnd) nextWeek.push(p);
+     else later.push(p);
+   });
+
+   if (happeningNow.length) groups.push({ label: 'HAPPENING NOW', icon: '🔴', parties: happeningNow, isLive: true });
+   if (today.length) groups.push({ label: 'TODAY', icon: '📅', parties: today });
+   if (tomorrow.length) groups.push({ label: 'TOMORROW', icon: '📆', parties: tomorrow });
+   if (thisWeekend.length && dayOfWeek < 5) groups.push({ label: 'THIS WEEKEND', icon: '🎉', parties: thisWeekend });
+   if (thisWeek.length) groups.push({ label: 'THIS WEEK', icon: '📋', parties: thisWeek });
+   if (nextWeek.length) groups.push({ label: 'NEXT WEEK', icon: '🗓️', parties: nextWeek });
+   if (later.length) groups.push({ label: 'COMING UP', icon: '🔜', parties: later });
+   return groups;
+ }, [filteredParties]);
+
+ const hasFilters = bpSport !== 'All' || bpCity !== 'All' || bpSearch.trim() || bpSort !== 'soonest';
+
+ const getCountdown = (gameTime) => {
+   const gt = new Date(gameTime);
+   const diff = gt - now;
+   if (diff < 0) return 'Started';
+   const hours = Math.floor(diff / (1000 * 60 * 60));
+   const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+   if (hours >= 24) { const days = Math.floor(hours / 24); return `in ${days}d`; }
+   if (hours > 0) return `in ${hours}h ${mins}m`;
+   return `in ${mins}m`;
+ };
+
+ const friendIds = friendsList.map(f => f.id);
+
+ return (
+   <div className="min-h-screen pt-20 bg-[#0F1115]">
+     <div className="sticky top-14 z-10 bg-[#0F1115] border-b border-[#222A36]">
+       <div className="max-w-4xl mx-auto px-4 py-3">
+         <div className="flex items-center justify-between mb-3">
+           <button onClick={() => setCurrentScreen('games')} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors">
+             <ArrowLeft className="w-5 h-5" /> Back
+           </button>
+           <h2 className="text-lg font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>BROWSE PARTIES</h2>
+           <div className="w-16" />
+         </div>
+         <div className="relative mb-3">
+           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0A4AB]" />
+           <input
+             type="text"
+             placeholder="Search teams, venues, hosts..."
+             value={bpSearch}
+             onChange={(e) => setBpSearch(e.target.value)}
+             className="w-full pl-10 pr-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white text-sm placeholder-[#A0A4AB]/50 focus:outline-none focus:border-[#1E90FF]/50"
+           />
+           {bpSearch && (
+             <button onClick={() => setBpSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A0A4AB] hover:text-white">
+               <X className="w-4 h-4" />
+             </button>
+           )}
+         </div>
+         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+           {['All', ...allSports].map(sport => (
+             <button
+               key={sport}
+               onClick={() => setBpSport(sport)}
+               className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${bpSport === sport ? 'bg-[#1E90FF] text-white' : 'bg-[#151A22] text-[#A0A4AB] border border-[#222A36] hover:border-[#1E90FF]/40'}`}
+             >
+               {sport !== 'All' && <span>{getSportIcon(sport)}</span>}
+               {sport}
+             </button>
+           ))}
+         </div>
+         <div className="flex items-center gap-2 mt-2">
+           <div className="relative flex-1">
+             <select
+               value={bpCity}
+               onChange={(e) => setBpCity(e.target.value)}
+               className="w-full px-3 py-2 bg-[#151A22] border border-[#222A36] rounded-xl text-white text-xs appearance-none cursor-pointer focus:outline-none focus:border-[#1E90FF]/50"
+             >
+               {allCities.map(c => <option key={c} value={c}>{c === 'All' ? 'All Areas' : c}</option>)}
+             </select>
+             <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#A0A4AB] pointer-events-none" />
+           </div>
+           <div className="relative flex-1">
+             <select
+               value={bpSort}
+               onChange={(e) => setBpSort(e.target.value)}
+               className="w-full px-3 py-2 bg-[#151A22] border border-[#222A36] rounded-xl text-white text-xs appearance-none cursor-pointer focus:outline-none focus:border-[#1E90FF]/50"
+             >
+               <option value="soonest">Soonest First</option>
+               <option value="popular">Most Popular</option>
+               <option value="newest">Newest Posted</option>
+               <option value="closest">Closest to Me</option>
+             </select>
+             <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#A0A4AB] pointer-events-none" />
+           </div>
+         </div>
+         {hasFilters && (
+           <div className="flex items-center gap-2 mt-2 flex-wrap">
+             {bpSport !== 'All' && (
+               <span className="flex items-center gap-1 px-2 py-1 bg-[#1E90FF]/20 text-[#1E90FF] text-xs font-bold rounded-full border border-[#1E90FF]/30">
+                 {getSportIcon(bpSport)} {bpSport} <button onClick={() => setBpSport('All')}><X className="w-3 h-3" /></button>
+               </span>
+             )}
+             {bpCity !== 'All' && (
+               <span className="flex items-center gap-1 px-2 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-bold rounded-full border border-emerald-500/30">
+                 <MapPin className="w-3 h-3" /> {bpCity} <button onClick={() => setBpCity('All')}><X className="w-3 h-3" /></button>
+               </span>
+             )}
+             {bpSearch.trim() && (
+               <span className="flex items-center gap-1 px-2 py-1 bg-orange-500/20 text-orange-300 text-xs font-bold rounded-full border border-orange-500/30">
+                 <Search className="w-3 h-3" /> "{bpSearch}" <button onClick={() => setBpSearch('')}><X className="w-3 h-3" /></button>
+               </span>
+             )}
+             {bpSort !== 'soonest' && (
+               <span className="flex items-center gap-1 px-2 py-1 bg-purple-500/20 text-purple-300 text-xs font-bold rounded-full border border-purple-500/30">
+                 {bpSort === 'popular' ? 'Most Popular' : bpSort === 'closest' ? 'Closest' : 'Newest'} <button onClick={() => setBpSort('soonest')}><X className="w-3 h-3" /></button>
+               </span>
+             )}
+             <button onClick={() => { setBpSport('All'); setBpCity('All'); setBpSearch(''); setBpSort('soonest'); }} className="text-xs text-red-400 hover:text-red-300 ml-1">Clear All</button>
+           </div>
+         )}
+       </div>
+     </div>
+
+     <div className="max-w-4xl mx-auto px-4 py-4">
+       <p className="text-[#A0A4AB] text-xs mb-4">{filteredParties.length} {filteredParties.length === 1 ? 'party' : 'parties'} found</p>
+
+       {filteredParties.length === 0 ? (
+         <div className="bg-[#151A22] rounded-2xl border border-[#222A36] p-8 text-center">
+           <Search className="w-12 h-12 text-[#A0A4AB]/30 mx-auto mb-4" />
+           <h3 className="text-white font-bold text-lg mb-2">No parties found</h3>
+           <p className="text-[#A0A4AB] text-sm mb-4">Try adjusting your filters or create the first party!</p>
+           <div className="flex items-center justify-center gap-3 flex-wrap">
+             {hasFilters && (
+               <button onClick={() => { setBpSport('All'); setBpCity('All'); setBpSearch(''); setBpSort('soonest'); }} className="px-5 py-2.5 bg-[#222A36] hover:bg-[#2A3340] text-white font-bold rounded-xl text-sm transition-all">
+                 Clear Filters
+               </button>
+             )}
+             <button onClick={() => setCurrentScreen('games')} className="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-xl text-sm transition-all">
+               Browse Games & Create Party
+             </button>
+           </div>
+         </div>
+       ) : bpSort !== 'soonest' ? (
+         <div className="space-y-3">
+           {filteredParties.map(party => {
+             const gt = new Date(party.gameTime);
+             const gameEnd = new Date(gt.getTime() + 3 * 60 * 60 * 1000);
+             const isLive = gt <= now && gameEnd >= now;
+             const isPopular = (party.attendees?.length || 0) >= 25;
+             const friendsGoing = party.attendeeDetails?.filter(a => a.userId && friendIds.includes(a.userId)) || [];
+             return (
+               <div
+                 key={party.id}
+                 onClick={() => { const game = games.find(g => g.id === party.gameId); if (game) { setSelectedGame(game); setCurrentScreen('gameDetail'); } }}
+                 className={`bg-[#151A22] p-4 rounded-xl border transition-all cursor-pointer active:scale-[0.99] ${isLive ? 'border-red-500/40 bg-gradient-to-r from-red-900/20 via-[#151A22] to-[#151A22]' : 'border-[#222A36] hover:border-[#1E90FF]/30'}`}
+               >
+                 <div className="flex items-start justify-between mb-2">
+                   <div className="flex items-center gap-2 flex-1 min-w-0">
+                     <span className="text-lg flex-shrink-0">{getSportIcon(party.sport)}</span>
+                     <div className="min-w-0">
+                       <span className="text-white font-bold text-sm">{party.homeTeam} vs {party.awayTeam}</span>
+                       {isLive && <span className="ml-2 px-2 py-0.5 bg-red-500 text-white text-[10px] font-black rounded-full animate-pulse">LIVE</span>}
+                       {isPopular && !isLive && <span className="ml-2 text-orange-400 text-[10px] font-bold">🔥 POPULAR</span>}
+                     </div>
+                   </div>
+                 </div>
+                 <div className="text-sm text-[#A0A4AB] space-y-1">
+                   <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" /><span className="truncate">{party.venueName || 'TBD'}</span></div>
+                   <div className="flex items-center gap-2"><Calendar className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" /><span>{gt.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span><span className="text-[#1E90FF] text-xs font-semibold">{getCountdown(party.gameTime)}</span></div>
+                   <div className="flex items-center gap-4">
+                     <div className="flex items-center gap-2"><Users className="w-3.5 h-3.5 text-[#1E90FF] flex-shrink-0" /><span>{party.attendees?.length || 0} going</span></div>
+                     <div className="flex items-center gap-2"><User className="w-3.5 h-3.5 text-yellow-400 flex-shrink-0" /><span>{party.hostName}</span></div>
+                   </div>
+                   {friendsGoing.length > 0 && (
+                     <div className="flex items-center gap-2"><Heart className="w-3.5 h-3.5 text-pink-400 flex-shrink-0" /><span className="text-pink-300 font-semibold">{friendsGoing.length} friend{friendsGoing.length !== 1 ? 's' : ''} going</span></div>
+                   )}
+                 </div>
+                 {party.notes && <p className="text-white/40 text-xs mt-2 line-clamp-2">"{party.notes}"</p>}
+                 <div className="flex items-center justify-between mt-3">
+                   <div className="flex items-center gap-2">
+                     <button onClick={(e) => { e.stopPropagation(); openCalendarMenu(party); }} className="flex items-center gap-1 text-xs text-[#1E90FF] hover:text-[#1E90FF]/80"><Calendar className="w-3 h-3" /> Calendar</button>
+                     <button onClick={(e) => { e.stopPropagation(); openShareMenu(party); }} className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300"><Share2 className="w-3 h-3" /> Share</button>
+                   </div>
+                   {user && !party.attendees?.includes(user.email) && party.hostEmail !== user?.email ? (
+                     <button onClick={(e) => { e.stopPropagation(); handleJoinParty(party.id); }} className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-xs rounded-full hover:opacity-90 transition-all">
+                       <Users className="w-3 h-3" /> Join Party
+                     </button>
+                   ) : party.attendees?.includes(user?.email) ? (
+                     <span className="flex items-center gap-1 px-3 py-1.5 bg-green-500/20 text-green-400 text-xs font-bold rounded-full border border-green-500/30">
+                       <Check className="w-3 h-3" /> Joined
+                     </span>
+                   ) : null}
+                 </div>
+               </div>
+             );
+           })}
+         </div>
+       ) : (
+         <div className="space-y-6">
+           {groupedParties.map((group, gi) => {
+             const isCollapsed = bpCollapsed[group.label];
+             return (
+               <div key={gi}>
+                 <button
+                   onClick={() => setBpCollapsed(prev => ({ ...prev, [group.label]: !prev[group.label] }))}
+                   className="flex items-center gap-2 mb-3 w-full text-left group"
+                 >
+                   <span className="text-lg">{group.icon}</span>
+                   <h3 className="text-white font-black text-sm tracking-wider" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{group.label}</h3>
+                   <span className="text-[#A0A4AB] text-xs ml-1">({group.parties.length})</span>
+                   <div className="flex-1 border-t border-[#222A36] ml-2" />
+                   <ChevronDown className={`w-4 h-4 text-[#A0A4AB] transition-transform ${isCollapsed ? '-rotate-90' : ''}`} />
+                 </button>
+                 {!isCollapsed && (
+                   <div className="space-y-3">
+                     {group.parties.map(party => {
+                       const gt = new Date(party.gameTime);
+                       const gameEnd = new Date(gt.getTime() + 3 * 60 * 60 * 1000);
+                       const isLive = gt <= now && gameEnd >= now;
+                       const isPopular = (party.attendees?.length || 0) >= 25;
+                       const friendsGoing = party.attendeeDetails?.filter(a => a.userId && friendIds.includes(a.userId)) || [];
+                       return (
+                         <div
+                           key={party.id}
+                           onClick={() => { const game = games.find(g => g.id === party.gameId); if (game) { setSelectedGame(game); setCurrentScreen('gameDetail'); } }}
+                           className={`bg-[#151A22] p-4 rounded-xl border transition-all cursor-pointer active:scale-[0.99] ${isLive ? 'border-red-500/40 bg-gradient-to-r from-red-900/20 via-[#151A22] to-[#151A22]' : 'border-[#222A36] hover:border-[#1E90FF]/30'}`}
+                         >
+                           <div className="flex items-start justify-between mb-2">
+                             <div className="flex items-center gap-2 flex-1 min-w-0">
+                               <span className="text-lg flex-shrink-0">{getSportIcon(party.sport)}</span>
+                               <div className="min-w-0">
+                                 <span className="text-white font-bold text-sm">{party.homeTeam} vs {party.awayTeam}</span>
+                                 {isLive && <span className="ml-2 px-2 py-0.5 bg-red-500 text-white text-[10px] font-black rounded-full animate-pulse">LIVE</span>}
+                                 {isPopular && !isLive && <span className="ml-2 text-orange-400 text-[10px] font-bold">🔥 POPULAR</span>}
+                               </div>
+                             </div>
+                           </div>
+                           <div className="text-sm text-[#A0A4AB] space-y-1">
+                             <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" /><span className="truncate">{party.venueName || 'TBD'}</span></div>
+                             <div className="flex items-center gap-2"><Calendar className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" /><span>{gt.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span><span className="text-[#1E90FF] text-xs font-semibold">{getCountdown(party.gameTime)}</span></div>
+                             <div className="flex items-center gap-4">
+                               <div className="flex items-center gap-2"><Users className="w-3.5 h-3.5 text-[#1E90FF] flex-shrink-0" /><span>{party.attendees?.length || 0} going</span></div>
+                               <div className="flex items-center gap-2"><User className="w-3.5 h-3.5 text-yellow-400 flex-shrink-0" /><span>{party.hostName}</span></div>
+                             </div>
+                             {friendsGoing.length > 0 && (
+                               <div className="flex items-center gap-2"><Heart className="w-3.5 h-3.5 text-pink-400 flex-shrink-0" /><span className="text-pink-300 font-semibold">{friendsGoing.length} friend{friendsGoing.length !== 1 ? 's' : ''} going</span></div>
+                             )}
+                           </div>
+                           {party.notes && <p className="text-white/40 text-xs mt-2 line-clamp-2">"{party.notes}"</p>}
+                           <div className="flex items-center justify-between mt-3">
+                             <div className="flex items-center gap-2">
+                               <button onClick={(e) => { e.stopPropagation(); openCalendarMenu(party); }} className="flex items-center gap-1 text-xs text-[#1E90FF] hover:text-[#1E90FF]/80"><Calendar className="w-3 h-3" /> Calendar</button>
+                               <button onClick={(e) => { e.stopPropagation(); openShareMenu(party); }} className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300"><Share2 className="w-3 h-3" /> Share</button>
+                             </div>
+                             {user && !party.attendees?.includes(user.email) && party.hostEmail !== user?.email ? (
+                               <button onClick={(e) => { e.stopPropagation(); handleJoinParty(party.id); }} className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-xs rounded-full hover:opacity-90 transition-all">
+                                 <Users className="w-3 h-3" /> Join Party
+                               </button>
+                             ) : party.attendees?.includes(user?.email) ? (
+                               <span className="flex items-center gap-1 px-3 py-1.5 bg-green-500/20 text-green-400 text-xs font-bold rounded-full border border-green-500/30">
+                                 <Check className="w-3 h-3" /> Joined
+                               </span>
+                             ) : null}
+                           </div>
+                         </div>
+                       );
+                     })}
+                   </div>
+                 )}
+               </div>
+             );
+           })}
+         </div>
+       )}
+     </div>
+   </div>
+ );
+ };
+
  const NearbyPartiesScreen = () => {
  const [requestingLocation, setRequestingLocation] = useState(false);
 
@@ -15264,6 +15652,7 @@ const qrScannerRef = useRef(null);
  {currentScreen === 'sponsorDashboard' && <SponsorDashboard />}
  {currentScreen === 'myParties' && <MyPartiesScreen />}
  {currentScreen === 'notificationSettings' && <NotificationSettingsScreen />}
+ {currentScreen === 'browseParties' && <BrowsePartiesScreen />}
  {currentScreen === 'nearbyParties' && <NearbyPartiesScreen />}
  {currentScreen === 'profile' && <ProfileScreen />}
  {currentScreen === 'proUpgrade' && <ProUpgradeScreen />}
