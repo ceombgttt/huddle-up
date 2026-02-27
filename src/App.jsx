@@ -11094,18 +11094,11 @@ const qrScannerRef = useRef(null);
  };
 
  const BrowsePartiesScreen = () => {
- const savedFilters = React.useMemo(() => {
-   try { const s = localStorage.getItem('bp_filters'); return s ? JSON.parse(s) : null; } catch { return null; }
- }, []);
- const [bpSearch, setBpSearch] = useState(savedFilters?.search || '');
- const [bpSport, setBpSport] = useState(savedFilters?.sport || 'All');
- const [bpCity, setBpCity] = useState(savedFilters?.city || (currentCity ? currentCity.split(',')[0].trim() : 'All'));
- const [bpSort, setBpSort] = useState(savedFilters?.sort || (userCoords ? 'closest' : 'soonest'));
+ const [bpSearch, setBpSearch] = useState('');
+ const [bpSport, setBpSport] = useState('All');
+ const [bpCity, setBpCity] = useState('All');
+ const [bpSort, setBpSort] = useState('soonest');
  const [bpCollapsed, setBpCollapsed] = useState({});
-
- React.useEffect(() => {
-   localStorage.setItem('bp_filters', JSON.stringify({ search: bpSearch, sport: bpSport, city: bpCity, sort: bpSort }));
- }, [bpSearch, bpSport, bpCity, bpSort]);
 
  const sportIcons = { 'NFL': '🏈', 'NBA': '🏀', 'NHL': '🏒', 'MLB': '⚾', 'MLS': '⚽', 'College Football': '🏈', 'College Basketball': '🏀', 'Premier League': '⚽', 'La Liga': '⚽', 'Liga MX': '⚽', 'Champions League': '⚽', 'UFC/MMA': '🥊', 'Boxing': '🥊', 'NASCAR': '🏁', 'F1': '🏎️', 'Tennis': '🎾', 'Golf': '⛳' };
  const getSportIcon = (sport) => sportIcons[sport] || '🏟️';
