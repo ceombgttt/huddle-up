@@ -302,15 +302,34 @@ const DEMO_MAIN_SPONSOR = {
 };
 
 const MAIN_BANNER_HEIGHT = 48;
-const MainBrandBanner = () => {
+const SOFT_LAUNCH_START = new Date('2026-02-01');
+const MainBrandBanner = ({ userCount = 0 }) => {
+ const daysSinceLaunch = Math.floor((Date.now() - SOFT_LAUNCH_START.getTime()) / (1000 * 60 * 60 * 24));
+ const showBadge = daysSinceLaunch < 90;
+ const isNew = userCount >= 100 || daysSinceLaunch >= 30;
  return (
  <div
- className="w-full flex items-center justify-center bg-gradient-to-r from-[#0D1117] via-[#151A22] to-[#0D1117] border-b border-[#222A36] brand-banner-glow"
+ className="w-full flex items-center justify-center bg-gradient-to-r from-[#0D1117] via-[#151A22] to-[#0D1117] border-b border-[#222A36] brand-banner-glow relative"
  style={{ height: `${MAIN_BANNER_HEIGHT}px` }}
  >
  <span className="text-xl font-black text-white tracking-wide" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.12em' }}>HUDDLE UP</span>
  <span className="mx-2.5 text-[#A0A4AB] text-sm">|</span>
- <span className="text-sm font-bold text-[#1E90FF] brand-text-glow" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>FIND YOUR CREW. WATCH THE GAME.</span>
+ <span className="text-sm font-bold text-[#1E90FF] brand-text-glow hidden sm:inline" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>FIND YOUR CREW. WATCH THE GAME.</span>
+ {showBadge && (
+ <div className="absolute right-3 group">
+ <span
+ className="inline-flex items-center gap-1 px-2 py-1 rounded-xl text-white font-bold cursor-default"
+ style={{ fontSize: '10px', backgroundColor: isNew ? '#10B981' : '#F97316', animation: 'pulse 2s ease-in-out infinite' }}
+ >
+ {isNew ? 'New!' : 'Soft Launch'}
+ {!isNew && <span style={{ fontSize: '8px' }}>🔸</span>}
+ </span>
+ <div className="absolute right-0 top-full mt-2 w-56 p-3 bg-[#151A22] border border-[#222A36] rounded-xl shadow-xl text-xs text-[#A0A4AB] opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-[100]">
+ <p className="text-white font-bold mb-1">We're launching in Boca Raton first!</p>
+ <p>First 100 members get lifetime Pro FREE.</p>
+ </div>
+ </div>
+ )}
  </div>
  );
 };
@@ -14585,7 +14604,7 @@ const qrScannerRef = useRef(null);
  {user && !['welcome', 'login', 'signup', 'forgotPassword'].includes(currentScreen) && (
  <>
  <div className="fixed top-0 left-0 right-0 z-[60]" style={{ height: `${MAIN_BANNER_HEIGHT}px` }}>
- <MainBrandBanner />
+ <MainBrandBanner userCount={softLaunchStats.users} />
  </div>
  <div style={{ height: `${MAIN_BANNER_HEIGHT}px` }} />
  </>
