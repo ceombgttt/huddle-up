@@ -11099,7 +11099,7 @@ const qrScannerRef = useRef(null);
  }, []);
  const [bpSearch, setBpSearch] = useState(savedFilters?.search || '');
  const [bpSport, setBpSport] = useState(savedFilters?.sport || 'All');
- const [bpCity, setBpCity] = useState(savedFilters?.city || (currentCity || 'All'));
+ const [bpCity, setBpCity] = useState(savedFilters?.city || (currentCity ? currentCity.split(',')[0].trim() : 'All'));
  const [bpSort, setBpSort] = useState(savedFilters?.sort || (userCoords ? 'closest' : 'soonest'));
  const [bpCollapsed, setBpCollapsed] = useState({});
 
@@ -11112,9 +11112,10 @@ const qrScannerRef = useRef(null);
 
  const allCities = React.useMemo(() => {
    const citySet = new Set();
-   parties.forEach(p => { if (p.city) citySet.add(p.city); });
+   parties.forEach(p => { if (p.city) citySet.add(p.city.split(',')[0].trim()); });
+   if (currentCity) citySet.add(currentCity.split(',')[0].trim());
    return ['All', ...Array.from(citySet).sort()];
- }, [parties]);
+ }, [parties, currentCity]);
 
  const allSports = React.useMemo(() => {
    const sportSet = new Set();
@@ -11136,11 +11137,18 @@ const qrScannerRef = useRef(null);
    const fourteenDaysOut = new Date(now); fourteenDaysOut.setDate(fourteenDaysOut.getDate() + 14);
    let filtered = parties.filter(p => {
      const gt = new Date(p.gameTime);
+     if (isNaN(gt.getTime())) return true;
      const threeHoursAgo = new Date(now.getTime() - 3 * 60 * 60 * 1000);
      return gt >= threeHoursAgo && gt <= fourteenDaysOut;
    });
    if (bpSport !== 'All') filtered = filtered.filter(p => p.sport === bpSport);
-   if (bpCity !== 'All') filtered = filtered.filter(p => p.city === bpCity);
+   if (bpCity !== 'All') {
+     const normFilter = bpCity.toLowerCase().split(',')[0].trim();
+     filtered = filtered.filter(p => {
+       const pc = (p.city || '').toLowerCase().split(',')[0].trim();
+       return pc === normFilter || pc.includes(normFilter) || normFilter.includes(pc);
+     });
+   }
    if (bpSearch.trim()) {
      const q = bpSearch.toLowerCase().trim();
      filtered = filtered.filter(p =>
@@ -11182,6 +11190,7 @@ const qrScannerRef = useRef(null);
 
    filteredParties.forEach(p => {
      const gt = new Date(p.gameTime);
+     if (isNaN(gt.getTime())) { later.push(p); return; }
      const gameEnd = new Date(gt.getTime() + 3 * 60 * 60 * 1000);
      if (gt <= now && gameEnd >= now) happeningNow.push(p);
      else if (gt >= now && gt < tomorrowStart) today.push(p);
@@ -11206,6 +11215,7 @@ const qrScannerRef = useRef(null);
 
  const getCountdown = (gameTime) => {
    const gt = new Date(gameTime);
+   if (isNaN(gt.getTime())) return gameTime || '';
    const diff = gt - now;
    if (diff < 0) return 'Started';
    const hours = Math.floor(diff / (1000 * 60 * 60));
@@ -11353,7 +11363,7 @@ const qrScannerRef = useRef(null);
                  </div>
                  <div className="text-sm text-[#A0A4AB] space-y-1">
                    <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" /><span className="truncate">{party.venueName || 'TBD'}</span></div>
-                   <div className="flex items-center gap-2"><Calendar className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" /><span>{gt.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span><span className="text-[#1E90FF] text-xs font-semibold">{getCountdown(party.gameTime)}</span></div>
+                   <div className="flex items-center gap-2"><Calendar className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" /><span>{isNaN(gt.getTime()) ? (party.gameTime || 'TBD') : gt.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span><span className="text-[#1E90FF] text-xs font-semibold ml-1">{getCountdown(party.gameTime)}</span></div>
                    <div className="flex items-center gap-4">
                      <div className="flex items-center gap-2"><Users className="w-3.5 h-3.5 text-[#1E90FF] flex-shrink-0" /><span>{party.attendees?.length || 0} going</span></div>
                      <div className="flex items-center gap-2"><User className="w-3.5 h-3.5 text-yellow-400 flex-shrink-0" /><span>{party.hostName}</span></div>
@@ -11424,7 +11434,7 @@ const qrScannerRef = useRef(null);
                            </div>
                            <div className="text-sm text-[#A0A4AB] space-y-1">
                              <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" /><span className="truncate">{party.venueName || 'TBD'}</span></div>
-                             <div className="flex items-center gap-2"><Calendar className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" /><span>{gt.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span><span className="text-[#1E90FF] text-xs font-semibold">{getCountdown(party.gameTime)}</span></div>
+                             <div className="flex items-center gap-2"><Calendar className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" /><span>{isNaN(gt.getTime()) ? (party.gameTime || 'TBD') : gt.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span><span className="text-[#1E90FF] text-xs font-semibold ml-1">{getCountdown(party.gameTime)}</span></div>
                              <div className="flex items-center gap-4">
                                <div className="flex items-center gap-2"><Users className="w-3.5 h-3.5 text-[#1E90FF] flex-shrink-0" /><span>{party.attendees?.length || 0} going</span></div>
                                <div className="flex items-center gap-2"><User className="w-3.5 h-3.5 text-yellow-400 flex-shrink-0" /><span>{party.hostName}</span></div>
