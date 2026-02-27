@@ -9452,15 +9452,15 @@ const qrScannerRef = useRef(null);
  <h4 className="text-white font-bold text-sm mb-2">What Gets Created:</h4>
  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
  <div className="text-center p-3 bg-[#0F1115] rounded-lg">
- <div className="text-2xl font-black text-[#1E90FF]">50</div>
+ <div className="text-2xl font-black text-[#1E90FF]">77</div>
  <div className="text-[#A0A4AB] text-xs">Demo Users</div>
  </div>
  <div className="text-center p-3 bg-[#0F1115] rounded-lg">
- <div className="text-2xl font-black text-green-400">28</div>
+ <div className="text-2xl font-black text-green-400">46</div>
  <div className="text-[#A0A4AB] text-xs">Watch Parties</div>
  </div>
  <div className="text-center p-3 bg-[#0F1115] rounded-lg">
- <div className="text-2xl font-black text-amber-400">12</div>
+ <div className="text-2xl font-black text-amber-400">17</div>
  <div className="text-[#A0A4AB] text-xs">Real Venues</div>
  </div>
  <div className="text-center p-3 bg-[#0F1115] rounded-lg">

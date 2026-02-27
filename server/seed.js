@@ -611,7 +611,7 @@ export async function clearDemoData() {
       await client.query("DELETE FROM user_favorite_teams WHERE user_id = ANY($1)", [seedUserIds]);
       await client.query("DELETE FROM user_points WHERE user_id = ANY($1)", [seedUserIds]);
       await client.query("DELETE FROM points_history WHERE user_id = ANY($1)", [seedUserIds]);
-      await client.query("DELETE FROM friendships WHERE user_id = ANY($1) OR friend_id = ANY($1)", [seedUserIds, seedUserIds]);
+      await client.query("DELETE FROM friendships WHERE user_id = ANY($1) OR friend_id = ANY($1)", [seedUserIds]);
       await client.query("DELETE FROM venue_checkins WHERE user_id = ANY($1)", [seedUserIds]);
       await client.query("DELETE FROM venue_follows WHERE user_id = ANY($1)", [seedUserIds]);
       await client.query("DELETE FROM venue_reviews WHERE user_id = ANY($1)", [seedUserIds]);
