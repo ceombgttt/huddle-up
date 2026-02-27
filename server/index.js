@@ -160,6 +160,11 @@ app.get('/api/seed/stats', async (req, res) => {
   }
 });
 
+app.get('/download/App.jsx', (req, res) => {
+  const filePath = path.resolve(__dirname, '..', 'src', 'App.jsx');
+  res.download(filePath, 'App.jsx');
+});
+
 async function start() {
   if (isProduction) {
     const distPath = path.resolve(__dirname, '..', 'dist');
