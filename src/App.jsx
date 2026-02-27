@@ -14707,24 +14707,24 @@ const qrScannerRef = useRef(null);
  {currentScreen === 'signup' && signUpScreenJSX}
  {currentScreen === 'forgotPassword' && forgotPasswordScreenJSX}
  {currentScreen === 'games' && gamesScreenJSX()}
- {currentScreen === 'gameDetail' && <GameDetailScreen />}
+ {currentScreen === 'gameDetail' && GameDetailScreen()}
  {currentScreen === 'createParty' && createPartyScreenJSX()}
  {currentScreen === 'claimVenue' && claimVenueScreenJSX()}
  {currentScreen === 'admin' && AdminPanelScreen()}
- {currentScreen === 'venueDashboard' && <VenueHubScreen />}
- {currentScreen === 'sponsorDashboard' && <SponsorDashboard />}
- {currentScreen === 'myParties' && <MyPartiesScreen />}
- {currentScreen === 'notificationSettings' && <NotificationSettingsScreen />}
- {currentScreen === 'nearbyParties' && <NearbyPartiesScreen />}
- {currentScreen === 'profile' && <ProfileScreen />}
- {currentScreen === 'proUpgrade' && <ProUpgradeScreen />}
- {currentScreen === 'influencerDashboard' && <InfluencerDashboard />}
+ {currentScreen === 'venueDashboard' && VenueHubScreen()}
+ {currentScreen === 'sponsorDashboard' && SponsorDashboard()}
+ {currentScreen === 'myParties' && MyPartiesScreen()}
+ {currentScreen === 'notificationSettings' && NotificationSettingsScreen()}
+ {currentScreen === 'nearbyParties' && NearbyPartiesScreen()}
+ {currentScreen === 'profile' && ProfileScreen()}
+ {currentScreen === 'proUpgrade' && ProUpgradeScreen()}
+ {currentScreen === 'influencerDashboard' && InfluencerDashboard()}
  {currentScreen === 'fanFinder' && renderFanFinderScreen()}
  {currentScreen === 'myCrew' && renderMyCrewScreen()}
  {currentScreen === 'dmChat' && renderDmChatScreen()}
- {currentScreen === 'rewards' && <RewardsScreen />}
- {currentScreen === 'invitations' && <InvitationsScreen />}
- {currentScreen === 'qrCheckin' && <QrCheckinScreen />}
+ {currentScreen === 'rewards' && RewardsScreen()}
+ {currentScreen === 'invitations' && InvitationsScreen()}
+ {currentScreen === 'qrCheckin' && QrCheckinScreen()}
  {currentScreen === 'fantasy' && renderFantasyScreen()}
  {currentScreen === 'teamChats' && renderTeamChatsScreen()}
  {currentScreen === 'trending' && renderTrendingScreen()}
@@ -14732,8 +14732,8 @@ const qrScannerRef = useRef(null);
  {currentScreen === 'alerts' && renderAlertsScreen()}
  {currentScreen === 'myTickets' && renderMyTicketsScreen()}
  {currentScreen === 'predictions' && PredictionsScreen()}
- {currentScreen === 'contactUs' && <ContactUsScreen />}
- {currentScreen === 'venueDetail' && <VenueDetailScreen />}
+ {currentScreen === 'contactUs' && ContactUsScreen()}
+ {currentScreen === 'venueDetail' && VenueDetailScreen()}
  {currentScreen === 'inviteFriends' && renderInviteFriendsScreen()}
 
  {editProfileOpen && (
