@@ -4539,68 +4539,186 @@ const qrScannerRef = useRef(null);
  </div>
  </div>
  <div className="p-4 max-w-2xl mx-auto space-y-6">
- <p className="text-[#A0A4AB] text-xs">Last updated: February 1, 2026</p>
+ <p className="text-[#A0A4AB] text-xs font-semibold">Last Updated: February 26, 2026</p>
 
- <div className="space-y-5">
+ <div className="space-y-6">
+
  <div>
- <h3 className="text-white font-bold text-lg mb-2">1. Acceptance of Terms</h3>
- <p className="text-[#A0A4AB] text-sm leading-relaxed">By accessing or using Huddle Up ("the Service"), operated by Huddle Up USA LLC, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Service.</p>
+ <h3 className="text-white font-bold text-lg mb-2">1. ACCEPTANCE OF TERMS</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">By accessing or using Huddle Up (huddleupus.com) ("the Platform", "we", "us", or "our"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, do not use the Platform.</p>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed mt-2">Huddle Up is a platform that connects users who wish to organize or attend watch parties at various venues. We are a <strong className="text-white">technology platform only</strong> and are <strong className="text-white">not responsible</strong> for the actions, conduct, or services provided by venues or users.</p>
  </div>
 
  <div>
- <h3 className="text-white font-bold text-lg mb-2">2. Description of Service</h3>
- <p className="text-[#A0A4AB] text-sm leading-relaxed">Huddle Up is a platform that connects sports fans by facilitating the discovery and organization of sports watch parties at local venues. The Service allows users to find watch parties, create events, rate venues, and engage with a community of sports enthusiasts.</p>
+ <h3 className="text-white font-bold text-lg mb-2">2. DESCRIPTION OF SERVICE</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">Huddle Up provides:</p>
+ <ul className="text-[#A0A4AB] text-sm leading-relaxed list-disc ml-5 mt-1 space-y-1">
+ <li>A platform for users to discover and organize watch party events</li>
+ <li>Listings of venues where watch parties may be held</li>
+ <li>Tools for communication and coordination between users</li>
+ <li>Venue verification services (at our sole discretion)</li>
+ </ul>
+ <p className="text-white font-bold text-sm mt-3">WE ARE NOT:</p>
+ <ul className="text-[#A0A4AB] text-sm leading-relaxed list-disc ml-5 mt-1 space-y-1">
+ <li>Event organizers or hosts</li>
+ <li>Venue operators or managers</li>
+ <li>Responsible for the actual watch party experiences</li>
+ <li>Insurance providers or guarantors of safety</li>
+ </ul>
  </div>
 
  <div>
- <h3 className="text-white font-bold text-lg mb-2">3. User Accounts</h3>
- <p className="text-[#A0A4AB] text-sm leading-relaxed">You must be at least 18 years of age to create an account. You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You agree to provide accurate and complete information when creating your account.</p>
+ <h3 className="text-white font-bold text-lg mb-2">3. NO LIABILITY - PLATFORM USE AT YOUR OWN RISK</h3>
+ <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-3">
+ <h4 className="text-red-300 font-bold text-sm mb-2">3.1 DISCLAIMER OF LIABILITY</h4>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed font-semibold">YOU ACKNOWLEDGE AND AGREE THAT:</p>
+ <ul className="text-[#A0A4AB] text-sm leading-relaxed mt-2 space-y-2">
+ <li><strong className="text-white">A. Huddle Up is a PLATFORM ONLY.</strong> We connect users and venues but do not control, operate, manage, or have any involvement in actual watch party events or venue operations.</li>
+ <li><strong className="text-white">B. USE AT YOUR OWN RISK.</strong> Your use of the Platform and attendance at any watch parties listed on the Platform is ENTIRELY AT YOUR OWN RISK.</li>
+ <li><strong className="text-white">C. NO RESPONSIBILITY FOR EVENTS.</strong> We are not responsible or liable for: the safety, quality, legality, or suitability of any venue; the conduct, behavior, or actions of any users or venue patrons; any injuries, damages, losses, or harm occurring at venues or watch parties; food poisoning, illness, or health issues; theft, assault, harassment, or criminal acts; overcrowding or unsafe conditions; alcohol-related incidents; misrepresentation by venue owners or party hosts; cancellations or failures of watch parties; the accuracy of venue information; disputes between users, hosts, and venues.</li>
+ <li><strong className="text-white">D. NO VERIFICATION GUARANTEE.</strong> While we may verify certain venues, this verification does NOT guarantee safety, quality, or legality; does NOT constitute an endorsement or recommendation; is performed for administrative purposes only; and may be revoked at any time without notice.</li>
+ </ul>
+ </div>
+ <div className="bg-[#151A22] border border-[#222A36] rounded-xl p-4 mb-3">
+ <h4 className="text-orange-300 font-bold text-sm mb-2">3.2 INDEMNIFICATION</h4>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed"><strong className="text-white">YOU AGREE TO INDEMNIFY AND HOLD HARMLESS</strong> Huddle Up, its owners, officers, employees, contractors, and agents from any and all claims, damages, losses, liabilities, costs, and expenses (including attorney fees) arising from or related to: your use of the Platform; your attendance at any watch party or venue; your violation of these Terms; your violation of any rights of third parties; any content you post or share on the Platform; any disputes with other users or venues.</p>
+ </div>
+ <div className="bg-[#151A22] border border-[#222A36] rounded-xl p-4">
+ <h4 className="text-orange-300 font-bold text-sm mb-2">3.3 LIMITATION OF LIABILITY</h4>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed"><strong className="text-white">TO THE MAXIMUM EXTENT PERMITTED BY LAW:</strong> Huddle Up shall NOT be liable for any direct, indirect, incidental, special, consequential, or punitive damages; loss of profits, revenue, data, or use; personal injury or property damage; death or serious bodily injury; emotional distress or mental anguish.</p>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed mt-2"><strong className="text-white">EVEN IF</strong> we have been advised of the possibility of such damages.</p>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed mt-2"><strong className="text-white">IN NO EVENT</strong> shall our total liability to you for all damages, losses, and causes of action exceed <strong className="text-white">$100 USD</strong> or the amount you paid us in the last 12 months, whichever is less.</p>
+ </div>
  </div>
 
  <div>
- <h3 className="text-white font-bold text-lg mb-2">4. User Conduct</h3>
- <p className="text-[#A0A4AB] text-sm leading-relaxed">You agree not to: (a) use the Service for any unlawful purpose; (b) harass, abuse, or threaten other users; (c) post false, misleading, or fraudulent content; (d) impersonate any person or entity; (e) interfere with or disrupt the Service; (f) attempt to gain unauthorized access to any part of the Service.</p>
+ <h3 className="text-white font-bold text-lg mb-2">4. VENUE-SPECIFIC TERMS</h3>
+ <div className="space-y-3">
+ <div>
+ <h4 className="text-orange-300 font-bold text-sm mb-2">4.1 For Venue Owners/Operators</h4>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed"><strong className="text-white">BY CLAIMING A VENUE, YOU REPRESENT AND WARRANT THAT:</strong></p>
+ <ul className="text-[#A0A4AB] text-sm leading-relaxed list-disc ml-5 mt-1 space-y-1">
+ <li>You are authorized to represent the venue</li>
+ <li>All information you provide is accurate and up-to-date</li>
+ <li>You hold all necessary licenses, permits, and insurance for operation</li>
+ <li>You comply with all local, state, and federal laws</li>
+ <li>You are solely responsible for the safety and legality of your venue</li>
+ <li>You will not hold Huddle Up liable for any issues arising from watch parties</li>
+ </ul>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed mt-2"><strong className="text-white">YOU AGREE:</strong> Huddle Up may list your venue but makes no guarantees about traffic or attendance. Featured or Premium status can be revoked at any time. You are responsible for all venue operations, staffing, and safety. You will not misrepresent your capacity, amenities, or services. Any disputes with patrons are between you and the patron only.</p>
+ </div>
+ <div>
+ <h4 className="text-orange-300 font-bold text-sm mb-2">4.2 For Users Attending Watch Parties</h4>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed"><strong className="text-white">BY ATTENDING A WATCH PARTY, YOU ACKNOWLEDGE:</strong></p>
+ <ul className="text-[#A0A4AB] text-sm leading-relaxed list-disc ml-5 mt-1 space-y-1">
+ <li>You are responsible for your own safety and wellbeing</li>
+ <li>You should verify venue information independently</li>
+ <li>Huddle Up does not control venue conditions, staffing, or safety</li>
+ <li>You assume all risks associated with attending events</li>
+ <li>You are responsible for transportation to and from venues</li>
+ <li>You should not drink and drive</li>
+ </ul>
+ </div>
+ </div>
  </div>
 
  <div>
- <h3 className="text-white font-bold text-lg mb-2">5. Content</h3>
- <p className="text-[#A0A4AB] text-sm leading-relaxed">You retain ownership of content you post on Huddle Up. By posting content, you grant us a non-exclusive, worldwide, royalty-free license to use, display, and distribute your content in connection with the Service. You are solely responsible for the content you post.</p>
+ <h3 className="text-white font-bold text-lg mb-2">5. USER CONDUCT AND CONTENT</h3>
+ <h4 className="text-orange-300 font-bold text-sm mb-2">5.1 Prohibited Conduct</h4>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">You agree NOT to: post false, misleading, or fraudulent information; harass, threaten, or harm other users; use the Platform for illegal purposes; impersonate others or create fake accounts; spam, advertise, or solicit without permission; attempt to hack, disrupt, or damage the Platform; scrape data or use automated tools without permission.</p>
+ <h4 className="text-orange-300 font-bold text-sm mb-2 mt-3">5.2 User-Generated Content</h4>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed"><strong className="text-white">YOU ARE SOLELY RESPONSIBLE</strong> for any content you post, including party descriptions, comments, and reviews.</p>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed mt-1"><strong className="text-white">YOU GRANT US</strong> a non-exclusive, royalty-free, worldwide license to use, display, and distribute your content on the Platform.</p>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed mt-1"><strong className="text-white">WE MAY REMOVE</strong> any content that violates these Terms or is otherwise objectionable, in our sole discretion.</p>
  </div>
 
  <div>
- <h3 className="text-white font-bold text-lg mb-2">6. Pro Subscription</h3>
- <p className="text-[#A0A4AB] text-sm leading-relaxed">Huddle Up offers an optional Pro subscription at $2.99/month or $29.99/year. Subscriptions auto-renew unless cancelled. You may cancel at any time through your account settings. Refunds are handled in accordance with applicable app store policies or as required by law.</p>
+ <h3 className="text-white font-bold text-lg mb-2">6. VERIFICATION AND FEATURED STATUS</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">We may verify venues through manual review, but verification is not a guarantee of quality, safety, or legality; does not constitute an inspection or audit; can be revoked at any time; and does not create any special relationship or liability.</p>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed mt-2">Featured and Premium status are <strong className="text-white">paid advertising services only</strong>. They do not guarantee quality or safety, create endorsement or partnership, obligate us to provide any specific results, or make us responsible for venue operations.</p>
  </div>
 
  <div>
- <h3 className="text-white font-bold text-lg mb-2">7. Venue Accounts</h3>
- <p className="text-[#A0A4AB] text-sm leading-relaxed">Venue owners may claim and manage their venue listings. Venue subscriptions (Base at $29.99/month, Featured at $49.99/month) provide enhanced visibility and management tools. Venue owners are responsible for the accuracy of their venue information.</p>
+ <h3 className="text-white font-bold text-lg mb-2">7. PAYMENT AND SUBSCRIPTIONS</h3>
+ <div className="bg-[#151A22] border border-[#222A36] rounded-xl p-4">
+ <p className="text-white font-bold text-sm mb-1">Fan Subscriptions:</p>
+ <p className="text-[#A0A4AB] text-sm">Pro: $2.99/month or $29.99/year. All fees are non-refundable unless otherwise stated. Subject to change with 30 days notice.</p>
+ <p className="text-white font-bold text-sm mb-1 mt-3">Venue Subscriptions:</p>
+ <p className="text-[#A0A4AB] text-sm">Featured: $29.99/month. Premium: $49.99/month. All fees are non-refundable unless otherwise stated. Subject to change with 30 days notice. Billed monthly.</p>
+ </div>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed mt-3"><strong className="text-white">PAYMENT DOES NOT GUARANTEE:</strong> Increased attendance or traffic; positive reviews or ratings; continued listing on the Platform; any specific results or outcomes.</p>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed mt-2">We may suspend or terminate paid services at any time for violation of these Terms, fraudulent or illegal activity, non-payment of fees, or any reason in our sole discretion.</p>
  </div>
 
  <div>
- <h3 className="text-white font-bold text-lg mb-2">8. Disclaimer of Warranties</h3>
- <p className="text-[#A0A4AB] text-sm leading-relaxed">The Service is provided "as is" and "as available" without warranties of any kind, either express or implied. We do not guarantee the accuracy of venue information, event details, or user-generated content. We are not responsible for interactions between users at watch parties or venues.</p>
+ <h3 className="text-white font-bold text-lg mb-2">8. INTELLECTUAL PROPERTY</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">All content on the Platform, including logos, designs, text, and software, is owned by Huddle Up or licensed to us. You may not copy, modify, or distribute our content; use our trademarks or branding without permission; or reverse engineer or decompile our software.</p>
  </div>
 
  <div>
- <h3 className="text-white font-bold text-lg mb-2">9. Limitation of Liability</h3>
- <p className="text-[#A0A4AB] text-sm leading-relaxed">To the maximum extent permitted by law, Huddle Up USA LLC shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the Service.</p>
+ <h3 className="text-white font-bold text-lg mb-2">9. THIRD-PARTY SERVICES</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">The Platform may integrate with third-party services (payment processors, map providers, etc.). We are not responsible for these third-party services and your use is subject to their own terms.</p>
  </div>
 
  <div>
- <h3 className="text-white font-bold text-lg mb-2">10. Termination</h3>
- <p className="text-[#A0A4AB] text-sm leading-relaxed">We reserve the right to suspend or terminate your account at any time for violation of these Terms. You may delete your account at any time through your account settings.</p>
+ <h3 className="text-white font-bold text-lg mb-2">10. PRIVACY</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">Your use of the Platform is subject to our <span onClick={() => setCurrentScreen('privacyPolicy')} className="text-[#1E90FF] hover:underline cursor-pointer">Privacy Policy</span>, which is incorporated into these Terms by reference.</p>
  </div>
 
  <div>
- <h3 className="text-white font-bold text-lg mb-2">11. Changes to Terms</h3>
- <p className="text-[#A0A4AB] text-sm leading-relaxed">We may update these Terms from time to time. We will notify users of material changes via the Service. Continued use after changes constitutes acceptance of the updated Terms.</p>
+ <h3 className="text-white font-bold text-lg mb-2">11. MODIFICATIONS TO TERMS</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">We may modify these Terms at any time. Continued use of the Platform after changes constitutes acceptance of the new Terms.</p>
  </div>
 
  <div>
- <h3 className="text-white font-bold text-lg mb-2">12. Contact</h3>
- <p className="text-[#A0A4AB] text-sm leading-relaxed">For questions about these Terms, contact us at <a href="mailto:legal@huddleupusa.com" className="text-[#1E90FF] hover:underline">legal@huddleupusa.com</a>.</p>
+ <h3 className="text-white font-bold text-lg mb-2">12. TERMINATION</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">We may terminate or suspend your account at any time, with or without cause, with or without notice.</p>
  </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">13. DISPUTE RESOLUTION</h3>
+ <div className="bg-[#151A22] border border-[#222A36] rounded-xl p-4">
+ <p className="text-[#A0A4AB] text-sm leading-relaxed"><strong className="text-white">Governing Law:</strong> These Terms are governed by the laws of the State of Florida, USA, without regard to conflict of law principles.</p>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed mt-2"><strong className="text-white">Arbitration:</strong> ANY DISPUTE ARISING FROM THESE TERMS OR USE OF THE PLATFORM SHALL BE RESOLVED BY BINDING ARBITRATION in accordance with the American Arbitration Association rules.</p>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed mt-2"><strong className="text-white">YOU WAIVE YOUR RIGHT TO:</strong> A jury trial; participate in class action lawsuits; pursue claims in court (except small claims court).</p>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed mt-2"><strong className="text-white">Venue:</strong> Any legal action must be brought in Palm Beach County, Florida.</p>
+ </div>
+ </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">14. SEVERABILITY</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">If any provision of these Terms is found invalid or unenforceable, the remaining provisions shall remain in full force and effect.</p>
+ </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">15. ENTIRE AGREEMENT</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">These Terms constitute the entire agreement between you and Huddle Up regarding use of the Platform.</p>
+ </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">16. CONTACT</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">For questions about these Terms, contact us at:</p>
+ <ul className="text-[#A0A4AB] text-sm mt-1 space-y-1">
+ <li><strong className="text-white">Email:</strong> <a href="mailto:legal@huddleupus.com" className="text-[#1E90FF] hover:underline">legal@huddleupus.com</a></li>
+ <li><strong className="text-white">Support:</strong> <a href="mailto:contact@huddleupus.com" className="text-[#1E90FF] hover:underline">contact@huddleupus.com</a></li>
+ <li><strong className="text-white">Website:</strong> huddleupus.com</li>
+ </ul>
+ </div>
+
+ <div className="bg-[#151A22] border border-[#222A36] rounded-xl p-5 mt-4">
+ <h3 className="text-white font-bold text-sm mb-3">ACKNOWLEDGMENT AND ACCEPTANCE</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed font-semibold mb-3">BY USING HUDDLE UP, YOU ACKNOWLEDGE THAT:</p>
+ <ul className="text-[#A0A4AB] text-sm leading-relaxed space-y-1">
+ <li>&#10003; You have read and understood these Terms</li>
+ <li>&#10003; You agree to be bound by these Terms</li>
+ <li>&#10003; You understand that Huddle Up is a platform only and is not responsible for venues or events</li>
+ <li>&#10003; You use the Platform at your own risk</li>
+ <li>&#10003; You waive any claims against Huddle Up for injuries, damages, or losses</li>
+ <li>&#10003; You agree to arbitration and waive your right to a jury trial</li>
+ </ul>
+ <p className="text-red-300 font-bold text-sm mt-4">IF YOU DO NOT AGREE TO THESE TERMS, DO NOT USE THE PLATFORM.</p>
+ </div>
+
  </div>
  </div>
  </div>
@@ -4616,68 +4734,254 @@ const qrScannerRef = useRef(null);
  </div>
  </div>
  <div className="p-4 max-w-2xl mx-auto space-y-6">
- <p className="text-[#A0A4AB] text-xs">Last updated: February 1, 2026</p>
+ <p className="text-[#A0A4AB] text-xs font-semibold">Last Updated: February 26, 2026</p>
 
- <div className="space-y-5">
+ <div className="space-y-6">
+
  <div>
- <h3 className="text-white font-bold text-lg mb-2">1. Information We Collect</h3>
- <p className="text-[#A0A4AB] text-sm leading-relaxed">We collect information you provide directly: name, email address, profile picture, favorite teams, and location (city). We also collect usage data including pages visited, features used, and interactions with other users.</p>
+ <h3 className="text-white font-bold text-lg mb-2">1. INTRODUCTION</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">Huddle Up ("we," "us," or "our") respects your privacy and is committed to protecting your personal information. This Privacy Policy explains how we collect, use, share, and protect your information when you use our Platform at huddleupus.com.</p>
+ <p className="text-white text-sm leading-relaxed mt-2 font-semibold">By using Huddle Up, you consent to the practices described in this Privacy Policy.</p>
  </div>
 
  <div>
- <h3 className="text-white font-bold text-lg mb-2">2. How We Use Your Information</h3>
- <p className="text-[#A0A4AB] text-sm leading-relaxed">We use your information to: (a) provide and improve the Service; (b) personalize your experience with relevant watch parties and teams; (c) send notifications about parties, predictions, and friend activity (with your consent); (d) process payments for Pro subscriptions and venue listings; (e) ensure safety and prevent fraud.</p>
+ <h3 className="text-white font-bold text-lg mb-2">2. INFORMATION WE COLLECT</h3>
+ <h4 className="text-orange-300 font-bold text-sm mb-2">2.1 Information You Provide</h4>
+ <p className="text-white font-semibold text-sm">Account Information:</p>
+ <ul className="text-[#A0A4AB] text-sm leading-relaxed list-disc ml-5 mt-1 space-y-1">
+ <li>Name</li>
+ <li>Email address</li>
+ <li>Password (encrypted)</li>
+ <li>Phone number (optional)</li>
+ <li>Gender (optional - for community building)</li>
+ </ul>
+ <p className="text-white font-semibold text-sm mt-3">Venue Information (for venue owners):</p>
+ <ul className="text-[#A0A4AB] text-sm leading-relaxed list-disc ml-5 mt-1 space-y-1">
+ <li>Business name and address</li>
+ <li>Contact information</li>
+ <li>Business license or proof of ownership</li>
+ <li>Payment information (processed by third parties)</li>
+ </ul>
+ <p className="text-white font-semibold text-sm mt-3">User-Generated Content:</p>
+ <ul className="text-[#A0A4AB] text-sm leading-relaxed list-disc ml-5 mt-1 space-y-1">
+ <li>Watch party descriptions</li>
+ <li>Comments and reviews</li>
+ <li>Profile information</li>
+ <li>Messages to other users</li>
+ <li>Photos uploaded to parties</li>
+ </ul>
+ <h4 className="text-orange-300 font-bold text-sm mb-2 mt-4">2.2 Automatically Collected Information</h4>
+ <p className="text-white font-semibold text-sm">Usage Data:</p>
+ <ul className="text-[#A0A4AB] text-sm leading-relaxed list-disc ml-5 mt-1 space-y-1">
+ <li>IP address, browser type and version, device information</li>
+ <li>Operating system, pages viewed and links clicked</li>
+ <li>Time spent on pages, referring website</li>
+ </ul>
+ <p className="text-white font-semibold text-sm mt-3">Location Data:</p>
+ <ul className="text-[#A0A4AB] text-sm leading-relaxed list-disc ml-5 mt-1 space-y-1">
+ <li>General location based on IP address</li>
+ <li>Precise location (if you grant permission)</li>
+ </ul>
+ <p className="text-white font-semibold text-sm mt-3">Cookies and Tracking:</p>
+ <ul className="text-[#A0A4AB] text-sm leading-relaxed list-disc ml-5 mt-1 space-y-1">
+ <li>Session cookies, persistent cookies</li>
+ <li>Analytics cookies</li>
+ <li>Advertising cookies (third-party)</li>
+ </ul>
  </div>
 
  <div>
- <h3 className="text-white font-bold text-lg mb-2">3. Information Sharing</h3>
- <p className="text-[#A0A4AB] text-sm leading-relaxed">We do not sell your personal information. Your public profile (name, profile picture, favorite teams, fan score) is visible to other users. We may share information with: (a) venue partners to facilitate watch parties; (b) payment processors (Stripe) for transactions; (c) law enforcement when required by law.</p>
+ <h3 className="text-white font-bold text-lg mb-2">3. HOW WE USE YOUR INFORMATION</h3>
+ <p className="text-white font-semibold text-sm">Provide Services:</p>
+ <ul className="text-[#A0A4AB] text-sm leading-relaxed list-disc ml-5 mt-1 space-y-1">
+ <li>Create and manage your account</li>
+ <li>Display watch parties and venue listings</li>
+ <li>Process payments (via third-party processors)</li>
+ <li>Verify venue ownership</li>
+ <li>Send service-related notifications</li>
+ <li>Enable QR code check-ins</li>
+ <li>Show predictions and leaderboards</li>
+ </ul>
+ <p className="text-white font-semibold text-sm mt-3">Improve Platform:</p>
+ <ul className="text-[#A0A4AB] text-sm leading-relaxed list-disc ml-5 mt-1 space-y-1">
+ <li>Analyze usage patterns, fix bugs and improve features</li>
+ <li>Develop new features, conduct research and analytics</li>
+ </ul>
+ <p className="text-white font-semibold text-sm mt-3">Marketing and Communication:</p>
+ <ul className="text-[#A0A4AB] text-sm leading-relaxed list-disc ml-5 mt-1 space-y-1">
+ <li>Send promotional emails (you can opt out)</li>
+ <li>Notify you of new features, share updates about sports events</li>
+ <li>Send newsletters, SMS/Push notifications for parties</li>
+ </ul>
+ <p className="text-white font-semibold text-sm mt-3">Legal and Safety:</p>
+ <ul className="text-[#A0A4AB] text-sm leading-relaxed list-disc ml-5 mt-1 space-y-1">
+ <li>Comply with legal obligations, prevent fraud and abuse</li>
+ <li>Enforce our Terms of Service, protect our rights and property</li>
+ </ul>
  </div>
 
  <div>
- <h3 className="text-white font-bold text-lg mb-2">4. Push Notifications</h3>
- <p className="text-[#A0A4AB] text-sm leading-relaxed">With your permission, we send push notifications for party reminders, prediction results, friend activity, and achievements. You can manage notification preferences in your settings. We observe quiet hours (10 PM - 8 AM) and limit notifications to 5 per day.</p>
+ <h3 className="text-white font-bold text-lg mb-2">4. HOW WE SHARE YOUR INFORMATION</h3>
+ <h4 className="text-orange-300 font-bold text-sm mb-2">4.1 Public Information</h4>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed"><strong className="text-white">The following information is PUBLIC and visible to all users:</strong></p>
+ <ul className="text-[#A0A4AB] text-sm leading-relaxed list-disc ml-5 mt-1 space-y-1">
+ <li>Your first name (if you create or join a watch party)</li>
+ <li>Your gender (if provided, shown to party attendees)</li>
+ <li>Watch party details you create</li>
+ <li>Venue information for claimed venues</li>
+ <li>Reviews and comments you post</li>
+ <li>Your "Founder" badge (if applicable)</li>
+ </ul>
+ <h4 className="text-orange-300 font-bold text-sm mb-2 mt-4">4.2 Shared Information</h4>
+ <p className="text-white font-semibold text-sm">Venue Owners:</p>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed mt-1">If you join a watch party at a venue, the venue owner can see: your name, your gender (if provided), number of attendees in your party, and any notes you provide.</p>
+ <p className="text-white font-semibold text-sm mt-3">Service Providers:</p>
+ <ul className="text-[#A0A4AB] text-sm leading-relaxed list-disc ml-5 mt-1 space-y-1">
+ <li>Payment processors (Stripe)</li>
+ <li>Hosting providers (Replit, Vercel)</li>
+ <li>Analytics services (Google Analytics)</li>
+ <li>Email services (SendGrid, Mailchimp)</li>
+ <li>SMS services (Twilio)</li>
+ <li>Customer support tools</li>
+ </ul>
+ <p className="text-white font-semibold text-sm mt-3">Legal Requirements:</p>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed mt-1">Law enforcement (if required by law), court orders or subpoenas, protection of rights and safety.</p>
+ <p className="text-white font-semibold text-sm mt-3">Business Transfers:</p>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed mt-1">In the event of a merger, acquisition, or sale of assets.</p>
+ <h4 className="text-orange-300 font-bold text-sm mb-2 mt-4">4.3 We DO NOT Sell Your Data</h4>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed"><strong className="text-white">We do not sell your personal information to third parties.</strong> However, we may share aggregated, anonymized data for research or marketing purposes.</p>
  </div>
 
  <div>
- <h3 className="text-white font-bold text-lg mb-2">5. Location Data</h3>
- <p className="text-[#A0A4AB] text-sm leading-relaxed">We use your city information to show nearby watch parties and venues. We do not continuously track your precise location. QR code check-ins at venues are voluntary and only record attendance at specific events.</p>
+ <h3 className="text-white font-bold text-lg mb-2">5. DATA RETENTION</h3>
+ <div className="bg-[#151A22] border border-[#222A36] rounded-xl p-4">
+ <ul className="text-[#A0A4AB] text-sm leading-relaxed space-y-2">
+ <li><strong className="text-white">Account data:</strong> Until you delete your account, plus 90 days</li>
+ <li><strong className="text-white">Payment records:</strong> 7 years (for tax/legal compliance)</li>
+ <li><strong className="text-white">Usage logs:</strong> 2 years</li>
+ <li><strong className="text-white">Deleted accounts:</strong> Anonymized data may be retained indefinitely</li>
+ </ul>
+ </div>
  </div>
 
  <div>
- <h3 className="text-white font-bold text-lg mb-2">6. Data Security</h3>
- <p className="text-[#A0A4AB] text-sm leading-relaxed">We use industry-standard security measures including encrypted passwords (bcrypt), secure sessions, and HTTPS encryption. However, no method of electronic storage is 100% secure, and we cannot guarantee absolute security.</p>
+ <h3 className="text-white font-bold text-lg mb-2">6. YOUR RIGHTS AND CHOICES</h3>
+ <h4 className="text-orange-300 font-bold text-sm mb-2">6.1 Account Management</h4>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">You can: update your profile information, change your password, delete your account (contact <a href="mailto:contact@huddleupus.com" className="text-[#1E90FF] hover:underline">contact@huddleupus.com</a>).</p>
+ <h4 className="text-orange-300 font-bold text-sm mb-2 mt-3">6.2 Communication Preferences</h4>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">You can: opt out of marketing emails (click "unsubscribe"), disable push notifications in your device settings, manage notification preferences in Settings, contact us to opt out of all non-essential communications.</p>
+ <h4 className="text-orange-300 font-bold text-sm mb-2 mt-3">6.3 Data Access and Portability</h4>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">You can request: a copy of your personal data, correction of inaccurate data, deletion of your data (subject to legal requirements).</p>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed mt-2"><strong className="text-white">To exercise these rights, email:</strong> <a href="mailto:privacy@huddleupus.com" className="text-[#1E90FF] hover:underline">privacy@huddleupus.com</a></p>
+ <h4 className="text-orange-300 font-bold text-sm mb-2 mt-3">6.4 Cookies</h4>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">You can: disable cookies in your browser settings, use browser extensions to block trackers. Note: Disabling cookies may affect functionality.</p>
  </div>
 
  <div>
- <h3 className="text-white font-bold text-lg mb-2">7. Cookies and Local Storage</h3>
- <p className="text-[#A0A4AB] text-sm leading-relaxed">We use session cookies for authentication and localStorage for preferences (such as dismissed banners and theme settings). These are essential for the Service to function properly.</p>
+ <h3 className="text-white font-bold text-lg mb-2">7. DATA SECURITY</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">We implement reasonable security measures to protect your information:</p>
+ <ul className="text-[#A0A4AB] text-sm leading-relaxed list-disc ml-5 mt-1 space-y-1">
+ <li>Encrypted data transmission (HTTPS/SSL)</li>
+ <li>Encrypted password storage</li>
+ <li>Secure servers and databases</li>
+ <li>Regular security audits</li>
+ <li>Limited employee access to data</li>
+ </ul>
+ <p className="text-white text-sm leading-relaxed mt-2 font-semibold">However, no method of transmission or storage is 100% secure. We cannot guarantee absolute security.</p>
  </div>
 
  <div>
- <h3 className="text-white font-bold text-lg mb-2">8. Data Retention</h3>
- <p className="text-[#A0A4AB] text-sm leading-relaxed">We retain your account data as long as your account is active. You may request deletion of your account and associated data at any time by contacting us. Some data may be retained as required by law or for legitimate business purposes.</p>
+ <h3 className="text-white font-bold text-lg mb-2">8. CHILDREN'S PRIVACY</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">Huddle Up is <strong className="text-white">not intended for users under 18 years old.</strong></p>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed mt-2">We do not knowingly collect information from minors. If we discover we have collected data from a minor, we will delete it immediately.</p>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed mt-2"><strong className="text-white">Parents:</strong> If you believe your child has provided information to us, contact <a href="mailto:privacy@huddleupus.com" className="text-[#1E90FF] hover:underline">privacy@huddleupus.com</a>.</p>
  </div>
 
  <div>
- <h3 className="text-white font-bold text-lg mb-2">9. Children's Privacy</h3>
- <p className="text-[#A0A4AB] text-sm leading-relaxed">The Service is not intended for users under 18 years of age. We do not knowingly collect personal information from children under 18. If we learn that we have collected information from a child under 18, we will delete it promptly.</p>
+ <h3 className="text-white font-bold text-lg mb-2">9. THIRD-PARTY LINKS AND SERVICES</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">Our Platform may contain links to third-party websites or integrate with third-party services. We are not responsible for their privacy practices. Review their privacy policies separately.</p>
+ <p className="text-white font-semibold text-sm mt-3">Third-party services we use:</p>
+ <ul className="text-[#A0A4AB] text-sm leading-relaxed list-disc ml-5 mt-1 space-y-1">
+ <li>Stripe (payment processing)</li>
+ <li>Google Maps (venue locations)</li>
+ <li>Google Analytics (usage analytics)</li>
+ <li>Social media platforms (sharing features)</li>
+ <li>ESPN (live scores)</li>
+ <li>Twilio (SMS notifications)</li>
+ </ul>
  </div>
 
  <div>
- <h3 className="text-white font-bold text-lg mb-2">10. Your Rights</h3>
- <p className="text-[#A0A4AB] text-sm leading-relaxed">You have the right to: (a) access your personal data; (b) correct inaccurate data; (c) request deletion of your data; (d) opt out of marketing communications; (e) export your data. To exercise these rights, contact us at <a href="mailto:privacy@huddleupusa.com" className="text-[#1E90FF] hover:underline">privacy@huddleupusa.com</a>.</p>
+ <h3 className="text-white font-bold text-lg mb-2">10. INTERNATIONAL USERS</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">Huddle Up is based in the United States. If you access the Platform from outside the U.S.: your information will be transferred to and stored in the U.S.; U.S. privacy laws may differ from your country's laws; by using the Platform, you consent to this transfer.</p>
  </div>
 
  <div>
- <h3 className="text-white font-bold text-lg mb-2">11. Changes to This Policy</h3>
- <p className="text-[#A0A4AB] text-sm leading-relaxed">We may update this Privacy Policy from time to time. We will notify you of material changes through the Service. Your continued use constitutes acceptance of the updated policy.</p>
+ <h3 className="text-white font-bold text-lg mb-2">11. CALIFORNIA PRIVACY RIGHTS (CCPA)</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed"><strong className="text-white">If you are a California resident, you have the right to:</strong></p>
+ <ul className="text-[#A0A4AB] text-sm leading-relaxed list-disc ml-5 mt-1 space-y-1">
+ <li>Know what personal information we collect</li>
+ <li>Know whether we sell or share your information</li>
+ <li>Access your personal information</li>
+ <li>Request deletion of your information</li>
+ <li>Opt out of the sale of your information (we don't sell data)</li>
+ <li>Non-discrimination for exercising your rights</li>
+ </ul>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed mt-2"><strong className="text-white">To exercise these rights:</strong> Email <a href="mailto:privacy@huddleupus.com" className="text-[#1E90FF] hover:underline">privacy@huddleupus.com</a> with subject line "California Privacy Request." We will respond within 45 days.</p>
  </div>
 
  <div>
- <h3 className="text-white font-bold text-lg mb-2">12. Contact</h3>
- <p className="text-[#A0A4AB] text-sm leading-relaxed">For privacy-related questions, contact us at <a href="mailto:privacy@huddleupusa.com" className="text-[#1E90FF] hover:underline">privacy@huddleupusa.com</a>.</p>
+ <h3 className="text-white font-bold text-lg mb-2">12. EUROPEAN USERS (GDPR)</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed"><strong className="text-white">If you are in the European Economic Area (EEA), you have additional rights:</strong></p>
+ <p className="text-white font-semibold text-sm mt-3">Legal Basis for Processing:</p>
+ <ul className="text-[#A0A4AB] text-sm leading-relaxed list-disc ml-5 mt-1 space-y-1">
+ <li>Consent (you agreed to these terms)</li>
+ <li>Contract performance (providing services)</li>
+ <li>Legitimate interests (improving the Platform)</li>
+ <li>Legal obligations</li>
+ </ul>
+ <p className="text-white font-semibold text-sm mt-3">Your GDPR Rights:</p>
+ <ul className="text-[#A0A4AB] text-sm leading-relaxed list-disc ml-5 mt-1 space-y-1">
+ <li>Right to access your data</li>
+ <li>Right to rectification (correct errors)</li>
+ <li>Right to erasure ("right to be forgotten")</li>
+ <li>Right to restrict processing</li>
+ <li>Right to data portability</li>
+ <li>Right to object to processing</li>
+ <li>Right to withdraw consent</li>
+ </ul>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed mt-2"><strong className="text-white">To exercise these rights:</strong> Email <a href="mailto:privacy@huddleupus.com" className="text-[#1E90FF] hover:underline">privacy@huddleupus.com</a> with subject line "GDPR Request."</p>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed mt-2"><strong className="text-white">Data Protection Officer:</strong> <a href="mailto:privacy@huddleupus.com" className="text-[#1E90FF] hover:underline">privacy@huddleupus.com</a></p>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed mt-2">You have the right to lodge a complaint with your local data protection authority.</p>
  </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">13. DO NOT TRACK SIGNALS</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">Our Platform does not currently respond to "Do Not Track" browser signals. We may implement this in the future.</p>
+ </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">14. CHANGES TO THIS PRIVACY POLICY</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">We may update this Privacy Policy from time to time. Changes will be posted on this page with an updated "Last Updated" date.</p>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed mt-2"><strong className="text-white">Material changes</strong> will be communicated via: email notification, prominent notice on the Platform, pop-up notification at login.</p>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed mt-2 font-semibold">Continued use of the Platform after changes constitutes acceptance of the updated Privacy Policy.</p>
+ </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">15. CONTACT US</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">For questions or concerns about this Privacy Policy or our data practices:</p>
+ <ul className="text-[#A0A4AB] text-sm mt-2 space-y-1">
+ <li><strong className="text-white">Email:</strong> <a href="mailto:privacy@huddleupus.com" className="text-[#1E90FF] hover:underline">privacy@huddleupus.com</a></li>
+ <li><strong className="text-white">Support:</strong> <a href="mailto:contact@huddleupus.com" className="text-[#1E90FF] hover:underline">contact@huddleupus.com</a></li>
+ <li><strong className="text-white">Website:</strong> huddleupus.com</li>
+ </ul>
+ </div>
+
+ <div className="bg-[#151A22] border border-[#222A36] rounded-xl p-5 mt-4">
+ <h3 className="text-white font-bold text-sm mb-3">CONSENT</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed font-semibold">By using Huddle Up, you acknowledge that you have read and understood this Privacy Policy and consent to the collection, use, and sharing of your information as described.</p>
+ </div>
+
  </div>
  </div>
  </div>
