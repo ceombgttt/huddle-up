@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, Megaphone, MessageCircle, Gift, Award, Clock, Zap, Crown, Copy, Shield, ChevronRight, Info, Flame, TrendingUp, Menu, ScanLine, Download, Smartphone, Target } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, Megaphone, MessageCircle, Gift, Award, Clock, Zap, Crown, Copy, Shield, ChevronRight, Info, Flame, TrendingUp, Menu, ScanLine, Download, Smartphone, Target, Lock } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { api } from './api.js';
 
@@ -1926,6 +1926,15 @@ const qrScannerRef = useRef(null);
  if (influencerMatch) {
  setInfluencerDashboardToken(influencerMatch[1]);
  setCurrentScreen('influencerDashboard');
+ window.history.replaceState({}, '', '/');
+ }
+
+ if (window.location.pathname === '/terms') {
+ setCurrentScreen('termsOfService');
+ window.history.replaceState({}, '', '/');
+ }
+ if (window.location.pathname === '/privacy') {
+ setCurrentScreen('privacyPolicy');
  window.history.replaceState({}, '', '/');
  }
 
@@ -4520,6 +4529,160 @@ const qrScannerRef = useRef(null);
  </div>
  );
 
+ const TermsOfServiceScreen = () => (
+ <div className="min-h-screen pt-20 bg-[#0F1115]">
+ <div className="sticky top-20 z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
+ <div className="flex items-center gap-3">
+ <button onClick={() => setCurrentScreen('games')} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
+ <Shield className="w-6 h-6 text-[#1E90FF]" />
+ <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>TERMS OF SERVICE</h2>
+ </div>
+ </div>
+ <div className="p-4 max-w-2xl mx-auto space-y-6">
+ <p className="text-[#A0A4AB] text-xs">Last updated: February 1, 2026</p>
+
+ <div className="space-y-5">
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">1. Acceptance of Terms</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">By accessing or using Huddle Up ("the Service"), operated by Huddle Up USA LLC, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Service.</p>
+ </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">2. Description of Service</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">Huddle Up is a platform that connects sports fans by facilitating the discovery and organization of sports watch parties at local venues. The Service allows users to find watch parties, create events, rate venues, and engage with a community of sports enthusiasts.</p>
+ </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">3. User Accounts</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">You must be at least 18 years of age to create an account. You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You agree to provide accurate and complete information when creating your account.</p>
+ </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">4. User Conduct</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">You agree not to: (a) use the Service for any unlawful purpose; (b) harass, abuse, or threaten other users; (c) post false, misleading, or fraudulent content; (d) impersonate any person or entity; (e) interfere with or disrupt the Service; (f) attempt to gain unauthorized access to any part of the Service.</p>
+ </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">5. Content</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">You retain ownership of content you post on Huddle Up. By posting content, you grant us a non-exclusive, worldwide, royalty-free license to use, display, and distribute your content in connection with the Service. You are solely responsible for the content you post.</p>
+ </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">6. Pro Subscription</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">Huddle Up offers an optional Pro subscription at $2.99/month or $29.99/year. Subscriptions auto-renew unless cancelled. You may cancel at any time through your account settings. Refunds are handled in accordance with applicable app store policies or as required by law.</p>
+ </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">7. Venue Accounts</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">Venue owners may claim and manage their venue listings. Venue subscriptions (Base at $29.99/month, Featured at $49.99/month) provide enhanced visibility and management tools. Venue owners are responsible for the accuracy of their venue information.</p>
+ </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">8. Disclaimer of Warranties</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">The Service is provided "as is" and "as available" without warranties of any kind, either express or implied. We do not guarantee the accuracy of venue information, event details, or user-generated content. We are not responsible for interactions between users at watch parties or venues.</p>
+ </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">9. Limitation of Liability</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">To the maximum extent permitted by law, Huddle Up USA LLC shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the Service.</p>
+ </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">10. Termination</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">We reserve the right to suspend or terminate your account at any time for violation of these Terms. You may delete your account at any time through your account settings.</p>
+ </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">11. Changes to Terms</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">We may update these Terms from time to time. We will notify users of material changes via the Service. Continued use after changes constitutes acceptance of the updated Terms.</p>
+ </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">12. Contact</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">For questions about these Terms, contact us at <a href="mailto:legal@huddleupusa.com" className="text-[#1E90FF] hover:underline">legal@huddleupusa.com</a>.</p>
+ </div>
+ </div>
+ </div>
+ </div>
+ );
+
+ const PrivacyPolicyScreen = () => (
+ <div className="min-h-screen pt-20 bg-[#0F1115]">
+ <div className="sticky top-20 z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
+ <div className="flex items-center gap-3">
+ <button onClick={() => setCurrentScreen('games')} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
+ <Lock className="w-6 h-6 text-[#1E90FF]" />
+ <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>PRIVACY POLICY</h2>
+ </div>
+ </div>
+ <div className="p-4 max-w-2xl mx-auto space-y-6">
+ <p className="text-[#A0A4AB] text-xs">Last updated: February 1, 2026</p>
+
+ <div className="space-y-5">
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">1. Information We Collect</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">We collect information you provide directly: name, email address, profile picture, favorite teams, and location (city). We also collect usage data including pages visited, features used, and interactions with other users.</p>
+ </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">2. How We Use Your Information</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">We use your information to: (a) provide and improve the Service; (b) personalize your experience with relevant watch parties and teams; (c) send notifications about parties, predictions, and friend activity (with your consent); (d) process payments for Pro subscriptions and venue listings; (e) ensure safety and prevent fraud.</p>
+ </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">3. Information Sharing</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">We do not sell your personal information. Your public profile (name, profile picture, favorite teams, fan score) is visible to other users. We may share information with: (a) venue partners to facilitate watch parties; (b) payment processors (Stripe) for transactions; (c) law enforcement when required by law.</p>
+ </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">4. Push Notifications</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">With your permission, we send push notifications for party reminders, prediction results, friend activity, and achievements. You can manage notification preferences in your settings. We observe quiet hours (10 PM - 8 AM) and limit notifications to 5 per day.</p>
+ </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">5. Location Data</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">We use your city information to show nearby watch parties and venues. We do not continuously track your precise location. QR code check-ins at venues are voluntary and only record attendance at specific events.</p>
+ </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">6. Data Security</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">We use industry-standard security measures including encrypted passwords (bcrypt), secure sessions, and HTTPS encryption. However, no method of electronic storage is 100% secure, and we cannot guarantee absolute security.</p>
+ </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">7. Cookies and Local Storage</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">We use session cookies for authentication and localStorage for preferences (such as dismissed banners and theme settings). These are essential for the Service to function properly.</p>
+ </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">8. Data Retention</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">We retain your account data as long as your account is active. You may request deletion of your account and associated data at any time by contacting us. Some data may be retained as required by law or for legitimate business purposes.</p>
+ </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">9. Children's Privacy</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">The Service is not intended for users under 18 years of age. We do not knowingly collect personal information from children under 18. If we learn that we have collected information from a child under 18, we will delete it promptly.</p>
+ </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">10. Your Rights</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">You have the right to: (a) access your personal data; (b) correct inaccurate data; (c) request deletion of your data; (d) opt out of marketing communications; (e) export your data. To exercise these rights, contact us at <a href="mailto:privacy@huddleupusa.com" className="text-[#1E90FF] hover:underline">privacy@huddleupusa.com</a>.</p>
+ </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">11. Changes to This Policy</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">We may update this Privacy Policy from time to time. We will notify you of material changes through the Service. Your continued use constitutes acceptance of the updated policy.</p>
+ </div>
+
+ <div>
+ <h3 className="text-white font-bold text-lg mb-2">12. Contact</h3>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">For privacy-related questions, contact us at <a href="mailto:privacy@huddleupusa.com" className="text-[#1E90FF] hover:underline">privacy@huddleupusa.com</a>.</p>
+ </div>
+ </div>
+ </div>
+ </div>
+ );
+
  // FEATURE 4: EMPTY PARTY STATE - When no parties exist for a game
  const EmptyPartyState = ({ gameName, onCreateParty }) => (
  <div className="bg-gradient-to-br from-[#1E90FF]/10 to-emerald-500/10 border border-[#1E90FF]/30 rounded-2xl p-8 text-center">
@@ -4545,9 +4708,9 @@ const qrScannerRef = useRef(null);
  <div className="text-center py-4 text-xs">
  <p className="text-[#F5B400]">&copy; {new Date().getFullYear()} Huddle Up USA. All rights reserved.</p>
  <p className="mt-1 text-[#F5B400]">
- <a href="/terms" target="_blank" className="hover:text-[#F5B400]/80 underline">Terms of Service</a>
+ <span onClick={() => setCurrentScreen('termsOfService')} className="hover:text-[#F5B400]/80 underline cursor-pointer">Terms of Service</span>
  {' | '}
- <a href="/privacy" target="_blank" className="hover:text-[#F5B400]/80 underline">Privacy Policy</a>
+ <span onClick={() => setCurrentScreen('privacyPolicy')} className="hover:text-[#F5B400]/80 underline cursor-pointer">Privacy Policy</span>
  </p>
  </div>
  );
@@ -5068,13 +5231,13 @@ const qrScannerRef = useRef(null);
  />
  <span className="text-sm text-[#A0A4AB]">
  I agree to the{' '}
- <a href="/terms" target="_blank" className="text-[#1E90FF] hover:text-[#1E90FF]/80 underline">
+ <span onClick={(e) => { e.preventDefault(); setCurrentScreen('termsOfService'); }} className="text-[#1E90FF] hover:text-[#1E90FF]/80 underline cursor-pointer">
  Terms of Service
- </a>{' '}
+ </span>{' '}
  and{' '}
- <a href="/privacy" target="_blank" className="text-[#1E90FF] hover:text-[#1E90FF]/80 underline">
+ <span onClick={(e) => { e.preventDefault(); setCurrentScreen('privacyPolicy'); }} className="text-[#1E90FF] hover:text-[#1E90FF]/80 underline cursor-pointer">
  Privacy Policy
- </a>
+ </span>
  . I understand that Huddle Up US is a platform only and is not responsible for venues, events, or user conduct.
  </span>
  </label>
@@ -6967,9 +7130,9 @@ const qrScannerRef = useRef(null);
  />
  <span className="text-sm text-[#A0A4AB]">
  <strong className="text-white">Venue Agreement:</strong> I confirm that I am authorized to represent this venue. I agree to the{' '}
- <a href="/terms" target="_blank" className="text-[#1E90FF] hover:text-[#1E90FF]/80 underline">
+ <span onClick={(e) => { e.preventDefault(); setCurrentScreen('termsOfService'); }} className="text-[#1E90FF] hover:text-[#1E90FF]/80 underline cursor-pointer">
  Terms of Service
- </a>
+ </span>
  {' '}and understand that:
  <ul className="mt-2 ml-4 space-y-1 text-xs">
  <li>• I am solely responsible for all venue operations, safety, and compliance</li>
@@ -11429,6 +11592,16 @@ const qrScannerRef = useRef(null);
  <span className="text-[#A0A4AB]/70 text-xs ml-1">Partnerships, Sponsorships, Events</span>
  <ChevronRight className="w-4 h-4 text-[#A0A4AB]/70 ml-auto" />
  </button>
+ <button onClick={() => setCurrentScreen('termsOfService')} className="w-full flex items-center gap-3 p-3 bg-[#151A22] hover:bg-[#222A36] border border-[#222A36] rounded-xl transition-colors text-left">
+ <Shield className="w-5 h-5 text-[#A0A4AB]" />
+ <span className="text-white font-medium text-sm">Terms of Service</span>
+ <ChevronRight className="w-4 h-4 text-[#A0A4AB]/70 ml-auto" />
+ </button>
+ <button onClick={() => setCurrentScreen('privacyPolicy')} className="w-full flex items-center gap-3 p-3 bg-[#151A22] hover:bg-[#222A36] border border-[#222A36] rounded-xl transition-colors text-left">
+ <Lock className="w-5 h-5 text-[#A0A4AB]" />
+ <span className="text-white font-medium text-sm">Privacy Policy</span>
+ <ChevronRight className="w-4 h-4 text-[#A0A4AB]/70 ml-auto" />
+ </button>
  </div>
 
  <div>
@@ -14734,6 +14907,8 @@ const qrScannerRef = useRef(null);
  {currentScreen === 'myTickets' && renderMyTicketsScreen()}
  {currentScreen === 'predictions' && PredictionsScreen()}
  {currentScreen === 'contactUs' && <ContactUsScreen />}
+ {currentScreen === 'termsOfService' && <TermsOfServiceScreen />}
+ {currentScreen === 'privacyPolicy' && <PrivacyPolicyScreen />}
  {currentScreen === 'venueDetail' && <VenueDetailScreen />}
  {currentScreen === 'inviteFriends' && renderInviteFriendsScreen()}
 
