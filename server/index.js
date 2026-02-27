@@ -161,8 +161,14 @@ app.get('/api/seed/stats', async (req, res) => {
 });
 
 app.get('/download/App.jsx', (req, res) => {
+  const fs = require('fs');
   const filePath = path.resolve(__dirname, '..', 'src', 'App.jsx');
-  res.download(filePath, 'App.jsx');
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send('File not available in deployed environment. Please download from the Replit editor.');
+  }
+  res.setHeader('Content-Type', 'application/octet-stream');
+  res.setHeader('Content-Disposition', 'attachment; filename="App.jsx"');
+  fs.createReadStream(filePath).pipe(res);
 });
 
 async function start() {
