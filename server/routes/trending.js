@@ -6,10 +6,23 @@ const router = Router();
 
 router.get('/feed', async (req, res) => {
   try {
+    const proPartiesResult = await pool.query(
+      `SELECT p.id, p.host_id, p.venue_name, p.game_time, p.sport, p.home_team, p.away_team, p.city, p.title,
+        (SELECT COUNT(*) FROM party_attendees WHERE party_id = p.id) as attendee_count,
+        u.name as host_name, u.profile_picture as host_picture, u.is_founder,
+        TRUE as is_pro_host
+       FROM parties p
+       JOIN users u ON p.host_id = u.id
+       WHERE u.subscription_tier = 'pro'
+       ORDER BY p.created_at DESC
+       LIMIT 20`
+    );
+
     const promotedResult = await pool.query(
       `SELECT p.id, p.host_id, p.venue_name, p.game_time, p.sport, p.home_team, p.away_team, p.city, p.title,
         (SELECT COUNT(*) FROM party_attendees WHERE party_id = p.id) as attendee_count,
-        u.name as host_name, u.profile_picture as host_picture
+        u.name as host_name, u.profile_picture as host_picture, u.is_founder,
+        FALSE as is_pro_host
        FROM parties p
        JOIN promoted_parties pp ON p.id = pp.party_id
        JOIN users u ON p.host_id = u.id
@@ -18,53 +31,55 @@ router.get('/feed', async (req, res) => {
        LIMIT 10`
     );
 
-    const trendingResult = await pool.query(
-      `SELECT p.id, p.host_id, p.venue_name, p.game_time, p.sport, p.home_team, p.away_team, p.city, p.title,
-        (SELECT COUNT(*) FROM party_attendees WHERE party_id = p.id) as attendee_count,
-        u.name as host_name, u.profile_picture as host_picture
-       FROM parties p
-       JOIN users u ON p.host_id = u.id
-       WHERE p.created_at >= NOW() - INTERVAL '7 days'
-       ORDER BY attendee_count DESC, p.created_at DESC
-       LIMIT 10`
-    );
+    const seenIds = new Set();
+    const featured_parties = [];
+    for (const p of [...proPartiesResult.rows, ...promotedResult.rows]) {
+      if (!seenIds.has(p.id)) {
+        seenIds.add(p.id);
+        featured_parties.push(p);
+      }
+    }
 
-    const trending_parties = [
-      ...promotedResult.rows,
-      ...trendingResult.rows.filter(tr => !promotedResult.rows.find(pr => pr.id === tr.id))
-    ].slice(0, 10);
-
-    const venuesResult = await pool.query(
+    const featuredVenuesResult = await pool.query(
       `SELECT v.id, v.name, v.address, v.city, v.verified, v.featured, v.featured_tier, v.featured_until, v.logo, v.picture,
         COUNT(p.id) as party_count
        FROM venues v
        LEFT JOIN parties p ON LOWER(v.name) = LOWER(p.venue_name)
-       WHERE p.created_at >= NOW() - INTERVAL '30 days'
+       WHERE v.featured = true AND v.featured_tier = 'featured' AND (v.featured_until IS NULL OR v.featured_until > NOW())
+       GROUP BY v.id, v.name, v.address, v.city, v.verified, v.featured, v.featured_tier, v.featured_until, v.logo, v.picture
+       ORDER BY party_count DESC
+       LIMIT 10`
+    );
+
+    const allVenuesResult = await pool.query(
+      `SELECT v.id, v.name, v.address, v.city, v.verified, v.featured, v.featured_tier, v.featured_until, v.logo, v.picture,
+        COUNT(p.id) as party_count
+       FROM venues v
+       LEFT JOIN parties p ON LOWER(v.name) = LOWER(p.venue_name)
+       WHERE v.featured = true AND (v.featured_until IS NULL OR v.featured_until > NOW())
        GROUP BY v.id, v.name, v.address, v.city, v.verified, v.featured, v.featured_tier, v.featured_until, v.logo, v.picture
        HAVING COUNT(p.id) > 0
-       ORDER BY CASE WHEN v.featured = true AND (v.featured_until IS NULL OR v.featured_until > NOW()) THEN 0 ELSE 1 END, party_count DESC
-       LIMIT 5`
+       ORDER BY CASE WHEN v.featured_tier = 'featured' THEN 0 ELSE 1 END, party_count DESC
+       LIMIT 10`
     );
 
-    const hot_venues = venuesResult.rows;
-
-    const sportsResult = await pool.query(
-      `SELECT sport, COUNT(*) as party_count
-       FROM parties
-       WHERE created_at >= NOW() - INTERVAL '7 days'
-       GROUP BY sport
-       ORDER BY party_count DESC
-       LIMIT 5`
-    );
-
-    const popular_games = sportsResult.rows;
+    const venueSeenIds = new Set();
+    const all_venues = [];
+    for (const v of [...featuredVenuesResult.rows, ...allVenuesResult.rows]) {
+      if (!venueSeenIds.has(v.id)) {
+        venueSeenIds.add(v.id);
+        all_venues.push(v);
+      }
+    }
 
     res.json({
-      trendingParties: trending_parties.map(p => ({
+      featuredParties: featured_parties.map(p => ({
         id: p.id,
         hostId: p.host_id,
         hostName: p.host_name,
         hostPicture: p.host_picture,
+        isFounder: p.is_founder,
+        isProHost: p.is_pro_host,
         venueName: p.venue_name,
         sport: p.sport,
         homeTeam: p.home_team,
@@ -74,24 +89,21 @@ router.get('/feed', async (req, res) => {
         title: p.title,
         attendeeCount: parseInt(p.attendee_count)
       })),
-      hotVenues: hot_venues.map(v => ({
+      featuredVenues: all_venues.map(v => ({
         id: v.id,
         name: v.name,
         address: v.address,
         city: v.city,
         verified: v.verified,
         featured: v.featured && (v.featured_until === null || new Date(v.featured_until) > new Date()),
+        featuredTier: v.featured_tier,
         logo: v.logo,
         picture: v.picture,
         partyCount: parseInt(v.party_count)
-      })),
-      popularGames: popular_games.map(g => ({
-        sport: g.sport,
-        partyCount: parseInt(g.party_count)
       }))
     });
   } catch (error) {
-    console.error('Get trending feed error:', error);
+    console.error('Get featured feed error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });

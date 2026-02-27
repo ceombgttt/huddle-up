@@ -3409,7 +3409,7 @@ const qrScannerRef = useRef(null);
  },
  {
    targetId: 'trending',
-   title: 'Trending Now',
+   title: 'Featured',
    description: 'See the hottest parties and most popular venues. This icon lights up when there\'s action happening!',
    icon: '🔥',
    position: 'below',
@@ -5644,9 +5644,8 @@ const qrScannerRef = useRef(null);
  <img src="/huddle-up-shield.png" alt="Huddle Up" className="h-10 drop-shadow-sm" />
  </div>
  <div className="flex items-center gap-4">
- <button onClick={() => setCurrentScreen('trending')} data-tour-id="trending" className="relative p-2 rounded-xl hover:bg-pink-500/20 transition-colors active:scale-95 nav-icon-glow">
- <Zap className={`w-6 h-6 ${parties.some(p => p.attendees?.length > 0) ? 'text-pink-300 animate-pulse' : 'text-pink-400'}`} />
- {parties.some(p => p.attendees?.length > 0) && <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-pink-400 rounded-full animate-pulse" />}
+ <button onClick={() => setCurrentScreen('trending')} data-tour-id="trending" className="relative p-2 rounded-xl hover:bg-amber-500/20 transition-colors active:scale-95 nav-icon-glow">
+ <Crown className="w-6 h-6 text-amber-400" />
  </button>
  <button onClick={() => setCurrentScreen('invitations')} data-tour-id="alerts" className="relative p-2 rounded-xl hover:bg-[#222A36] transition-colors active:scale-95">
  <Bell className="w-6 h-6 text-white" />
@@ -14261,74 +14260,112 @@ const qrScannerRef = useRef(null);
  loadTrendingData();
  }
 
+ const featuredSportIcons = { 'NFL': '\u{1F3C8}', 'NBA': '\u{1F3C0}', 'NHL': '\u{1F3D2}', 'MLB': '\u26BE', 'MLS': '\u26BD', 'College Football': '\u{1F3C8}', 'College Basketball': '\u{1F3C0}', 'Premier League': '\u26BD', 'La Liga': '\u26BD', 'Champions League': '\u26BD', 'UFC/MMA': '\u{1F94A}', 'Boxing': '\u{1F94A}', 'NASCAR': '\u{1F3C1}', 'F1': '\u{1F3CE}', 'Tennis': '\u{1F3BE}', 'Golf': '\u26F3' };
+
  return (
  <div className="min-h-screen bg-[#0F1115] pt-20">
  <div className="sticky top-20 z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
  <button onClick={() => setCurrentScreen('games')} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
- <Zap className="w-6 h-6 text-pink-400" />
- <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>TRENDING</h2>
+ <Crown className="w-6 h-6 text-amber-400" />
+ <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>FEATURED</h2>
  </div>
  </div>
  <div className="p-4 max-w-2xl mx-auto space-y-6">
+ <div className="p-4 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-xl border border-amber-500/20">
+ <p className="text-amber-400 font-bold text-sm flex items-center gap-2"><Crown className="w-4 h-4" /> Pro & Featured Spotlight</p>
+ <p className="text-white/60 text-xs mt-1">Parties from Pro members and Featured venues get priority placement here.</p>
+ </div>
  {trendingLoading && (
- <div className="text-center py-12"><Loader2 className="w-8 h-8 text-pink-400 animate-spin mx-auto" /></div>
+ <div className="text-center py-12"><Loader2 className="w-8 h-8 text-amber-400 animate-spin mx-auto" /></div>
  )}
  {trendingData && (
  <>
- {trendingData.trendingParties?.length > 0 && (
+ {trendingData.featuredParties?.length > 0 && (
  <div>
- <h3 className="text-sm font-bold text-pink-400 uppercase tracking-wider mb-3 flex items-center gap-2">
- <Zap className="w-4 h-4" /> Hot Parties
+ <h3 className="text-sm font-bold text-amber-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+ <Crown className="w-4 h-4" /> Featured Parties
  </h3>
  <div className="space-y-3">
- {trendingData.trendingParties.map(party => (
- <div key={party.id} className="p-4 bg-[#151A22] rounded-xl border border-[#222A36] hover:bg-[#151A22] transition-colors">
+ {trendingData.featuredParties.map(party => {
+ const gt = new Date(party.gameTime);
+ const validDate = !isNaN(gt.getTime());
+ return (
+ <div key={party.id} onClick={() => { const found = parties.find(p => p.id === party.id); if (found) { setSelectedGame(found); setCurrentScreen('gameDetail'); } else { setSelectedGame(party); setCurrentScreen('gameDetail'); } }} className="p-4 bg-[#151A22] rounded-xl border border-amber-500/30 hover:border-amber-500/50 transition-colors cursor-pointer">
  <div className="flex items-start justify-between">
- <div>
+ <div className="flex-1">
+ <div className="flex items-center gap-2 mb-1">
+ <span className="text-lg">{featuredSportIcons[party.sport] || '\u{1F3DF}'}</span>
  <p className="text-white font-bold">{party.homeTeam || party.sport} {party.awayTeam ? `vs ${party.awayTeam}` : ''}</p>
- <p className="text-sm text-[#A0A4AB] flex items-center gap-1"><MapPin className="w-3 h-3" /> {party.venueName}</p>
- <p className="text-sm text-[#A0A4AB] flex items-center gap-1"><Calendar className="w-3 h-3" /> {new Date(party.gameTime).toLocaleDateString()}</p>
  </div>
- <div className="flex items-center gap-1 text-pink-400 bg-pink-500/20 px-2 py-1 rounded-full text-sm">
+ {party.isProHost && (
+ <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-500/20 text-amber-400 text-[10px] font-bold rounded-full mb-2">
+ <Crown className="w-2.5 h-2.5" /> PRO HOST
+ </span>
+ )}
+ <p className="text-sm text-[#A0A4AB] flex items-center gap-1"><MapPin className="w-3 h-3" /> {party.venueName}</p>
+ <p className="text-sm text-[#A0A4AB] flex items-center gap-1"><Calendar className="w-3 h-3" /> {validDate ? gt.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : (party.gameTime || 'TBD')}</p>
+ {party.city && <p className="text-sm text-[#A0A4AB] flex items-center gap-1"><Navigation className="w-3 h-3" /> {party.city}</p>}
+ </div>
+ <div className="flex flex-col items-end gap-2">
+ <div className="flex items-center gap-1 text-amber-400 bg-amber-500/20 px-2 py-1 rounded-full text-sm">
  <Users className="w-3 h-3" /> {party.attendeeCount || 0}
  </div>
  </div>
- {party.hostName && <p className="text-xs text-[#A0A4AB]/70 mt-2">Hosted by {party.hostName}</p>}
- <button onClick={() => openShareMenu(party)} className="mt-2 flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 transition-colors">
+ </div>
+ {party.hostName && (
+ <div className="flex items-center gap-2 mt-3 pt-2 border-t border-[#222A36]">
+ {party.hostPicture ? <img src={party.hostPicture} className="w-5 h-5 rounded-full" alt="" /> : <User className="w-4 h-4 text-[#A0A4AB]" />}
+ <span className="text-xs text-[#A0A4AB]">Hosted by <span className="text-white font-medium">{party.hostName}</span></span>
+ {party.isFounder && <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded-full font-bold">FOUNDER</span>}
+ </div>
+ )}
+ <div className="flex items-center gap-3 mt-2">
+ <button onClick={(e) => { e.stopPropagation(); openShareMenu(party); }} className="flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 transition-colors">
  <Share2 className="w-3 h-3" /> Share
  </button>
  </div>
- ))}
+ </div>
+ );
+ })}
  </div>
  </div>
  )}
- {trendingData.hotVenues?.length > 0 && (
+ {trendingData.featuredVenues?.length > 0 && (
  <div>
  <h3 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-3 flex items-center gap-2">
- <Building2 className="w-4 h-4" /> Hot Venues
+ <Building2 className="w-4 h-4" /> Featured Venues
  </h3>
  <div className="space-y-2">
- {trendingData.hotVenues.map(venue => (
- <div key={venue.id} className={`p-3 bg-[#151A22] rounded-xl border ${venue.featured ? 'border-amber-500/40' : 'border-[#222A36]'} flex items-center justify-between`}>
- <div className="flex items-center gap-2">
- {venue.featured && <Star className="w-4 h-4 text-amber-400 fill-amber-400 flex-shrink-0" />}
+ {trendingData.featuredVenues.map(venue => (
+ <div key={venue.id} onClick={() => { setSelectedVenueId(venue.id); setCurrentScreen('venueDetail'); }} className={`p-4 bg-[#151A22] rounded-xl border ${venue.featuredTier === 'featured' ? 'border-amber-500/40' : 'border-[#222A36]'} hover:border-amber-500/50 transition-colors cursor-pointer`}>
+ <div className="flex items-center justify-between">
+ <div className="flex items-center gap-3">
+ {venue.logo ? <img src={venue.logo} className="w-10 h-10 rounded-lg object-cover" alt="" /> : <Building2 className="w-10 h-10 text-[#A0A4AB] p-2 bg-[#222A36] rounded-lg" />}
  <div>
- <p className="text-white font-medium">{venue.name}</p>
+ <div className="flex items-center gap-2">
+ <p className="text-white font-bold">{venue.name}</p>
+ {venue.verified && <CheckCircle className="w-3.5 h-3.5 text-[#1E90FF]" />}
+ {venue.featuredTier === 'featured' && <span className="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full font-bold flex items-center gap-0.5"><Star className="w-2.5 h-2.5 fill-amber-400" /> FEATURED</span>}
+ </div>
  <p className="text-xs text-[#A0A4AB]">{venue.city}</p>
  </div>
  </div>
- <span className="text-orange-400 text-sm font-bold">{venue.partyCount || venue.party_count} parties</span>
+ <span className="text-orange-400 text-sm font-bold">{venue.partyCount} {venue.partyCount === 1 ? 'party' : 'parties'}</span>
+ </div>
  </div>
  ))}
  </div>
  </div>
  )}
- {!trendingData.trendingParties?.length && !trendingData.hotVenues?.length && (
+ {!trendingData.featuredParties?.length && !trendingData.featuredVenues?.length && (
  <div className="text-center py-12 text-[#A0A4AB]">
- <Zap className="w-16 h-16 mx-auto mb-4 opacity-30" />
- <p className="text-lg font-bold mb-2">Nothing Trending Yet</p>
- <p className="text-sm">Check back when more parties are happening!</p>
+ <Crown className="w-16 h-16 mx-auto mb-4 opacity-30" />
+ <p className="text-lg font-bold mb-2 text-white">No Featured Content Yet</p>
+ <p className="text-sm">Pro members and Featured venues will appear here.</p>
+ <button onClick={() => setCurrentScreen('proUpgrade')} className="mt-4 px-6 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold rounded-full text-sm hover:opacity-90 transition-opacity">
+ Upgrade to Pro
+ </button>
  </div>
  )}
  </>
@@ -14337,6 +14374,7 @@ const qrScannerRef = useRef(null);
  </div>
  );
  };
+
 
  const renderUserProfileScreen = () => {
  const profileUserId = viewingUserId;
