@@ -6705,7 +6705,7 @@ const BORDER_MAP = {
  </span>
  </div>
  {(() => {
- const friendIds = friendsList.map(f => f.id);
+ const friendIds = (friendsList || []).map(f => f.id);
  const friendsGoing = party.attendeeDetails?.filter(a => a.userId && friendIds.includes(a.userId)) || [];
  if (friendsGoing.length > 0) return (
  <div className="flex items-center gap-2">
@@ -7220,8 +7220,8 @@ const BORDER_MAP = {
  };
 
  const claimVenueScreenJSX = () => (
- <div className="min-h-screen pt-20 bg-[#0F1115]">
- <div className="sticky top-20 z-10 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="min-h-screen bg-[#0F1115]" style={{ paddingTop: '48px' }}>
+     <div className="sticky top-[48px] left-0 right-0 z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
  <button
  onClick={() => setCurrentScreen('createParty')}
@@ -11133,11 +11133,11 @@ const BORDER_MAP = {
    return `in ${mins}m`;
  };
 
- const friendIds = friendsList.map(f => f.id);
+ const friendIds = (friendsList || []).map(f => f.id);
 
  return (
-   <div className="min-h-screen pt-20 bg-[#0F1115]">
-     <div className="sticky top-14 z-10 bg-[#0F1115] border-b border-[#222A36]">
+   <div className="min-h-screen bg-[#0F1115] pt-[48px]">
+     <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
        <div className="max-w-4xl mx-auto px-4 py-3">
          <div className="flex items-center justify-between mb-3">
            <button onClick={() => setCurrentScreen('games')} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors">
