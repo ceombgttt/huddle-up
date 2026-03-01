@@ -11044,128 +11044,187 @@ const BORDER_MAP = {
 
  const safeParties = Array.isArray(parties) ? parties : [];
  const safeGames = Array.isArray(games) ? games : [];
- const safeFriendsList = Array.isArray(friendsList) ? friendsList : [];
+ const safeFriends = Array.isArray(friendsList) ? friendsList : [];
+ const friendIds = safeFriends.map(f => f?.id).filter(Boolean);
 
  const sportIcons = { 'NFL': '🏈', 'NBA': '🏀', 'NHL': '🏒', 'MLB': '⚾', 'MLS': '⚽', 'College Football': '🏈', 'College Basketball': '🏀', 'Premier League': '⚽', 'La Liga': '⚽', 'Liga MX': '⚽', 'Champions League': '⚽', 'UFC/MMA': '🥊', 'Boxing': '🥊', 'NASCAR': '🏁', 'F1': '🏎️', 'Tennis': '🎾', 'Golf': '⛳' };
- const getSportIcon = (sport) => sportIcons[sport] || '🏟️';
+ const getSportIcon = (s) => sportIcons[s] || '🏟️';
+ const defaultSportsList = ['NFL', 'NBA', 'MLB', 'NHL', 'MLS', 'College Football', 'College Basketball', 'Premier League', 'La Liga', 'Champions League', 'UFC/MMA', 'Boxing', 'NASCAR', 'F1', 'Tennis', 'Golf'];
 
- const allCities = React.useMemo(() => {
+ const allCities = (() => {
    const cityMap = new Map();
-   safeParties.forEach(p => { if (p.city) { const c = p.city.split(',')[0].trim(); if (!cityMap.has(c.toLowerCase())) cityMap.set(c.toLowerCase(), c); } });
-   if (currentCity) { const c = currentCity.split(',')[0].trim(); if (!cityMap.has(c.toLowerCase())) cityMap.set(c.toLowerCase(), c); }
+   safeParties.forEach(p => { if (p && p.city) { const c = String(p.city).split(',')[0].trim(); if (c && !cityMap.has(c.toLowerCase())) cityMap.set(c.toLowerCase(), c); } });
+   if (currentCity) { const c = String(currentCity).split(',')[0].trim(); if (c && !cityMap.has(c.toLowerCase())) cityMap.set(c.toLowerCase(), c); }
    return ['All', ...Array.from(cityMap.values()).sort()];
- }, [safeParties, currentCity]);
+ })();
 
- const allSports = React.useMemo(() => {
-   const defaultSports = ['NFL', 'NBA', 'MLB', 'NHL', 'MLS', 'College Football', 'College Basketball', 'Premier League', 'La Liga', 'Champions League', 'UFC/MMA', 'Boxing', 'NASCAR', 'F1', 'Tennis', 'Golf'];
-   const sportSet = new Set(defaultSports);
-   safeParties.forEach(p => { if (p.sport) sportSet.add(p.sport); });
-   return defaultSports.filter(s => sportSet.has(s)).concat([...sportSet].filter(s => !defaultSports.includes(s)));
- }, [safeParties]);
+ const allSports = (() => {
+   const sportSet = new Set(defaultSportsList);
+   safeParties.forEach(p => { if (p && p.sport) sportSet.add(p.sport); });
+   return defaultSportsList.filter(s => sportSet.has(s)).concat([...sportSet].filter(s => !defaultSportsList.includes(s)));
+ })();
 
  const now = new Date();
- const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
- const tomorrowStart = new Date(todayStart); tomorrowStart.setDate(tomorrowStart.getDate() + 1);
- const tomorrowEnd = new Date(todayStart); tomorrowEnd.setDate(tomorrowEnd.getDate() + 2);
- const dayOfWeek = now.getDay();
- const weekendStart = new Date(todayStart); weekendStart.setDate(weekendStart.getDate() + (5 - dayOfWeek + 7) % 7);
- const weekendEnd = new Date(weekendStart); weekendEnd.setDate(weekendEnd.getDate() + (dayOfWeek >= 5 ? (7 - dayOfWeek + 1) : 3));
- const thisWeekEnd = new Date(todayStart); thisWeekEnd.setDate(thisWeekEnd.getDate() + (7 - dayOfWeek));
- const nextWeekEnd = new Date(thisWeekEnd); nextWeekEnd.setDate(nextWeekEnd.getDate() + 7);
 
- const filteredParties = React.useMemo(() => {
-   const fourteenDaysOut = new Date(now); fourteenDaysOut.setDate(fourteenDaysOut.getDate() + 14);
+ const getPartyDate = (p) => {
+   if (!p || !p.gameTime) return null;
+   const d = new Date(p.gameTime);
+   return isNaN(d.getTime()) ? null : d;
+ };
+
+ const filteredParties = (() => {
+   const fourteenDaysOut = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+   const threeHoursAgo = new Date(now.getTime() - 3 * 60 * 60 * 1000);
    let filtered = safeParties.filter(p => {
-     const gt = new Date(p.gameTime);
-     if (isNaN(gt.getTime())) return true;
-     const threeHoursAgo = new Date(now.getTime() - 3 * 60 * 60 * 1000);
+     if (!p) return false;
+     const gt = getPartyDate(p);
+     if (!gt) return true;
      return gt >= threeHoursAgo && gt <= fourteenDaysOut;
    });
-   if (bpSports.length > 0) filtered = filtered.filter(p => bpSports.includes(p.sport));
+   if (bpSports.length > 0) filtered = filtered.filter(p => p && bpSports.includes(p.sport));
    if (bpCity !== 'All') {
      const normFilter = bpCity.toLowerCase().split(',')[0].trim();
      filtered = filtered.filter(p => {
-       const pc = (p.city || '').toLowerCase().split(',')[0].trim();
+       const pc = (p && p.city ? String(p.city) : '').toLowerCase().split(',')[0].trim();
        return pc === normFilter || pc.includes(normFilter) || normFilter.includes(pc);
      });
    }
    if (bpSearch.trim()) {
      const q = bpSearch.toLowerCase().trim();
-     filtered = filtered.filter(p =>
-       (p.homeTeam || '').toLowerCase().includes(q) ||
-       (p.awayTeam || '').toLowerCase().includes(q) ||
-       (p.venueName || '').toLowerCase().includes(q) ||
-       (p.hostName || '').toLowerCase().includes(q) ||
-       (p.title || '').toLowerCase().includes(q) ||
-       (`${p.homeTeam} vs ${p.awayTeam}`).toLowerCase().includes(q)
-     );
+     filtered = filtered.filter(p => {
+       if (!p) return false;
+       const ht = String(p.homeTeam || '').toLowerCase();
+       const at = String(p.awayTeam || '').toLowerCase();
+       return ht.includes(q) || at.includes(q) ||
+         String(p.venueName || '').toLowerCase().includes(q) ||
+         String(p.hostName || '').toLowerCase().includes(q) ||
+         String(p.title || '').toLowerCase().includes(q) ||
+         `${ht} vs ${at}`.includes(q);
+     });
    }
-   if (bpSort === 'soonest' || bpSort === 'closest') filtered.sort((a, b) => new Date(a.gameTime) - new Date(b.gameTime));
-   else if (bpSort === 'popular') filtered.sort((a, b) => (b.attendees?.length || 0) - (a.attendees?.length || 0));
-   else if (bpSort === 'newest') filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-   if (bpSort === 'closest' && userCoords) {
-     const cityOrder = {};
-     if (currentCity) cityOrder[currentCity.toLowerCase()] = 0;
+   if (bpSort === 'soonest' || bpSort === 'closest') {
+     filtered.sort((a, b) => new Date(a && a.gameTime || 0) - new Date(b && b.gameTime || 0));
+   } else if (bpSort === 'popular') {
+     filtered.sort((a, b) => (Array.isArray(b?.attendees) ? b.attendees.length : 0) - (Array.isArray(a?.attendees) ? a.attendees.length : 0));
+   } else if (bpSort === 'newest') {
+     filtered.sort((a, b) => new Date(b && b.createdAt || 0) - new Date(a && a.createdAt || 0));
+   }
+   if (bpSort === 'closest' && userCoords && currentCity) {
+     const cc = String(currentCity).toLowerCase();
      filtered.sort((a, b) => {
-       const ca = (a.city || '').toLowerCase();
-       const cb = (b.city || '').toLowerCase();
-       const da = ca === (currentCity || '').toLowerCase() ? 0 : 1;
-       const db = cb === (currentCity || '').toLowerCase() ? 0 : 1;
+       const da = String(a?.city || '').toLowerCase() === cc ? 0 : 1;
+       const db = String(b?.city || '').toLowerCase() === cc ? 0 : 1;
        if (da !== db) return da - db;
-       return new Date(a.gameTime) - new Date(b.gameTime);
+       return new Date(a && a.gameTime || 0) - new Date(b && b.gameTime || 0);
      });
    }
    return filtered;
- }, [safeParties, bpSports, bpCity, bpSearch, bpSort, userCoords, currentCity]);
+ })();
 
- const groupedParties = React.useMemo(() => {
-   const groups = [];
-   const happeningNow = [];
-   const today = [];
-   const tomorrow = [];
-   const thisWeekend = [];
-   const thisWeek = [];
-   const nextWeek = [];
-   const later = [];
+ const groupedParties = (() => {
+   if (bpSort !== 'soonest') return [];
+   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+   const tomorrowStart = new Date(todayStart.getTime() + 86400000);
+   const tomorrowEnd = new Date(todayStart.getTime() + 2 * 86400000);
+   const dayOfWeek = now.getDay();
+   const weekendStart = new Date(todayStart.getTime() + ((5 - dayOfWeek + 7) % 7) * 86400000);
+   const weekendEnd = new Date(weekendStart.getTime() + (dayOfWeek >= 5 ? (8 - dayOfWeek) : 3) * 86400000);
+   const thisWeekEnd = new Date(todayStart.getTime() + (7 - dayOfWeek) * 86400000);
+   const nextWeekEnd = new Date(thisWeekEnd.getTime() + 7 * 86400000);
 
+   const buckets = { now: [], today: [], tomorrow: [], weekend: [], week: [], next: [], later: [] };
    filteredParties.forEach(p => {
-     const gt = new Date(p.gameTime);
-     if (isNaN(gt.getTime())) { later.push(p); return; }
-     const gameEnd = new Date(gt.getTime() + 3 * 60 * 60 * 1000);
-     if (gt <= now && gameEnd >= now) happeningNow.push(p);
-     else if (gt >= now && gt < tomorrowStart) today.push(p);
-     else if (gt >= tomorrowStart && gt < tomorrowEnd) tomorrow.push(p);
-     else if (dayOfWeek < 5 && gt >= weekendStart && gt < weekendEnd) thisWeekend.push(p);
-     else if (gt >= now && gt < thisWeekEnd) thisWeek.push(p);
-     else if (gt >= thisWeekEnd && gt < nextWeekEnd) nextWeek.push(p);
-     else later.push(p);
+     if (!p) return;
+     const gt = getPartyDate(p);
+     if (!gt) { buckets.later.push(p); return; }
+     const gameEnd = new Date(gt.getTime() + 3 * 3600000);
+     if (gt <= now && gameEnd >= now) buckets.now.push(p);
+     else if (gt >= now && gt < tomorrowStart) buckets.today.push(p);
+     else if (gt >= tomorrowStart && gt < tomorrowEnd) buckets.tomorrow.push(p);
+     else if (dayOfWeek < 5 && gt >= weekendStart && gt < weekendEnd) buckets.weekend.push(p);
+     else if (gt >= now && gt < thisWeekEnd) buckets.week.push(p);
+     else if (gt >= thisWeekEnd && gt < nextWeekEnd) buckets.next.push(p);
+     else buckets.later.push(p);
    });
 
-   if (happeningNow.length) groups.push({ label: 'HAPPENING NOW', icon: '🔴', parties: happeningNow, isLive: true });
-   if (today.length) groups.push({ label: 'TODAY', icon: '📅', parties: today });
-   if (tomorrow.length) groups.push({ label: 'TOMORROW', icon: '📆', parties: tomorrow });
-   if (thisWeekend.length && dayOfWeek < 5) groups.push({ label: 'THIS WEEKEND', icon: '🎉', parties: thisWeekend });
-   if (thisWeek.length) groups.push({ label: 'THIS WEEK', icon: '📋', parties: thisWeek });
-   if (nextWeek.length) groups.push({ label: 'NEXT WEEK', icon: '🗓️', parties: nextWeek });
-   if (later.length) groups.push({ label: 'COMING UP', icon: '🔜', parties: later });
+   const groups = [];
+   if (buckets.now.length) groups.push({ label: 'HAPPENING NOW', icon: '🔴', parties: buckets.now, isLive: true });
+   if (buckets.today.length) groups.push({ label: 'TODAY', icon: '📅', parties: buckets.today });
+   if (buckets.tomorrow.length) groups.push({ label: 'TOMORROW', icon: '📆', parties: buckets.tomorrow });
+   if (buckets.weekend.length && dayOfWeek < 5) groups.push({ label: 'THIS WEEKEND', icon: '🎉', parties: buckets.weekend });
+   if (buckets.week.length) groups.push({ label: 'THIS WEEK', icon: '📋', parties: buckets.week });
+   if (buckets.next.length) groups.push({ label: 'NEXT WEEK', icon: '🗓️', parties: buckets.next });
+   if (buckets.later.length) groups.push({ label: 'COMING UP', icon: '🔜', parties: buckets.later });
    return groups;
- }, [filteredParties]);
+ })();
 
  const hasFilters = bpSports.length > 0 || bpCity !== 'All' || bpSearch.trim() || bpSort !== 'soonest';
 
  const getCountdown = (gameTime) => {
-   const gt = new Date(gameTime);
-   if (isNaN(gt.getTime())) return gameTime || '';
+   const gt = getPartyDate({ gameTime });
+   if (!gt) return String(gameTime || '');
    const diff = gt - now;
    if (diff < 0) return 'Started';
-   const hours = Math.floor(diff / (1000 * 60 * 60));
-   const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-   if (hours >= 24) { const days = Math.floor(hours / 24); return `in ${days}d`; }
+   const hours = Math.floor(diff / 3600000);
+   const mins = Math.floor((diff % 3600000) / 60000);
+   if (hours >= 24) return `in ${Math.floor(hours / 24)}d`;
    if (hours > 0) return `in ${hours}h ${mins}m`;
    return `in ${mins}m`;
  };
 
- const friendIds = safeFriendsList.map(f => f.id);
+ const renderPartyCard = (party) => {
+   if (!party) return null;
+   const gt = getPartyDate(party);
+   const isLive = gt ? (gt <= now && new Date(gt.getTime() + 10800000) >= now) : false;
+   const atCount = Array.isArray(party.attendees) ? party.attendees.length : 0;
+   const isPopular = atCount >= 25;
+   const fGoing = Array.isArray(party.attendeeDetails) ? party.attendeeDetails.filter(a => a && a.userId && friendIds.includes(a.userId)) : [];
+   return (
+     <div
+       key={party.id}
+       onClick={() => { const g = safeGames.find(g => g.id === party.gameId); if (g) { setSelectedGame(g); setCurrentScreen('gameDetail'); } }}
+       className={`bg-[#151A22] p-4 rounded-xl border transition-all cursor-pointer active:scale-[0.99] ${isLive ? 'border-red-500/40 bg-gradient-to-r from-red-900/20 via-[#151A22] to-[#151A22]' : 'border-[#222A36] hover:border-[#1E90FF]/30'}`}
+     >
+       <div className="flex items-start justify-between mb-2">
+         <div className="flex items-center gap-2 flex-1 min-w-0">
+           <span className="text-lg flex-shrink-0">{getSportIcon(party.sport)}</span>
+           <div className="min-w-0">
+             <span className="text-white font-bold text-sm">{String(party.homeTeam || '?')} vs {String(party.awayTeam || '?')}</span>
+             {isLive && <span className="ml-2 px-2 py-0.5 bg-red-500 text-white text-[10px] font-black rounded-full animate-pulse">LIVE</span>}
+             {isPopular && !isLive && <span className="ml-2 text-orange-400 text-[10px] font-bold">🔥 POPULAR</span>}
+           </div>
+         </div>
+       </div>
+       <div className="text-sm text-[#A0A4AB] space-y-1">
+         <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" /><span className="truncate text-white font-bold text-[14px]">{String(party.venueName || 'TBD')}</span></div>
+         <div className="flex items-center gap-2"><Calendar className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" /><span>{gt ? gt.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : String(party.gameTime || 'TBD')}</span><span className="text-[#1E90FF] text-xs font-semibold ml-1">{getCountdown(party.gameTime)}</span></div>
+         <div className="flex items-center gap-4">
+           <div className="flex items-center gap-2"><Users className="w-3.5 h-3.5 text-[#1E90FF] flex-shrink-0" /><span>{atCount} going</span></div>
+           <div className="flex items-center gap-2"><User className="w-3.5 h-3.5 text-yellow-400 flex-shrink-0" /><span>{String(party.hostName || '')}</span></div>
+         </div>
+         {fGoing.length > 0 && (
+           <div className="flex items-center gap-2"><Heart className="w-3.5 h-3.5 text-pink-400 flex-shrink-0" /><span className="text-pink-300 font-semibold">{fGoing.length} friend{fGoing.length !== 1 ? 's' : ''} going</span></div>
+         )}
+       </div>
+       {party.notes && <p className="text-white/40 text-xs mt-2 line-clamp-2">"{String(party.notes)}"</p>}
+       <div className="flex items-center justify-between mt-3">
+         <div className="flex items-center gap-2">
+           <button onClick={(e) => { e.stopPropagation(); openCalendarMenu(party); }} className="flex items-center gap-1 text-xs text-[#1E90FF] hover:text-[#1E90FF]/80"><Calendar className="w-3 h-3" /> Calendar</button>
+           <button onClick={(e) => { e.stopPropagation(); openShareMenu(party); }} className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300"><Share2 className="w-3 h-3" /> Share</button>
+         </div>
+         {user && Array.isArray(party.attendees) && !party.attendees.includes(user.email) && party.hostEmail !== user.email ? (
+           <button onClick={(e) => { e.stopPropagation(); handleJoinParty(party.id); }} className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-xs rounded-full hover:opacity-90 transition-all">
+             <Users className="w-3 h-3" /> Join Party
+           </button>
+         ) : user && Array.isArray(party.attendees) && party.attendees.includes(user.email) ? (
+           <span className="flex items-center gap-1 px-3 py-1.5 bg-green-500/20 text-green-400 text-xs font-bold rounded-full border border-green-500/30">
+             <Check className="w-3 h-3" /> Joined
+           </span>
+         ) : null}
+       </div>
+     </div>
+   );
+ };
 
  return (
    <div className="min-h-screen bg-[#0F1115]">
@@ -11180,62 +11239,28 @@ const BORDER_MAP = {
          </div>
          <div className="relative mb-3">
            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0A4AB]" />
-           <input
-             type="text"
-             placeholder="Search teams, venues, hosts..."
-             value={bpSearch}
-             onChange={(e) => setBpSearch(e.target.value)}
-             className="w-full pl-10 pr-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white text-sm placeholder-[#A0A4AB]/50 focus:outline-none focus:border-[#1E90FF]/50"
-           />
-           {bpSearch && (
-             <button onClick={() => setBpSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A0A4AB] hover:text-white">
-               <X className="w-4 h-4" />
-             </button>
-           )}
+           <input type="text" placeholder="Search teams, venues, hosts..." value={bpSearch} onChange={(e) => setBpSearch(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white text-sm placeholder-[#A0A4AB]/50 focus:outline-none focus:border-[#1E90FF]/50" />
+           {bpSearch && (<button onClick={() => setBpSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A0A4AB] hover:text-white"><X className="w-4 h-4" /></button>)}
          </div>
          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
            {['All', ...allSports].map(sport => (
-             <button
-               key={sport}
-               onClick={() => { if (sport === 'All') { setBpSports([]); } else { setBpSports(prev => prev.includes(sport) ? prev.filter(s => s !== sport) : [...prev, sport]); } }}
-               className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${(sport === 'All' && bpSports.length === 0) || (sport !== 'All' && bpSports.includes(sport)) ? 'bg-[#1E90FF] text-white' : 'bg-[#151A22] text-[#A0A4AB] border border-[#222A36] hover:border-[#1E90FF]/40'}`}
-             >
-               {sport !== 'All' && <span>{getSportIcon(sport)}</span>}
-               {sport}
+             <button key={sport} onClick={() => { if (sport === 'All') setBpSports([]); else setBpSports(prev => prev.includes(sport) ? prev.filter(s => s !== sport) : [...prev, sport]); }} className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${(sport === 'All' && bpSports.length === 0) || (sport !== 'All' && bpSports.includes(sport)) ? 'bg-[#1E90FF] text-white' : 'bg-[#151A22] text-[#A0A4AB] border border-[#222A36] hover:border-[#1E90FF]/40'}`}>
+               {sport !== 'All' && <span>{getSportIcon(sport)}</span>}{sport}
              </button>
            ))}
          </div>
          <div className="flex items-center gap-2 mt-2">
-           <button
-             onClick={() => {
-               if (currentCity) {
-                 const city = currentCity.split(',')[0].trim();
-                 setBpCity(city);
-                 setBpSort('closest');
-               } else {
-                 detectUserLocation();
-               }
-             }}
-             className={`flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex-shrink-0 ${bpSort === 'closest' && bpCity !== 'All' ? 'bg-emerald-500 text-white' : 'bg-[#151A22] text-emerald-400 border border-emerald-500/30 hover:border-emerald-500/50'}`}
-           >
+           <button onClick={() => { if (currentCity) { setBpCity(String(currentCity).split(',')[0].trim()); setBpSort('closest'); } else { detectUserLocation(); } }} className={`flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex-shrink-0 ${bpSort === 'closest' && bpCity !== 'All' ? 'bg-emerald-500 text-white' : 'bg-[#151A22] text-emerald-400 border border-emerald-500/30 hover:border-emerald-500/50'}`}>
              <Navigation className="w-3.5 h-3.5" /> Near Me
            </button>
            <div className="relative flex-1">
-             <select
-               value={bpCity}
-               onChange={(e) => setBpCity(e.target.value)}
-               className="w-full px-3 py-2 bg-[#151A22] border border-[#222A36] rounded-xl text-white text-xs appearance-none cursor-pointer focus:outline-none focus:border-[#1E90FF]/50"
-             >
+             <select value={bpCity} onChange={(e) => setBpCity(e.target.value)} className="w-full px-3 py-2 bg-[#151A22] border border-[#222A36] rounded-xl text-white text-xs appearance-none cursor-pointer focus:outline-none focus:border-[#1E90FF]/50">
                {allCities.map(c => <option key={c} value={c}>{c === 'All' ? 'All Areas' : c}</option>)}
              </select>
              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#A0A4AB] pointer-events-none" />
            </div>
            <div className="relative flex-1">
-             <select
-               value={bpSort}
-               onChange={(e) => setBpSort(e.target.value)}
-               className="w-full px-3 py-2 bg-[#151A22] border border-[#222A36] rounded-xl text-white text-xs appearance-none cursor-pointer focus:outline-none focus:border-[#1E90FF]/50"
-             >
+             <select value={bpSort} onChange={(e) => setBpSort(e.target.value)} className="w-full px-3 py-2 bg-[#151A22] border border-[#222A36] rounded-xl text-white text-xs appearance-none cursor-pointer focus:outline-none focus:border-[#1E90FF]/50">
                <option value="soonest">Soonest First</option>
                <option value="popular">Most Popular</option>
                <option value="newest">Newest Posted</option>
@@ -11246,178 +11271,43 @@ const BORDER_MAP = {
          </div>
          {hasFilters && (
            <div className="flex items-center gap-2 mt-2 flex-wrap">
-             {bpSports.map(sp => (
-               <span key={sp} className="flex items-center gap-1 px-2 py-1 bg-[#1E90FF]/20 text-[#1E90FF] text-xs font-bold rounded-full border border-[#1E90FF]/30">
-                 {getSportIcon(sp)} {sp} <button onClick={() => setBpSports(prev => prev.filter(s => s !== sp))}><X className="w-3 h-3" /></button>
-               </span>
-             ))}
-             {bpCity !== 'All' && (
-               <span className="flex items-center gap-1 px-2 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-bold rounded-full border border-emerald-500/30">
-                 <MapPin className="w-3 h-3" /> {bpCity} <button onClick={() => setBpCity('All')}><X className="w-3 h-3" /></button>
-               </span>
-             )}
-             {bpSearch.trim() && (
-               <span className="flex items-center gap-1 px-2 py-1 bg-orange-500/20 text-orange-300 text-xs font-bold rounded-full border border-orange-500/30">
-                 <Search className="w-3 h-3" /> "{bpSearch}" <button onClick={() => setBpSearch('')}><X className="w-3 h-3" /></button>
-               </span>
-             )}
-             {bpSort !== 'soonest' && (
-               <span className="flex items-center gap-1 px-2 py-1 bg-purple-500/20 text-purple-300 text-xs font-bold rounded-full border border-purple-500/30">
-                 {bpSort === 'popular' ? 'Most Popular' : bpSort === 'closest' ? 'Closest' : 'Newest'} <button onClick={() => setBpSort('soonest')}><X className="w-3 h-3" /></button>
-               </span>
-             )}
+             {bpSports.map(sp => (<span key={sp} className="flex items-center gap-1 px-2 py-1 bg-[#1E90FF]/20 text-[#1E90FF] text-xs font-bold rounded-full border border-[#1E90FF]/30">{getSportIcon(sp)} {sp} <button onClick={() => setBpSports(prev => prev.filter(s => s !== sp))}><X className="w-3 h-3" /></button></span>))}
+             {bpCity !== 'All' && (<span className="flex items-center gap-1 px-2 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-bold rounded-full border border-emerald-500/30"><MapPin className="w-3 h-3" /> {bpCity} <button onClick={() => setBpCity('All')}><X className="w-3 h-3" /></button></span>)}
+             {bpSearch.trim() && (<span className="flex items-center gap-1 px-2 py-1 bg-orange-500/20 text-orange-300 text-xs font-bold rounded-full border border-orange-500/30"><Search className="w-3 h-3" /> "{bpSearch}" <button onClick={() => setBpSearch('')}><X className="w-3 h-3" /></button></span>)}
+             {bpSort !== 'soonest' && (<span className="flex items-center gap-1 px-2 py-1 bg-purple-500/20 text-purple-300 text-xs font-bold rounded-full border border-purple-500/30">{bpSort === 'popular' ? 'Most Popular' : bpSort === 'closest' ? 'Closest' : 'Newest'} <button onClick={() => setBpSort('soonest')}><X className="w-3 h-3" /></button></span>)}
              <button onClick={() => { setBpSports([]); setBpCity('All'); setBpSearch(''); setBpSort('soonest'); }} className="text-xs text-red-400 hover:text-red-300 ml-1">Clear All</button>
            </div>
          )}
        </div>
      </div>
-
      <div className="max-w-4xl mx-auto px-4 py-4">
        <p className="text-[#A0A4AB] text-xs mb-4">{filteredParties.length} {filteredParties.length === 1 ? 'party' : 'parties'} found</p>
-
        {filteredParties.length === 0 ? (
          <div className="bg-[#151A22] rounded-2xl border border-[#222A36] p-8 text-center">
            <Search className="w-12 h-12 text-[#A0A4AB]/30 mx-auto mb-4" />
            <h3 className="text-white font-bold text-lg mb-2">No parties found</h3>
            <p className="text-[#A0A4AB] text-sm mb-4">Try adjusting your filters or create the first party!</p>
            <div className="flex items-center justify-center gap-3 flex-wrap">
-             {hasFilters && (
-               <button onClick={() => { setBpSports([]); setBpCity('All'); setBpSearch(''); setBpSort('soonest'); }} className="px-5 py-2.5 bg-[#222A36] hover:bg-[#2A3340] text-white font-bold rounded-xl text-sm transition-all">
-                 Clear Filters
-               </button>
-             )}
-             <button onClick={() => setCurrentScreen('games')} className="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-xl text-sm transition-all">
-               Browse Games & Create Party
-             </button>
+             {hasFilters && (<button onClick={() => { setBpSports([]); setBpCity('All'); setBpSearch(''); setBpSort('soonest'); }} className="px-5 py-2.5 bg-[#222A36] hover:bg-[#2A3340] text-white font-bold rounded-xl text-sm transition-all">Clear Filters</button>)}
+             <button onClick={() => setCurrentScreen('games')} className="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-xl text-sm transition-all">Browse Games & Create Party</button>
            </div>
          </div>
        ) : bpSort !== 'soonest' ? (
-         <div className="space-y-3">
-           {filteredParties.map(party => {
-             const gt = new Date(party.gameTime);
-             const gameEnd = new Date(gt.getTime() + 3 * 60 * 60 * 1000);
-             const isLive = gt <= now && gameEnd >= now;
-             const isPopular = (party.attendees?.length || 0) >= 25;
-             const friendsGoing = party.attendeeDetails?.filter(a => a.userId && friendIds.includes(a.userId)) || [];
-             return (
-               <div
-                 key={party.id}
-                 onClick={() => { const game = safeGames.find(g => g.id === party.gameId); if (game) { setSelectedGame(game); setCurrentScreen('gameDetail'); } }}
-                 className={`bg-[#151A22] p-4 rounded-xl border transition-all cursor-pointer active:scale-[0.99] ${isLive ? 'border-red-500/40 bg-gradient-to-r from-red-900/20 via-[#151A22] to-[#151A22]' : 'border-[#222A36] hover:border-[#1E90FF]/30'}`}
-               >
-                 <div className="flex items-start justify-between mb-2">
-                   <div className="flex items-center gap-2 flex-1 min-w-0">
-                     <span className="text-lg flex-shrink-0">{getSportIcon(party.sport)}</span>
-                     <div className="min-w-0">
-                       <span className="text-white font-bold text-sm">{party.homeTeam} vs {party.awayTeam}</span>
-                       {isLive && <span className="ml-2 px-2 py-0.5 bg-red-500 text-white text-[10px] font-black rounded-full animate-pulse">LIVE</span>}
-                       {isPopular && !isLive && <span className="ml-2 text-orange-400 text-[10px] font-bold">🔥 POPULAR</span>}
-                     </div>
-                   </div>
-                 </div>
-                 <div className="text-sm text-[#A0A4AB] space-y-1">
-                   <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" /><span className="truncate text-white font-bold text-[14px]">{party.venueName || 'TBD'}</span></div>
-                   <div className="flex items-center gap-2"><Calendar className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" /><span>{isNaN(gt.getTime()) ? (party.gameTime || 'TBD') : gt.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span><span className="text-[#1E90FF] text-xs font-semibold ml-1">{getCountdown(party.gameTime)}</span></div>
-                   <div className="flex items-center gap-4">
-                     <div className="flex items-center gap-2"><Users className="w-3.5 h-3.5 text-[#1E90FF] flex-shrink-0" /><span>{party.attendees?.length || 0} going</span></div>
-                     <div className="flex items-center gap-2"><User className="w-3.5 h-3.5 text-yellow-400 flex-shrink-0" /><span>{party.hostName}</span></div>
-                   </div>
-                   {friendsGoing.length > 0 && (
-                     <div className="flex items-center gap-2"><Heart className="w-3.5 h-3.5 text-pink-400 flex-shrink-0" /><span className="text-pink-300 font-semibold">{friendsGoing.length} friend{friendsGoing.length !== 1 ? 's' : ''} going</span></div>
-                   )}
-                 </div>
-                 {party.notes && <p className="text-white/40 text-xs mt-2 line-clamp-2">"{party.notes}"</p>}
-                 <div className="flex items-center justify-between mt-3">
-                   <div className="flex items-center gap-2">
-                     <button onClick={(e) => { e.stopPropagation(); openCalendarMenu(party); }} className="flex items-center gap-1 text-xs text-[#1E90FF] hover:text-[#1E90FF]/80"><Calendar className="w-3 h-3" /> Calendar</button>
-                     <button onClick={(e) => { e.stopPropagation(); openShareMenu(party); }} className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300"><Share2 className="w-3 h-3" /> Share</button>
-                   </div>
-                   {user && !party.attendees?.includes(user.email) && party.hostEmail !== user?.email ? (
-                     <button onClick={(e) => { e.stopPropagation(); handleJoinParty(party.id); }} className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-xs rounded-full hover:opacity-90 transition-all">
-                       <Users className="w-3 h-3" /> Join Party
-                     </button>
-                   ) : party.attendees?.includes(user?.email) ? (
-                     <span className="flex items-center gap-1 px-3 py-1.5 bg-green-500/20 text-green-400 text-xs font-bold rounded-full border border-green-500/30">
-                       <Check className="w-3 h-3" /> Joined
-                     </span>
-                   ) : null}
-                 </div>
-               </div>
-             );
-           })}
-         </div>
+         <div className="space-y-3">{filteredParties.map(p => renderPartyCard(p))}</div>
        ) : (
          <div className="space-y-6">
            {groupedParties.map((group, gi) => {
              const isCollapsed = bpCollapsed[group.label];
              return (
                <div key={gi}>
-                 <button
-                   onClick={() => setBpCollapsed(prev => ({ ...prev, [group.label]: !prev[group.label] }))}
-                   className="flex items-center gap-2 mb-3 w-full text-left group"
-                 >
+                 <button onClick={() => setBpCollapsed(prev => ({ ...prev, [group.label]: !prev[group.label] }))} className="flex items-center gap-2 mb-3 w-full text-left group">
                    <span className="text-lg">{group.icon}</span>
                    <h3 className="text-white font-black text-sm tracking-wider" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{group.label}</h3>
-                   <span className="text-[#A0A4AB] text-xs ml-1">({group.parties.length})</span>
+                   <span className="text-[#A0A4AB] text-xs ml-1">({Array.isArray(group.parties) ? group.parties.length : 0})</span>
                    <div className="flex-1 border-t border-[#222A36] ml-2" />
                    <ChevronDown className={`w-4 h-4 text-[#A0A4AB] transition-transform ${isCollapsed ? '-rotate-90' : ''}`} />
                  </button>
-                 {!isCollapsed && (
-                   <div className="space-y-3">
-                     {group.parties.map(party => {
-                       const gt = new Date(party.gameTime);
-                       const gameEnd = new Date(gt.getTime() + 3 * 60 * 60 * 1000);
-                       const isLive = gt <= now && gameEnd >= now;
-                       const isPopular = (party.attendees?.length || 0) >= 25;
-                       const friendsGoing = party.attendeeDetails?.filter(a => a.userId && friendIds.includes(a.userId)) || [];
-                       return (
-                         <div
-                           key={party.id}
-                           onClick={() => { const game = safeGames.find(g => g.id === party.gameId); if (game) { setSelectedGame(game); setCurrentScreen('gameDetail'); } }}
-                           className={`bg-[#151A22] p-4 rounded-xl border transition-all cursor-pointer active:scale-[0.99] ${isLive ? 'border-red-500/40 bg-gradient-to-r from-red-900/20 via-[#151A22] to-[#151A22]' : 'border-[#222A36] hover:border-[#1E90FF]/30'}`}
-                         >
-                           <div className="flex items-start justify-between mb-2">
-                             <div className="flex items-center gap-2 flex-1 min-w-0">
-                               <span className="text-lg flex-shrink-0">{getSportIcon(party.sport)}</span>
-                               <div className="min-w-0">
-                                 <span className="text-white font-bold text-sm">{party.homeTeam} vs {party.awayTeam}</span>
-                                 {isLive && <span className="ml-2 px-2 py-0.5 bg-red-500 text-white text-[10px] font-black rounded-full animate-pulse">LIVE</span>}
-                                 {isPopular && !isLive && <span className="ml-2 text-orange-400 text-[10px] font-bold">🔥 POPULAR</span>}
-                               </div>
-                             </div>
-                           </div>
-                           <div className="text-sm text-[#A0A4AB] space-y-1">
-                             <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" /><span className="truncate text-white font-bold text-[14px]">{party.venueName || 'TBD'}</span></div>
-                             <div className="flex items-center gap-2"><Calendar className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" /><span>{isNaN(gt.getTime()) ? (party.gameTime || 'TBD') : gt.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span><span className="text-[#1E90FF] text-xs font-semibold ml-1">{getCountdown(party.gameTime)}</span></div>
-                             <div className="flex items-center gap-4">
-                               <div className="flex items-center gap-2"><Users className="w-3.5 h-3.5 text-[#1E90FF] flex-shrink-0" /><span>{party.attendees?.length || 0} going</span></div>
-                               <div className="flex items-center gap-2"><User className="w-3.5 h-3.5 text-yellow-400 flex-shrink-0" /><span>{party.hostName}</span></div>
-                             </div>
-                             {friendsGoing.length > 0 && (
-                               <div className="flex items-center gap-2"><Heart className="w-3.5 h-3.5 text-pink-400 flex-shrink-0" /><span className="text-pink-300 font-semibold">{friendsGoing.length} friend{friendsGoing.length !== 1 ? 's' : ''} going</span></div>
-                             )}
-                           </div>
-                           {party.notes && <p className="text-white/40 text-xs mt-2 line-clamp-2">"{party.notes}"</p>}
-                           <div className="flex items-center justify-between mt-3">
-                             <div className="flex items-center gap-2">
-                               <button onClick={(e) => { e.stopPropagation(); openCalendarMenu(party); }} className="flex items-center gap-1 text-xs text-[#1E90FF] hover:text-[#1E90FF]/80"><Calendar className="w-3 h-3" /> Calendar</button>
-                               <button onClick={(e) => { e.stopPropagation(); openShareMenu(party); }} className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300"><Share2 className="w-3 h-3" /> Share</button>
-                             </div>
-                             {user && !party.attendees?.includes(user.email) && party.hostEmail !== user?.email ? (
-                               <button onClick={(e) => { e.stopPropagation(); handleJoinParty(party.id); }} className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-xs rounded-full hover:opacity-90 transition-all">
-                                 <Users className="w-3 h-3" /> Join Party
-                               </button>
-                             ) : party.attendees?.includes(user?.email) ? (
-                               <span className="flex items-center gap-1 px-3 py-1.5 bg-green-500/20 text-green-400 text-xs font-bold rounded-full border border-green-500/30">
-                                 <Check className="w-3 h-3" /> Joined
-                               </span>
-                             ) : null}
-                           </div>
-                         </div>
-                       );
-                     })}
-                   </div>
-                 )}
+                 {!isCollapsed && (<div className="space-y-3">{(group.parties || []).map(p => renderPartyCard(p))}</div>)}
                </div>
              );
            })}
