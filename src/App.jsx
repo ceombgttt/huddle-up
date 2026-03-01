@@ -11052,10 +11052,10 @@ const BORDER_MAP = {
  const defaultSportsList = ['NFL', 'NBA', 'MLB', 'NHL', 'MLS', 'College Football', 'College Basketball', 'Premier League', 'La Liga', 'Champions League', 'UFC/MMA', 'Boxing', 'NASCAR', 'F1', 'Tennis', 'Golf'];
 
  const allCities = (() => {
-   const cityMap = new Map();
-   safeParties.forEach(p => { if (p && p.city) { const c = String(p.city).split(',')[0].trim(); if (c && !cityMap.has(c.toLowerCase())) cityMap.set(c.toLowerCase(), c); } });
-   if (currentCity) { const c = String(currentCity).split(',')[0].trim(); if (c && !cityMap.has(c.toLowerCase())) cityMap.set(c.toLowerCase(), c); }
-   return ['All', ...Array.from(cityMap.values()).sort()];
+   const cityObj = {};
+   safeParties.forEach(p => { if (p && p.city) { const c = String(p.city).split(',')[0].trim(); if (c && !cityObj[c.toLowerCase()]) cityObj[c.toLowerCase()] = c; } });
+   if (currentCity) { const c = String(currentCity).split(',')[0].trim(); if (c && !cityObj[c.toLowerCase()]) cityObj[c.toLowerCase()] = c; }
+   return ['All', ...Object.values(cityObj).sort()];
  })();
 
  const allSports = (() => {
