@@ -3,6 +3,34 @@ import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search,
 import { Html5Qrcode } from 'html5-qrcode';
 import { api } from './api.js';
 
+class ScreenErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, info) {
+    console.error('Screen crash:', error, info?.componentStack);
+  }
+  render() {
+    if (this.state.hasError) {
+      return React.createElement('div', { className: 'min-h-screen bg-[#0F1115] flex items-center justify-center p-8', style: { paddingTop: '60px' } },
+        React.createElement('div', { className: 'bg-[#151A22] rounded-2xl border border-red-500/30 p-6 max-w-md text-center' },
+          React.createElement('h3', { className: 'text-white font-bold text-lg mb-2' }, 'Something went wrong'),
+          React.createElement('p', { className: 'text-[#A0A4AB] text-sm mb-4' }, String(this.state.error?.message || 'Unknown error')),
+          React.createElement('button', {
+            className: 'px-5 py-2.5 bg-[#1E90FF] text-white font-bold rounded-xl text-sm',
+            onClick: () => { this.setState({ hasError: false, error: null }); if (this.props.onReset) this.props.onReset(); }
+          }, 'Go Back')
+        )
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function QrScannerInit({ isOpen, onResult, scannerRef, onError }) {
  useEffect(() => {
  if (!isOpen) return;
@@ -11014,22 +11042,26 @@ const BORDER_MAP = {
  const [bpSort, setBpSort] = useState('soonest');
  const [bpCollapsed, setBpCollapsed] = useState({});
 
+ const safeParties = Array.isArray(parties) ? parties : [];
+ const safeGames = Array.isArray(games) ? games : [];
+ const safeFriendsList = Array.isArray(friendsList) ? friendsList : [];
+
  const sportIcons = { 'NFL': '🏈', 'NBA': '🏀', 'NHL': '🏒', 'MLB': '⚾', 'MLS': '⚽', 'College Football': '🏈', 'College Basketball': '🏀', 'Premier League': '⚽', 'La Liga': '⚽', 'Liga MX': '⚽', 'Champions League': '⚽', 'UFC/MMA': '🥊', 'Boxing': '🥊', 'NASCAR': '🏁', 'F1': '🏎️', 'Tennis': '🎾', 'Golf': '⛳' };
  const getSportIcon = (sport) => sportIcons[sport] || '🏟️';
 
  const allCities = React.useMemo(() => {
    const cityMap = new Map();
-   parties.forEach(p => { if (p.city) { const c = p.city.split(',')[0].trim(); if (!cityMap.has(c.toLowerCase())) cityMap.set(c.toLowerCase(), c); } });
+   safeParties.forEach(p => { if (p.city) { const c = p.city.split(',')[0].trim(); if (!cityMap.has(c.toLowerCase())) cityMap.set(c.toLowerCase(), c); } });
    if (currentCity) { const c = currentCity.split(',')[0].trim(); if (!cityMap.has(c.toLowerCase())) cityMap.set(c.toLowerCase(), c); }
    return ['All', ...Array.from(cityMap.values()).sort()];
- }, [parties, currentCity]);
+ }, [safeParties, currentCity]);
 
  const allSports = React.useMemo(() => {
    const defaultSports = ['NFL', 'NBA', 'MLB', 'NHL', 'MLS', 'College Football', 'College Basketball', 'Premier League', 'La Liga', 'Champions League', 'UFC/MMA', 'Boxing', 'NASCAR', 'F1', 'Tennis', 'Golf'];
    const sportSet = new Set(defaultSports);
-   parties.forEach(p => { if (p.sport) sportSet.add(p.sport); });
+   safeParties.forEach(p => { if (p.sport) sportSet.add(p.sport); });
    return defaultSports.filter(s => sportSet.has(s)).concat([...sportSet].filter(s => !defaultSports.includes(s)));
- }, [parties]);
+ }, [safeParties]);
 
  const now = new Date();
  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -11043,7 +11075,7 @@ const BORDER_MAP = {
 
  const filteredParties = React.useMemo(() => {
    const fourteenDaysOut = new Date(now); fourteenDaysOut.setDate(fourteenDaysOut.getDate() + 14);
-   let filtered = parties.filter(p => {
+   let filtered = safeParties.filter(p => {
      const gt = new Date(p.gameTime);
      if (isNaN(gt.getTime())) return true;
      const threeHoursAgo = new Date(now.getTime() - 3 * 60 * 60 * 1000);
@@ -11084,7 +11116,7 @@ const BORDER_MAP = {
      });
    }
    return filtered;
- }, [parties, bpSports, bpCity, bpSearch, bpSort, userCoords, currentCity]);
+ }, [safeParties, bpSports, bpCity, bpSearch, bpSort, userCoords, currentCity]);
 
  const groupedParties = React.useMemo(() => {
    const groups = [];
@@ -11133,10 +11165,10 @@ const BORDER_MAP = {
    return `in ${mins}m`;
  };
 
- const friendIds = (friendsList || []).map(f => f.id);
+ const friendIds = safeFriendsList.map(f => f.id);
 
  return (
-   <div className="min-h-screen bg-[#0F1115] pt-[48px]">
+   <div className="min-h-screen bg-[#0F1115]">
      <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
        <div className="max-w-4xl mx-auto px-4 py-3">
          <div className="flex items-center justify-between mb-3">
@@ -11270,7 +11302,7 @@ const BORDER_MAP = {
              return (
                <div
                  key={party.id}
-                 onClick={() => { const game = games.find(g => g.id === party.gameId); if (game) { setSelectedGame(game); setCurrentScreen('gameDetail'); } }}
+                 onClick={() => { const game = safeGames.find(g => g.id === party.gameId); if (game) { setSelectedGame(game); setCurrentScreen('gameDetail'); } }}
                  className={`bg-[#151A22] p-4 rounded-xl border transition-all cursor-pointer active:scale-[0.99] ${isLive ? 'border-red-500/40 bg-gradient-to-r from-red-900/20 via-[#151A22] to-[#151A22]' : 'border-[#222A36] hover:border-[#1E90FF]/30'}`}
                >
                  <div className="flex items-start justify-between mb-2">
@@ -11341,7 +11373,7 @@ const BORDER_MAP = {
                        return (
                          <div
                            key={party.id}
-                           onClick={() => { const game = games.find(g => g.id === party.gameId); if (game) { setSelectedGame(game); setCurrentScreen('gameDetail'); } }}
+                           onClick={() => { const game = safeGames.find(g => g.id === party.gameId); if (game) { setSelectedGame(game); setCurrentScreen('gameDetail'); } }}
                            className={`bg-[#151A22] p-4 rounded-xl border transition-all cursor-pointer active:scale-[0.99] ${isLive ? 'border-red-500/40 bg-gradient-to-r from-red-900/20 via-[#151A22] to-[#151A22]' : 'border-[#222A36] hover:border-[#1E90FF]/30'}`}
                          >
                            <div className="flex items-start justify-between mb-2">
@@ -15624,7 +15656,7 @@ const BORDER_MAP = {
  {currentScreen === 'sponsorDashboard' && <SponsorDashboard />}
  {currentScreen === 'myParties' && <MyPartiesScreen />}
  {currentScreen === 'notificationSettings' && <NotificationSettingsScreen />}
- {currentScreen === 'browseParties' && <BrowsePartiesScreen />}
+ {currentScreen === 'browseParties' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><BrowsePartiesScreen /></ScreenErrorBoundary>}
  {currentScreen === 'nearbyParties' && (() => { setCurrentScreen('browseParties'); return null; })()}
  {currentScreen === 'profile' && <ProfileScreen />}
  {currentScreen === 'proUpgrade' && <ProUpgradeScreen />}
