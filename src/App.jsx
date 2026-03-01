@@ -1677,30 +1677,7 @@ const qrScannerRef = useRef(null);
 
  const isPro = user?.subscriptionTier === 'pro';
 
- useEffect(() => {
- if (!user || inviteReminderShown.current) return;
- const lastReminder = localStorage.getItem('lastInviteReminder');
- const threeDays = 3 * 24 * 60 * 60 * 1000;
- if (lastReminder && (Date.now() - parseInt(lastReminder)) < threeDays) return;
- const timer = setTimeout(() => {
- if (!inviteReminderShown.current) {
- inviteReminderShown.current = true;
- setShowInviteReminder(true);
- }
- }, 45000);
- return () => clearTimeout(timer);
- }, [user]);
 
- useEffect(() => {
- if (!user || currentScreen !== 'games') return;
- const tourSeen = localStorage.getItem('huddle_tour_seen');
- if (!tourSeen) {
- const timer = setTimeout(() => {
- startSpotlightTour();
- }, 1500);
- return () => clearTimeout(timer);
- }
- }, [user, currentScreen]);
 
  const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
@@ -2087,8 +2064,8 @@ const qrScannerRef = useRef(null);
  api.push.getPreferences().then(prefs => setNotifPrefs(prefs)).catch(() => {});
  const visits = parseInt(localStorage.getItem('hu_visit_count') || '0') + 1;
  localStorage.setItem('hu_visit_count', String(visits));
- if (visits >= 2 && typeof Notification !== 'undefined' && Notification.permission === 'default') {
-   setTimeout(() => setShowPushBanner(true), 3000);
+ if (visits >= 3 && typeof Notification !== 'undefined' && Notification.permission === 'default') {
+   setTimeout(() => setShowPushBanner(true), 30000);
  }
  }
  } catch (error) {
@@ -5811,103 +5788,23 @@ const qrScannerRef = useRef(null);
 
  <div className="max-w-4xl mx-auto px-4">
 
- {/* SOFT LAUNCH BANNER */}
- {!softLaunchDismissed && (
- <div className="mb-3 relative overflow-hidden rounded-2xl" style={{ background: 'linear-gradient(135deg, #1E90FF 0%, #0066CC 40%, #F5B400 100%)', animation: 'slideDown 300ms ease-out' }}>
- <button onClick={() => { setSoftLaunchDismissed(true); localStorage.setItem('softlaunch_banner_dismissed', JSON.stringify({ time: Date.now() })); }} className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center bg-black/20 hover:bg-black/40 rounded-full text-white/80 hover:text-white transition-all z-10">
- <X className="w-4 h-4" />
- </button>
- <div className="p-5 md:p-6">
- <div className="flex items-center gap-2 mb-2">
- <span className="text-2xl">🚀</span>
- <h2 className="text-xl md:text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>SOFT LAUNCH — BOCA RATON</h2>
- </div>
- <p className="text-white/90 text-sm mb-3">We're launching in South Florida first!</p>
- <div className="bg-black/15 rounded-xl p-3 mb-3">
- <p className="text-white font-bold text-sm mb-1.5">First 100 members get:</p>
- <ul className="space-y-1 text-white/90 text-sm">
- <li className="flex items-center gap-2"><Star className="w-3.5 h-3.5 text-yellow-300 flex-shrink-0" /> Lifetime Pro FREE ($2.99/mo value)</li>
- <li className="flex items-center gap-2"><Award className="w-3.5 h-3.5 text-yellow-300 flex-shrink-0" /> Exclusive "Founder" badge on profile</li>
- <li className="flex items-center gap-2"><Zap className="w-3.5 h-3.5 text-yellow-300 flex-shrink-0" /> Shape the future of Huddle Up</li>
- </ul>
- </div>
- <div className="flex items-center gap-2 text-white/70 text-xs font-bold mb-3">
- <span>{softLaunchStats.users} members</span>
- <span className="text-white/40">•</span>
- <span>{softLaunchStats.parties} parties</span>
- <span className="text-white/40">•</span>
- <span>{softLaunchStats.venues} venues</span>
- </div>
- {user ? (
- user.isFounder ? (
- <div className="flex items-center gap-2 px-4 py-2.5 bg-white/20 rounded-xl">
- <Star className="w-5 h-5 text-yellow-300 fill-yellow-300" />
- <span className="text-white font-bold text-sm">You're a Founding Member!</span>
- </div>
- ) : softLaunchStats.users >= 100 ? (
- <div className="px-4 py-2.5 bg-white/10 rounded-xl text-center">
- <span className="text-white/80 font-bold text-sm">Founding Member spots filled! {softLaunchStats.users}/100</span>
- </div>
- ) : (
- <button
- onClick={async () => {
-   try {
-     const res = await fetch('/api/users/claim-founder', { method: 'POST', credentials: 'include' });
-     const data = await res.json();
-     if (data.alreadyFounder) { alert(data.message); }
-     else if (data.success) { alert(data.message); setUser(prev => ({ ...prev, isFounder: true, founderNumber: data.founderNumber || null, subscriptionTier: 'pro' })); }
-     else { alert(data.error || 'Something went wrong'); }
-   } catch { alert('Failed to claim founder status'); }
- }}
- className="w-full md:w-auto px-6 py-3 bg-white text-[#0F1115] font-black text-sm rounded-xl hover:bg-white/90 transition-all active:scale-[0.97]"
- style={{ animation: 'pulse 2s ease-in-out infinite' }}
- >
- Join as Founding Member
- </button>
- )
- ) : (
- <button
- onClick={() => setCurrentScreen('signup')}
- className="w-full md:w-auto px-6 py-3 bg-white text-[#0F1115] font-black text-sm rounded-xl hover:bg-white/90 transition-all active:scale-[0.97]"
- style={{ animation: 'pulse 2s ease-in-out infinite' }}
- >
- Join as Founding Member
- </button>
- )}
- </div>
- </div>
- )}
+{/* SOFT LAUNCH BANNER */}
+{!softLaunchDismissed && (
+<div className="mb-3 relative overflow-hidden rounded-xl" style={{ background: 'linear-gradient(135deg, #1E90FF 0%, #0066CC 50%, #F5B400 100%)' }}>
+<button onClick={() => { setSoftLaunchDismissed(true); localStorage.setItem('softlaunch_banner_dismissed', JSON.stringify({ time: Date.now() })); }} className="absolute top-2 right-2 text-white/60 hover:text-white z-10">
+<X className="w-4 h-4" />
+</button>
+<div className="p-3 flex items-center gap-3">
+<span className="text-xl flex-shrink-0">🚀</span>
+<div className="flex-1 min-w-0">
+<p className="text-white font-bold text-sm">Soft Launch — Boca Raton</p>
+<p className="text-white/80 text-xs">First 100 members get Lifetime Pro FREE + Founder badge</p>
+</div>
+<div className="text-white/70 text-xs font-bold flex-shrink-0">{softLaunchStats.users}/100</div>
+</div>
+</div>
+)}
 
- {/* SHARE & ENGAGE BANNER */}
- {!prelaunchDismissed && (
- <div className="mb-3 relative overflow-hidden rounded-2xl border border-[#1E90FF]/30 bg-gradient-to-r from-[#1E90FF]/15 via-[#0066CC]/10 to-emerald-900/15">
- <button onClick={() => setPrelaunchDismissed(true)} className="absolute top-2 right-2 text-white/40 hover:text-white/80 z-10">
- <X className="w-4 h-4" />
- </button>
- <div className="relative p-4">
- <h3 className="text-white font-black text-lg leading-tight mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>
- SHARE THE APP WITH YOUR FRIENDS
- </h3>
- <p className="text-white/60 text-xs mb-3">Create a watch party, invite your crew, and earn points for every friend that joins!</p>
- <div className="flex items-center gap-2 flex-wrap">
- <button
- onClick={() => { if (navigator.share) { navigator.share({ title: 'Huddle Up', text: 'Join me on Huddle Up! Find watch parties for any game near you.', url: window.location.origin }); } else { navigator.clipboard.writeText(window.location.origin); setShowShareToast(true); setTimeout(() => setShowShareToast(false), 2000); } }}
- className="flex items-center gap-1.5 px-4 py-2 bg-[#1E90FF] hover:bg-[#1E90FF]/80 text-white font-bold text-xs rounded-full transition-all"
- >
- <Share2 className="w-3.5 h-3.5" />
- Share App
- </button>
- <button
- onClick={() => setCurrentScreen('createParty')}
- className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs rounded-full transition-all"
- >
- <Plus className="w-3.5 h-3.5" />
- Create a Watch Party
- </button>
- </div>
- </div>
- </div>
- )}
 
  <div onClick={() => setCurrentScreen('browseParties')} className="mb-3 relative overflow-hidden rounded-2xl border border-orange-500/40 bg-gradient-to-r from-orange-900/40 via-[#151A22] to-orange-900/30 cursor-pointer hover:border-orange-500/60 transition-all active:scale-[0.99]">
  <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full -translate-y-1/2 translate-x-1/2" />
@@ -15645,8 +15542,8 @@ const qrScannerRef = useRef(null);
  {/* FEATURE 1: Onboarding Tutorial Overlay */}
  {showOnboarding && <OnboardingOverlay />}
  {showTourGuide && <TourGuidePopup />}
- {spotlightTourActive && spotlightTourJSX()}
- {showInviteReminder && <InviteReminderPopup />}
+ 
+ 
 
  {user && !['welcome', 'login', 'signup', 'forgotPassword'].includes(currentScreen) && (
  <>
