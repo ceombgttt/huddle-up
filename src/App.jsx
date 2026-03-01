@@ -5658,56 +5658,67 @@ const qrScannerRef = useRef(null);
  </button>
  </div>
  <div className="p-3 space-y-1">
- {!isAppInstalled && (
- <button onClick={() => { handlePwaInstall(); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-[#1E90FF]/10 hover:bg-[#1E90FF]/20 transition-colors text-left active:scale-[0.98] border border-[#1E90FF]/30">
- <Download className="w-5 h-5 text-[#1E90FF]" /><span className="text-[#1E90FF] text-sm font-bold">Install App</span>
- </button>
- )}
- <button onClick={() => { setCurrentScreen('browseParties'); setHamburgerOpen(false); window.scrollTo(0, 0); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 transition-colors text-left active:scale-[0.98] border border-orange-500/30">
- <Search className="w-5 h-5 text-orange-400" /><span className="text-orange-400 text-sm font-bold">Browse All Parties</span>
- </button>
- <button onClick={() => { setCurrentScreen('myParties'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-500/10 transition-colors text-left active:scale-[0.98]">
- <Calendar className="w-5 h-5 text-orange-400" /><span className="text-white text-sm font-semibold">My Parties</span>
- </button>
- <button onClick={() => { setCurrentScreen('notificationSettings'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-yellow-500/10 transition-colors text-left active:scale-[0.98]">
- <Bell className="w-5 h-5 text-yellow-400" /><span className="text-white text-sm font-semibold">Notification Settings</span>
- </button>
- <button onClick={() => { setCurrentScreen('teamChats'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-teal-500/10 transition-colors text-left active:scale-[0.98]">
- <MessageCircle className="w-5 h-5 text-teal-400" /><span className="text-white text-sm font-semibold">Team Chat</span>
- </button>
- <button onClick={() => { setCurrentScreen('fanFinder'); if (currentCity && nearbyFans.length === 0) searchNearbyFans(currentCity); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1E90FF]/10 transition-colors text-left active:scale-[0.98]">
- <UserPlus className="w-5 h-5 text-[#1E90FF]" /><span className="text-white text-sm font-semibold">Find Fans</span>
- </button>
- <button onClick={() => { setCurrentScreen('predictions'); loadPredictions(); loadPredictionLeaderboard(); window.scrollTo({ top: 0, behavior: 'instant' }); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-500/10 transition-colors text-left active:scale-[0.98]">
- <Target className="w-5 h-5 text-emerald-400" /><span className="text-white text-sm font-semibold">Predictions</span>
- </button>
- <button onClick={() => { setCurrentScreen('fantasy'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-500/10 transition-colors text-left active:scale-[0.98]">
- <Trophy className="w-5 h-5 text-orange-400" /><span className="text-white text-sm font-semibold">Fantasy</span>
- </button>
- <button onClick={() => { setShowQA(true); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-indigo-500/10 transition-colors text-left active:scale-[0.98]">
- <Shield className="w-5 h-5 text-indigo-400" /><span className="text-white text-sm font-semibold">Q&A</span>
- </button>
- <button onClick={() => { setCurrentScreen('inviteFriends'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-500/10 transition-colors text-left active:scale-[0.98]">
- <UserPlus className="w-5 h-5 text-emerald-400" /><span className="text-white text-sm font-semibold">Invite Friends</span>
- </button>
- <button onClick={() => { setHamburgerOpen(false); if (currentScreen !== 'games') { setCurrentScreen('games'); setTimeout(() => startSpotlightTour(), 600); } else { startSpotlightTour(); } }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1E90FF]/10 transition-colors text-left active:scale-[0.98]">
- <Map className="w-5 h-5 text-[#1E90FF]" /><span className="text-white text-sm font-semibold">Learn The App</span>
- </button>
- {userVenue && (
- <button onClick={() => { setCurrentScreen('venueDashboard'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-green-500/10 transition-colors text-left active:scale-[0.98]">
- <Building2 className="w-5 h-5 text-green-400" /><span className="text-white text-sm font-semibold">Venue Hub</span>
- </button>
- )}
- {isAdmin && (
- <button onClick={() => { setCurrentScreen('admin'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-purple-500/10 transition-colors text-left active:scale-[0.98]">
- <Settings className="w-5 h-5 text-purple-400" /><span className="text-white text-sm font-semibold">Admin Panel</span>
- </button>
- )}
- <div className="border-t border-[#222A36] my-2" />
- <button onClick={() => { handleLogout(); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-500/10 transition-colors text-left active:scale-[0.98]">
- <LogOut className="w-5 h-5 text-red-400" /><span className="text-red-400 text-sm font-semibold">Logout</span>
- </button>
- </div>
+<button onClick={() => { setCurrentScreen('profile'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-[#1E90FF]/10 hover:bg-[#1E90FF]/20 transition-colors text-left active:scale-[0.98] border border-[#1E90FF]/30">
+<User className="w-5 h-5 text-[#1E90FF]" /><span className="text-[#1E90FF] text-sm font-bold">My Profile</span>
+</button>
+<button onClick={() => { setCurrentScreen('profile'); setHamburgerOpen(false); setTimeout(() => { const el = document.querySelector('[data-section="favorite-teams"]'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 400); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-amber-500/10 transition-colors text-left active:scale-[0.98]">
+<Star className="w-5 h-5 text-amber-400" /><span className="text-white text-sm font-semibold">My Favorite Teams</span>
+{user?.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 && (
+<span className="ml-auto text-xs text-amber-400 font-bold">{Object.keys(user.favoriteTeams).length}</span>
+)}
+</button>
+<div className="border-t border-[#222A36] my-2" />
+{!isAppInstalled && (
+<button onClick={() => { handlePwaInstall(); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1E90FF]/10 transition-colors text-left active:scale-[0.98]">
+<Download className="w-5 h-5 text-[#1E90FF]" /><span className="text-white text-sm font-semibold">Install App</span>
+</button>
+)}
+<button onClick={() => { setCurrentScreen('browseParties'); setHamburgerOpen(false); window.scrollTo(0, 0); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 transition-colors text-left active:scale-[0.98] border border-orange-500/30">
+<Search className="w-5 h-5 text-orange-400" /><span className="text-orange-400 text-sm font-bold">Browse All Parties</span>
+</button>
+<button onClick={() => { setCurrentScreen('myParties'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-500/10 transition-colors text-left active:scale-[0.98]">
+<Calendar className="w-5 h-5 text-orange-400" /><span className="text-white text-sm font-semibold">My Parties</span>
+</button>
+<button onClick={() => { setCurrentScreen('notificationSettings'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-yellow-500/10 transition-colors text-left active:scale-[0.98]">
+<Bell className="w-5 h-5 text-yellow-400" /><span className="text-white text-sm font-semibold">Notification Settings</span>
+</button>
+<button onClick={() => { setCurrentScreen('teamChats'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-teal-500/10 transition-colors text-left active:scale-[0.98]">
+<MessageCircle className="w-5 h-5 text-teal-400" /><span className="text-white text-sm font-semibold">Team Chat</span>
+</button>
+<button onClick={() => { setCurrentScreen('fanFinder'); if (currentCity && nearbyFans.length === 0) searchNearbyFans(currentCity); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1E90FF]/10 transition-colors text-left active:scale-[0.98]">
+<UserPlus className="w-5 h-5 text-[#1E90FF]" /><span className="text-white text-sm font-semibold">Find Fans</span>
+</button>
+<button onClick={() => { setCurrentScreen('predictions'); loadPredictions(); loadPredictionLeaderboard(); window.scrollTo({ top: 0, behavior: 'instant' }); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-500/10 transition-colors text-left active:scale-[0.98]">
+<Target className="w-5 h-5 text-emerald-400" /><span className="text-white text-sm font-semibold">Predictions</span>
+</button>
+<button onClick={() => { setCurrentScreen('fantasy'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-500/10 transition-colors text-left active:scale-[0.98]">
+<Trophy className="w-5 h-5 text-orange-400" /><span className="text-white text-sm font-semibold">Fantasy</span>
+</button>
+<button onClick={() => { setCurrentScreen('inviteFriends'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-500/10 transition-colors text-left active:scale-[0.98]">
+<UserPlus className="w-5 h-5 text-emerald-400" /><span className="text-white text-sm font-semibold">Invite Friends</span>
+</button>
+{userVenue && (
+<button onClick={() => { setCurrentScreen('venueDashboard'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-green-500/10 transition-colors text-left active:scale-[0.98]">
+<Building2 className="w-5 h-5 text-green-400" /><span className="text-white text-sm font-semibold">Venue Hub</span>
+</button>
+)}
+{isAdmin && (
+<button onClick={() => { setCurrentScreen('admin'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-purple-500/10 transition-colors text-left active:scale-[0.98]">
+<Settings className="w-5 h-5 text-purple-400" /><span className="text-white text-sm font-semibold">Admin Panel</span>
+</button>
+)}
+<div className="border-t border-[#222A36] my-2" />
+<button onClick={() => { setShowQA(true); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-indigo-500/10 transition-colors text-left active:scale-[0.98]">
+<Shield className="w-5 h-5 text-indigo-400" /><span className="text-white text-sm font-semibold">Q&A</span>
+</button>
+<button onClick={() => { setHamburgerOpen(false); if (currentScreen !== 'games') { setCurrentScreen('games'); setTimeout(() => startSpotlightTour(), 600); } else { startSpotlightTour(); } }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1E90FF]/10 transition-colors text-left active:scale-[0.98]">
+<Map className="w-5 h-5 text-[#1E90FF]" /><span className="text-white text-sm font-semibold">Learn The App</span>
+</button>
+<div className="border-t border-[#222A36] my-2" />
+<button onClick={() => { handleLogout(); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-500/10 transition-colors text-left active:scale-[0.98]">
+<LogOut className="w-5 h-5 text-red-400" /><span className="text-red-400 text-sm font-semibold">Logout</span>
+</button>
+</div>
  </div>
  </>
  )}
@@ -12531,6 +12542,7 @@ const BORDER_MAP = {
  </div>
 
  {/* MY FAVORITE TEAMS SECTION */}
+ <div data-section="favorite-teams" />
  {(() => {
  const allSports = ['NFL', 'NBA', 'MLB', 'NHL', 'College Football', 'College Basketball', 'Premier League', 'La Liga', 'Liga MX', 'MLS', 'Champions League', 'Formula 1', 'Tennis', 'Rugby', 'Cricket', 'FIFA World Cup'];
  const selectedTeams = Object.entries(user.favoriteTeams || {});
