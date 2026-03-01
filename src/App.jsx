@@ -1202,7 +1202,7 @@ const HuddleUpApp = () => {
    }
  }, []);
  const [user, setUser] = useState(null);
- const [selectedSport, setSelectedSport] = useState('All');
+ const [selectedSports, setSelectedSports] = useState([]);
  const [showSportsScrollArrow, setShowSportsScrollArrow] = useState(true);
  const sportsScrollRef = useRef(null);
  const [selectedGame, setSelectedGame] = useState(null);
@@ -2029,7 +2029,7 @@ const qrScannerRef = useRef(null);
 
  useEffect(() => {
  if (isPauseScreen) return;
- const sponsors = getSponsorsForSport(selectedSport);
+ const sponsors = getSponsorsForSport(selectedSports.length === 1 ? selectedSports[0] : 'All');
  if (sponsors.length > 1) {
  setSponsorIndex(0);
  const interval = setInterval(() => {
@@ -2039,7 +2039,7 @@ const qrScannerRef = useRef(null);
  } else {
  setSponsorIndex(0);
  }
- }, [selectedSport, isPauseScreen, getSponsorsForSport]);
+ }, [selectedSports, isPauseScreen, getSponsorsForSport]);
 
  const loadUserData = async () => {
  try {
@@ -3019,7 +3019,7 @@ const qrScannerRef = useRef(null);
  };
 
  const filteredGames = games.filter(game => {
- const matchesSport = selectedSport === 'All' || game.sport === selectedSport;
+ const matchesSport = selectedSports.length === 0 || selectedSports.includes(game.sport);
  const term = searchTerm.toLowerCase().trim();
  const matchesSearch = term === '' || 
  game.homeTeam.toLowerCase().includes(term) ||
@@ -3077,7 +3077,7 @@ const qrScannerRef = useRef(null);
    if (aHasParties && bHasParties) return bAttendees - aAttendees;
    return 0;
  });
- const hasActiveFilters = dateFilter !== 'All' || sortOption !== 'Soonest' || selectedSport !== 'All' || searchTerm.trim() !== '';
+ const hasActiveFilters = dateFilter !== 'All' || sortOption !== 'Soonest' || selectedSports.length > 0 || searchTerm.trim() !== '';
 
  const isCityMatch = (partyCity) => {
  if (!currentCity || !partyCity) return false;
@@ -5953,7 +5953,7 @@ const qrScannerRef = useRef(null);
  </div>
  {hasActiveFilters && (
  <button
-   onClick={() => { setDateFilter('All'); setSortOption('Soonest'); setSelectedSport('All'); setSearchTerm(''); }}
+   onClick={() => { setDateFilter('All'); setSortOption('Soonest'); setSelectedSports([]); setSearchTerm(''); }}
    className="text-red-400 text-xs font-bold hover:text-red-300 transition-colors"
  >
    Clear All Filters
@@ -5964,12 +5964,12 @@ const qrScannerRef = useRef(null);
 
  {hasActiveFilters && (
  <div className="flex flex-wrap gap-2 mb-[15px]">
- {selectedSport !== 'All' && (
-   <span className="inline-flex items-center gap-1 px-3 py-1 bg-[#1E90FF]/20 text-[#1E90FF] text-xs font-bold rounded-full border border-[#1E90FF]/30">
-     {SPORT_ICONS[selectedSport] || '🏅'} {selectedSport}
-     <button onClick={() => setSelectedSport('All')} className="ml-1 hover:text-white transition-colors"><X className="w-3 h-3" /></button>
+{selectedSports.length > 0 && selectedSports.map(sp => (
+   <span key={sp} className="inline-flex items-center gap-1 px-3 py-1 bg-[#1E90FF]/20 text-[#1E90FF] text-xs font-bold rounded-full border border-[#1E90FF]/30">
+     {SPORT_ICONS[sp] || '🏅'} {sp}
+     <button onClick={() => setSelectedSports(prev => prev.filter(s => s !== sp))} className="ml-1 hover:text-white transition-colors"><X className="w-3 h-3" /></button>
    </span>
- )}
+))}
  {dateFilter !== 'All' && (
    <span className="inline-flex items-center gap-1 px-3 py-1 bg-purple-500/20 text-purple-300 text-xs font-bold rounded-full border border-purple-500/30">
      <Calendar className="w-3 h-3" /> {dateFilter}
@@ -6015,9 +6015,9 @@ const qrScannerRef = useRef(null);
  return (
  <button
  key={sport}
- onClick={() => setSelectedSport(sport)}
+ onClick={() => { if (sport === 'All') { setSelectedSports([]); } else { setSelectedSports(prev => prev.includes(sport) ? prev.filter(s => s !== sport) : [...prev, sport]); } }}}
  className={`flex flex-col items-center justify-center min-w-[60px] px-2 py-2 rounded-[10px] font-bold transition-all active:scale-[0.98] ${
- selectedSport === sport
+ (sport === 'All' && selectedSports.length === 0) || (sport !== 'All' && selectedSports.includes(sport))
  ? 'bg-[#1E90FF] text-white shadow-sm shadow-[#1E90FF]/30 sport-pill-active'
  : isLive
  ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 sport-pill-live'
@@ -6061,7 +6061,7 @@ const qrScannerRef = useRef(null);
  <span className="text-[#A0A4AB] text-xs ml-2">({filteredGames.length} {filteredGames.length === 1 ? 'game' : 'games'})</span>
  </div>
  {hasActiveFilters && (
-   <button onClick={() => { setDateFilter('All'); setSortOption('Soonest'); setSelectedSport('All'); setSearchTerm(''); setMyTeamsOnly(false); }} className="text-[#1E90FF] text-xs font-bold hover:text-[#1E90FF]/80 transition-colors">
+   <button onClick={() => { setDateFilter('All'); setSortOption('Soonest'); setSelectedSports([]); setSearchTerm(''); setMyTeamsOnly(false); }} className="text-[#1E90FF] text-xs font-bold hover:text-[#1E90FF]/80 transition-colors">
      Clear Filters
    </button>
  )}
@@ -6074,7 +6074,7 @@ const qrScannerRef = useRef(null);
    <h3 className="text-white font-bold text-base mb-1">No games match your search</h3>
    <p className="text-[#A0A4AB] text-xs max-w-xs mb-3">Try adjusting your filters or search term</p>
    <button
-     onClick={() => { setDateFilter('All'); setSortOption('Soonest'); setSelectedSport('All'); setSearchTerm(''); setMyTeamsOnly(false); }}
+     onClick={() => { setDateFilter('All'); setSortOption('Soonest'); setSelectedSports([]); setSearchTerm(''); setMyTeamsOnly(false); }}
      className="px-4 py-1.5 bg-[#1E90FF] text-white font-bold text-xs rounded-full hover:bg-[#1E90FF]/80 transition-colors active:scale-[0.95]"
    >
      Clear All Filters
@@ -6195,7 +6195,7 @@ const qrScannerRef = useRef(null);
 
  {/* MAIN SPONSOR BANNER - 5 slots per sport (visible to all users) */}
  {(() => {
- const sponsors = getSponsorsForSport(selectedSport);
+ const sponsors = getSponsorsForSport(selectedSports.length === 1 ? selectedSports[0] : 'All');
  const sponsor = sponsors[sponsorIndex % sponsors.length];
  return (
  <div className="max-w-4xl mx-auto px-4 pt-3 pb-2">
@@ -6212,7 +6212,7 @@ const qrScannerRef = useRef(null);
  <span className="text-3xl">{sponsor.icon}</span>
  ) : null}
  {sponsor.logoUrl ? (
- <span className="text-3xl hidden items-center justify-center">{SPORT_ICONS[selectedSport] || '📢'}</span>
+ <span className="text-3xl hidden items-center justify-center">{SPORT_ICONS[selectedSports[0] || 'All'] || '📢'}</span>
  ) : null}
  </div>
  <div className="flex-1 flex flex-col justify-center p-3 min-w-0">
@@ -6256,7 +6256,7 @@ const qrScannerRef = useRef(null);
  <button
  onClick={() => {
  if (wcHasStarted) {
- setSelectedSport('FIFA World Cup');
+ setSelectedSports(['FIFA World Cup']);
  }
  }}
  className={`w-full rounded-[10px] overflow-hidden ${!wcHasStarted ? 'cursor-default' : ''}`}
