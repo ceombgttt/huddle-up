@@ -1189,6 +1189,7 @@ const HuddleUpApp = () => {
        if (!authScreens.includes(prev)) {
          screenHistoryRef.current = [...screenHistoryRef.current.slice(-19), prev];
        }
+       setTimeout(() => window.scrollTo(0, 0), 0);
      }
      return next;
    });
@@ -5662,7 +5663,7 @@ const qrScannerRef = useRef(null);
  <Download className="w-5 h-5 text-[#1E90FF]" /><span className="text-[#1E90FF] text-sm font-bold">Install App</span>
  </button>
  )}
- <button onClick={() => { setCurrentScreen('browseParties'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 transition-colors text-left active:scale-[0.98] border border-orange-500/30">
+ <button onClick={() => { setCurrentScreen('browseParties'); setHamburgerOpen(false); window.scrollTo(0, 0); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 transition-colors text-left active:scale-[0.98] border border-orange-500/30">
  <Search className="w-5 h-5 text-orange-400" /><span className="text-orange-400 text-sm font-bold">Browse All Parties</span>
  </button>
  <button onClick={() => { setCurrentScreen('myParties'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-500/10 transition-colors text-left active:scale-[0.98]">
@@ -5800,7 +5801,7 @@ const qrScannerRef = useRef(null);
 )}
 
 
- <div onClick={() => setCurrentScreen('browseParties')} className="mb-3 relative overflow-hidden rounded-2xl border border-orange-500/40 bg-gradient-to-r from-orange-900/40 via-[#151A22] to-orange-900/30 cursor-pointer hover:border-orange-500/60 transition-all active:scale-[0.99]">
+ <div onClick={() => { setCurrentScreen('browseParties'); window.scrollTo(0, 0); }} className="mb-3 relative overflow-hidden rounded-2xl border border-orange-500/40 bg-gradient-to-r from-orange-900/40 via-[#151A22] to-orange-900/30 cursor-pointer hover:border-orange-500/60 transition-all active:scale-[0.99]">
  <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full -translate-y-1/2 translate-x-1/2" />
  <div className="p-4 flex items-center gap-4">
  <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30 flex-shrink-0">
