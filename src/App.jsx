@@ -6289,35 +6289,47 @@ const qrScannerRef = useRef(null);
  );
  })()}
 
- {/* UPCOMING EVENTS - Major sports events */}
+ {/* SPECIAL EVENTS - Big games, finals, playoffs */}
  {(() => {
- const MAJOR_SPORTS = new Set(['UFC', 'Boxing', 'Formula 1', 'Champions League', 'FIFA World Cup']);
+ const MAJOR_SPORTS = new Set(['UFC', 'Boxing', 'Formula 1', 'Champions League', 'FIFA World Cup', 'UFC/MMA']);
+ const BIG_EVENT_KEYWORDS = ['playoff', 'finals', 'championship', 'super bowl', 'world series', 'stanley cup', 'all-star', 'bowl game', 'march madness', 'title fight', 'main event', 'grand prix', 'semi-final', 'semifinal', 'quarter-final', 'quarterfinal', 'conference final', 'wild card', 'elimination'];
+ const isBigEvent = (g) => { const text = `${g.homeTeam || ''} ${g.awayTeam || ''} ${g.title || ''} ${g.headline || ''} ${g.notes || ''}`.toLowerCase(); return isBigEvent(g) || BIG_EVENT_KEYWORDS.some(kw => text.includes(kw)); };
  const upcomingMajor = games
    .filter(g => g.gameStatus === 'scheduled' && MAJOR_SPORTS.has(g.sport) && new Date(g.startTime) > new Date())
    .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
    .slice(0, 10);
  if (upcomingMajor.length === 0) return null;
- const GRADIENT_MAP = {
-   'UFC': 'from-red-900/80 to-red-700/40',
-   'Boxing': 'from-amber-900/80 to-amber-700/40',
-   'Formula 1': 'from-red-800/80 to-gray-900/60',
-   'Champions League': 'from-blue-900/80 to-indigo-800/40',
-   'FIFA World Cup': 'from-green-900/80 to-emerald-700/40',
- };
- const BORDER_MAP = {
-   'UFC': 'border-red-500/40',
-   'Boxing': 'border-amber-500/40',
-   'Formula 1': 'border-red-500/30',
-   'Champions League': 'border-blue-500/40',
-   'FIFA World Cup': 'border-green-500/40',
- };
+const GRADIENT_MAP = {
+  'UFC': 'from-red-900/80 to-red-700/40', 'UFC/MMA': 'from-red-900/80 to-red-700/40',
+  'Boxing': 'from-amber-900/80 to-amber-700/40',
+  'Formula 1': 'from-red-800/80 to-gray-900/60', 'F1': 'from-red-800/80 to-gray-900/60',
+  'Champions League': 'from-blue-900/80 to-indigo-800/40',
+  'FIFA World Cup': 'from-green-900/80 to-emerald-700/40',
+  'NFL': 'from-green-900/80 to-emerald-800/40', 'NBA': 'from-orange-900/80 to-red-800/40',
+  'MLB': 'from-blue-900/80 to-red-800/40', 'NHL': 'from-slate-900/80 to-blue-900/40',
+  'MLS': 'from-emerald-900/80 to-green-700/40',
+  'College Football': 'from-amber-900/80 to-orange-800/40', 'College Basketball': 'from-orange-900/80 to-amber-800/40',
+  'Premier League': 'from-purple-900/80 to-indigo-800/40',
+};
+const BORDER_MAP = {
+  'UFC': 'border-red-500/40', 'UFC/MMA': 'border-red-500/40',
+  'Boxing': 'border-amber-500/40',
+  'Formula 1': 'border-red-500/30', 'F1': 'border-red-500/30',
+  'Champions League': 'border-blue-500/40',
+  'FIFA World Cup': 'border-green-500/40',
+  'NFL': 'border-green-500/40', 'NBA': 'border-orange-500/40',
+  'MLB': 'border-blue-500/40', 'NHL': 'border-slate-400/40',
+  'MLS': 'border-emerald-500/40',
+  'College Football': 'border-amber-500/40', 'College Basketball': 'border-orange-500/40',
+  'Premier League': 'border-purple-500/40',
+};
  return (
    <div className="max-w-4xl mx-auto px-4 py-5">
    <div className="glow-divider-amber mb-[15px]" />
    <div className="flex items-center justify-between mb-[15px]">
    <h3 className="text-white font-bold text-[14px] flex items-center gap-2 uppercase tracking-[1px] section-header-glow" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>
    <Flame className="w-4 h-4 text-orange-400" />
-   UPCOMING EVENTS
+   SPECIAL EVENTS
    </h3>
    <span className="text-[10px] text-white/40 font-semibold">{upcomingMajor.length} events</span>
    </div>
