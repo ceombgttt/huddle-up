@@ -6622,8 +6622,9 @@ const BORDER_MAP = {
  ) : (
  <div className="space-y-4">
  {gameParties.map(party => {
- const isAttending = party.attendees.includes(user.email);
- const isFull = party.capacity && party.attendees.length >= party.capacity;
+ const isAttending = Array.isArray(party.attendees) && party.attendees.includes(user.email);
+ const partyCapacity = party.maxSize || party.capacity || party.max_size;
+ const isFull = partyCapacity && party.attendees.length >= partyCapacity;
  const matchedVenue = venues.find(v => v.name?.toLowerCase() === party.venueName?.toLowerCase());
  const venue = {
  logo: party.venueLogo || matchedVenue?.logo || null,
@@ -6729,7 +6730,7 @@ const BORDER_MAP = {
  <Users className="w-4 h-4 text-[#1E90FF]" />
  <span>
  {party.attendees.length}
- {party.capacity ? ` of ${party.capacity}` : ''} attending
+ {partyCapacity ? ` of ${partyCapacity}` : ''} attending
  </span>
  </div>
  {(() => {
@@ -6833,20 +6834,20 @@ const BORDER_MAP = {
  )}
 
  {/* FEATURE 5: Capacity Warnings */}
- {party.capacity && (
+ {partyCapacity && (
  <div className={`mb-3 p-3 rounded-lg text-center font-bold ${
- party.attendees.length >= party.capacity
+ party.attendees.length >= partyCapacity
  ? 'bg-red-500/20 border border-red-500/30 text-red-300'
- : party.attendees.length / party.capacity >= 0.8
+ : party.attendees.length / partyCapacity >= 0.8
  ? 'bg-yellow-500/20 border border-yellow-500/30 text-yellow-300'
  : 'bg-[#151A22] border border-[#222A36] text-[#A0A4AB]'
  }`}>
- {party.attendees.length >= party.capacity ? (
+ {party.attendees.length >= partyCapacity ? (
  <span>🔒 PARTY FULL - No More Spots</span>
- ) : party.attendees.length / party.capacity >= 0.8 ? (
- <span>⚠️ Only {party.capacity - party.attendees.length} spots left! Join now!</span>
+ ) : party.attendees.length / partyCapacity >= 0.8 ? (
+ <span>⚠️ Only {partyCapacity - party.attendees.length} spots left! Join now!</span>
  ) : (
- <span>{party.attendees.length} / {party.capacity} spots filled</span>
+ <span>{party.attendees.length} / {partyCapacity} spots filled</span>
  )}
  </div>
  )}
