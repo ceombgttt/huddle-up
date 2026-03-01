@@ -6293,9 +6293,9 @@ const qrScannerRef = useRef(null);
  {(() => {
  const MAJOR_SPORTS = new Set(['UFC', 'Boxing', 'Formula 1', 'Champions League', 'FIFA World Cup', 'UFC/MMA']);
  const BIG_EVENT_KEYWORDS = ['playoff', 'finals', 'championship', 'super bowl', 'world series', 'stanley cup', 'all-star', 'bowl game', 'march madness', 'title fight', 'main event', 'grand prix', 'semi-final', 'semifinal', 'quarter-final', 'quarterfinal', 'conference final', 'wild card', 'elimination'];
- const isBigEvent = (g) => { const text = `${g.homeTeam || ''} ${g.awayTeam || ''} ${g.title || ''} ${g.headline || ''} ${g.notes || ''}`.toLowerCase(); return isBigEvent(g) || BIG_EVENT_KEYWORDS.some(kw => text.includes(kw)); };
+ const isBigEvent = (g) => { const text = `${g.homeTeam || ''} ${g.awayTeam || ''} ${g.title || ''} ${g.headline || ''} ${g.notes || ''}`.toLowerCase(); return MAJOR_SPORTS.has(g.sport) || BIG_EVENT_KEYWORDS.some(kw => text.includes(kw)); };
  const upcomingMajor = games
-   .filter(g => g.gameStatus === 'scheduled' && MAJOR_SPORTS.has(g.sport) && new Date(g.startTime) > new Date())
+   .filter(g => g.gameStatus === 'scheduled' && isBigEvent(g) && new Date(g.startTime) > new Date())
    .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
    .slice(0, 10);
  if (upcomingMajor.length === 0) return null;
