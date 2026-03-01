@@ -5665,9 +5665,6 @@ const qrScannerRef = useRef(null);
  <button onClick={() => { setCurrentScreen('browseParties'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 transition-colors text-left active:scale-[0.98] border border-orange-500/30">
  <Search className="w-5 h-5 text-orange-400" /><span className="text-orange-400 text-sm font-bold">Browse All Parties</span>
  </button>
- <button onClick={() => { setCurrentScreen('nearbyParties'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-[#1E90FF]/10 hover:bg-[#1E90FF]/20 transition-colors text-left active:scale-[0.98] border border-[#1E90FF]/20">
- <MapPin className="w-5 h-5 text-[#1E90FF]" /><span className="text-[#1E90FF] text-sm font-bold">Watch Parties Near Me</span>
- </button>
  <button onClick={() => { setCurrentScreen('myParties'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-500/10 transition-colors text-left active:scale-[0.98]">
  <Calendar className="w-5 h-5 text-orange-400" /><span className="text-white text-sm font-semibold">My Parties</span>
  </button>
@@ -5691,9 +5688,6 @@ const qrScannerRef = useRef(null);
  </button>
  <button onClick={() => { setCurrentScreen('inviteFriends'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-500/10 transition-colors text-left active:scale-[0.98]">
  <UserPlus className="w-5 h-5 text-emerald-400" /><span className="text-white text-sm font-semibold">Invite Friends</span>
- </button>
- <button onClick={() => { shareApp(); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-500/10 transition-colors text-left active:scale-[0.98]">
- <Share2 className="w-5 h-5 text-emerald-400" /><span className="text-white text-sm font-semibold">Share App</span>
  </button>
  <button onClick={() => { setHamburgerOpen(false); if (currentScreen !== 'games') { setCurrentScreen('games'); setTimeout(() => startSpotlightTour(), 600); } else { startSpotlightTour(); } }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1E90FF]/10 transition-colors text-left active:scale-[0.98]">
  <Map className="w-5 h-5 text-[#1E90FF]" /><span className="text-white text-sm font-semibold">Learn The App</span>
@@ -11156,6 +11150,20 @@ const qrScannerRef = useRef(null);
            ))}
          </div>
          <div className="flex items-center gap-2 mt-2">
+           <button
+             onClick={() => {
+               if (currentCity) {
+                 const city = currentCity.split(',')[0].trim();
+                 setBpCity(city);
+                 setBpSort('closest');
+               } else {
+                 detectUserLocation();
+               }
+             }}
+             className={`flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex-shrink-0 ${bpSort === 'closest' && bpCity !== 'All' ? 'bg-emerald-500 text-white' : 'bg-[#151A22] text-emerald-400 border border-emerald-500/30 hover:border-emerald-500/50'}`}
+           >
+             <Navigation className="w-3.5 h-3.5" /> Near Me
+           </button>
            <div className="relative flex-1">
              <select
                value={bpCity}
@@ -15592,7 +15600,7 @@ const qrScannerRef = useRef(null);
  {currentScreen === 'myParties' && <MyPartiesScreen />}
  {currentScreen === 'notificationSettings' && <NotificationSettingsScreen />}
  {currentScreen === 'browseParties' && <BrowsePartiesScreen />}
- {currentScreen === 'nearbyParties' && <NearbyPartiesScreen />}
+ {currentScreen === 'nearbyParties' && (() => { setCurrentScreen('browseParties'); return null; })()}
  {currentScreen === 'profile' && <ProfileScreen />}
  {currentScreen === 'proUpgrade' && <ProUpgradeScreen />}
  {currentScreen === 'influencerDashboard' && <InfluencerDashboard />}
