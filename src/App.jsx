@@ -6015,7 +6015,7 @@ const qrScannerRef = useRef(null);
  return (
  <button
  key={sport}
- onClick={() => { if (sport === 'All') { setSelectedSports([]); } else { setSelectedSports(prev => prev.includes(sport) ? prev.filter(s => s !== sport) : [...prev, sport]); } }}}
+ onClick={() => { if (sport === 'All') { setSelectedSports([]); } else { setSelectedSports(prev => prev.includes(sport) ? prev.filter(s => s !== sport) : [...prev, sport]); } }}
  className={`flex flex-col items-center justify-center min-w-[60px] px-2 py-2 rounded-[10px] font-bold transition-all active:scale-[0.98] ${
  (sport === 'All' && selectedSports.length === 0) || (sport !== 'All' && selectedSports.includes(sport))
  ? 'bg-[#1E90FF] text-white shadow-sm shadow-[#1E90FF]/30 sport-pill-active'
@@ -6670,7 +6670,7 @@ const BORDER_MAP = {
  {party.venueName && (
  <div className="flex items-center gap-2">
  <Building2 className="w-4 h-4 text-[#1E90FF]" />
- <button onClick={() => { const mv = venues.find(v => v.name?.toLowerCase() === party.venueName?.toLowerCase()); if (mv?.id) { setSelectedVenueId(mv.id); setCurrentScreen('venueDetail'); } }} className="text-white font-semibold hover:text-[#1E90FF] transition-colors text-left">{party.venueName}</button>
+ <button onClick={() => { const mv = venues.find(v => v.name?.toLowerCase() === party.venueName?.toLowerCase()); if (mv?.id) { setSelectedVenueId(mv.id); setCurrentScreen('venueDetail'); } }} className="text-white font-bold text-[15px] hover:text-[#1E90FF] transition-colors text-left">{party.venueName}</button>
  </div>
  )}
  <div className="flex items-center gap-2">
@@ -11272,7 +11272,7 @@ const BORDER_MAP = {
                    </div>
                  </div>
                  <div className="text-sm text-[#A0A4AB] space-y-1">
-                   <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" /><span className="truncate">{party.venueName || 'TBD'}</span></div>
+                   <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" /><span className="truncate text-white font-bold text-[14px]">{party.venueName || 'TBD'}</span></div>
                    <div className="flex items-center gap-2"><Calendar className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" /><span>{isNaN(gt.getTime()) ? (party.gameTime || 'TBD') : gt.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span><span className="text-[#1E90FF] text-xs font-semibold ml-1">{getCountdown(party.gameTime)}</span></div>
                    <div className="flex items-center gap-4">
                      <div className="flex items-center gap-2"><Users className="w-3.5 h-3.5 text-[#1E90FF] flex-shrink-0" /><span>{party.attendees?.length || 0} going</span></div>
@@ -11343,7 +11343,7 @@ const BORDER_MAP = {
                              </div>
                            </div>
                            <div className="text-sm text-[#A0A4AB] space-y-1">
-                             <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" /><span className="truncate">{party.venueName || 'TBD'}</span></div>
+                             <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" /><span className="truncate text-white font-bold text-[14px]">{party.venueName || 'TBD'}</span></div>
                              <div className="flex items-center gap-2"><Calendar className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" /><span>{isNaN(gt.getTime()) ? (party.gameTime || 'TBD') : gt.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span><span className="text-[#1E90FF] text-xs font-semibold ml-1">{getCountdown(party.gameTime)}</span></div>
                              <div className="flex items-center gap-4">
                                <div className="flex items-center gap-2"><Users className="w-3.5 h-3.5 text-[#1E90FF] flex-shrink-0" /><span>{party.attendees?.length || 0} going</span></div>
@@ -11504,7 +11504,7 @@ const BORDER_MAP = {
                <div className="text-sm text-[#A0A4AB] space-y-1.5">
                  <div className="flex items-center gap-2">
                    <MapPin className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
-                   <span>{party.venueName || party.location || 'TBD'}</span>
+                   <span className="text-white font-bold text-[14px]">{party.venueName || party.location || 'TBD'}</span>
                  </div>
                  {party.venueAddress && (
                    <div className="flex items-center gap-2 ml-5">
@@ -14220,7 +14220,7 @@ const BORDER_MAP = {
  <Crown className="w-2.5 h-2.5" /> PRO HOST
  </span>
  )}
- <p className="text-sm text-[#A0A4AB] flex items-center gap-1"><MapPin className="w-3 h-3" /> {party.venueName}</p>
+ <p className="text-sm text-white font-bold flex items-center gap-1"><MapPin className="w-3 h-3 text-emerald-400" /> {party.venueName}</p>
  <p className="text-sm text-[#A0A4AB] flex items-center gap-1"><Calendar className="w-3 h-3" /> {validDate ? gt.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : (party.gameTime || 'TBD')}</p>
  {party.city && <p className="text-sm text-[#A0A4AB] flex items-center gap-1"><Navigation className="w-3 h-3" /> {party.city}</p>}
  </div>
