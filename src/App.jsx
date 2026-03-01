@@ -12158,6 +12158,81 @@ const BORDER_MAP = {
  </div>
  </div>
 
+ {(() => {
+ const allSports = ['NFL', 'NBA', 'MLB', 'NHL', 'College Football', 'College Basketball', 'Premier League', 'La Liga', 'Liga MX', 'MLS', 'Champions League', 'Formula 1', 'Tennis', 'Rugby', 'Cricket', 'FIFA World Cup'];
+ const selectedTeams = Object.entries(user.favoriteTeams || {});
+ const unselectedSports = allSports.filter(s => !user.favoriteTeams?.[s]);
+ return (
+ <div className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36] shadow-xl">
+ <h2 className="text-2xl font-black text-white mb-3" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+ MY FAVORITE TEAMS
+ </h2>
+ {selectedTeams.length > 0 ? (
+ <div className="space-y-2 mb-4">
+ {selectedTeams.map(([sport, team]) => {
+ const logoUrl = getTeamLogoUrl(sport, team);
+ return (
+ <div key={sport} className="flex items-center gap-3 bg-[#0F1115] p-3 rounded-xl border border-[#222A36]">
+ {logoUrl ? (
+ <img src={logoUrl} alt={team} className="w-8 h-8 object-contain flex-shrink-0" />
+ ) : (
+ <span className="text-lg flex-shrink-0">{SPORT_ICONS[sport] || '🏅'}</span>
+ )}
+ <div className="flex-1 min-w-0">
+ <div className="text-white font-bold text-sm truncate">{team}</div>
+ <div className="text-[#A0A4AB] text-xs">{sport}</div>
+ </div>
+ <select
+ value={team}
+ onChange={(e) => e.target.value ? updateFavoriteTeams(sport, e.target.value) : removeFavoriteTeam(sport)}
+ className="bg-[#151A22] border border-[#222A36] rounded-lg text-[#A0A4AB] text-xs px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#1E90FF] max-w-[100px]"
+ >
+ {TEAMS_BY_SPORT[sport]?.map(t => (
+ <option key={t} value={t}>{t}</option>
+ ))}
+ <option value="">Remove</option>
+ </select>
+ </div>
+ );
+ })}
+ </div>
+ ) : (
+ <div className="text-center py-4">
+ <Star className="w-10 h-10 text-amber-400/30 mx-auto mb-2" />
+ <p className="text-white font-bold text-sm mb-1">No teams selected yet</p>
+ <p className="text-[#A0A4AB] text-xs mb-3">Add your favorite teams to filter games and get personalized alerts!</p>
+ </div>
+ )}
+ {unselectedSports.length > 0 && (
+ <details className="group">
+ <summary className="flex items-center gap-2 cursor-pointer text-[#1E90FF] font-bold text-sm py-2 hover:text-[#1E90FF]/80 transition-colors list-none">
+ <Plus className="w-4 h-4 group-open:rotate-45 transition-transform" />
+ Add a Team ({unselectedSports.length} sports available)
+ </summary>
+ <div className="mt-3 space-y-2 max-h-[300px] overflow-y-auto pr-1 scrollbar-hide">
+ {unselectedSports.map(sport => (
+ <div key={sport} className="flex items-center gap-3 bg-[#0F1115] p-3 rounded-xl border border-[#222A36]">
+ <span className="text-lg flex-shrink-0">{SPORT_ICONS[sport] || '🏅'}</span>
+ <span className="text-white font-semibold text-sm flex-1">{sport}</span>
+ <select
+ value=""
+ onChange={(e) => { if (e.target.value) updateFavoriteTeams(sport, e.target.value); }}
+ className="bg-[#151A22] border border-[#222A36] rounded-lg text-[#A0A4AB] text-xs px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#1E90FF] max-w-[140px]"
+ >
+ <option value="">Select team...</option>
+ {TEAMS_BY_SPORT[sport]?.map(team => (
+ <option key={team} value={team}>{team}</option>
+ ))}
+ </select>
+ </div>
+ ))}
+ </div>
+ </details>
+ )}
+ </div>
+ );
+ })()}
+
  <div className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36] shadow-xl">
  {isPro ? (
  <div className="flex items-center justify-between">
@@ -12463,80 +12538,6 @@ const BORDER_MAP = {
  )}
  </div>
 
- {/* MY FAVORITE TEAMS SECTION */}
- <div data-section="favorite-teams" />
- {(() => {
- const allSports = ['NFL', 'NBA', 'MLB', 'NHL', 'College Football', 'College Basketball', 'Premier League', 'La Liga', 'Liga MX', 'MLS', 'Champions League', 'Formula 1', 'Tennis', 'Rugby', 'Cricket', 'FIFA World Cup'];
- const selectedTeams = Object.entries(user.favoriteTeams || {});
- const unselectedSports = allSports.filter(s => !user.favoriteTeams?.[s]);
- return (
- <div className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36] shadow-xl">
- <h2 className="text-2xl font-black text-white mb-3" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
- MY FAVORITE TEAMS
- </h2>
-
- {selectedTeams.length > 0 ? (
- <div className="space-y-2 mb-4">
- {selectedTeams.map(([sport, team]) => {
- const logoUrl = getTeamLogoUrl(sport, team);
- return (
- <div key={sport} className="flex items-center gap-3 bg-[#0F1115] p-3 rounded-xl border border-[#222A36]">
- {logoUrl ? (
- <img src={logoUrl} alt={team} className="w-8 h-8 object-contain flex-shrink-0" />
- ) : (
- <span className="text-lg flex-shrink-0">{SPORT_ICONS[sport] || '🏅'}</span>
- )}
- <div className="flex-1 min-w-0">
- <div className="text-white font-bold text-sm truncate">{team}</div>
- <div className="text-[#A0A4AB] text-xs">{sport}</div>
- </div>
- <select
- value={team}
- onChange={(e) => e.target.value ? updateFavoriteTeams(sport, e.target.value) : removeFavoriteTeam(sport)}
- className="bg-[#151A22] border border-[#222A36] rounded-lg text-[#A0A4AB] text-xs px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#1E90FF] max-w-[100px]"
- >
- {TEAMS_BY_SPORT[sport]?.map(t => (
- <option key={t} value={t}>{t}</option>
- ))}
- <option value="">Remove</option>
- </select>
- </div>
- );
- })}
- </div>
- ) : (
- <p className="text-[#A0A4AB] text-sm mb-4">No teams selected yet. Add your teams below!</p>
- )}
-
- {unselectedSports.length > 0 && (
- <details className="group">
- <summary className="flex items-center gap-2 cursor-pointer text-[#1E90FF] font-bold text-sm py-2 hover:text-[#1E90FF]/80 transition-colors list-none">
- <Plus className="w-4 h-4 group-open:rotate-45 transition-transform" />
- Add a Team ({unselectedSports.length} sports available)
- </summary>
- <div className="mt-3 space-y-2 max-h-[300px] overflow-y-auto pr-1 scrollbar-hide">
- {unselectedSports.map(sport => (
- <div key={sport} className="flex items-center gap-3 bg-[#0F1115] p-3 rounded-xl border border-[#222A36]">
- <span className="text-lg flex-shrink-0">{SPORT_ICONS[sport] || '🏅'}</span>
- <span className="text-white font-semibold text-sm flex-1">{sport}</span>
- <select
- value=""
- onChange={(e) => { if (e.target.value) updateFavoriteTeams(sport, e.target.value); }}
- className="bg-[#151A22] border border-[#222A36] rounded-lg text-[#A0A4AB] text-xs px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#1E90FF] max-w-[140px]"
- >
- <option value="">Select team...</option>
- {TEAMS_BY_SPORT[sport]?.map(team => (
- <option key={team} value={team}>{team}</option>
- ))}
- </select>
- </div>
- ))}
- </div>
- </details>
- )}
- </div>
- );
- })()}
 
  </div>
  </div>
