@@ -10991,7 +10991,7 @@ const qrScannerRef = useRef(null);
 
  const BrowsePartiesScreen = () => {
  const [bpSearch, setBpSearch] = useState('');
- const [bpSport, setBpSport] = useState('All');
+ const [bpSports, setBpSports] = useState([]);
  const [bpCity, setBpCity] = useState('All');
  const [bpSort, setBpSort] = useState('soonest');
  const [bpCollapsed, setBpCollapsed] = useState({});
@@ -11000,10 +11000,10 @@ const qrScannerRef = useRef(null);
  const getSportIcon = (sport) => sportIcons[sport] || '🏟️';
 
  const allCities = React.useMemo(() => {
-   const citySet = new Set();
-   parties.forEach(p => { if (p.city) citySet.add(p.city.split(',')[0].trim()); });
-   if (currentCity) citySet.add(currentCity.split(',')[0].trim());
-   return ['All', ...Array.from(citySet).sort()];
+   const cityMap = new Map();
+   parties.forEach(p => { if (p.city) { const c = p.city.split(',')[0].trim(); if (!cityMap.has(c.toLowerCase())) cityMap.set(c.toLowerCase(), c); } });
+   if (currentCity) { const c = currentCity.split(',')[0].trim(); if (!cityMap.has(c.toLowerCase())) cityMap.set(c.toLowerCase(), c); }
+   return ['All', ...Array.from(cityMap.values()).sort()];
  }, [parties, currentCity]);
 
  const allSports = React.useMemo(() => {
@@ -11031,7 +11031,7 @@ const qrScannerRef = useRef(null);
      const threeHoursAgo = new Date(now.getTime() - 3 * 60 * 60 * 1000);
      return gt >= threeHoursAgo && gt <= fourteenDaysOut;
    });
-   if (bpSport !== 'All') filtered = filtered.filter(p => p.sport === bpSport);
+   if (bpSports.length > 0) filtered = filtered.filter(p => bpSports.includes(p.sport));
    if (bpCity !== 'All') {
      const normFilter = bpCity.toLowerCase().split(',')[0].trim();
      filtered = filtered.filter(p => {
@@ -11066,7 +11066,7 @@ const qrScannerRef = useRef(null);
      });
    }
    return filtered;
- }, [parties, bpSport, bpCity, bpSearch, bpSort, userCoords, currentCity]);
+ }, [parties, bpSports, bpCity, bpSearch, bpSort, userCoords, currentCity]);
 
  const groupedParties = React.useMemo(() => {
    const groups = [];
@@ -11101,7 +11101,7 @@ const qrScannerRef = useRef(null);
    return groups;
  }, [filteredParties]);
 
- const hasFilters = bpSport !== 'All' || bpCity !== 'All' || bpSearch.trim() || bpSort !== 'soonest';
+ const hasFilters = bpSports.length > 0 || bpCity !== 'All' || bpSearch.trim() || bpSort !== 'soonest';
 
  const getCountdown = (gameTime) => {
    const gt = new Date(gameTime);
@@ -11147,8 +11147,8 @@ const qrScannerRef = useRef(null);
            {['All', ...allSports].map(sport => (
              <button
                key={sport}
-               onClick={() => setBpSport(sport)}
-               className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${bpSport === sport ? 'bg-[#1E90FF] text-white' : 'bg-[#151A22] text-[#A0A4AB] border border-[#222A36] hover:border-[#1E90FF]/40'}`}
+               onClick={() => { if (sport === 'All') { setBpSports([]); } else { setBpSports(prev => prev.includes(sport) ? prev.filter(s => s !== sport) : [...prev, sport]); } }}
+               className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${(sport === 'All' && bpSports.length === 0) || (sport !== 'All' && bpSports.includes(sport)) ? 'bg-[#1E90FF] text-white' : 'bg-[#151A22] text-[#A0A4AB] border border-[#222A36] hover:border-[#1E90FF]/40'}`}
              >
                {sport !== 'All' && <span>{getSportIcon(sport)}</span>}
                {sport}
@@ -11182,11 +11182,11 @@ const qrScannerRef = useRef(null);
          </div>
          {hasFilters && (
            <div className="flex items-center gap-2 mt-2 flex-wrap">
-             {bpSport !== 'All' && (
-               <span className="flex items-center gap-1 px-2 py-1 bg-[#1E90FF]/20 text-[#1E90FF] text-xs font-bold rounded-full border border-[#1E90FF]/30">
-                 {getSportIcon(bpSport)} {bpSport} <button onClick={() => setBpSport('All')}><X className="w-3 h-3" /></button>
+             {bpSports.map(sp => (
+               <span key={sp} className="flex items-center gap-1 px-2 py-1 bg-[#1E90FF]/20 text-[#1E90FF] text-xs font-bold rounded-full border border-[#1E90FF]/30">
+                 {getSportIcon(sp)} {sp} <button onClick={() => setBpSports(prev => prev.filter(s => s !== sp))}><X className="w-3 h-3" /></button>
                </span>
-             )}
+             ))}
              {bpCity !== 'All' && (
                <span className="flex items-center gap-1 px-2 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-bold rounded-full border border-emerald-500/30">
                  <MapPin className="w-3 h-3" /> {bpCity} <button onClick={() => setBpCity('All')}><X className="w-3 h-3" /></button>
@@ -11202,7 +11202,7 @@ const qrScannerRef = useRef(null);
                  {bpSort === 'popular' ? 'Most Popular' : bpSort === 'closest' ? 'Closest' : 'Newest'} <button onClick={() => setBpSort('soonest')}><X className="w-3 h-3" /></button>
                </span>
              )}
-             <button onClick={() => { setBpSport('All'); setBpCity('All'); setBpSearch(''); setBpSort('soonest'); }} className="text-xs text-red-400 hover:text-red-300 ml-1">Clear All</button>
+             <button onClick={() => { setBpSports([]); setBpCity('All'); setBpSearch(''); setBpSort('soonest'); }} className="text-xs text-red-400 hover:text-red-300 ml-1">Clear All</button>
            </div>
          )}
        </div>
@@ -11218,7 +11218,7 @@ const qrScannerRef = useRef(null);
            <p className="text-[#A0A4AB] text-sm mb-4">Try adjusting your filters or create the first party!</p>
            <div className="flex items-center justify-center gap-3 flex-wrap">
              {hasFilters && (
-               <button onClick={() => { setBpSport('All'); setBpCity('All'); setBpSearch(''); setBpSort('soonest'); }} className="px-5 py-2.5 bg-[#222A36] hover:bg-[#2A3340] text-white font-bold rounded-xl text-sm transition-all">
+               <button onClick={() => { setBpSports([]); setBpCity('All'); setBpSearch(''); setBpSort('soonest'); }} className="px-5 py-2.5 bg-[#222A36] hover:bg-[#2A3340] text-white font-bold rounded-xl text-sm transition-all">
                  Clear Filters
                </button>
              )}
