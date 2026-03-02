@@ -43,6 +43,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const isProduction = process.env.NODE_ENV === 'production';
 
 const app = express();
+if (isProduction) {
+  app.set('trust proxy', 1);
+}
 const PgSession = connectPgSimple(session);
 
 app.post(
@@ -64,6 +67,8 @@ app.post(
   }
 );
 
+app.get('/health', (req, res) => res.status(200).send('OK'));
+
 app.use('/api/uploads/venue-image/upload', express.raw({ type: 'image/*', limit: '5mb' }));
 app.use('/api/uploads/profile-picture/upload', express.raw({ type: 'image/*', limit: '5mb' }));
 app.use('/api/photos/parties/:partyId/upload', express.raw({ type: 'image/*', limit: '10mb' }));
@@ -78,11 +83,12 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'huddle-up-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,
+  proxy: isProduction,
   cookie: {
     maxAge: 30 * 24 * 60 * 60 * 1000,
     httpOnly: true,
     sameSite: 'lax',
-    secure: false,
+    secure: isProduction,
   },
   name: 'sid',
 }));
