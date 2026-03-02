@@ -11953,7 +11953,7 @@ const BORDER_MAP = {
 
  return (
  <div className="min-h-screen pt-20 bg-[#0F1115]">
- <div className="sticky top-20 z-10 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
  <div className="flex items-center justify-between">
  <button
