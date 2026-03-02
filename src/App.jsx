@@ -1404,7 +1404,7 @@ const qrScannerRef = useRef(null);
  const [rewardsHistory, setRewardsHistory] = useState([]);
  const [rewardsCatalog, setRewardsCatalog] = useState([]);
  const [rewardsRedemptions, setRewardsRedemptions] = useState([]);
- const [rewardsTab, setRewardsTab] = useState('earn');
+ const [rewardsTab, setRewardsTab] = useState('raffles');
  const [redeemingReward, setRedeemingReward] = useState(null);
  const [raffles, setRaffles] = useState([]);
  const [raffleEntryCount, setRaffleEntryCount] = useState({});
@@ -13340,34 +13340,10 @@ const BORDER_MAP = {
  <div className="text-[#A0A4AB] text-xs mt-1">Lifetime earned: {rewardsBalance.lifetimePoints.toLocaleString()} pts</div>
  </div>
 
- <div className="bg-[#151A22]/80 rounded-2xl border border-[#222A36] p-4">
- <h3 className="text-white font-bold text-sm mb-3 flex items-center gap-2">
- <Info className="w-4 h-4 text-[#1E90FF]" /> How the Points System Works
- </h3>
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
- <div className="flex items-center gap-2 text-[#A0A4AB]">
- <div className="w-2 h-2 rounded-full bg-[#1E90FF] flex-shrink-0" />
- Earn points by creating parties, attending events, inviting friends, and checking in at venues
- </div>
- <div className="flex items-center gap-2 text-[#A0A4AB]">
- <div className="w-2 h-2 rounded-full bg-yellow-400 flex-shrink-0" />
- Spend points to enter raffles for grand prizes like game tickets and signed memorabilia
- </div>
- <div className="flex items-center gap-2 text-[#A0A4AB]">
- <div className="w-2 h-2 rounded-full bg-green-400 flex-shrink-0" />
- More entries in a raffle = better odds of winning
- </div>
- <div className="flex items-center gap-2 text-[#A0A4AB]">
- <div className="w-2 h-2 rounded-full bg-purple-400 flex-shrink-0" />
- New users get 50 bonus points when applying a referral code
- </div>
- </div>
- </div>
-
  <div className="flex gap-2 bg-[#151A22]/50 rounded-2xl p-1 border border-[#222A36]">
  {[
- { key: 'earn', label: 'Earn', icon: <Zap className="w-4 h-4" /> },
  { key: 'raffles', label: 'Raffles', icon: <Star className="w-4 h-4" /> },
+ { key: 'earn', label: 'Earn', icon: <Zap className="w-4 h-4" /> },
  { key: 'history', label: 'History', icon: <Clock className="w-4 h-4" /> },
  ].map(tab => (
  <button
@@ -13593,6 +13569,30 @@ const BORDER_MAP = {
  )}
  </div>
  )}
+
+ <div className="bg-[#151A22]/80 rounded-2xl border border-[#222A36] p-4">
+ <h3 className="text-white font-bold text-sm mb-3 flex items-center gap-2">
+ <Info className="w-4 h-4 text-[#1E90FF]" /> How the Points System Works
+ </h3>
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+ <div className="flex items-center gap-2 text-[#A0A4AB]">
+ <div className="w-2 h-2 rounded-full bg-[#1E90FF] flex-shrink-0" />
+ Earn points by creating parties, attending events, inviting friends, and checking in at venues
+ </div>
+ <div className="flex items-center gap-2 text-[#A0A4AB]">
+ <div className="w-2 h-2 rounded-full bg-yellow-400 flex-shrink-0" />
+ Spend points to enter raffles for grand prizes like game tickets and signed memorabilia
+ </div>
+ <div className="flex items-center gap-2 text-[#A0A4AB]">
+ <div className="w-2 h-2 rounded-full bg-green-400 flex-shrink-0" />
+ More entries in a raffle = better odds of winning
+ </div>
+ <div className="flex items-center gap-2 text-[#A0A4AB]">
+ <div className="w-2 h-2 rounded-full bg-purple-400 flex-shrink-0" />
+ New users get 50 bonus points when applying a referral code
+ </div>
+ </div>
+ </div>
  </div>
  </div>
  );
