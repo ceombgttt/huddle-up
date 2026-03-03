@@ -106,7 +106,7 @@ router.get('/nearby', requireAuth, async (req, res) => {
         p.max_size
        FROM parties p
        WHERE LOWER(p.city) LIKE LOWER($1)
-       AND (p.game_time IS NULL OR p.game_time::timestamptz > NOW() - INTERVAL '2 hours')
+       AND (p.game_time IS NULL OR NOT p.game_time ~ '^\d{4}-' OR p.game_time::timestamptz > NOW() - INTERVAL '2 hours')
        ORDER BY p.game_time ASC
        LIMIT 20`,
       [`%${searchCity}%`]

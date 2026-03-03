@@ -291,8 +291,10 @@ router.get('/:id/parties', async (req, res) => {
           (SELECT COUNT(*) FROM party_attendees WHERE party_id = p.id) as attendee_count
         FROM parties p
         JOIN users u ON p.host_id = u.id
-        WHERE p.venue_name = $1 AND p.game_time::timestamptz < NOW()
-        ORDER BY p.game_time DESC LIMIT 50
+        WHERE p.venue_name = $1 AND (
+          CASE WHEN p.game_time ~ '^\d{4}-\d{2}-\d{2}' THEN p.game_time::timestamptz < NOW() ELSE p.created_at < NOW() - interval '6 hours' END
+        )
+        ORDER BY p.created_at DESC LIMIT 50
       `;
     } else {
       query = `
@@ -300,8 +302,10 @@ router.get('/:id/parties', async (req, res) => {
           (SELECT COUNT(*) FROM party_attendees WHERE party_id = p.id) as attendee_count
         FROM parties p
         JOIN users u ON p.host_id = u.id
-        WHERE p.venue_name = $1 AND p.game_time::timestamptz >= NOW()
-        ORDER BY p.game_time ASC LIMIT 50
+        WHERE p.venue_name = $1 AND (
+          CASE WHEN p.game_time ~ '^\d{4}-\d{2}-\d{2}' THEN p.game_time::timestamptz >= NOW() ELSE p.created_at >= NOW() - interval '6 hours' END
+        )
+        ORDER BY p.created_at ASC LIMIT 50
       `;
     }
 
