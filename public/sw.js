@@ -1,4 +1,4 @@
-const CACHE_NAME = 'huddle-up-v1';
+const CACHE_NAME = 'huddle-up-v2';
 const STATIC_ASSETS = [
   '/huddle-up-logo.png',
   '/pwa-icon-192.png',
