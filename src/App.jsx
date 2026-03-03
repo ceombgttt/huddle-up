@@ -3462,15 +3462,24 @@ const qrScannerRef = useRef(null);
 
    const target = document.querySelector(`[data-tour-id="${step.targetId}"]`);
    if (target) {
-     target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
-     setTimeout(updateRect, 400);
+     const r = target.getBoundingClientRect();
+     const viewH = window.innerHeight;
+     const isVisible = r.top >= 0 && r.bottom <= viewH;
+     if (!isVisible) {
+       const scrollY = window.scrollY + r.top - (viewH / 3);
+       window.scrollTo({ top: Math.max(0, scrollY), behavior: 'smooth' });
+     }
+     setTimeout(updateRect, 100);
+     setTimeout(updateRect, 350);
+     setTimeout(updateRect, 600);
    } else {
-     setTimeout(updateRect, 300);
+     window.scrollTo({ top: 0, behavior: 'smooth' });
+     setTimeout(updateRect, 400);
    }
 
    window.addEventListener('resize', updateRect);
    window.addEventListener('scroll', updateRect, true);
-   const scrollInterval = setInterval(updateRect, 1000);
+   const scrollInterval = setInterval(updateRect, 500);
    return () => {
      window.removeEventListener('resize', updateRect);
      window.removeEventListener('scroll', updateRect, true);
@@ -3497,21 +3506,22 @@ const qrScannerRef = useRef(null);
    const handleSkip = () => { setSpotlightTourActive(false); };
 
    const tooltipWidth = Math.min(300, window.innerWidth - 32);
+   const tooltipHeight = 220;
+   const minTop = 60;
+   const maxTop = window.innerHeight - tooltipHeight - 20;
    let tooltipStyle = { pointerEvents: 'auto', width: tooltipWidth };
    if (rect) {
-     tooltipStyle.left = Math.max(16, Math.min(rect.left, window.innerWidth - tooltipWidth - 16));
+     tooltipStyle.left = Math.max(16, Math.min(rect.left + rect.width / 2 - tooltipWidth / 2, window.innerWidth - tooltipWidth - 16));
      if (step.position === 'below') {
        const topPos = rect.top + rect.height + padding + 12;
-       tooltipStyle.top = Math.min(topPos, window.innerHeight - 280);
+       tooltipStyle.top = Math.max(minTop, Math.min(topPos, maxTop));
      } else {
-       const topPos = rect.top - padding - 230;
-       tooltipStyle.top = Math.max(60, topPos);
+       const topPos = rect.top - padding - tooltipHeight;
+       tooltipStyle.top = Math.max(minTop, Math.min(topPos, maxTop));
      }
-     if (tooltipStyle.top < 60) tooltipStyle.top = 60;
-     if (tooltipStyle.top > window.innerHeight - 280) tooltipStyle.top = window.innerHeight - 280;
    } else {
      tooltipStyle.left = (window.innerWidth - tooltipWidth) / 2;
-     tooltipStyle.top = Math.max(60, window.innerHeight / 2 - 120);
+     tooltipStyle.top = Math.max(minTop, Math.min(window.innerHeight / 2 - 120, maxTop));
    }
 
    return (
