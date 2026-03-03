@@ -10240,7 +10240,19 @@ const BORDER_MAP = {
  $49.99<span className="text-sm text-[#A0A4AB]">/month</span>
  </div>
  </div>
- <button className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-xl hover:shadow-purple-500/50 transition-all">
+ <button
+ onClick={async () => {
+ try {
+ const products = await api.stripe.products();
+ const featuredProduct = products.find(p => p.metadata?.tier === 'featured_venue');
+ if (featuredProduct && featuredProduct.prices.length > 0) {
+ const result = await api.stripe.checkout(featuredProduct.prices[0].id);
+ if (result?.url) window.location.href = result.url;
+ } else { alert('Featured Venue plan is being set up. Please try again shortly.'); }
+ } catch(e) { console.error(e); alert('Something went wrong. Please try again.'); }
+ }}
+ className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-xl hover:shadow-purple-500/50 transition-all"
+ >
  UPGRADE NOW
  </button>
  </div>
@@ -10712,6 +10724,22 @@ const BORDER_MAP = {
  className="flex-1 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-sm transition-all"
  >
  Manage Subscription
+ </button>
+ <button
+ onClick={async () => {
+ try {
+ const products = await api.stripe.products();
+ const featuredProduct = products.find(p => p.metadata?.tier === 'featured_venue');
+ if (featuredProduct && featuredProduct.prices.length > 0) {
+ const result = await api.stripe.checkout(featuredProduct.prices[0].id);
+ if (result?.url) window.location.href = result.url;
+ } else { alert('Featured Venue plan is being set up. Please try again shortly.'); }
+ } catch(e) { console.error(e); alert('Something went wrong. Please try again.'); }
+ }}
+ className="flex-1 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black rounded-xl text-sm transition-all"
+ style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}
+ >
+ Upgrade to Featured
  </button>
  </div>
  </div>
