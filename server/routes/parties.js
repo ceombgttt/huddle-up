@@ -92,6 +92,48 @@ router.get('/mine', requireAuth, async (req, res) => {
   }
 });
 
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      `SELECT p.*, u.name as host_name, u.email as host_email
+       FROM parties p JOIN users u ON p.host_id = u.id WHERE p.id = $1`,
+      [id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Party not found' });
+    const party = result.rows[0];
+    const attendees = await pool.query(
+      `SELECT u.id, u.email, u.name, u.profile_picture, u.is_founder, u.founder_number
+       FROM party_attendees pa JOIN users u ON pa.user_id = u.id WHERE pa.party_id = $1`,
+      [id]
+    );
+    res.json({
+      id: party.id,
+      gameId: party.game_id,
+      sport: party.sport,
+      homeTeam: party.home_team,
+      awayTeam: party.away_team,
+      gameTime: party.game_time,
+      venueName: party.venue_name,
+      venueAddress: party.venue_address,
+      city: party.city,
+      title: party.title,
+      notes: party.notes,
+      maxSize: party.max_size,
+      hostEmail: party.host_email,
+      hostName: party.host_name,
+      hostId: party.host_id,
+      attendees: attendees.rows.map(a => a.email),
+      attendeeDetails: attendees.rows.map(a => ({ userId: a.id, email: a.email, name: a.name, profilePicture: a.profile_picture, isFounder: a.is_founder, founderNumber: a.founder_number })),
+      supportedTeam: party.supported_team,
+      createdAt: party.created_at
+    });
+  } catch (error) {
+    console.error('Get party by id error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 router.post('/', requireAuth, async (req, res) => {
   try {
     const { gameId, sport, homeTeam, awayTeam, gameTime, venueName, venueAddress, city, title, notes, maxSize, supportedTeam } = req.body;
