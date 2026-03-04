@@ -10005,35 +10005,7 @@ const BORDER_MAP = {
  .slice(0, 5);
 
  return (
- <div className="min-h-screen pt-20 bg-[#0F1115]">
- <div className="sticky top-20 z-10 bg-[#0F1115] border-b border-[#222A36]">
- <div className="max-w-6xl mx-auto px-4 py-4">
- <div className="flex items-center justify-between">
- <button
- onClick={() => setCurrentScreen('games')}
- className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors"
- >
- <ArrowLeft className="w-5 h-5" />
- Back
- </button>
- <div className="flex items-center gap-2">
- {userVenue.featured && (
- <span className="px-3 py-1 bg-purple-500/20 text-purple-300 text-sm font-bold rounded-full border border-purple-500/30">
- ⭐ FEATURED VENUE
- </span>
- )}
- {userVenue.verified && (
- <span className="px-3 py-1 bg-green-500/20 text-green-300 text-sm font-bold rounded-full border border-green-500/30 flex items-center gap-1">
- <CheckCircle className="w-4 h-4" />
- VERIFIED
- </span>
- )}
- </div>
- </div>
- </div>
- </div>
-
- <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+ <div className="space-y-6">
  {/* Venue Header */}
  <div className="bg-[#151A22] p-8 rounded-2xl border border-[#222A36] shadow-xl">
  {!editingVenue ? (
@@ -10479,7 +10451,6 @@ const BORDER_MAP = {
  <li>• Encourage hosts to leave notes about your venue's amenities</li>
  <li>• Consider upgrading to Featured to appear first in searches</li>
  </ul>
- </div>
  </div>
  </div>
  );
