@@ -3927,8 +3927,8 @@ const qrScannerRef = useRef(null);
  setUpgrading(false);
  };
  return (
- <div className="min-h-screen pt-20 bg-[#0F1115]">
- <div className="sticky top-14 z-10 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="min-h-screen pt-[48px] bg-[#0F1115]">
+ <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-lg mx-auto px-4 py-3">
  <button onClick={() => setCurrentScreen('profile')} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors mb-2">
  <ArrowLeft className="w-5 h-5" /> Back
@@ -6488,8 +6488,8 @@ const BORDER_MAP = {
  }, []);
 
  return (
- <div className="min-h-screen pt-20 bg-[#0F1115] sports-tech-bg">
- <div className="sticky top-14 z-10 bg-[#0F1115] border-b border-[#222A36] relative z-[1]">
+ <div className="min-h-screen pt-[48px] bg-[#0F1115] sports-tech-bg">
+ <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36] relative z-[1]">
  <div className="max-w-4xl mx-auto px-4 py-2 flex items-center justify-between">
  <button
  onClick={() => setCurrentScreen('games')}
@@ -10575,8 +10575,8 @@ const BORDER_MAP = {
  ];
 
  return (
- <div className="min-h-screen pt-20 bg-[#0F1115]">
- <div className="sticky top-14 z-10 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="min-h-screen pt-[48px] bg-[#0F1115]">
+ <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-3">
  <div className="flex items-center justify-between mb-3">
  <button onClick={() => setCurrentScreen('profile')} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors">
@@ -14987,8 +14987,8 @@ const BORDER_MAP = {
      return `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })} ${time}`;
    };
    return (
-     <div className="min-h-screen pt-20 bg-[#0F1115] flex flex-col">
-       <div className="sticky top-14 z-10 bg-[#0F1115] border-b border-[#222A36]">
+     <div className="min-h-screen pt-[48px] bg-[#0F1115] flex flex-col">
+       <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
          <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
            <button onClick={() => setCurrentScreen('myCrew')} className="p-2 bg-[#151A22] rounded-xl hover:bg-[#222A36]">
              <ArrowLeft className="w-5 h-5 text-white" />
