@@ -145,3 +145,20 @@ body {
   from { transform: translateY(-100%); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
+
+.hamburger-menu {
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: contain;
+}
+
+@media (hover: none) {
+  .hamburger-menu button {
+    -webkit-tap-highlight-color: transparent;
+  }
+  .hamburger-menu button:hover {
+    background-color: transparent !important;
+  }
+  .hamburger-menu button:active {
+    transform: none !important;
+  }
+}
