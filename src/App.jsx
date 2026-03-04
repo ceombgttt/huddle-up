@@ -1321,7 +1321,7 @@ const HuddleUpApp = () => {
  const [showPrelaunchModal, setShowPrelaunchModal] = useState(false);
  const [prelaunchDismissed, setPrelaunchDismissed] = useState(false);
  const [wcTick, setWcTick] = useState(Date.now());
- useEffect(() => { const id = setInterval(() => setWcTick(Date.now()), 1000); return () => clearInterval(id); }, []);
+ useEffect(() => { if (currentScreen !== 'games') return; const id = setInterval(() => setWcTick(Date.now()), 1000); return () => clearInterval(id); }, [currentScreen]);
  const [softLaunchDismissed, setSoftLaunchDismissed] = useState(() => {
    const stored = localStorage.getItem('softlaunch_banner_dismissed');
    if (!stored) return false;
