@@ -12465,7 +12465,7 @@ const BORDER_MAP = {
 
  <div className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36] shadow-xl space-y-3">
  <h3 className="text-lg font-bold text-white mb-1">Help & Info</h3>
- <button onClick={() => { setCurrentScreen('games'); setTimeout(() => startSpotlightTour(), 500); }} className="w-full flex items-center gap-3 p-3 bg-[#1E90FF]/10 hover:bg-[#1E90FF]/20 border border-[#1E90FF]/20 rounded-xl transition-colors text-left">
+ <button onClick={() => { setCurrentScreen('games'); window.scrollTo({ top: 0 }); setTimeout(() => startSpotlightTour(), 1200); }} className="w-full flex items-center gap-3 p-3 bg-[#1E90FF]/10 hover:bg-[#1E90FF]/20 border border-[#1E90FF]/20 rounded-xl transition-colors text-left">
  <Map className="w-5 h-5 text-[#1E90FF]" />
  <span className="text-white font-medium text-sm">Learn How To Use The App</span>
  <span className="text-[#A0A4AB]/70 text-xs ml-1">Interactive app walkthrough</span>
@@ -14348,7 +14348,7 @@ const BORDER_MAP = {
  const gt = new Date(party.gameTime);
  const validDate = !isNaN(gt.getTime());
  return (
- <div key={party.id} onClick={() => { const found = parties.find(p => p.id === party.id); if (found) { setSelectedGame(found); setCurrentScreen('gameDetail'); } else { setSelectedGame(party); setCurrentScreen('gameDetail'); } }} className="p-4 bg-[#151A22] rounded-xl border border-amber-500/30 hover:border-amber-500/50 transition-colors cursor-pointer">
+ <div key={party.id} onClick={() => { let g = safeGames.find(g => g.id === party.gameId); if (!g) { g = { id: party.gameId || party.id, sport: party.sport, homeTeam: party.homeTeam || '?', awayTeam: party.awayTeam || '?', startTime: party.gameTime, venue: party.venueName || '' }; } setSelectedGame(g); setCurrentScreen('gameDetail'); }} className="p-4 bg-[#151A22] rounded-xl border border-amber-500/30 hover:border-amber-500/50 transition-colors cursor-pointer">
  <div className="flex items-start justify-between">
  <div className="flex-1">
  <div className="flex items-center gap-2 mb-1">

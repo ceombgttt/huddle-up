@@ -7,7 +7,7 @@ const router = Router();
 router.get('/feed', async (req, res) => {
   try {
     const proPartiesResult = await pool.query(
-      `SELECT p.id, p.host_id, p.venue_name, p.game_time, p.sport, p.home_team, p.away_team, p.city, p.title,
+      `SELECT p.id, p.host_id, p.venue_name, p.game_time, p.sport, p.home_team, p.away_team, p.city, p.title, p.game_id,
         (SELECT COUNT(*) FROM party_attendees WHERE party_id = p.id) as attendee_count,
         u.name as host_name, u.profile_picture as host_picture, u.is_founder,
         TRUE as is_pro_host
@@ -19,7 +19,7 @@ router.get('/feed', async (req, res) => {
     );
 
     const promotedResult = await pool.query(
-      `SELECT p.id, p.host_id, p.venue_name, p.game_time, p.sport, p.home_team, p.away_team, p.city, p.title,
+      `SELECT p.id, p.host_id, p.venue_name, p.game_time, p.sport, p.home_team, p.away_team, p.city, p.title, p.game_id,
         (SELECT COUNT(*) FROM party_attendees WHERE party_id = p.id) as attendee_count,
         u.name as host_name, u.profile_picture as host_picture, u.is_founder,
         FALSE as is_pro_host
@@ -75,6 +75,7 @@ router.get('/feed', async (req, res) => {
     res.json({
       featuredParties: featured_parties.map(p => ({
         id: p.id,
+        gameId: p.game_id,
         hostId: p.host_id,
         hostName: p.host_name,
         hostPicture: p.host_picture,
