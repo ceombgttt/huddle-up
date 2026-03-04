@@ -972,9 +972,9 @@ const SubscriptionSection = ({ userType }) => {
  };
 
  const tierConfig = {
- pro: { icon: '⭐', color: 'amber', label: 'Pro', features: ['VIP badge', '3x points multiplier', 'Early party access', 'Custom profile themes', 'Advanced analytics'] },
- venue: { icon: '\u{1F3EA}', color: 'green', label: 'Venue Owner', features: ['Claim & manage your venue', 'Upload photos & logo', 'Appear in search results', 'Analytics dashboard'] },
- sponsor: { icon: '\\u{1F4E2}', color: 'orange', label: 'Sponsor', features: ['Premium banner ads', 'All sports coverage', 'Featured placement', 'Reach analytics'] },
+ pro: { icon: '⭐', btnClass: 'bg-gradient-to-r from-amber-500 to-amber-600', label: 'Pro', features: ['VIP badge', '3x points multiplier', 'Early party access', 'Custom profile themes', 'Advanced analytics'] },
+ venue: { icon: '\u{1F3EA}', btnClass: 'bg-gradient-to-r from-green-500 to-green-600', label: 'Venue Owner', features: ['Claim & manage your venue', 'Upload photos & logo', 'Appear in search results', 'Analytics dashboard'] },
+ sponsor: { icon: '\u{1F4E2}', btnClass: 'bg-gradient-to-r from-orange-500 to-orange-600', label: 'Sponsor', features: ['Premium banner ads', 'All sports coverage', 'Featured placement', 'Reach analytics'] },
  }
 
  if (loading) {
@@ -1048,7 +1048,7 @@ const SubscriptionSection = ({ userType }) => {
  <button
  onClick={() => handleCheckout(price.id, tier)}
  disabled={checkoutLoading === tier}
- className={`px-4 py-2 bg-gradient-to-r from-${config.color}-500 to-${config.color}-600 text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50`}
+ className={`px-4 py-2 ${config.btnClass} text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50`}
  >
  {checkoutLoading === tier ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Subscribe'}
  </button>
@@ -12148,8 +12148,8 @@ const BORDER_MAP = {
 
  return (
  <div className="min-h-screen pt-[48px] bg-[#0F1115]">
- <div className="bg-[#0F1115] border-b border-[#222A36]">
- <div className="max-w-4xl mx-auto px-4 py-4">
+ <div className="sticky top-[48px] z-30 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="max-w-4xl mx-auto px-4 py-3">
  <div className="flex items-center justify-between">
  <button
  onClick={() => setCurrentScreen('games')}
