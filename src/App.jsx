@@ -3984,8 +3984,13 @@ const qrScannerRef = useRef(null);
  const handleUpgrade = async () => {
  setUpgrading(true);
  try {
- const products = await api.stripe.products();
- const proProduct = products.find(p => p.metadata?.tier === 'pro');
+ let products = await api.stripe.products();
+ let proProduct = products.find(p => p.metadata?.tier === 'pro');
+ if (!proProduct || proProduct.prices.length === 0) {
+ await new Promise(r => setTimeout(r, 2000));
+ products = await api.stripe.products();
+ proProduct = products.find(p => p.metadata?.tier === 'pro');
+ }
  if (proProduct && proProduct.prices.length > 0) {
  const targetPrice = proYearly
  ? proProduct.prices.find(p => p.recurring?.interval === 'year') || proProduct.prices[0]
@@ -3993,7 +3998,7 @@ const qrScannerRef = useRef(null);
  const result = await api.stripe.checkout(targetPrice.id, proAffValid ? proAffCode : '');
  if (result?.url) window.location.href = result.url;
  } else {
- alert('Pro plan is being set up. Please try again shortly.');
+ alert('Plans are loading. Please wait a moment and try again.');
  }
  } catch(e) { console.error(e); alert('Something went wrong. Please try again.'); }
  setUpgrading(false);
@@ -10331,12 +10336,17 @@ const BORDER_MAP = {
  <button
  onClick={async () => {
  try {
- const products = await api.stripe.products();
- const featuredProduct = products.find(p => p.metadata?.tier === 'featured_venue');
+ let products = await api.stripe.products();
+ let featuredProduct = products.find(p => p.metadata?.tier === 'featured_venue');
+ if (!featuredProduct || featuredProduct.prices.length === 0) {
+ await new Promise(r => setTimeout(r, 2000));
+ products = await api.stripe.products();
+ featuredProduct = products.find(p => p.metadata?.tier === 'featured_venue');
+ }
  if (featuredProduct && featuredProduct.prices.length > 0) {
  const result = await api.stripe.checkout(featuredProduct.prices[0].id);
  if (result?.url) window.location.href = result.url;
- } else { alert('Featured Venue plan is being set up. Please try again shortly.'); }
+ } else { alert('Plans are loading. Please wait a moment and try again.'); }
  } catch(e) { console.error(e); alert('Something went wrong. Please try again.'); }
  }}
  className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-xl hover:shadow-purple-500/50 transition-all"
@@ -10815,12 +10825,17 @@ const BORDER_MAP = {
  <button
  onClick={async () => {
  try {
- const products = await api.stripe.products();
- const featuredProduct = products.find(p => p.metadata?.tier === 'featured_venue');
+ let products = await api.stripe.products();
+ let featuredProduct = products.find(p => p.metadata?.tier === 'featured_venue');
+ if (!featuredProduct || featuredProduct.prices.length === 0) {
+ await new Promise(r => setTimeout(r, 2000));
+ products = await api.stripe.products();
+ featuredProduct = products.find(p => p.metadata?.tier === 'featured_venue');
+ }
  if (featuredProduct && featuredProduct.prices.length > 0) {
  const result = await api.stripe.checkout(featuredProduct.prices[0].id);
  if (result?.url) window.location.href = result.url;
- } else { alert('Featured Venue plan is being set up. Please try again shortly.'); }
+ } else { alert('Plans are loading. Please wait a moment and try again.'); }
  } catch(e) { console.error(e); alert('Something went wrong. Please try again.'); }
  }}
  className="flex-1 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black rounded-xl text-sm transition-all"
@@ -10861,12 +10876,17 @@ const BORDER_MAP = {
  <button
  onClick={async () => {
  try {
- const products = await api.stripe.products();
- const baseProduct = products.find(p => p.metadata?.tier === 'venue');
+ let products = await api.stripe.products();
+ let baseProduct = products.find(p => p.metadata?.tier === 'venue');
+ if (!baseProduct || baseProduct.prices.length === 0) {
+ await new Promise(r => setTimeout(r, 2000));
+ products = await api.stripe.products();
+ baseProduct = products.find(p => p.metadata?.tier === 'venue');
+ }
  if (baseProduct && baseProduct.prices.length > 0) {
  const result = await api.stripe.checkout(baseProduct.prices[0].id);
  if (result?.url) window.location.href = result.url;
- } else { alert('Base Venue plan is being set up. Please try again shortly.'); }
+ } else { alert('Plans are loading. Please wait a moment and try again.'); }
  } catch(e) { console.error(e); alert('Something went wrong. Please try again.'); }
  }}
  className="w-full py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white font-black rounded-xl text-sm transition-all shadow-lg shadow-blue-500/20"
@@ -10902,12 +10922,17 @@ const BORDER_MAP = {
  <button
  onClick={async () => {
  try {
- const products = await api.stripe.products();
- const featuredProduct = products.find(p => p.metadata?.tier === 'featured_venue');
+ let products = await api.stripe.products();
+ let featuredProduct = products.find(p => p.metadata?.tier === 'featured_venue');
+ if (!featuredProduct || featuredProduct.prices.length === 0) {
+ await new Promise(r => setTimeout(r, 2000));
+ products = await api.stripe.products();
+ featuredProduct = products.find(p => p.metadata?.tier === 'featured_venue');
+ }
  if (featuredProduct && featuredProduct.prices.length > 0) {
  const result = await api.stripe.checkout(featuredProduct.prices[0].id);
  if (result?.url) window.location.href = result.url;
- } else { alert('Featured Venue plan is being set up. Please try again shortly.'); }
+ } else { alert('Plans are loading. Please wait a moment and try again.'); }
  } catch(e) { console.error(e); alert('Something went wrong. Please try again.'); }
  }}
  className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black rounded-xl text-sm transition-all shadow-lg shadow-amber-500/20"
