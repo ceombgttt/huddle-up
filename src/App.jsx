@@ -2427,6 +2427,7 @@ const qrScannerRef = useRef(null);
    try {
      const { count } = await api.dm.unreadCount();
      if (count > dmPrevUnreadRef.current && dmPrevUnreadRef.current >= 0 && currentScreen !== 'dmChat') {
+       playNotificationSound();
        const latest = await api.dm.latestUnread();
        if (latest) {
          setDmPopup({ senderName: latest.senderName, senderPicture: latest.senderPicture, message: latest.message, senderId: latest.senderId });
@@ -11277,12 +11278,17 @@ const BORDER_MAP = {
    return (
      <div
        key={party.id}
-       onClick={() => { const g = safeGames.find(g => g.id === party.gameId); if (g) { setSelectedGame(g); setCurrentScreen('gameDetail'); } }}
+       onClick={() => { let g = safeGames.find(g => g.id === party.gameId); if (!g) { g = { id: party.gameId || party.id, sport: party.sport, homeTeam: party.homeTeam || '?', awayTeam: party.awayTeam || '?', startTime: party.gameTime, venue: party.venueName || '' }; } setSelectedGame(g); setCurrentScreen('gameDetail'); }}
        className={`bg-[#151A22] p-4 rounded-xl border transition-all cursor-pointer active:scale-[0.99] ${isLive ? 'border-red-500/40 bg-gradient-to-r from-red-900/20 via-[#151A22] to-[#151A22]' : 'border-[#222A36] hover:border-[#1E90FF]/30'}`}
      >
        <div className="flex items-start justify-between mb-2">
          <div className="flex items-center gap-2 flex-1 min-w-0">
-           <span className="text-lg flex-shrink-0">{getSportIcon(party.sport)}</span>
+           {(() => { const hLogo = getTeamLogoUrl(party.sport, party.homeTeam); const aLogo = getTeamLogoUrl(party.sport, party.awayTeam); return (hLogo || aLogo) ? (
+           <div className="flex items-center gap-1 flex-shrink-0">
+             {hLogo && <img src={hLogo} alt="" className="w-6 h-6 object-contain" onError={(e) => { e.target.onerror=null; e.target.style.display='none'; }} />}
+             {aLogo && <img src={aLogo} alt="" className="w-6 h-6 object-contain" onError={(e) => { e.target.onerror=null; e.target.style.display='none'; }} />}
+           </div>
+           ) : <span className="text-lg flex-shrink-0">{getSportIcon(party.sport)}</span>; })()}
            <div className="min-w-0">
              <span className="text-white font-bold text-sm">{String(party.homeTeam || '?')} vs {String(party.awayTeam || '?')}</span>
              {isLive && <span className="ml-2 px-2 py-0.5 bg-red-500 text-white text-[10px] font-black rounded-full animate-pulse">LIVE</span>}
@@ -15961,14 +15967,14 @@ const BORDER_MAP = {
 <p className="text-[#A0A4AB] text-xs mt-1">{calendarParty.homeTeam} vs {calendarParty.awayTeam}</p>
 </div>
 <div className="space-y-3">
-<a href={urls.ics} download className="flex items-center gap-3 w-full py-3 px-4 rounded-xl font-bold text-white transition-all hover:opacity-90 bg-gradient-to-r from-gray-600 to-gray-700 border border-gray-500/30">
+<button onClick={async () => { try { const resp = await fetch(urls.ics); const blob = await resp.blob(); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `huddle-up-party.ics`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); setShowCalendarMenu(false); } catch(e) { window.open(urls.ics, '_blank'); } }} className="flex items-center gap-3 w-full py-3 px-4 rounded-xl font-bold text-white transition-all hover:opacity-90 bg-gradient-to-r from-gray-600 to-gray-700 border border-gray-500/30">
 <span className="text-2xl">📅</span>
 <div className="text-left">
 <div className="text-sm font-bold">Apple Calendar / iCal</div>
 <div className="text-xs text-gray-300">Download .ics file</div>
 </div>
 <Download className="w-5 h-5 ml-auto text-gray-300" />
-</a>
+</button>
 <a href={urls.google} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 w-full py-3 px-4 rounded-xl font-bold text-white transition-all hover:opacity-90 border border-[#222A36]" style={{ backgroundColor: '#1a73e8' }}>
 <span className="text-2xl">📆</span>
 <div className="text-left">
