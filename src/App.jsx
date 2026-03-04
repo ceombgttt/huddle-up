@@ -412,7 +412,7 @@ const MainBrandBanner = ({ userCount = 0 }) => {
  <div className="flex items-center justify-center flex-1 min-w-0">
  <span className="text-base sm:text-xl font-black text-white tracking-wide whitespace-nowrap" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.12em' }}>HUDDLE UP</span>
  <span className="mx-1.5 sm:mx-2.5 text-[#A0A4AB] text-xs sm:text-sm">|</span>
- <span className="text-[9px] sm:text-sm font-bold text-[#1E90FF] brand-text-glow whitespace-nowrap" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>FIND YOUR CREW. WATCH THE GAME.</span>
+ <span className="text-[12px] sm:text-base font-bold text-[#1E90FF] brand-text-glow whitespace-nowrap" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>FIND YOUR CREW. WATCH THE GAME.</span>
  </div>
  {showBadge && (
  <div className="flex-shrink-0 ml-2 group relative">
@@ -6204,7 +6204,7 @@ const qrScannerRef = useRef(null);
 
  <div className="glow-divider my-[15px]" />
 
- <h2 className="text-white font-bold text-[15px] mb-[15px] uppercase tracking-[1px] section-header-glow" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>FIND YOUR SPORT</h2>
+ <h2 className="text-white font-bold text-xl mb-[15px] uppercase tracking-[1px] section-header-glow" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>FIND YOUR SPORT</h2>
  <div className="relative" data-tour-id="sports-scroller">
  <div
  ref={sportsScrollRef}
