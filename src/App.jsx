@@ -235,6 +235,31 @@ const TEAM_LOGO_MAP = {
  'Liga MX': { league: 'soccer/500', idBased: true, teams: { 'America': 47, 'Atlas': 12172, 'Chivas': 12171, 'Cruz Azul': 12167, 'Leon': 12164, 'Monterrey': 12170, 'Pachuca': 12168, 'Pumas': 12169, 'Santos Laguna': 12173, 'Tigres': 12166, 'Toluca': 12165 }},
 };
 
+const EXTRA_TEAM_LOGOS = {
+ 'College Football': { 'Air Force': 2005, 'Akron': 2006, 'Appalachian State': 2026, 'Arkansas State': 2032, 'Army': 349, 'Ball State': 2050, 'Bowling Green': 189, 'Buffalo': 2084, 'Central Michigan': 2117, 'Charlotte': 2429, 'Coastal Carolina': 324, 'Colorado State': 36, 'Connecticut': 41, 'East Carolina': 151, 'Eastern Michigan': 2199, 'Florida Atlantic': 2226, 'Florida International': 2229, 'Fresno State': 278, 'Georgia Southern': 290, 'Georgia State': 2247, 'Hawaii': 62, 'Jacksonville State': 55, 'James Madison': 256, 'Kent State': 2309, 'Liberty': 2335, 'Louisiana': 309, 'Louisiana Tech': 2348, 'Marshall': 276, 'Miami (OH)': 193, 'Middle Tennessee': 2393, 'Navy': 2426, 'Nevada': 2440, 'New Mexico': 167, 'New Mexico State': 166, 'North Texas': 249, 'Northern Illinois': 2459, 'Ohio': 195, 'Old Dominion': 295, 'Rice': 242, 'Sam Houston State': 2534, 'San Diego State': 21, 'San Jose State': 23, 'South Alabama': 6, 'South Florida': 58, 'Southern Miss': 2572, 'Temple': 218, 'Texas State': 326, 'Toledo': 2649, 'Troy': 2653, 'Tulsa': 202, 'UNLV': 2439, 'UTEP': 2638, 'UTSA': 2636, 'Utah State': 328, 'Western Kentucky': 98, 'Western Michigan': 2711, 'Wyoming': 2704 },
+ 'College Basketball': { 'Air Force': 2005, 'Akron': 2006, 'Appalachian State': 2026, 'Ball State': 2050, 'Boise State': 68, 'Bowling Green': 189, 'Buffalo': 2084, 'Central Michigan': 2117, 'Charlotte': 2429, 'Coastal Carolina': 324, 'Colorado State': 36, 'East Carolina': 151, 'Eastern Michigan': 2199, 'Florida Atlantic': 2226, 'Fresno State': 278, 'Hawaii': 62, 'James Madison': 256, 'Kent State': 2309, 'Liberty': 2335, 'Louisiana': 309, 'Marshall': 276, 'Middle Tennessee': 2393, 'Nevada': 2440, 'New Mexico': 167, 'North Texas': 249, 'Northern Illinois': 2459, 'Ohio': 195, 'Old Dominion': 295, 'Rice': 242, 'South Florida': 58, 'Southern Miss': 2572, 'Temple': 218, 'Toledo': 2649, 'Troy': 2653, 'UNLV': 2439, 'Western Kentucky': 98 },
+ 'Premier League': { 'Tottenham': 367, 'Newcastle': 361, 'Wolves': 380, 'West Ham': 371 },
+ 'Liga MX': { 'Club América': 47, 'Chivas Guadalajara': 12171, 'Pumas UNAM': 12169, 'Tigres UANL': 12166, 'León': 12164, 'Santos Laguna': 12173 },
+ 'Champions League': { 'PSG': 160 },
+};
+
+const COUNTRY_LOGO_URLS = {
+ 'USA': 'us', "USA Women's": 'us', 'Mexico': 'mx', 'Canada': 'ca', "Canada Women's": 'ca',
+ 'Brazil': 'br', 'Argentina': 'ar', 'England': 'gb-eng', 'France': 'fr', 'Germany': 'de',
+ 'Spain': 'es', 'Portugal': 'pt', 'Netherlands': 'nl', 'Italy': 'it', 'Japan': 'jp',
+ 'South Korea': 'kr', 'Australia': 'au', 'Colombia': 'co', 'Uruguay': 'uy',
+ 'Chile': 'cl', 'Peru': 'pe', 'Ecuador': 'ec', 'Belgium': 'be', 'Croatia': 'hr',
+ 'Denmark': 'dk', 'Switzerland': 'ch', 'Poland': 'pl', 'Sweden': 'se', 'Serbia': 'rs',
+ 'Wales': 'gb-wls', 'Scotland': 'gb-sct', 'Ireland': 'ie',
+ 'Nigeria': 'ng', 'Senegal': 'sn', 'Ghana': 'gh', 'Cameroon': 'cm', 'Morocco': 'ma',
+ 'Egypt': 'eg', 'Tunisia': 'tn', 'South Africa': 'za', 'Algeria': 'dz',
+ 'India': 'in', 'Pakistan': 'pk', 'Iran': 'ir', 'Saudi Arabia': 'sa', 'Qatar': 'qa',
+ 'Costa Rica': 'cr', 'Honduras': 'hn', 'Jamaica': 'jm', 'Panama': 'pa',
+ 'New Zealand': 'nz', 'China': 'cn', 'Russia': 'ru', 'Turkey': 'tr', 'Greece': 'gr',
+ 'New Zealand All Blacks': 'nz', 'South Africa Springboks': 'za', 'Australia Wallabies': 'au',
+ 'Argentina Pumas': 'ar', 'West Indies': 'jm', 'Sri Lanka': 'lk', 'Bangladesh': 'bd',
+};
+
 const TEAM_COLORS = {
  'Green Bay Packers': ['#203731', '#FFB612'], 'Dallas Cowboys': ['#003594', '#869397'], 'Kansas City Chiefs': ['#E31837', '#FFB81C'],
  'San Francisco 49ers': ['#AA0000', '#B3995D'], 'Pittsburgh Steelers': ['#101820', '#FFB612'], 'New England Patriots': ['#002244', '#C60C30'],
@@ -273,13 +298,33 @@ const getTeamColors = (sport, team) => {
 
 const getTeamLogoUrl = (sport, team) => {
  const sportData = TEAM_LOGO_MAP[sport];
- if (!sportData) return null;
+ if (sportData) {
  const val = sportData.teams?.[team];
- if (val === undefined || val === null) return null;
+ if (val !== undefined && val !== null) {
  if (sportData.idBased) {
  return `https://a.espncdn.com/i/teamlogos/${sportData.league}/${val}.png`;
  }
  return `https://a.espncdn.com/i/teamlogos/${sportData.league}/500/${val}.png`;
+ }
+ }
+ const extraData = EXTRA_TEAM_LOGOS[sport];
+ if (extraData) {
+ const val = extraData[team];
+ if (val !== undefined && val !== null) {
+ const baseData = TEAM_LOGO_MAP[sport];
+ if (baseData?.idBased) {
+ return `https://a.espncdn.com/i/teamlogos/${baseData.league}/${val}.png`;
+ }
+ if (baseData) {
+ return `https://a.espncdn.com/i/teamlogos/${baseData.league}/500/${val}.png`;
+ }
+ }
+ }
+ const countryCode = COUNTRY_LOGO_URLS[team];
+ if (countryCode) {
+ return `https://flagcdn.com/w80/${countryCode}.png`;
+ }
+ return null;
 };
 
 const COUNTRY_FLAGS = {
@@ -12123,11 +12168,13 @@ const BORDER_MAP = {
  const logoUrl = getTeamLogoUrl(sport, team);
  return (
  <div key={sport} className="flex flex-col items-center gap-1 px-2 py-1.5 bg-[#0F1115] rounded-xl border border-[#222A36]">
+ <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#1E90FF]/20 to-[#1E90FF]/5 flex items-center justify-center overflow-hidden border border-[#1E90FF]/15">
  {logoUrl ? (
- <img src={logoUrl} alt={team} className="w-8 h-8 object-contain" />
+ <img src={logoUrl} alt={team} className="w-8 h-8 object-contain" onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; e.target.parentElement.innerHTML = `<span class="text-[#1E90FF] font-bold" style="font-size:10px">${(team || '').substring(0,2).toUpperCase()}</span>`; }} />
  ) : (
- <div className="w-8 h-8 rounded-full bg-[#222A36] flex items-center justify-center text-xs text-white font-bold">{team?.charAt(0)}</div>
+ <span className="text-[#1E90FF] font-bold" style={{fontSize: '10px'}}>{(team || '').substring(0,2).toUpperCase()}</span>
  )}
+ </div>
  <span className="text-[#A0A4AB] text-[10px] leading-tight max-w-[60px] truncate">{team}</span>
  <span className="text-[#555] text-[8px]">{sport}</span>
  </div>
@@ -12223,11 +12270,13 @@ const BORDER_MAP = {
  const logoUrl = getTeamLogoUrl(sport, team);
  return (
  <div key={sport} className="flex items-center gap-3 bg-[#0F1115] p-3 rounded-xl border border-[#222A36]">
+ <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#1E90FF]/20 to-[#1E90FF]/5 flex items-center justify-center flex-shrink-0 border border-[#1E90FF]/15 overflow-hidden">
  {logoUrl ? (
- <img src={logoUrl} alt={team} className="w-8 h-8 object-contain flex-shrink-0" />
+ <img src={logoUrl} alt={team} className="w-8 h-8 object-contain" onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; e.target.parentElement.innerHTML = `<span class="text-[#1E90FF] font-bold" style="font-size:11px">${team.substring(0,2).toUpperCase()}</span>`; }} />
  ) : (
- <span className="text-lg flex-shrink-0">{SPORT_ICONS[sport] || '🏅'}</span>
+ <span className="text-[#1E90FF] font-bold" style={{fontSize: '11px'}}>{team.substring(0,2).toUpperCase()}</span>
  )}
+ </div>
  <div className="flex-1 min-w-0">
  <div className="text-white font-bold text-sm truncate">{team}</div>
  <div className="text-[#A0A4AB] text-xs">{sport}</div>
@@ -12262,7 +12311,11 @@ const BORDER_MAP = {
  <div className="mt-3 space-y-2 max-h-[300px] overflow-y-auto pr-1 scrollbar-hide">
  {unselectedSports.map(sport => (
  <div key={sport} className="flex items-center gap-3 bg-[#0F1115] p-3 rounded-xl border border-[#222A36]">
- <span className="text-lg flex-shrink-0">{SPORT_ICONS[sport] || '🏅'}</span>
+ {(() => { const firstTeam = TEAMS_BY_SPORT[sport]?.[0]; const sampleLogo = firstTeam ? getTeamLogoUrl(sport, firstTeam) : null; return sampleLogo ? (
+ <img src={sampleLogo} alt={sport} className="w-7 h-7 object-contain flex-shrink-0 opacity-50" onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; }} />
+ ) : (
+ <div className="w-7 h-7 rounded-full bg-[#222A36] flex items-center justify-center flex-shrink-0"><span className="text-[#A0A4AB] font-bold" style={{fontSize: '10px'}}>{sport.substring(0,2).toUpperCase()}</span></div>
+ ); })()}
  <span className="text-white font-semibold text-sm flex-1">{sport}</span>
  <select
  value=""
