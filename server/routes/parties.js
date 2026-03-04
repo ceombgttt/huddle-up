@@ -92,6 +92,114 @@ router.get('/mine', requireAuth, async (req, res) => {
   }
 });
 
+router.get('/hot', async (req, res) => {
+  try {
+    const hotParties = await pool.query(`
+      SELECT p.id, p.game_id, p.sport, p.home_team, p.away_team, p.game_time,
+             p.venue_name, p.venue_address, p.city, p.hot_score,
+             p.title, p.notes, p.host_id,
+             u.name as host_name,
+             (SELECT COUNT(*) FROM party_attendees pa WHERE pa.party_id = p.id) as attendee_count
+      FROM parties p
+      JOIN users u ON p.host_id = u.id
+      WHERE p.is_trending = true
+        AND p.game_time IS NOT NULL AND p.game_time ~ '^[0-9]{4}-'
+        AND p.game_time::timestamptz >= NOW() - INTERVAL '2 hours'
+      ORDER BY p.hot_score DESC
+      LIMIT 6
+    `);
+    res.json(hotParties.rows.map(p => ({
+      id: p.id, gameId: p.game_id, sport: p.sport, homeTeam: p.home_team, awayTeam: p.away_team,
+      gameTime: p.game_time, venueName: p.venue_name, venueAddress: p.venue_address, city: p.city,
+      hotScore: p.hot_score, attendeeCount: parseInt(p.attendee_count), hostName: p.host_name,
+      title: p.title
+    })));
+  } catch (error) {
+    console.error('Hot parties error:', error);
+    res.json([]);
+  }
+});
+
+router.get('/last-chance', async (req, res) => {
+  try {
+    const lastChance = await pool.query(`
+      SELECT p.id, p.game_id, p.sport, p.home_team, p.away_team, p.game_time,
+             p.venue_name, p.venue_address, p.city,
+             p.title, p.notes, p.host_id,
+             u.name as host_name,
+             (SELECT COUNT(*) FROM party_attendees pa WHERE pa.party_id = p.id) as attendee_count
+      FROM parties p
+      JOIN users u ON p.host_id = u.id
+      WHERE p.game_time IS NOT NULL AND p.game_time ~ '^[0-9]{4}-'
+        AND p.game_time::timestamptz >= NOW()
+        AND p.game_time::timestamptz <= NOW() + INTERVAL '2 hours'
+      ORDER BY p.game_time::timestamptz ASC
+      LIMIT 10
+    `);
+    res.json(lastChance.rows.map(p => ({
+      id: p.id, gameId: p.game_id, sport: p.sport, homeTeam: p.home_team, awayTeam: p.away_team,
+      gameTime: p.game_time, venueName: p.venue_name, venueAddress: p.venue_address, city: p.city,
+      attendeeCount: parseInt(p.attendee_count), hostName: p.host_name, title: p.title
+    })));
+  } catch (error) {
+    console.error('Last chance parties error:', error);
+    res.json([]);
+  }
+});
+
+router.get('/nearby', async (req, res) => {
+  try {
+    const { lat, lng, radius = 25 } = req.query;
+    if (!lat || !lng) return res.status(400).json({ error: 'Latitude and longitude required' });
+    const userLat = parseFloat(lat);
+    const userLng = parseFloat(lng);
+    const maxRadius = parseFloat(radius);
+    const nearby = await pool.query(`
+      SELECT p.id, p.game_id, p.sport, p.home_team, p.away_team, p.game_time,
+             p.venue_name, p.venue_address, p.city, p.is_trending,
+             v.latitude as venue_latitude, v.longitude as venue_longitude,
+             v.name as matched_venue_name,
+             (SELECT COUNT(*) FROM party_attendees pa WHERE pa.party_id = p.id) as attendee_count,
+             (3959 * acos(
+               LEAST(1, GREATEST(-1,
+                 cos(radians($1)) * cos(radians(v.latitude)) *
+                 cos(radians(v.longitude) - radians($2)) +
+                 sin(radians($1)) * sin(radians(v.latitude))
+               ))
+             )) AS distance
+      FROM parties p
+      JOIN venues v ON (
+        LOWER(TRIM(v.name)) = LOWER(TRIM(p.venue_name))
+        OR (LOWER(TRIM(v.name)) LIKE '%' || LOWER(TRIM(SPLIT_PART(p.venue_name, ' - ', 1))) || '%')
+        OR (LOWER(TRIM(p.venue_name)) LIKE '%' || LOWER(TRIM(v.name)) || '%')
+      )
+      WHERE p.game_time IS NOT NULL AND p.game_time ~ '^[0-9]{4}-'
+        AND p.game_time::timestamptz >= NOW() - INTERVAL '2 hours'
+        AND v.latitude IS NOT NULL AND v.longitude IS NOT NULL
+        AND (3959 * acos(
+               LEAST(1, GREATEST(-1,
+                 cos(radians($1)) * cos(radians(v.latitude)) *
+                 cos(radians(v.longitude) - radians($2)) +
+                 sin(radians($1)) * sin(radians(v.latitude))
+               ))
+             )) <= $3
+      ORDER BY distance ASC
+      LIMIT 50
+    `, [userLat, userLng, maxRadius]);
+    res.json(nearby.rows.map(p => ({
+      id: p.id, gameId: p.game_id, sport: p.sport, homeTeam: p.home_team, awayTeam: p.away_team,
+      gameTime: p.game_time, venueName: p.matched_venue_name || p.venue_name,
+      venueAddress: p.venue_address, city: p.city,
+      venueLatitude: parseFloat(p.venue_latitude), venueLongitude: parseFloat(p.venue_longitude),
+      attendeeCount: parseInt(p.attendee_count), distance: parseFloat(parseFloat(p.distance).toFixed(1)),
+      isTrending: p.is_trending
+    })));
+  } catch (error) {
+    console.error('Nearby parties error:', error);
+    res.json([]);
+  }
+});
+
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;

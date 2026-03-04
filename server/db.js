@@ -493,6 +493,11 @@ export async function initDB() {
       ALTER TABLE parties ADD COLUMN IF NOT EXISTS ticket_price_cents INTEGER DEFAULT 0;
       ALTER TABLE parties ADD COLUMN IF NOT EXISTS is_promoted BOOLEAN DEFAULT FALSE;
       ALTER TABLE parties ADD COLUMN IF NOT EXISTS has_recap BOOLEAN DEFAULT FALSE;
+      ALTER TABLE parties ADD COLUMN IF NOT EXISTS hot_score INTEGER DEFAULT 0;
+      ALTER TABLE parties ADD COLUMN IF NOT EXISTS is_trending BOOLEAN DEFAULT FALSE;
+
+      ALTER TABLE venues ADD COLUMN IF NOT EXISTS latitude DECIMAL(10,8);
+      ALTER TABLE venues ADD COLUMN IF NOT EXISTS longitude DECIMAL(11,8);
 
       CREATE TABLE IF NOT EXISTS venue_promotions (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -554,13 +559,23 @@ export async function initDB() {
     const venueCheck = await client.query("SELECT id FROM venues LIMIT 1");
     if (venueCheck.rows.length === 0) {
       await client.query(`
-        INSERT INTO venues (name, address, type, verified, featured) VALUES
-        ('Buffalo Wild Wings Downtown', '123 Main St, Fort Lauderdale, FL', 'Sports Bar', TRUE, TRUE),
-        ('The Pub Sports Bar', '456 Ocean Ave, Fort Lauderdale, FL', 'Sports Bar', TRUE, FALSE),
-        ('Yard House', '789 Las Olas Blvd, Fort Lauderdale, FL', 'Restaurant & Bar', TRUE, TRUE),
-        ('Bokampers Sports Bar', '321 Commercial Blvd, Fort Lauderdale, FL', 'Sports Bar', TRUE, FALSE)
+        INSERT INTO venues (name, address, type, verified, featured, city, latitude, longitude) VALUES
+        ('Buffalo Wild Wings Downtown', '123 Main St, Fort Lauderdale, FL', 'Sports Bar', TRUE, TRUE, 'Fort Lauderdale', 26.12230000, -80.14360000),
+        ('The Pub Sports Bar', '456 Ocean Ave, Fort Lauderdale, FL', 'Sports Bar', TRUE, FALSE, 'Fort Lauderdale', 26.11920000, -80.10540000),
+        ('Yard House', '789 Las Olas Blvd, Fort Lauderdale, FL', 'Restaurant & Bar', TRUE, TRUE, 'Fort Lauderdale', 26.11890000, -80.13780000),
+        ('Bokampers Sports Bar', '321 Commercial Blvd, Fort Lauderdale, FL', 'Sports Bar', TRUE, FALSE, 'Fort Lauderdale', 26.18470000, -80.12450000)
       `);
     }
+
+    await client.query(`
+      UPDATE venues SET latitude = 26.12230000, longitude = -80.14360000 WHERE latitude IS NULL AND name ILIKE '%Buffalo Wild Wings%' AND address ILIKE '%Fort Lauderdale%';
+      UPDATE venues SET latitude = 26.11920000, longitude = -80.10540000 WHERE latitude IS NULL AND name ILIKE '%Pub Sports%' AND address ILIKE '%Fort Lauderdale%';
+      UPDATE venues SET latitude = 26.11890000, longitude = -80.13780000 WHERE latitude IS NULL AND name ILIKE '%Yard House%' AND address ILIKE '%Fort Lauderdale%';
+      UPDATE venues SET latitude = 26.18470000, longitude = -80.12450000 WHERE latitude IS NULL AND name ILIKE '%Bokampers%';
+
+      CREATE INDEX IF NOT EXISTS idx_parties_trending ON parties(is_trending, hot_score DESC);
+      CREATE INDEX IF NOT EXISTS idx_venues_location ON venues(latitude, longitude);
+    `);
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS predictions (

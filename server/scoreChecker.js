@@ -150,21 +150,61 @@ async function sendPredictionReminders() {
   }
 }
 
+async function updateHotParties() {
+  try {
+    const parties = await pool.query(`
+      SELECT p.id, p.game_time,
+        (SELECT COUNT(*) FROM party_attendees pa WHERE pa.party_id = p.id) as total_attendees,
+        (SELECT COUNT(*) FROM party_attendees pa WHERE pa.party_id = p.id AND pa.joined_at > NOW() - INTERVAL '2 hours') as recent_joins,
+        (SELECT COUNT(*) FROM party_messages pm WHERE pm.party_id = p.id AND pm.created_at > NOW() - INTERVAL '1 hour') as recent_messages
+      FROM parties p
+      WHERE p.game_time IS NOT NULL AND p.game_time ~ '^[0-9]{4}-'
+        AND p.game_time::timestamptz >= NOW() - INTERVAL '2 hours'
+        AND p.game_time::timestamptz <= NOW() + INTERVAL '24 hours'
+    `);
+    for (const party of parties.rows) {
+      const gt = new Date(party.game_time);
+      const hoursUntil = (gt - Date.now()) / 3600000;
+      let timeFactor = 1;
+      if (hoursUntil <= 0) timeFactor = 5;
+      else if (hoursUntil <= 2) timeFactor = 3;
+      else if (hoursUntil <= 4) timeFactor = 2;
+      const hotScore = (parseInt(party.recent_joins) || 0) * 10
+        + (parseInt(party.total_attendees) || 0) * 2
+        + (parseInt(party.recent_messages) || 0) * 5
+        + timeFactor * 20;
+      const trending = hotScore > 100;
+      await pool.query('UPDATE parties SET hot_score = $1, is_trending = $2 WHERE id = $3', [hotScore, trending, party.id]);
+    }
+  } catch (err) {
+    if (err.code !== '22007' && err.code !== '42703') console.error('Hot parties update error:', err);
+  }
+}
+
+let hotPartiesCounter = 0;
 let intervalId = null;
 
 export function startScoreChecker() {
   if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
-    console.log('Push notifications not configured - score checker disabled');
+    console.log('Push notifications not configured - starting score checker with hot parties only');
+    updateHotParties();
+    intervalId = setInterval(() => {
+      hotPartiesCounter++;
+      if (hotPartiesCounter % 5 === 0) updateHotParties();
+    }, 60 * 1000);
     return;
   }
   console.log('Score checker started - checking every 60 seconds');
   checkAndNotify();
   sendPartyReminders();
   sendPredictionReminders();
+  updateHotParties();
   intervalId = setInterval(() => {
     checkAndNotify();
     sendPartyReminders();
     sendPredictionReminders();
+    hotPartiesCounter++;
+    if (hotPartiesCounter % 5 === 0) updateHotParties();
   }, 60 * 1000);
 }
 

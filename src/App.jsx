@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, Megaphone, MessageCircle, Gift, Award, Clock, Zap, Crown, Copy, Shield, ChevronRight, Info, Flame, TrendingUp, Menu, ScanLine, Download, Smartphone, Target, Lock } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
+import confetti from 'canvas-confetti';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
 import { api } from './api.js';
 
 class ScreenErrorBoundary extends React.Component {
@@ -1306,6 +1309,8 @@ const HuddleUpApp = () => {
  const [selectedGame, setSelectedGame] = useState(null);
  const [parties, setParties] = useState([]);
  const [userParties, setUserParties] = useState([]);
+ const [hotParties, setHotParties] = useState([]);
+ const [lastChanceParties, setLastChanceParties] = useState([]);
  const [searchTerm, setSearchTerm] = useState('');
  const [currentCity, setCurrentCity] = useState('');
  const [userCoords, setUserCoords] = useState(null);
@@ -1975,10 +1980,14 @@ const qrScannerRef = useRef(null);
  loadParties();
  loadVenues();
  loadGames();
+ loadHotParties();
+ loadLastChanceParties();
  detectUserLocation();
  api.sponsors.banners().then(b => setSponsorBanners(b || [])).catch(() => {});
  api.auth.userCount().then(d => setPrelaunchUserCount(170924 + (d?.count || 0))).catch(() => setPrelaunchUserCount(170924));
  fetch('/api/users/soft-launch-stats').then(r => r.json()).then(d => setSoftLaunchStats(d)).catch(() => {});
+ const hotInterval = setInterval(loadHotParties, 5 * 60 * 1000);
+ const lcInterval = setInterval(loadLastChanceParties, 60 * 1000);
 
  if (!localStorage.getItem('huddle_prelaunch_seen')) {
    setTimeout(() => {
@@ -2035,6 +2044,7 @@ const qrScannerRef = useRef(null);
  setCurrentScreen('signup');
  window.history.replaceState({}, '', window.location.pathname);
  }
+ return () => { clearInterval(hotInterval); clearInterval(lcInterval); };
  }, []);
 
  useEffect(() => {
@@ -2221,6 +2231,20 @@ const qrScannerRef = useRef(null);
  console.log('No parties yet');
  setParties([]);
  }
+ };
+
+ const loadHotParties = async () => {
+ try {
+ const res = await fetch('/api/parties/hot');
+ if (res.ok) setHotParties(await res.json());
+ } catch (e) { /* silent */ }
+ };
+
+ const loadLastChanceParties = async () => {
+ try {
+ const res = await fetch('/api/parties/last-chance');
+ if (res.ok) setLastChanceParties(await res.json());
+ } catch (e) { /* silent */ }
  };
 
  const loadVenues = async () => {
@@ -2559,6 +2583,14 @@ const qrScannerRef = useRef(null);
  if (result.ok) {
  setCheckedInParties(prev => ({ ...prev, [qrScanPartyId]: true }));
  setQrScanStatus({ type: 'success', message: result.alreadyCheckedIn ? 'Already checked in! Attendance verified.' : `Checked in! +${result.pointsEarned || 75} points earned!` });
+ if (!result.alreadyCheckedIn) {
+   const end = Date.now() + 2000;
+   const fireworkInterval = setInterval(() => {
+     if (Date.now() > end) { clearInterval(fireworkInterval); return; }
+     confetti({ particleCount: 4, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#1E90FF', '#FFD700', '#FF4757', '#10B981'] });
+     confetti({ particleCount: 4, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#1E90FF', '#FFD700', '#FF4757', '#10B981'] });
+   }, 200);
+ }
  loadRewards();
  setTimeout(() => closeQrScanner(), 2000);
  }
@@ -6024,6 +6056,72 @@ const qrScannerRef = useRef(null);
  <ChevronRight className="w-5 h-5 text-orange-400 flex-shrink-0" />
  </div>
  </div>
+
+ {lastChanceParties.length > 0 && (
+ <div className="mb-4 rounded-2xl overflow-hidden border border-red-500/30 bg-gradient-to-r from-red-900/30 via-[#151A22] to-pink-900/20">
+   <div className="px-4 pt-3 pb-2 flex items-center gap-2">
+     <Clock className="w-5 h-5 text-red-400 animate-pulse" />
+     <h3 className="text-white font-black text-sm" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>LAST CHANCE — STARTING SOON!</h3>
+   </div>
+   <div className="px-4 pb-3 space-y-2">
+     {lastChanceParties.map(lp => {
+       const gt = new Date(lp.gameTime);
+       const diff = gt - new Date();
+       const isLiveNow = diff <= 0;
+       const mins = Math.max(0, Math.floor(diff / 60000));
+       const hrs = Math.floor(mins / 60);
+       const remMins = mins % 60;
+       const countdown = isLiveNow ? 'STARTING NOW!' : hrs > 0 ? `${hrs}h ${remMins}m` : `${mins}m`;
+       return (
+         <div key={lp.id} onClick={() => { const g = games.find(g => g.id === lp.gameId) || { id: lp.gameId, sport: lp.sport, homeTeam: lp.homeTeam, awayTeam: lp.awayTeam, startTime: lp.gameTime }; setSelectedGame(g); setCurrentScreen('gameDetail'); }}
+           className={`p-3 rounded-xl cursor-pointer active:scale-[0.99] transition-all ${isLiveNow ? 'bg-red-500/20 border border-red-500/40' : 'bg-[#151A22] border border-[#222A36] hover:border-red-500/30'}`}>
+           <div className="flex items-center justify-between">
+             <div className="flex items-center gap-2 min-w-0">
+               {isLiveNow && <span className="px-2 py-0.5 bg-red-500 text-white text-[10px] font-black rounded-full animate-pulse">LIVE</span>}
+               <span className="text-white font-bold text-sm truncate">{lp.awayTeam} @ {lp.homeTeam}</span>
+             </div>
+             <span className={`text-xs font-black px-2 py-1 rounded-full flex-shrink-0 ${isLiveNow ? 'bg-red-500 text-white animate-pulse' : 'bg-red-500/20 text-red-400'}`}>{countdown}</span>
+           </div>
+           <div className="flex items-center gap-3 mt-1.5 text-xs text-[#A0A4AB]">
+             <span className="flex items-center gap-1"><MapPin className="w-3 h-3 text-emerald-400" />{lp.venueName || 'TBD'}</span>
+             <span className="flex items-center gap-1"><Users className="w-3 h-3 text-[#1E90FF]" />{lp.attendeeCount} going</span>
+           </div>
+         </div>
+       );
+     })}
+   </div>
+ </div>
+ )}
+
+ {hotParties.length > 0 && (
+ <div className="mb-4 rounded-2xl overflow-hidden border border-orange-500/30 bg-gradient-to-br from-orange-900/30 via-[#151A22] to-amber-900/20">
+   <div className="px-4 pt-3 pb-2 flex items-center gap-2">
+     <Flame className="w-5 h-5 text-orange-400" />
+     <h3 className="text-white font-black text-sm" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>TRENDING PARTIES RIGHT NOW</h3>
+   </div>
+   <div className="px-4 pb-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+     {hotParties.map(hp => {
+       const gt = new Date(hp.gameTime);
+       const isLive = gt <= new Date() && new Date(gt.getTime() + 10800000) >= new Date();
+       return (
+         <div key={hp.id} onClick={() => { const g = games.find(g => g.id === hp.gameId) || { id: hp.gameId, sport: hp.sport, homeTeam: hp.homeTeam, awayTeam: hp.awayTeam, startTime: hp.gameTime }; setSelectedGame(g); setCurrentScreen('gameDetail'); }}
+           className="p-3 rounded-xl bg-[#151A22] border border-[#222A36] hover:border-orange-500/40 cursor-pointer active:scale-[0.99] transition-all">
+           <div className="flex items-center gap-2 mb-1.5">
+             <span className="px-2 py-0.5 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[9px] font-black rounded-full animate-pulse flex items-center gap-1"><Flame className="w-2.5 h-2.5" />TRENDING</span>
+             {isLive && <span className="px-2 py-0.5 bg-red-500 text-white text-[9px] font-black rounded-full">LIVE</span>}
+           </div>
+           <p className="text-white font-bold text-sm">{hp.awayTeam} @ {hp.homeTeam}</p>
+           <div className="flex items-center gap-3 mt-1 text-xs text-[#A0A4AB]">
+             <span className="flex items-center gap-1"><MapPin className="w-3 h-3 text-emerald-400" />{hp.venueName || 'TBD'}</span>
+             <span className="flex items-center gap-1"><Users className="w-3 h-3 text-[#1E90FF]" />{hp.attendeeCount} fans</span>
+           </div>
+           <p className="text-xs text-orange-400/60 mt-1">{gt.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</p>
+         </div>
+       );
+     })}
+   </div>
+ </div>
+ )}
 
  {/* ROW 1: LOCATION DROPDOWN + MY TEAMS - SIDE BY SIDE */}
  <div className="grid grid-cols-2 gap-[10px] mt-5 mb-[10px]" data-tour-id="location-search">
@@ -11232,6 +11330,31 @@ const BORDER_MAP = {
  const [bpCity, setBpCity] = useState('All');
  const [bpSort, setBpSort] = useState('soonest');
  const [bpCollapsed, setBpCollapsed] = useState({});
+ const [showMap, setShowMap] = useState(false);
+ const [nearbyParties, setNearbyParties] = useState([]);
+ const [mapCenter, setMapCenter] = useState([26.3683, -80.1289]);
+
+ useEffect(() => {
+   if (!showMap) return;
+   const fetchNearby = (lat, lng) => {
+     setMapCenter([lat, lng]);
+     fetch(`/api/parties/nearby?lat=${lat}&lng=${lng}&radius=25`)
+       .then(r => r.ok ? r.json() : [])
+       .then(d => setNearbyParties(d))
+       .catch(() => {});
+   };
+   if (userCoords) {
+     fetchNearby(userCoords.lat, userCoords.lng);
+   } else if (navigator.geolocation) {
+     navigator.geolocation.getCurrentPosition(
+       pos => fetchNearby(pos.coords.latitude, pos.coords.longitude),
+       () => fetchNearby(26.3683, -80.1289),
+       { enableHighAccuracy: false, timeout: 5000 }
+     );
+   } else {
+     fetchNearby(26.3683, -80.1289);
+   }
+ }, [showMap, userCoords?.lat, userCoords?.lng]);
 
  const safeParties = Array.isArray(parties) ? parties : [];
  const safeGames = Array.isArray(games) ? games : [];
@@ -11477,7 +11600,44 @@ const BORDER_MAP = {
        </div>
      </div>
      <div className="max-w-4xl mx-auto px-4 py-4">
-       <p className="text-[#A0A4AB] text-xs mb-4">{filteredParties.length} {filteredParties.length === 1 ? 'party' : 'parties'} found</p>
+       <div className="flex items-center justify-between mb-3">
+         <p className="text-[#A0A4AB] text-xs">{filteredParties.length} {filteredParties.length === 1 ? 'party' : 'parties'} found</p>
+         <button onClick={() => setShowMap(!showMap)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${showMap ? 'bg-[#1E90FF] text-white' : 'bg-[#151A22] text-[#A0A4AB] border border-[#222A36] hover:border-[#1E90FF]/40'}`}>
+           <Map className="w-3.5 h-3.5" /> {showMap ? 'Hide Map' : 'Show Map'}
+         </button>
+       </div>
+       {showMap && (
+         <div className="mb-4 rounded-2xl overflow-hidden border border-[#222A36] bg-[#151A22]">
+           <MapContainer center={mapCenter} zoom={12} style={{ height: '350px', width: '100%' }} scrollWheelZoom={true}>
+             <TileLayer attribution='&copy; OpenStreetMap' url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
+             {nearbyParties.map(np => {
+               const gt = new Date(np.gameTime);
+               const isLive = gt <= new Date() && new Date(gt.getTime() + 10800000) >= new Date();
+               const icon = L.divIcon({
+                 className: 'leaflet-custom-marker',
+                 html: `<div class="leaflet-marker-pin ${isLive ? 'live' : 'upcoming'}">${isLive ? '\u{1F534}' : '\u{1F3DF}'}</div>`,
+                 iconSize: [32, 32], iconAnchor: [16, 32], popupAnchor: [0, -32]
+               });
+               return (
+                 <Marker key={np.id} position={[np.venueLatitude, np.venueLongitude]} icon={icon}>
+                   <Popup>
+                     <div style={{ minWidth: 180 }}>
+                       <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>{np.awayTeam} @ {np.homeTeam}</p>
+                       <p style={{ margin: '0 0 2px', fontSize: 13 }}>{np.venueName}</p>
+                       <p style={{ margin: '0 0 2px', fontSize: 12, color: '#3498db' }}>{np.distance} mi away</p>
+                       <p style={{ margin: '0 0 6px', fontSize: 12, color: '#27ae60', fontWeight: 'bold' }}>{np.attendeeCount} fans going</p>
+                       {isLive && <span style={{ display: 'inline-block', background: '#ef4444', color: '#fff', padding: '2px 8px', borderRadius: 12, fontSize: 10, fontWeight: 'bold', marginBottom: 6 }}>LIVE NOW</span>}
+                       <button onClick={() => { const g = safeGames.find(g => g.id === np.gameId) || { id: np.gameId, sport: np.sport, homeTeam: np.homeTeam, awayTeam: np.awayTeam, startTime: np.gameTime }; setSelectedGame(g); setCurrentScreen('gameDetail'); }}
+                         style={{ display: 'block', width: '100%', padding: '6px 12px', background: '#1E90FF', color: '#fff', border: 'none', borderRadius: 6, fontWeight: 'bold', cursor: 'pointer', fontSize: 12 }}>View Party</button>
+                     </div>
+                   </Popup>
+                 </Marker>
+               );
+             })}
+           </MapContainer>
+           {nearbyParties.length === 0 && <p className="text-center text-[#A0A4AB] text-xs py-3">No nearby parties with mapped venues yet</p>}
+         </div>
+       )}
        {filteredParties.length === 0 ? (
          <div className="bg-[#151A22] rounded-2xl border border-[#222A36] p-8 text-center">
            <Search className="w-12 h-12 text-[#A0A4AB]/30 mx-auto mb-4" />
