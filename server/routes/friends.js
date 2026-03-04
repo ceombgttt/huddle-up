@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import pool from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
+import { sendPushToUser } from './push.js';
 
 const router = Router();
 
@@ -35,11 +36,20 @@ router.post('/request', requireAuth, async (req, res) => {
     );
 
     const senderName = await pool.query('SELECT name FROM users WHERE id = $1', [req.session.userId]);
+    const sName = senderName.rows[0]?.name || 'Someone';
     await pool.query(
       `INSERT INTO notifications (user_id, type, title, message)
        VALUES ($1, 'friend_request', 'New Friend Request', $2)`,
-      [friendId, `${senderName.rows[0]?.name || 'Someone'} wants to add you to their crew!`]
+      [friendId, `${sName} wants to add you to their crew!`]
     );
+
+    try {
+      await sendPushToUser(friendId, {
+        title: 'New Friend Request 👋',
+        body: `${sName} wants to add you to their crew!`,
+        data: { type: 'friend_request' }
+      }, { prefType: 'friend_activity' });
+    } catch (e) {}
 
     res.json({ ok: true });
   } catch (error) {
@@ -58,11 +68,20 @@ router.post('/accept/:id', requireAuth, async (req, res) => {
     if (result.rows.length === 0) return res.status(404).json({ error: 'Request not found' });
 
     const accepterName = await pool.query('SELECT name FROM users WHERE id = $1', [req.session.userId]);
+    const aName = accepterName.rows[0]?.name || 'Someone';
     await pool.query(
       `INSERT INTO notifications (user_id, type, title, message)
        VALUES ($1, 'friend_accepted', 'Friend Request Accepted', $2)`,
-      [result.rows[0].user_id, `${accepterName.rows[0]?.name || 'Someone'} accepted your friend request! You're now in each other's crew.`]
+      [result.rows[0].user_id, `${aName} accepted your friend request! You're now in each other's crew.`]
     );
+
+    try {
+      await sendPushToUser(result.rows[0].user_id, {
+        title: 'Friend Request Accepted! 🎉',
+        body: `${aName} accepted your friend request! You're now crew.`,
+        data: { type: 'friend_accepted' }
+      }, { prefType: 'friend_activity' });
+    } catch (e) {}
 
     res.json({ ok: true });
   } catch (error) {

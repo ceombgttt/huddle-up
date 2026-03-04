@@ -4593,8 +4593,8 @@ const qrScannerRef = useRef(null);
  };
 
  const ContactUsScreen = () => (
- <div className="min-h-screen pt-20 bg-[#0F1115]">
- <div className="sticky top-20 z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
+ <div className="min-h-screen pt-[48px] bg-[#0F1115]">
+ <div className="sticky top-[48px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
  <button onClick={() => setCurrentScreen('profile')} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
  <Send className="w-6 h-6 text-[#1E90FF]" />
@@ -4658,10 +4658,10 @@ const qrScannerRef = useRef(null);
  );
 
  const TermsOfServiceScreen = () => (
- <div className="min-h-screen pt-20 bg-[#0F1115]">
- <div className="sticky top-20 z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
+ <div className="min-h-screen pt-[48px] bg-[#0F1115]">
+ <div className="sticky top-[48px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
- <button onClick={() => setCurrentScreen('games')} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
+ <button onClick={() => setCurrentScreen('profile')} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
  <Shield className="w-6 h-6 text-[#1E90FF]" />
  <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>TERMS OF SERVICE</h2>
  </div>
@@ -4853,10 +4853,10 @@ const qrScannerRef = useRef(null);
  );
 
  const PrivacyPolicyScreen = () => (
- <div className="min-h-screen pt-20 bg-[#0F1115]">
- <div className="sticky top-20 z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
+ <div className="min-h-screen pt-[48px] bg-[#0F1115]">
+ <div className="sticky top-[48px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
- <button onClick={() => setCurrentScreen('games')} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
+ <button onClick={() => setCurrentScreen('profile')} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
  <Lock className="w-6 h-6 text-[#1E90FF]" />
  <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>PRIVACY POLICY</h2>
  </div>
@@ -15888,6 +15888,8 @@ const BORDER_MAP = {
  />
  </div>
  )}
+
+ <InviteReminderPopup />
 
  {showQA && (
  <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setShowQA(false); }}>
