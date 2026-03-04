@@ -149,11 +149,35 @@ const SAMPLE_GAMES = [
  { id: 'box5', sport: 'Boxing', homeTeam: 'Fabio Wardley', awayTeam: 'Daniel Dubois', startTime: '2026-03-28T19:00:00', venue: 'Manchester, England', eventTitle: 'Heavyweight' },
  { id: 'box6', sport: 'Boxing', homeTeam: 'Caroline Dubois', awayTeam: 'Terri Harper', startTime: '2026-04-05T18:00:00', venue: 'London, England', eventTitle: 'WBC & WBO Lightweight Titles' },
  
- // FIFA World Cup
- { id: 'wc1', sport: 'FIFA World Cup', homeTeam: 'USA', awayTeam: 'Mexico', startTime: '2026-06-20T14:00:00', venue: 'MetLife Stadium, New Jersey' },
- { id: 'wc2', sport: 'FIFA World Cup', homeTeam: 'Brazil', awayTeam: 'Argentina', startTime: '2026-06-25T17:00:00', venue: 'AT&T Stadium, Dallas' },
- { id: 'wc3', sport: 'FIFA World Cup', homeTeam: 'England', awayTeam: 'Germany', startTime: '2026-06-28T12:00:00', venue: 'SoFi Stadium, Los Angeles' },
- { id: 'wcw1', sport: 'FIFA World Cup', homeTeam: "USA Women's", awayTeam: "Canada Women's", startTime: '2027-07-10T19:00:00', venue: 'Rose Bowl, Pasadena' },
+ // FIFA World Cup 2026 — Opening & Group Stage
+ { id: 'wc_open', sport: 'FIFA World Cup', homeTeam: 'Mexico', awayTeam: 'TBD', startTime: '2026-06-11T19:00:00Z', venue: 'Estadio Azteca, Mexico City', eventTitle: 'Opening Match' },
+ { id: 'wc_gs1', sport: 'FIFA World Cup', homeTeam: 'USA', awayTeam: 'TBD', startTime: '2026-06-12T19:00:00Z', venue: 'SoFi Stadium, Los Angeles', eventTitle: 'Group Stage' },
+ { id: 'wc_gs2', sport: 'FIFA World Cup', homeTeam: 'Canada', awayTeam: 'TBD', startTime: '2026-06-13T17:00:00Z', venue: 'BMO Field, Toronto', eventTitle: 'Group Stage' },
+ { id: 'wc_gs3', sport: 'FIFA World Cup', homeTeam: 'Brazil', awayTeam: 'TBD', startTime: '2026-06-14T21:00:00Z', venue: 'Hard Rock Stadium, Miami', eventTitle: 'Group Stage' },
+ { id: 'wc_gs4', sport: 'FIFA World Cup', homeTeam: 'Argentina', awayTeam: 'TBD', startTime: '2026-06-15T00:00:00Z', venue: 'MetLife Stadium, New Jersey', eventTitle: 'Group Stage' },
+ { id: 'wc_gs5', sport: 'FIFA World Cup', homeTeam: 'England', awayTeam: 'TBD', startTime: '2026-06-15T19:00:00Z', venue: 'Lincoln Financial Field, Philadelphia', eventTitle: 'Group Stage' },
+ { id: 'wc_gs6', sport: 'FIFA World Cup', homeTeam: 'France', awayTeam: 'TBD', startTime: '2026-06-16T19:00:00Z', venue: 'MetLife Stadium, New Jersey', eventTitle: 'Group Stage' },
+ { id: 'wc_gs7', sport: 'FIFA World Cup', homeTeam: 'Germany', awayTeam: 'TBD', startTime: '2026-06-17T17:00:00Z', venue: 'Lincoln Financial Field, Philadelphia', eventTitle: 'Group Stage' },
+ { id: 'wc_gs8', sport: 'FIFA World Cup', homeTeam: 'Spain', awayTeam: 'TBD', startTime: '2026-06-18T00:00:00Z', venue: 'Hard Rock Stadium, Miami', eventTitle: 'Group Stage' },
+ { id: 'wc_gs9', sport: 'FIFA World Cup', homeTeam: 'Portugal', awayTeam: 'TBD', startTime: '2026-06-18T19:00:00Z', venue: 'MetLife Stadium, New Jersey', eventTitle: 'Group Stage' },
+ { id: 'wc_gs10', sport: 'FIFA World Cup', homeTeam: 'Netherlands', awayTeam: 'TBD', startTime: '2026-06-19T17:00:00Z', venue: 'Lumen Field, Seattle', eventTitle: 'Group Stage' },
+ { id: 'wc_gs11', sport: 'FIFA World Cup', homeTeam: 'Italy', awayTeam: 'TBD', startTime: '2026-06-19T21:00:00Z', venue: 'AT&T Stadium, Dallas', eventTitle: 'Group Stage' },
+ { id: 'wc1', sport: 'FIFA World Cup', homeTeam: 'USA', awayTeam: 'Mexico', startTime: '2026-06-20T19:00:00Z', venue: 'MetLife Stadium, New Jersey', eventTitle: 'Group Stage' },
+ { id: 'wc_gs12', sport: 'FIFA World Cup', homeTeam: 'Japan', awayTeam: 'TBD', startTime: '2026-06-21T17:00:00Z', venue: 'Levi\'s Stadium, San Francisco', eventTitle: 'Group Stage' },
+ { id: 'wc_gs13', sport: 'FIFA World Cup', homeTeam: 'South Korea', awayTeam: 'TBD', startTime: '2026-06-22T19:00:00Z', venue: 'SoFi Stadium, Los Angeles', eventTitle: 'Group Stage' },
+ { id: 'wc2', sport: 'FIFA World Cup', homeTeam: 'Brazil', awayTeam: 'Argentina', startTime: '2026-06-25T21:00:00Z', venue: 'AT&T Stadium, Dallas', eventTitle: 'Group Stage' },
+ { id: 'wc3', sport: 'FIFA World Cup', homeTeam: 'England', awayTeam: 'Germany', startTime: '2026-06-28T19:00:00Z', venue: 'SoFi Stadium, Los Angeles', eventTitle: 'Group Stage' },
+ // FIFA World Cup 2026 — Knockout Rounds
+ { id: 'wc_r32a', sport: 'FIFA World Cup', homeTeam: '1A', awayTeam: '2B', startTime: '2026-06-29T19:00:00Z', venue: 'MetLife Stadium, New Jersey', eventTitle: 'Round of 32' },
+ { id: 'wc_r32b', sport: 'FIFA World Cup', homeTeam: '1C', awayTeam: '2D', startTime: '2026-06-29T23:00:00Z', venue: 'Hard Rock Stadium, Miami', eventTitle: 'Round of 32' },
+ { id: 'wc_r16a', sport: 'FIFA World Cup', homeTeam: 'TBD', awayTeam: 'TBD', startTime: '2026-07-03T19:00:00Z', venue: 'AT&T Stadium, Dallas', eventTitle: 'Round of 16' },
+ { id: 'wc_r16b', sport: 'FIFA World Cup', homeTeam: 'TBD', awayTeam: 'TBD', startTime: '2026-07-04T19:00:00Z', venue: 'SoFi Stadium, Los Angeles', eventTitle: 'Round of 16' },
+ { id: 'wc_qf1', sport: 'FIFA World Cup', homeTeam: 'TBD', awayTeam: 'TBD', startTime: '2026-07-09T19:00:00Z', venue: 'MetLife Stadium, New Jersey', eventTitle: 'Quarterfinal' },
+ { id: 'wc_qf2', sport: 'FIFA World Cup', homeTeam: 'TBD', awayTeam: 'TBD', startTime: '2026-07-10T19:00:00Z', venue: 'Levi\'s Stadium, San Francisco', eventTitle: 'Quarterfinal' },
+ { id: 'wc_sf1', sport: 'FIFA World Cup', homeTeam: 'TBD', awayTeam: 'TBD', startTime: '2026-07-13T21:00:00Z', venue: 'AT&T Stadium, Dallas', eventTitle: 'Semifinal' },
+ { id: 'wc_sf2', sport: 'FIFA World Cup', homeTeam: 'TBD', awayTeam: 'TBD', startTime: '2026-07-14T21:00:00Z', venue: 'MetLife Stadium, New Jersey', eventTitle: 'Semifinal' },
+ { id: 'wc_3rd', sport: 'FIFA World Cup', homeTeam: 'TBD', awayTeam: 'TBD', startTime: '2026-07-18T21:00:00Z', venue: 'Hard Rock Stadium, Miami', eventTitle: 'Third Place Match' },
+ { id: 'wc_final', sport: 'FIFA World Cup', homeTeam: 'TBD', awayTeam: 'TBD', startTime: '2026-07-19T21:00:00Z', venue: 'MetLife Stadium, New Jersey', eventTitle: '🏆 FINAL' },
 
  // Formula 1
  { id: 'f1_1', sport: 'Formula 1', homeTeam: 'Bahrain Grand Prix', awayTeam: 'Race Weekend', startTime: '2026-03-08T15:00:00', venue: 'Bahrain International Circuit' },
@@ -1296,6 +1320,8 @@ const HuddleUpApp = () => {
  const [prelaunchUserCount, setPrelaunchUserCount] = useState(0);
  const [showPrelaunchModal, setShowPrelaunchModal] = useState(false);
  const [prelaunchDismissed, setPrelaunchDismissed] = useState(false);
+ const [wcTick, setWcTick] = useState(Date.now());
+ useEffect(() => { const id = setInterval(() => setWcTick(Date.now()), 1000); return () => clearInterval(id); }, []);
  const [softLaunchDismissed, setSoftLaunchDismissed] = useState(() => {
    const stored = localStorage.getItem('softlaunch_banner_dismissed');
    if (!stored) return false;
@@ -5935,6 +5961,50 @@ const qrScannerRef = useRef(null);
 </div>
 )}
 
+
+{(() => {
+ const wcStart = new Date('2026-06-11T19:00:00Z');
+ const diff = wcStart.getTime() - wcTick;
+ if (diff <= 0) return null;
+ const days = Math.floor(diff / 86400000);
+ const hrs = Math.floor((diff % 86400000) / 3600000);
+ const mins = Math.floor((diff % 3600000) / 60000);
+ const secs = Math.floor((diff % 60000) / 1000);
+ return (
+ <div
+ onClick={() => { setSelectedSports(['FIFA World Cup']); setCurrentScreen('games'); window.scrollTo(0,0); }}
+ className="mb-3 relative overflow-hidden rounded-2xl border border-emerald-500/40 cursor-pointer hover:border-emerald-400/60 transition-all active:scale-[0.99]"
+ style={{ background: 'linear-gradient(135deg, #064e3b 0%, #065f46 30%, #047857 60%, #059669 100%)' }}
+ >
+ <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+ <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+ <div className="relative p-4">
+ <div className="flex items-center gap-3 mb-3">
+ <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center border border-white/20">
+ <img src="https://flagcdn.com/w80/us.png" alt="USA" className="w-5 h-4 object-cover rounded-sm" onError={(e) => { e.target.onerror=null; e.target.style.display='none'; }} />
+ </div>
+ <div className="flex-1">
+ <h3 className="text-white font-black text-sm tracking-wide" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>FIFA WORLD CUP 2026</h3>
+ <p className="text-emerald-200/80 text-[10px] font-semibold">USA • MEXICO • CANADA</p>
+ </div>
+ <div className="flex gap-1">
+ <img src="https://flagcdn.com/w40/mx.png" alt="" className="w-5 h-3.5 object-cover rounded-sm opacity-70" onError={(e) => { e.target.onerror=null; e.target.style.display='none'; }} />
+ <img src="https://flagcdn.com/w40/ca.png" alt="" className="w-5 h-3.5 object-cover rounded-sm opacity-70" onError={(e) => { e.target.onerror=null; e.target.style.display='none'; }} />
+ </div>
+ </div>
+ <div className="grid grid-cols-4 gap-2 mb-2">
+ {[{v: days, l: 'DAYS'}, {v: hrs, l: 'HRS'}, {v: mins, l: 'MIN'}, {v: secs, l: 'SEC'}].map(({v, l}) => (
+ <div key={l} className="text-center bg-black/30 rounded-lg py-2 border border-white/10">
+ <div className="text-white font-black text-xl leading-none" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{String(v).padStart(2, '0')}</div>
+ <div className="text-emerald-300/60 text-[9px] font-bold mt-1">{l}</div>
+ </div>
+ ))}
+ </div>
+ <p className="text-emerald-200/50 text-[10px] text-center font-semibold">Tap to see World Cup matches & create watch parties</p>
+ </div>
+ </div>
+ );
+})()}
 
  <div onClick={() => { setCurrentScreen('browseParties'); window.scrollTo(0, 0); }} className="mb-3 relative overflow-hidden rounded-2xl border border-orange-500/40 bg-gradient-to-r from-orange-900/40 via-[#151A22] to-orange-900/30 cursor-pointer hover:border-orange-500/60 transition-all active:scale-[0.99]">
  <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full -translate-y-1/2 translate-x-1/2" />
