@@ -406,37 +406,49 @@ const DEMO_MAIN_SPONSOR = {
  isDemo: true,
 };
 
-const MAIN_BANNER_HEIGHT = 48;
+const MAIN_BANNER_HEIGHT = 60;
 const SOFT_LAUNCH_START = new Date('2026-02-01');
-const MainBrandBanner = ({ userCount = 0 }) => {
+const MainBrandBanner = ({ userCount = 0, user: bannerUser, onProfileClick, totalAlerts = 0 }) => {
  const daysSinceLaunch = Math.floor((Date.now() - SOFT_LAUNCH_START.getTime()) / (1000 * 60 * 60 * 24));
  const showBadge = daysSinceLaunch < 90;
  const isNew = userCount >= 100 || daysSinceLaunch >= 30;
  return (
  <div
- className="w-full flex items-center bg-gradient-to-r from-[#0D1117] via-[#151A22] to-[#0D1117] border-b border-[#222A36] brand-banner-glow px-3"
+ className="compact-header w-full"
  style={{ height: `${MAIN_BANNER_HEIGHT}px` }}
  >
- <div className="flex items-center justify-center flex-1 min-w-0">
- <span className="text-base sm:text-xl font-black text-white tracking-wide whitespace-nowrap" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.12em' }}>HUDDLE UP</span>
- <span className="mx-1.5 sm:mx-2.5 text-[#A0A4AB] text-xs sm:text-sm">|</span>
- <span className="text-[12px] sm:text-base font-bold text-[#1E90FF] brand-text-glow whitespace-nowrap" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>FIND YOUR CREW. WATCH THE GAME.</span>
+ <div className="header-gradient-overlay" />
+ <div className="relative z-[2] flex items-center justify-between h-full px-4 max-w-4xl mx-auto">
+ <div className="flex items-center gap-3 flex-1 min-w-0">
+ <img src="/huddle-up-shield.png" alt="Huddle Up" className="h-10 w-10 flex-shrink-0" style={{ filter: 'drop-shadow(0 2px 8px rgba(30, 144, 255, 0.3))' }} />
+ <div className="flex flex-col gap-0.5 min-w-0">
+ <span className="text-lg font-black text-white tracking-wide whitespace-nowrap leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.1em' }}>HUDDLE UP</span>
+ <span className="text-[11px] font-semibold whitespace-nowrap leading-tight" style={{ background: 'linear-gradient(90deg, #1E90FF 0%, #FFD700 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Find Your Crew. Watch The Game.</span>
  </div>
+ </div>
+ <div className="flex items-center gap-3 flex-shrink-0">
  {showBadge && (
- <div className="flex-shrink-0 ml-2 group relative">
  <span
- className="inline-flex items-center gap-1 px-2 py-1 rounded-xl text-white font-bold cursor-default whitespace-nowrap"
- style={{ fontSize: '9px', backgroundColor: isNew ? '#10B981' : '#F97316', animation: 'pulse 2s ease-in-out infinite' }}
+ className="inline-flex items-center px-2 py-1 rounded-xl text-white font-bold whitespace-nowrap"
+ style={{ fontSize: '9px', backgroundColor: isNew ? '#10B981' : '#F97316', boxShadow: isNew ? '0 4px 12px rgba(16,185,129,0.4)' : '0 4px 12px rgba(249,115,22,0.4)' }}
  >
  {isNew ? 'New!' : 'Soft Launch'}
- {!isNew && <span style={{ fontSize: '7px' }}>🔸</span>}
  </span>
- <div className="absolute right-0 top-full mt-2 w-56 p-3 bg-[#151A22] border border-[#222A36] rounded-xl shadow-xl text-xs text-[#A0A4AB] opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-[100]">
- <p className="text-white font-bold mb-1">We're launching in Boca Raton first!</p>
- <p>First 100 members get lifetime Pro FREE.</p>
- </div>
+ )}
+ <button onClick={onProfileClick} className="relative p-0.5 rounded-full active:scale-95 transition-transform" style={{ background: 'linear-gradient(135deg, #1E90FF, #FFD700)', padding: '2px' }}>
+ <div className="rounded-full overflow-hidden bg-[#151A22]">
+ {bannerUser?.profilePicture ? (
+ <ProfileAvatar src={bannerUser.profilePicture} name={bannerUser.name} size="sm" className="border-0" />
+ ) : (
+ <div className="w-8 h-8 rounded-full bg-[#151A22] flex items-center justify-center">
+ <User className="w-5 h-5 text-white" />
  </div>
  )}
+ </div>
+ {totalAlerts > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center font-bold shadow-lg">{totalAlerts}</span>}
+ </button>
+ </div>
+ </div>
  </div>
  );
 };
@@ -4059,8 +4071,8 @@ const qrScannerRef = useRef(null);
  setUpgrading(false);
  };
  return (
- <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
- <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115]">
+ <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-lg mx-auto px-4 py-3">
  <button onClick={() => setCurrentScreen('profile')} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors mb-2">
  <ArrowLeft className="w-5 h-5" /> Back
@@ -4242,8 +4254,8 @@ const qrScannerRef = useRef(null);
  ];
 
  const QAScreen = () => (
- <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
- <div className="sticky top-[48px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
+ <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115]">
+ <div className="sticky top-[60px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
  <button onClick={() => setShowQA(false)} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
  <Shield className="w-6 h-6 text-[#1E90FF]" />
@@ -4653,8 +4665,8 @@ const qrScannerRef = useRef(null);
  };
 
  const ContactUsScreen = () => (
- <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
- <div className="sticky top-[48px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
+ <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115]">
+ <div className="sticky top-[60px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
  <button onClick={() => setCurrentScreen('profile')} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
  <Send className="w-6 h-6 text-[#1E90FF]" />
@@ -4718,8 +4730,8 @@ const qrScannerRef = useRef(null);
  );
 
  const TermsOfServiceScreen = () => (
- <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
- <div className="sticky top-[48px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
+ <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115]">
+ <div className="sticky top-[60px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
  <button onClick={() => setCurrentScreen('profile')} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
  <Shield className="w-6 h-6 text-[#1E90FF]" />
@@ -4913,8 +4925,8 @@ const qrScannerRef = useRef(null);
  );
 
  const PrivacyPolicyScreen = () => (
- <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
- <div className="sticky top-[48px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
+ <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115]">
+ <div className="sticky top-[60px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
  <button onClick={() => setCurrentScreen('profile')} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
  <Lock className="w-6 h-6 text-[#1E90FF]" />
@@ -5824,22 +5836,7 @@ const qrScannerRef = useRef(null);
  );
 
  const gamesScreenJSX = () => (
- <div className="min-h-screen pt-2 pb-[72px] bg-[#0F1115] sports-tech-bg">
- <div className="bg-[#0F1115] relative z-[1]">
- <div className="max-w-4xl mx-auto px-4 pt-3 pb-2">
- <div className="flex items-center justify-between nav-glow-bar pb-3" data-tour-id="nav-buttons">
- <div className="flex-shrink-0 energy-dot">
- <img src="/huddle-up-shield.png" alt="Huddle Up" className="h-10 drop-shadow-sm" />
- </div>
- <div className="flex items-center gap-2">
- <button onClick={() => setCurrentScreen('profile')} data-tour-id="profile" className="relative p-1.5 rounded-xl hover:bg-[#222A36] transition-colors active:scale-95">
- {user.profilePicture ? <ProfileAvatar src={user.profilePicture} name={user.name} size="xs" className="border-2 border-[#1E90FF]/50" /> : <User className="w-7 h-7 text-white" />}
- {totalAlerts > 0 && <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center font-bold">{totalAlerts}</span>}
- </button>
- </div>
- </div>
- </div>
- </div>
+ <div className="min-h-screen pt-2 pb-[72px] brand-gradient-bg">
 
  {hamburgerOpen && (
  <>
@@ -6769,8 +6766,8 @@ const BORDER_MAP = {
  }, []);
 
  return (
- <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115] sports-tech-bg">
- <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115] sports-tech-bg">
+ <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-2 flex items-center justify-between">
  <button
  onClick={() => setCurrentScreen('games')}
@@ -7580,8 +7577,8 @@ const BORDER_MAP = {
  };
 
  const claimVenueScreenJSX = () => (
- <div className="min-h-screen bg-[#0F1115]" style={{ paddingTop: '48px', paddingBottom: '72px' }}>
-     <div className="sticky top-[48px] left-0 right-0 z-10 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="min-h-screen bg-[#0F1115]" style={{ paddingTop: '60px', paddingBottom: '72px' }}>
+     <div className="sticky top-[60px] left-0 right-0 z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
  <button
  onClick={() => setCurrentScreen('createParty')}
@@ -7870,8 +7867,8 @@ const BORDER_MAP = {
  const a = analyticsData;
 
  return (
- <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
- <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115]">
+ <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-7xl mx-auto px-4 py-4">
  <div className="flex items-center justify-between">
  <h1 className="text-3xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
@@ -9822,8 +9819,8 @@ const BORDER_MAP = {
  const [cpSearchTerm, setCpSearchTerm] = useState('');
  const [cpSportFilter, setCpSportFilter] = useState('All');
  const createPartyScreenJSX = () => !selectedGame ? (
- <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
- <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115]">
+ <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
  <button
  onClick={() => setCurrentScreen('games')}
@@ -9933,8 +9930,8 @@ const BORDER_MAP = {
  </div>
  </div>
 ) : (
- <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
- <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115]">
+ <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
  <button
  onClick={() => setCurrentScreen('gameDetail')}
@@ -10247,7 +10244,7 @@ const BORDER_MAP = {
 
  if (!userVenue) {
  return (
- <div className="min-h-screen pt-[48px] bg-[#0F1115] flex items-center justify-center p-4">
+ <div className="min-h-screen pt-[60px] bg-[#0F1115] flex items-center justify-center p-4">
  <div className="text-center">
  <Building2 className="w-16 h-16 text-gray-600 mx-auto mb-4" />
  <h2 className="text-2xl font-bold text-white mb-2">No Venue Found</h2>
@@ -10766,7 +10763,7 @@ const BORDER_MAP = {
 
  if (!userVenue) {
  return (
- <div className="min-h-screen pt-[48px] bg-[#0F1115] flex items-center justify-center p-4">
+ <div className="min-h-screen pt-[60px] bg-[#0F1115] flex items-center justify-center p-4">
  <div className="text-center">
  <Building2 className="w-16 h-16 text-gray-600 mx-auto mb-4" />
  <h2 className="text-2xl font-bold text-white mb-2">No Venue Found</h2>
@@ -10832,8 +10829,8 @@ const BORDER_MAP = {
  ];
 
  return (
- <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
- <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115]">
+ <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-3">
  <div className="flex items-center justify-between mb-3">
  <button onClick={() => setCurrentScreen('profile')} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors">
@@ -11609,7 +11606,7 @@ const BORDER_MAP = {
 
  return (
    <div className="min-h-screen bg-[#0F1115]">
-     <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
+     <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
        <div className="max-w-4xl mx-auto px-4 py-3">
          <div className="flex items-center justify-between mb-3">
            <button onClick={() => setCurrentScreen('games')} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors">
@@ -11772,8 +11769,8 @@ const BORDER_MAP = {
  };
 
  return (
-   <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
-     <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
+   <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115]">
+     <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
        <div className="max-w-4xl mx-auto px-4 py-4">
          <button onClick={() => setCurrentScreen('games')} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors">
            <ArrowLeft className="w-5 h-5" /> Back
@@ -11936,8 +11933,8 @@ const BORDER_MAP = {
  );
 
  return (
-   <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
-     <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
+   <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115]">
+     <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
        <div className="max-w-4xl mx-auto px-4 py-4">
          <button onClick={() => setCurrentScreen('games')} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors">
            <ArrowLeft className="w-5 h-5" /> Back
@@ -12024,8 +12021,8 @@ const BORDER_MAP = {
  };
 
  return (
- <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
- <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115]">
+ <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
  <button
  onClick={() => setCurrentScreen('games')}
@@ -12247,14 +12244,14 @@ const BORDER_MAP = {
  };
 
  if (loading) return (
- <div className="min-h-screen pt-[48px] bg-[#0F1115] flex items-center justify-center">
+ <div className="min-h-screen pt-[60px] bg-[#0F1115] flex items-center justify-center">
  <Loader2 className="w-8 h-8 animate-spin text-orange-400" />
  </div>
  );
 
  return (
- <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
- <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115]">
+ <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
  <button onClick={() => setCurrentScreen('profile')} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors">
  <ArrowLeft className="w-5 h-5" /> Back to Profile
@@ -12370,8 +12367,8 @@ const BORDER_MAP = {
  const joinedParties = myParties.filter(party => party.hostEmail !== user.email);
 
  return (
- <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
- <div className="sticky top-[48px] z-30 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115]">
+ <div className="sticky top-[60px] z-30 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-3">
  <div className="flex items-center justify-center">
  <h1 className="text-white font-black text-lg" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>MY PROFILE</h1>
@@ -13002,8 +12999,8 @@ const BORDER_MAP = {
  );
 
  const renderFanFinderScreen = () => (
- <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
- <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115]">
+ <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
  <div className="flex items-center gap-3">
  <button type="button" onClick={() => setCurrentScreen('games')} className="p-2 bg-[#151A22] rounded-xl hover:bg-[#222A36] active:bg-[#222A36] cursor-pointer">
@@ -13765,8 +13762,8 @@ const BORDER_MAP = {
  ];
 
  return (
- <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
- <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115]">
+ <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
  <div className="flex items-center gap-3">
  <button onClick={() => setCurrentScreen('games')} className="p-2 bg-[#151A22] rounded-xl hover:bg-[#222A36]">
@@ -14053,8 +14050,8 @@ const BORDER_MAP = {
  const InvitationsScreen = () => {
  const unreadNotifications = notifications.filter(n => !n.isRead);
  return (
- <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
- <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115]">
+ <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
  <div className="flex items-center gap-3">
  <button onClick={() => setCurrentScreen('games')} className="p-2 bg-[#151A22] rounded-xl hover:bg-[#222A36]">
@@ -14245,7 +14242,7 @@ const BORDER_MAP = {
  };
 
  return (
- <div className="min-h-screen pt-[48px] bg-[#0F1115] flex items-center justify-center p-4">
+ <div className="min-h-screen pt-[60px] bg-[#0F1115] flex items-center justify-center p-4">
  <div className="max-w-md w-full">
  {checkinStatus === 'loading' && (
  <div className="bg-[#151A22] rounded-3xl border border-[#222A36] p-8 text-center">
@@ -14452,8 +14449,8 @@ const BORDER_MAP = {
 
  if (teamChatSelectedRoom) {
  return (
- <div className="min-h-screen bg-[#0F1115] pt-[48px]">
- <div className="sticky top-[48px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
+ <div className="min-h-screen bg-[#0F1115] pt-[60px]">
+ <div className="sticky top-[60px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
  <button onClick={() => { setTeamChatSelectedRoom(null); setTeamChatMessages([]); }} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
  {teamChatSelectedRoom.logoUrl && <img src={teamChatSelectedRoom.logoUrl} className="w-8 h-8 rounded-full" alt="" />}
@@ -14503,8 +14500,8 @@ const BORDER_MAP = {
  }, {});
 
  return (
- <div className="min-h-screen bg-[#0F1115] pt-[48px]">
- <div className="sticky top-[48px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
+ <div className="min-h-screen bg-[#0F1115] pt-[60px]">
+ <div className="sticky top-[60px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
  <button onClick={() => setCurrentScreen('games')} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
  <MessageCircle className="w-6 h-6 text-teal-400" />
@@ -14569,8 +14566,8 @@ const BORDER_MAP = {
  const featuredSportIcons = { 'NFL': '\u{1F3C8}', 'NBA': '\u{1F3C0}', 'NHL': '\u{1F3D2}', 'MLB': '\u26BE', 'MLS': '\u26BD', 'College Football': '\u{1F3C8}', 'College Basketball': '\u{1F3C0}', 'Premier League': '\u26BD', 'La Liga': '\u26BD', 'Champions League': '\u26BD', 'UFC/MMA': '\u{1F94A}', 'Boxing': '\u{1F94A}', 'NASCAR': '\u{1F3C1}', 'F1': '\u{1F3CE}', 'Tennis': '\u{1F3BE}', 'Golf': '\u26F3' };
 
  return (
- <div className="min-h-screen bg-[#0F1115] pt-[48px]">
- <div className="sticky top-[48px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
+ <div className="min-h-screen bg-[#0F1115] pt-[60px]">
+ <div className="sticky top-[60px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
  <button onClick={() => setCurrentScreen('games')} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
  <Crown className="w-6 h-6 text-amber-400" />
@@ -14689,8 +14686,8 @@ const BORDER_MAP = {
  }
  if (!viewingUserProfile) {
  return (
- <div className="min-h-screen bg-[#0F1115] pt-[48px]">
- <div className="sticky top-[48px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
+ <div className="min-h-screen bg-[#0F1115] pt-[60px]">
+ <div className="sticky top-[60px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
  <button onClick={() => { setCurrentScreen('games'); setViewingUserId(null); setViewingUserProfile(null); }} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
  <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>FAN PROFILE</h2>
@@ -14702,8 +14699,8 @@ const BORDER_MAP = {
  }
  const p = viewingUserProfile;
  return (
- <div className="min-h-screen bg-[#0F1115] pt-[48px]">
- <div className="sticky top-[48px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
+ <div className="min-h-screen bg-[#0F1115] pt-[60px]">
+ <div className="sticky top-[60px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
  <button onClick={() => { setCurrentScreen('games'); setViewingUserId(null); setViewingUserProfile(null); }} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
  <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>FAN PROFILE</h2>
@@ -14781,8 +14778,8 @@ const BORDER_MAP = {
  }
 
  return (
- <div className="min-h-screen bg-[#0F1115] pt-[48px]">
- <div className="sticky top-[48px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
+ <div className="min-h-screen bg-[#0F1115] pt-[60px]">
+ <div className="sticky top-[60px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
  <button onClick={() => setCurrentScreen('games')} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
  <Bell className="w-6 h-6 text-amber-400" />
@@ -14863,8 +14860,8 @@ const BORDER_MAP = {
  }
 
  return (
- <div className="min-h-screen bg-[#0F1115] pt-[48px]">
- <div className="sticky top-[48px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
+ <div className="min-h-screen bg-[#0F1115] pt-[60px]">
+ <div className="sticky top-[60px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
  <button onClick={() => setCurrentScreen('games')} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
  <Award className="w-6 h-6 text-purple-400" />
@@ -14907,8 +14904,8 @@ const BORDER_MAP = {
 
  if (fantasySelectedLeague) {
  return (
- <div className="min-h-screen pt-[48px] bg-[#0F1115] relative z-0">
- <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="min-h-screen pt-[60px] bg-[#0F1115] relative z-0">
+ <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
  <div className="flex items-center gap-3">
  <button onClick={() => setFantasySelectedLeague(null)} className="p-2 bg-[#151A22] rounded-xl hover:bg-[#222A36] active:bg-[#222A36] cursor-pointer" type="button">
@@ -15111,8 +15108,8 @@ const BORDER_MAP = {
  }
 
  return (
- <div className="min-h-screen pt-[48px] bg-[#0F1115] relative z-0">
- <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="min-h-screen pt-[60px] bg-[#0F1115] relative z-0">
+ <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
  <div className="flex items-center gap-3">
  <button onClick={() => setCurrentScreen('games')} className="p-2 bg-[#151A22] rounded-xl hover:bg-[#222A36] active:bg-[#222A36] cursor-pointer" type="button">
@@ -15361,8 +15358,8 @@ const BORDER_MAP = {
      return `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })} ${time}`;
    };
    return (
-     <div className="min-h-screen pt-[48px] bg-[#0F1115] flex flex-col">
-       <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
+     <div className="min-h-screen pt-[60px] bg-[#0F1115] flex flex-col">
+       <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
          <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
            <button onClick={() => setCurrentScreen('myCrew')} className="p-2 bg-[#151A22] rounded-xl hover:bg-[#222A36]">
              <ArrowLeft className="w-5 h-5 text-white" />
@@ -15437,8 +15434,8 @@ const BORDER_MAP = {
  };
 
  const renderMyCrewScreen = () => (
- <div className="min-h-screen pt-[48px] bg-[#0F1115] relative z-0">
- <div className="sticky top-[48px] z-30 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="min-h-screen pt-[60px] bg-[#0F1115] relative z-0">
+ <div className="sticky top-[60px] z-30 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
  <div className="flex items-center gap-3">
  <button onClick={() => setCurrentScreen('games')} className="p-2 bg-[#151A22] rounded-xl hover:bg-[#222A36] active:bg-[#222A36] cursor-pointer" type="button">
@@ -15803,7 +15800,7 @@ const BORDER_MAP = {
  );
 
  const renderInviteFriendsScreen = () => (
- <div className="min-h-screen pt-[48px] bg-[#0F1115] relative z-0">
+ <div className="min-h-screen pt-[60px] bg-[#0F1115] relative z-0">
  <div className="max-w-4xl mx-auto px-4 py-6">
  <div className="flex items-center gap-3 mb-6">
  <button onClick={() => setCurrentScreen('games')} className="p-2 bg-[#151A22] rounded-xl hover:bg-[#222A36] active:bg-[#222A36] cursor-pointer" type="button">
@@ -16017,7 +16014,7 @@ const BORDER_MAP = {
  {user && !['welcome', 'login', 'signup', 'forgotPassword'].includes(currentScreen) && (
  <>
  <div className="fixed top-0 left-0 right-0 z-[60]" style={{ height: `${MAIN_BANNER_HEIGHT}px` }}>
- <MainBrandBanner userCount={softLaunchStats.users} />
+ <MainBrandBanner userCount={softLaunchStats.users} user={user} onProfileClick={() => setCurrentScreen('profile')} totalAlerts={totalAlerts} />
  </div>
  <div style={{ height: `${MAIN_BANNER_HEIGHT}px` }} />
  </>
