@@ -1354,6 +1354,8 @@ const HuddleUpApp = () => {
  const [showFilterPanel, setShowFilterPanel] = useState(false);
  const [hamburgerOpen, setHamburgerOpen] = useState(false);
  const [moreOptionsOpen, setMoreOptionsOpen] = useState(false);
+ const [adSlideIndex, setAdSlideIndex] = useState(0);
+ const adTouchStartRef = React.useRef(0);
  const [pwaInstallPrompt, setPwaInstallPrompt] = useState(null);
  const [showInstallBanner, setShowInstallBanner] = useState(false);
  const [showIosInstallModal, setShowIosInstallModal] = useState(false);
@@ -6014,19 +6016,67 @@ const qrScannerRef = useRef(null);
 <button onClick={() => setLocationDropdownOpen(!locationDropdownOpen)} className="text-[#1E90FF] text-[10px] font-bold ml-1 hover:text-[#1E90FF]/80">Change</button>
 </div>
 
- <div onClick={() => { setCurrentScreen('browseParties'); window.scrollTo(0, 0); }} className="mb-3 relative overflow-hidden rounded-2xl border border-orange-500/40 bg-gradient-to-r from-orange-900/40 via-[#151A22] to-orange-900/30 cursor-pointer hover:border-orange-500/60 transition-all active:scale-[0.99]" style={{ minHeight: '90px' }}>
- <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full -translate-y-1/2 translate-x-1/2" />
- <div className="p-5 flex items-center gap-4">
- <div className="w-14 h-14 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30 flex-shrink-0">
- <Search className="w-7 h-7 text-white" />
- </div>
- <div className="flex-1 min-w-0">
- <h3 className="text-white font-black text-lg" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>FIND WATCH PARTIES</h3>
- {(() => { const upcoming = parties.filter(p => { const gt = new Date(p.gameTime); return gt >= new Date(); }).length; return upcoming > 0 ? <p className="text-orange-300/70 text-xs font-semibold">{upcoming} parties happening this week</p> : <p className="text-white/50 text-xs">Find watch parties in your area</p>; })()}
- </div>
- <ChevronRight className="w-6 h-6 text-orange-400 flex-shrink-0" />
- </div>
- </div>
+<div className="grid grid-cols-2 gap-3 mb-3">
+<button onClick={() => { setCurrentScreen('games'); window.scrollTo(0,0); }} className="relative overflow-hidden rounded-2xl border border-emerald-500/40 bg-gradient-to-br from-emerald-900/40 to-[#151A22] p-4 text-center hover:border-emerald-500/60 transition-all active:scale-[0.97]" style={{ minHeight: '80px' }}>
+<div className="flex flex-col items-center gap-2">
+<div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
+<Plus className="w-6 h-6 text-white" />
+</div>
+<div>
+<div className="text-white font-black text-sm" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>CREATE PARTY</div>
+<div className="text-emerald-300/70 text-[10px] font-semibold">Host a watch party</div>
+</div>
+</div>
+</button>
+<button onClick={() => { setCurrentScreen('browseParties'); window.scrollTo(0,0); }} className="relative overflow-hidden rounded-2xl border border-orange-500/40 bg-gradient-to-br from-orange-900/40 to-[#151A22] p-4 text-center hover:border-orange-500/60 transition-all active:scale-[0.97]" style={{ minHeight: '80px' }}>
+<div className="flex flex-col items-center gap-2">
+<div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30">
+<Search className="w-6 h-6 text-white" />
+</div>
+<div>
+<div className="text-white font-black text-sm" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>FIND PARTIES</div>
+{(() => { const upcoming = parties.filter(p => new Date(p.gameTime) >= new Date()).length; return upcoming > 0 ? <div className="text-orange-300/70 text-[10px] font-semibold">{upcoming} near you</div> : <div className="text-white/50 text-[10px]">Join a watch party</div>; })()}
+</div>
+</div>
+</button>
+</div>
+
+{(() => {
+const adSlots = [
+{ id: 'slot1', icon: '🏈', title: 'NFL Sponsor Slot', subtitle: 'Reach thousands of sports fans', available: true, sport: 'NFL' },
+{ id: 'slot2', icon: '🏀', title: 'NBA Sponsor Slot', subtitle: 'Become a sponsor today', available: true, sport: 'NBA' },
+{ id: 'slot3', icon: '⚾', title: 'MLB Sponsor Slot', subtitle: 'Connect with passionate fans', available: true, sport: 'MLB' },
+{ id: 'slot4', icon: '🏒', title: 'NHL Sponsor Slot', subtitle: 'Premium ad placement', available: true, sport: 'NHL' },
+{ id: 'main', icon: '🏟️', title: 'Main Homepage Spot', subtitle: 'Premium placement', available: true, featured: true }
+];
+return (
+<div className="ad-carousel-wrap">
+<div className="ad-carousel-track"
+onTouchStart={(e) => { adTouchStartRef.current = e.touches[0].clientX; }}
+onTouchEnd={(e) => { const diff = adTouchStartRef.current - e.changedTouches[0].clientX; if (Math.abs(diff) > 50) { setAdSlideIndex(prev => diff > 0 ? (prev + 1) % adSlots.length : (prev - 1 + adSlots.length) % adSlots.length); } }}
+>
+<div className="ad-carousel-slides" style={{ transform: `translateX(-${adSlideIndex * 100}%)` }}>
+{adSlots.map((ad) => (
+<div key={ad.id} className={`ad-slide ${ad.featured ? 'ad-featured' : ''} ${ad.available ? 'ad-available' : ''}`}>
+{ad.available && <div className="absolute top-3 left-3 bg-emerald-500 text-white px-2.5 py-1 rounded-full text-[10px] font-bold uppercase">Available</div>}
+<div className="text-4xl mb-2">{ad.icon}</div>
+<h3 className="text-white font-bold text-base mb-1">{ad.title}</h3>
+<p className="text-white/70 text-xs mb-3">{ad.subtitle}</p>
+<button onClick={() => { if (window.confirm('Interested in sponsoring? Contact us at sponsors@huddleupusa.com')) { window.location.href = 'mailto:sponsors@huddleupusa.com?subject=Sponsor Inquiry - ' + ad.title; } }} className={`px-5 py-2 rounded-lg font-bold text-sm transition-all active:scale-95 ${ad.featured ? 'bg-amber-400 text-gray-900' : 'bg-white text-gray-900'}`}>
+Become a Sponsor →
+</button>
+</div>
+))}
+</div>
+</div>
+<div className="ad-carousel-dots" role="tablist" aria-label="Ad carousel">
+{adSlots.map((slot, i) => (
+<button key={i} role="tab" aria-selected={i === adSlideIndex} aria-label={`Sponsor slot ${i + 1}: ${slot.title}`} className={`ad-dot ${i === adSlideIndex ? 'active' : ''}`} onClick={() => setAdSlideIndex(i)} />
+))}
+</div>
+</div>
+);
+})()}
 
 <div className="grid grid-cols-2 gap-3 mb-3">
 <button onClick={() => { setCurrentScreen('trending'); window.scrollTo(0,0); }} className="relative bg-gradient-to-br from-amber-900/30 to-orange-900/20 border-2 border-amber-500/40 rounded-2xl p-4 text-center hover:border-amber-400/60 transition-all active:scale-[0.97]" style={{ minHeight: '100px' }}>

@@ -279,3 +279,64 @@ body {
 .join-party-btn-large:active {
   transform: scale(0.98);
 }
+
+.ad-carousel-wrap {
+  margin: 0 0 12px 0;
+  position: relative;
+}
+
+.ad-carousel-track {
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+
+.ad-carousel-slides {
+  display: flex;
+  transition: transform 0.35s ease-in-out;
+}
+
+.ad-slide {
+  min-width: 100%;
+  padding: 28px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  min-height: 160px;
+  justify-content: center;
+  background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+}
+
+.ad-slide.ad-featured {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+}
+
+.ad-slide.ad-available {
+  border: 2px dashed rgba(255,255,255,0.25);
+}
+
+.ad-carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.ad-carousel-dots .ad-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  cursor: pointer;
+  transition: all 0.3s;
+  border: none;
+  padding: 0;
+}
+
+.ad-carousel-dots .ad-dot.active {
+  width: 22px;
+  border-radius: 4px;
+  background: #1E90FF;
+}
