@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, Megaphone, MessageCircle, Gift, Award, Clock, Zap, Crown, Copy, Shield, ChevronRight, Info, Flame, TrendingUp, Menu, ScanLine, Download, Smartphone, Target, Lock } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, ChevronUp, Megaphone, MessageCircle, Gift, Award, Clock, Zap, Crown, Copy, Shield, ChevronRight, Info, Flame, TrendingUp, Menu, ScanLine, Download, Smartphone, Target, Lock, Home, HelpCircle } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import confetti from 'canvas-confetti';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
@@ -1325,6 +1325,15 @@ const HuddleUpApp = () => {
  const [prelaunchUserCount, setPrelaunchUserCount] = useState(0);
  const [showPrelaunchModal, setShowPrelaunchModal] = useState(false);
  const [prelaunchDismissed, setPrelaunchDismissed] = useState(false);
+ const [showTutorial, setShowTutorial] = useState(false);
+ const [tutorialStep, setTutorialStep] = useState(0);
+ const closeTutorial = () => { localStorage.setItem('huddle_tutorial_done', 'true'); setShowTutorial(false); };
+ useEffect(() => {
+   if (user && !localStorage.getItem('huddle_tutorial_done') && !showPrelaunchModal && !showOnboarding) {
+     const timer = setTimeout(() => setShowTutorial(true), 1000);
+     return () => clearTimeout(timer);
+   }
+ }, [user, showPrelaunchModal, showOnboarding]);
  const [wcTick, setWcTick] = useState(Date.now());
  useEffect(() => { if (currentScreen !== 'games') return; const id = setInterval(() => setWcTick(Date.now()), 1000); return () => clearInterval(id); }, [currentScreen]);
  const [softLaunchDismissed, setSoftLaunchDismissed] = useState(() => {
@@ -1344,6 +1353,7 @@ const HuddleUpApp = () => {
  const [sortOption, setSortOption] = useState('Soonest');
  const [showFilterPanel, setShowFilterPanel] = useState(false);
  const [hamburgerOpen, setHamburgerOpen] = useState(false);
+ const [moreOptionsOpen, setMoreOptionsOpen] = useState(false);
  const [pwaInstallPrompt, setPwaInstallPrompt] = useState(null);
  const [showInstallBanner, setShowInstallBanner] = useState(false);
  const [showIosInstallModal, setShowIosInstallModal] = useState(false);
@@ -4036,7 +4046,7 @@ const qrScannerRef = useRef(null);
  setUpgrading(false);
  };
  return (
- <div className="min-h-screen pt-[48px] bg-[#0F1115]">
+ <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
  <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-lg mx-auto px-4 py-3">
  <button onClick={() => setCurrentScreen('profile')} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors mb-2">
@@ -4219,7 +4229,7 @@ const qrScannerRef = useRef(null);
  ];
 
  const QAScreen = () => (
- <div className="min-h-screen pt-[48px] bg-[#0F1115]">
+ <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
  <div className="sticky top-[48px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
  <button onClick={() => setShowQA(false)} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
@@ -4630,7 +4640,7 @@ const qrScannerRef = useRef(null);
  };
 
  const ContactUsScreen = () => (
- <div className="min-h-screen pt-[48px] bg-[#0F1115]">
+ <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
  <div className="sticky top-[48px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
  <button onClick={() => setCurrentScreen('profile')} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
@@ -4695,7 +4705,7 @@ const qrScannerRef = useRef(null);
  );
 
  const TermsOfServiceScreen = () => (
- <div className="min-h-screen pt-[48px] bg-[#0F1115]">
+ <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
  <div className="sticky top-[48px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
  <button onClick={() => setCurrentScreen('profile')} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
@@ -4890,7 +4900,7 @@ const qrScannerRef = useRef(null);
  );
 
  const PrivacyPolicyScreen = () => (
- <div className="min-h-screen pt-[48px] bg-[#0F1115]">
+ <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
  <div className="sticky top-[48px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
  <button onClick={() => setCurrentScreen('profile')} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
@@ -5801,7 +5811,7 @@ const qrScannerRef = useRef(null);
  );
 
  const gamesScreenJSX = () => (
- <div className="min-h-screen pt-2 bg-[#0F1115] sports-tech-bg">
+ <div className="min-h-screen pt-2 pb-[72px] bg-[#0F1115] sports-tech-bg">
  <div className="bg-[#0F1115] relative z-[1]">
  <div className="max-w-4xl mx-auto px-4 pt-3 pb-2">
  <div className="flex items-center justify-between nav-glow-bar pb-3" data-tour-id="nav-buttons">
@@ -5836,7 +5846,7 @@ const qrScannerRef = useRef(null);
 
  {hamburgerOpen && (
  <>
- <div className="fixed inset-0 bg-black/50 z-[70] transition-opacity" onClick={() => setHamburgerOpen(false)} />
+ <div className="fixed inset-0 bg-black/50 z-[70] transition-opacity" onClick={() => { setHamburgerOpen(false); setMoreOptionsOpen(false); }} />
  <div className="fixed top-0 right-0 bottom-0 w-72 bg-[#151A22] z-[80] shadow-2xl overflow-y-auto hamburger-menu" style={{ animation: 'slideInRight 300ms ease-in-out' }}>
  <div className="flex items-center justify-between p-4 border-b border-[#222A36]">
  <span className="text-white font-black text-lg" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>MENU</span>
@@ -5845,8 +5855,18 @@ const qrScannerRef = useRef(null);
  </button>
  </div>
  <div className="p-3 space-y-1">
-<button onClick={() => { setCurrentScreen('profile'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-[#1E90FF]/10 hover:bg-[#1E90FF]/20 transition-colors text-left active:scale-[0.98] border border-[#1E90FF]/30">
-<User className="w-5 h-5 text-[#1E90FF]" /><span className="text-[#1E90FF] text-sm font-bold">My Profile</span>
+<div className="flex items-center gap-3 p-4 mb-2 bg-[#0F1115] rounded-xl border border-[#222A36]">
+{user?.profilePicture ? <img src={user.profilePicture} alt="" className="w-10 h-10 rounded-full object-cover" /> : <div className="w-10 h-10 rounded-full bg-[#1E90FF]/20 flex items-center justify-center"><User className="w-5 h-5 text-[#1E90FF]" /></div>}
+<div>
+<div className="text-white font-bold text-sm">{user?.name}</div>
+<div className="text-white/50 text-xs">{user?.points || 0} pts</div>
+</div>
+</div>
+<button onClick={() => { setCurrentScreen('browseParties'); setHamburgerOpen(false); window.scrollTo(0, 0); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 transition-colors text-left active:scale-[0.98] border border-orange-500/30">
+<Search className="w-5 h-5 text-orange-400" /><span className="text-orange-400 text-sm font-bold">Browse All Parties</span>
+</button>
+<button onClick={() => { setCurrentScreen('myParties'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-500/10 transition-colors text-left active:scale-[0.98]">
+<Calendar className="w-5 h-5 text-orange-400" /><span className="text-white text-sm font-semibold">My Parties</span>
 </button>
 <button onClick={() => { setCurrentScreen('profile'); setHamburgerOpen(false); setTimeout(() => { const el = document.querySelector('[data-section="favorite-teams"]'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 400); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-amber-500/10 transition-colors text-left active:scale-[0.98]">
 <Star className="w-5 h-5 text-amber-400" /><span className="text-white text-sm font-semibold">My Favorite Teams</span>
@@ -5854,21 +5874,28 @@ const qrScannerRef = useRef(null);
 <span className="ml-auto text-xs text-amber-400 font-bold">{Object.keys(user.favoriteTeams).length}</span>
 )}
 </button>
+<button onClick={() => { setCurrentScreen('invitations'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-yellow-500/10 transition-colors text-left active:scale-[0.98]">
+<Bell className="w-5 h-5 text-yellow-400" /><span className="text-white text-sm font-semibold">Notifications</span>
+{totalAlerts > 0 && <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{totalAlerts}</span>}
+</button>
 <div className="border-t border-[#222A36] my-2" />
+<button onClick={() => { setCurrentScreen('notificationSettings'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors text-left active:scale-[0.98]">
+<Settings className="w-5 h-5 text-white/60" /><span className="text-white text-sm font-semibold">Settings</span>
+</button>
+<button onClick={() => { setShowQA(true); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-indigo-500/10 transition-colors text-left active:scale-[0.98]">
+<Shield className="w-5 h-5 text-indigo-400" /><span className="text-white text-sm font-semibold">Help & FAQ</span>
+</button>
+<button onClick={() => setMoreOptionsOpen(!moreOptionsOpen)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors text-left active:scale-[0.98]">
+<ChevronRight className={`w-5 h-5 text-white/60 transition-transform ${moreOptionsOpen ? 'rotate-90' : ''}`} /><span className="text-white text-sm font-semibold">More Options</span>
+<ChevronDown className={`w-4 h-4 text-white/40 ml-auto transition-transform ${moreOptionsOpen ? 'rotate-180' : ''}`} />
+</button>
+{moreOptionsOpen && (
+<div className="space-y-1 pl-2">
 {!isAppInstalled && (
 <button onClick={() => { handlePwaInstall(); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1E90FF]/10 transition-colors text-left active:scale-[0.98]">
 <Download className="w-5 h-5 text-[#1E90FF]" /><span className="text-white text-sm font-semibold">Install App</span>
 </button>
 )}
-<button onClick={() => { setCurrentScreen('browseParties'); setHamburgerOpen(false); window.scrollTo(0, 0); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 transition-colors text-left active:scale-[0.98] border border-orange-500/30">
-<Search className="w-5 h-5 text-orange-400" /><span className="text-orange-400 text-sm font-bold">Browse All Parties</span>
-</button>
-<button onClick={() => { setCurrentScreen('myParties'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-500/10 transition-colors text-left active:scale-[0.98]">
-<Calendar className="w-5 h-5 text-orange-400" /><span className="text-white text-sm font-semibold">My Parties</span>
-</button>
-<button onClick={() => { setCurrentScreen('notificationSettings'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-yellow-500/10 transition-colors text-left active:scale-[0.98]">
-<Bell className="w-5 h-5 text-yellow-400" /><span className="text-white text-sm font-semibold">Notification Settings</span>
-</button>
 <button onClick={() => { setCurrentScreen('teamChats'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-teal-500/10 transition-colors text-left active:scale-[0.98]">
 <MessageCircle className="w-5 h-5 text-teal-400" /><span className="text-white text-sm font-semibold">Team Chat</span>
 </button>
@@ -5884,6 +5911,12 @@ const qrScannerRef = useRef(null);
 <button onClick={() => { setCurrentScreen('inviteFriends'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-500/10 transition-colors text-left active:scale-[0.98]">
 <UserPlus className="w-5 h-5 text-emerald-400" /><span className="text-white text-sm font-semibold">Invite Friends</span>
 </button>
+<button onClick={() => { setHamburgerOpen(false); if (currentScreen !== 'games') { setCurrentScreen('games'); setTimeout(() => startSpotlightTour(), 600); } else { startSpotlightTour(); } }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1E90FF]/10 transition-colors text-left active:scale-[0.98]">
+<Map className="w-5 h-5 text-[#1E90FF]" /><span className="text-white text-sm font-semibold">Learn The App</span>
+</button>
+</div>
+)}
+<div className="border-t border-[#222A36] my-2" />
 {userVenue && (
 <button onClick={() => { setCurrentScreen('venueDashboard'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-green-500/10 transition-colors text-left active:scale-[0.98]">
 <Building2 className="w-5 h-5 text-green-400" /><span className="text-white text-sm font-semibold">Venue Hub</span>
@@ -5894,13 +5927,6 @@ const qrScannerRef = useRef(null);
 <Settings className="w-5 h-5 text-purple-400" /><span className="text-white text-sm font-semibold">Admin Panel</span>
 </button>
 )}
-<div className="border-t border-[#222A36] my-2" />
-<button onClick={() => { setShowQA(true); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-indigo-500/10 transition-colors text-left active:scale-[0.98]">
-<Shield className="w-5 h-5 text-indigo-400" /><span className="text-white text-sm font-semibold">Q&A</span>
-</button>
-<button onClick={() => { setHamburgerOpen(false); if (currentScreen !== 'games') { setCurrentScreen('games'); setTimeout(() => startSpotlightTour(), 600); } else { startSpotlightTour(); } }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1E90FF]/10 transition-colors text-left active:scale-[0.98]">
-<Map className="w-5 h-5 text-[#1E90FF]" /><span className="text-white text-sm font-semibold">Learn The App</span>
-</button>
 <div className="border-t border-[#222A36] my-2" />
 <button onClick={() => { handleLogout(); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-500/10 transition-colors text-left active:scale-[0.98]">
 <LogOut className="w-5 h-5 text-red-400" /><span className="text-red-400 text-sm font-semibold">Logout</span>
@@ -5998,20 +6024,41 @@ const qrScannerRef = useRef(null);
 </div>
 )}
 
+<div className="flex items-center gap-2 mb-2">
+<MapPin className="w-3.5 h-3.5 text-[#1E90FF]" />
+<span className="text-white/70 text-xs font-semibold">{currentCity || 'Boca Raton'}</span>
+<button onClick={() => setLocationDropdownOpen(!locationDropdownOpen)} className="text-[#1E90FF] text-[10px] font-bold ml-1 hover:text-[#1E90FF]/80">Change</button>
+</div>
 
- <div onClick={() => { setCurrentScreen('browseParties'); window.scrollTo(0, 0); }} className="mb-3 relative overflow-hidden rounded-2xl border border-orange-500/40 bg-gradient-to-r from-orange-900/40 via-[#151A22] to-orange-900/30 cursor-pointer hover:border-orange-500/60 transition-all active:scale-[0.99]">
+ <div onClick={() => { setCurrentScreen('browseParties'); window.scrollTo(0, 0); }} className="mb-3 relative overflow-hidden rounded-2xl border border-orange-500/40 bg-gradient-to-r from-orange-900/40 via-[#151A22] to-orange-900/30 cursor-pointer hover:border-orange-500/60 transition-all active:scale-[0.99]" style={{ minHeight: '90px' }}>
  <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full -translate-y-1/2 translate-x-1/2" />
- <div className="p-4 flex items-center gap-4">
- <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30 flex-shrink-0">
- <Search className="w-6 h-6 text-white" />
+ <div className="p-5 flex items-center gap-4">
+ <div className="w-14 h-14 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30 flex-shrink-0">
+ <Search className="w-7 h-7 text-white" />
  </div>
  <div className="flex-1 min-w-0">
- <h3 className="text-white font-black text-sm" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>BROWSE ALL PARTIES</h3>
- <p className="text-white/50 text-xs">Find watch parties near you — {parties.filter(p => { const gt = new Date(p.gameTime); return gt >= new Date(); }).length} upcoming</p>
+ <h3 className="text-white font-black text-lg" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>FIND WATCH PARTIES</h3>
+ {(() => { const upcoming = parties.filter(p => { const gt = new Date(p.gameTime); return gt >= new Date(); }).length; return upcoming > 0 ? <p className="text-orange-300/70 text-xs font-semibold">{upcoming} parties happening this week</p> : <p className="text-white/50 text-xs">Find watch parties in your area</p>; })()}
  </div>
- <ChevronRight className="w-5 h-5 text-orange-400 flex-shrink-0" />
+ <ChevronRight className="w-6 h-6 text-orange-400 flex-shrink-0" />
  </div>
  </div>
+
+<div className="grid grid-cols-3 gap-2 mb-3">
+<button onClick={() => { setCurrentScreen('profile'); window.scrollTo(0,0); setTimeout(() => { const el = document.querySelector('[data-section="favorite-teams"]'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 400); }} className="bg-[#151A22] border border-[#222A36] rounded-xl p-3 text-center hover:border-amber-500/40 transition-all active:scale-[0.97]">
+<div className="text-2xl mb-1">⭐</div>
+<div className="text-white text-xs font-bold">My Teams</div>
+{user?.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 && <div className="text-amber-400 text-[10px] font-bold mt-0.5">{Object.keys(user.favoriteTeams).length}</div>}
+</button>
+<button onClick={() => { setCurrentScreen('myParties'); window.scrollTo(0,0); }} className="bg-[#151A22] border border-[#222A36] rounded-xl p-3 text-center hover:border-[#1E90FF]/40 transition-all active:scale-[0.97]">
+<div className="text-2xl mb-1">📅</div>
+<div className="text-white text-xs font-bold">Upcoming</div>
+</button>
+<button onClick={() => { setCurrentScreen('browseParties'); window.scrollTo(0,0); }} className="bg-[#151A22] border border-[#222A36] rounded-xl p-3 text-center hover:border-emerald-500/40 transition-all active:scale-[0.97]">
+<div className="text-2xl mb-1">📍</div>
+<div className="text-white text-xs font-bold">Near Me</div>
+</button>
+</div>
 
  {lastChanceParties.length > 0 && (
  <div className="mb-4 rounded-2xl overflow-hidden border border-red-500/30 bg-gradient-to-r from-red-900/30 via-[#151A22] to-pink-900/20">
@@ -6667,7 +6714,7 @@ const BORDER_MAP = {
  }, []);
 
  return (
- <div className="min-h-screen pt-[48px] bg-[#0F1115] sports-tech-bg">
+ <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115] sports-tech-bg">
  <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36] relative z-[1]">
  <div className="max-w-4xl mx-auto px-4 py-2 flex items-center justify-between">
  <button
@@ -7429,13 +7476,13 @@ const BORDER_MAP = {
  <button
  onClick={() => handleJoinParty(party.id)}
  disabled={isFull}
- className={`w-full mt-2 py-3 rounded-xl font-bold transition-all active:scale-[0.98] ${
+ className={`w-full mt-3 py-3.5 rounded-xl font-bold text-base transition-all active:scale-[0.97] ${
  isFull
  ? 'bg-gray-500/20 text-[#A0A4AB]/70 border-2 border-gray-500/30 cursor-not-allowed'
- : 'bg-[#1E90FF] text-white shadow-sm hover:opacity-90 btn-glow'
+ : 'bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white shadow-lg shadow-[#1E90FF]/20 hover:shadow-[#1E90FF]/40 hover:translate-y-[-1px]'
  }`}
  >
- {isFull ? 'PARTY FULL' : 'JOIN PARTY'}
+ {isFull ? 'Party Full' : 'Join This Party 🎉'}
  </button>
  )}
  </div>
@@ -7478,7 +7525,7 @@ const BORDER_MAP = {
  };
 
  const claimVenueScreenJSX = () => (
- <div className="min-h-screen bg-[#0F1115]" style={{ paddingTop: '48px' }}>
+ <div className="min-h-screen bg-[#0F1115]" style={{ paddingTop: '48px', paddingBottom: '72px' }}>
      <div className="sticky top-[48px] left-0 right-0 z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
  <button
@@ -7768,7 +7815,7 @@ const BORDER_MAP = {
  const a = analyticsData;
 
  return (
- <div className="min-h-screen pt-[48px] bg-[#0F1115]">
+ <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
  <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-7xl mx-auto px-4 py-4">
  <div className="flex items-center justify-between">
@@ -9720,7 +9767,7 @@ const BORDER_MAP = {
  const [cpSearchTerm, setCpSearchTerm] = useState('');
  const [cpSportFilter, setCpSportFilter] = useState('All');
  const createPartyScreenJSX = () => !selectedGame ? (
- <div className="min-h-screen pt-[48px] bg-[#0F1115]">
+ <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
  <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
  <button
@@ -9831,7 +9878,7 @@ const BORDER_MAP = {
  </div>
  </div>
 ) : (
- <div className="min-h-screen pt-[48px] bg-[#0F1115]">
+ <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
  <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
  <button
@@ -10730,7 +10777,7 @@ const BORDER_MAP = {
  ];
 
  return (
- <div className="min-h-screen pt-[48px] bg-[#0F1115]">
+ <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
  <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-3">
  <div className="flex items-center justify-between mb-3">
@@ -11492,8 +11539,8 @@ const BORDER_MAP = {
            <button onClick={(e) => { e.stopPropagation(); openShareMenu(party); }} className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300"><Share2 className="w-3 h-3" /> Share</button>
          </div>
          {user && Array.isArray(party.attendees) && !party.attendees.includes(user.email) && party.hostEmail !== user.email ? (
-           <button onClick={(e) => { e.stopPropagation(); handleJoinParty(party.id); }} className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-xs rounded-full hover:opacity-90 transition-all">
-             <Users className="w-3 h-3" /> Join Party
+           <button onClick={(e) => { e.stopPropagation(); handleJoinParty(party.id); }} className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white font-bold text-sm rounded-xl shadow-lg shadow-[#1E90FF]/20 hover:shadow-[#1E90FF]/40 hover:translate-y-[-1px] transition-all active:scale-[0.97]">
+             Join 🎉
            </button>
          ) : user && Array.isArray(party.attendees) && party.attendees.includes(user.email) ? (
            <span className="flex items-center gap-1 px-3 py-1.5 bg-green-500/20 text-green-400 text-xs font-bold rounded-full border border-green-500/30">
@@ -11599,13 +11646,14 @@ const BORDER_MAP = {
          </div>
        )}
        {filteredParties.length === 0 ? (
-         <div className="bg-[#151A22] rounded-2xl border border-[#222A36] p-8 text-center">
-           <Search className="w-12 h-12 text-[#A0A4AB]/30 mx-auto mb-4" />
-           <h3 className="text-white font-bold text-lg mb-2">No parties found</h3>
-           <p className="text-[#A0A4AB] text-sm mb-4">Try adjusting your filters or create the first party!</p>
-           <div className="flex items-center justify-center gap-3 flex-wrap">
-             {hasFilters && (<button onClick={() => { setBpSports([]); setBpCity('All'); setBpSearch(''); setBpSort('soonest'); }} className="px-5 py-2.5 bg-[#222A36] hover:bg-[#2A3340] text-white font-bold rounded-xl text-sm transition-all">Clear Filters</button>)}
-             <button onClick={() => setCurrentScreen('games')} className="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-xl text-sm transition-all">Browse Games & Create Party</button>
+         <div className="rounded-2xl border-2 border-dashed border-white/20 bg-white/5 p-10 text-center">
+           <div className="text-6xl mb-4">🔍</div>
+           <h3 className="text-white font-bold text-2xl mb-2">No Parties Found</h3>
+           <p className="text-white/70 text-base mb-6">There are no watch parties in {bpCity !== 'All' ? bpCity : (currentCity || 'your area')} right now.</p>
+           <div className="flex flex-col items-center gap-3">
+             <button onClick={() => setCurrentScreen('games')} className="w-full max-w-xs py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-xl text-base shadow-lg shadow-orange-500/20 transition-all hover:shadow-orange-500/40 active:scale-[0.97]">Create the First Party 🎉</button>
+             {hasFilters && (<button onClick={() => { setBpSports([]); setBpCity('All'); setBpSearch(''); setBpSort('soonest'); }} className="w-full max-w-xs py-3 bg-[#222A36] hover:bg-[#2A3340] text-white font-bold rounded-xl text-sm transition-all">Clear All Filters</button>)}
+             <button onClick={() => setBpCity('All')} className="text-[#1E90FF] text-sm font-semibold hover:text-[#1E90FF]/80">Search Nearby Cities</button>
            </div>
          </div>
        ) : bpSort !== 'soonest' ? (
@@ -11669,7 +11717,7 @@ const BORDER_MAP = {
  };
 
  return (
-   <div className="min-h-screen pt-[48px] bg-[#0F1115]">
+   <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
      <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
        <div className="max-w-4xl mx-auto px-4 py-4">
          <button onClick={() => setCurrentScreen('games')} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors">
@@ -11833,7 +11881,7 @@ const BORDER_MAP = {
  );
 
  return (
-   <div className="min-h-screen pt-[48px] bg-[#0F1115]">
+   <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
      <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
        <div className="max-w-4xl mx-auto px-4 py-4">
          <button onClick={() => setCurrentScreen('games')} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors">
@@ -11921,7 +11969,7 @@ const BORDER_MAP = {
  };
 
  return (
- <div className="min-h-screen pt-[48px] bg-[#0F1115]">
+ <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
  <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
  <button
@@ -11939,15 +11987,15 @@ const BORDER_MAP = {
  </h2>
 
  {myParties.length === 0 ? (
- <div className="bg-[#151A22] backdrop-blur-lg p-8 rounded-2xl border border-[#222A36] text-center">
- <Users className="w-12 h-12 text-gray-600 mx-auto mb-3" />
- <p className="text-white font-bold text-sm mb-1">No watch parties yet</p>
- <p className="text-[#A0A4AB] text-xs mb-4">We're in soft launch — browse games and join or create a watch party. Early joiners get bonus points!</p>
+ <div className="rounded-2xl border-2 border-dashed border-white/20 bg-white/5 p-10 text-center">
+ <div className="text-6xl mb-4">📅</div>
+ <h3 className="text-white font-bold text-2xl mb-2">No Upcoming Parties</h3>
+ <p className="text-white/70 text-base mb-6">You haven't joined any parties yet. Find a game and join the fun!</p>
  <button
- onClick={() => setCurrentScreen('games')}
- className="px-6 py-3 bg-[#1E90FF] text-white font-bold rounded-xl"
+ onClick={() => { setCurrentScreen('browseParties'); window.scrollTo(0,0); }}
+ className="w-full max-w-xs py-3 bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white font-bold rounded-xl text-base shadow-lg shadow-[#1E90FF]/20 transition-all hover:shadow-[#1E90FF]/40 active:scale-[0.97]"
  >
- Browse Games
+ Browse Parties 🔍
  </button>
  </div>
  ) : (
@@ -12150,7 +12198,7 @@ const BORDER_MAP = {
  );
 
  return (
- <div className="min-h-screen pt-[48px] bg-[#0F1115]">
+ <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
  <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
  <button onClick={() => setCurrentScreen('profile')} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors">
@@ -12267,7 +12315,7 @@ const BORDER_MAP = {
  const joinedParties = myParties.filter(party => party.hostEmail !== user.email);
 
  return (
- <div className="min-h-screen pt-[48px] bg-[#0F1115]">
+ <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
  <div className="sticky top-[48px] z-30 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-3">
  <div className="flex items-center justify-between">
@@ -12626,15 +12674,15 @@ const BORDER_MAP = {
  </h2>
 
  {myParties.length === 0 ? (
- <div className="bg-[#151A22] backdrop-blur-lg p-8 rounded-2xl border border-[#222A36] text-center">
- <Users className="w-12 h-12 text-gray-600 mx-auto mb-3" />
- <p className="text-white font-bold text-sm mb-1">No watch parties yet</p>
- <p className="text-[#A0A4AB] text-xs mb-4">We're in soft launch — browse games and join or create a watch party. Early joiners get bonus points!</p>
+ <div className="rounded-2xl border-2 border-dashed border-white/20 bg-white/5 p-10 text-center">
+ <div className="text-6xl mb-4">📅</div>
+ <h3 className="text-white font-bold text-2xl mb-2">No Upcoming Parties</h3>
+ <p className="text-white/70 text-base mb-6">You haven't joined any parties yet. Find a game and join the fun!</p>
  <button
- onClick={() => setCurrentScreen('games')}
- className="px-6 py-3 bg-[#1E90FF] text-white font-bold rounded-xl"
+ onClick={() => { setCurrentScreen('browseParties'); window.scrollTo(0,0); }}
+ className="w-full max-w-xs py-3 bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white font-bold rounded-xl text-base shadow-lg shadow-[#1E90FF]/20 transition-all hover:shadow-[#1E90FF]/40 active:scale-[0.97]"
  >
- Browse Games
+ Browse Parties 🔍
  </button>
  </div>
  ) : (
@@ -12873,7 +12921,7 @@ const BORDER_MAP = {
  );
 
  const renderFanFinderScreen = () => (
- <div className="min-h-screen pt-[48px] bg-[#0F1115]">
+ <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
  <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
  <div className="flex items-center gap-3">
@@ -13368,7 +13416,7 @@ const BORDER_MAP = {
  const scheduledGames = games.filter(g => g.gameStatus !== 'final');
 
  return (
- <div className="min-h-screen bg-[#0F1115]" style={{ paddingTop: `${MAIN_BANNER_HEIGHT}px` }}>
+ <div className="min-h-screen bg-[#0F1115]" style={{ paddingTop: `${MAIN_BANNER_HEIGHT}px`, paddingBottom: '72px' }}>
  <div className="sticky bg-[#0F1115] border-b border-[#222A36] z-[61]" style={{ top: `${MAIN_BANNER_HEIGHT}px` }}>
  <div className="max-w-4xl mx-auto px-4 py-2 flex items-center gap-3">
  <button onClick={() => setCurrentScreen('games')} className="flex items-center gap-1.5 text-[#A0A4AB] hover:text-white transition-colors">
@@ -13636,7 +13684,7 @@ const BORDER_MAP = {
  ];
 
  return (
- <div className="min-h-screen pt-[48px] bg-[#0F1115]">
+ <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
  <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
  <div className="flex items-center gap-3">
@@ -13924,7 +13972,7 @@ const BORDER_MAP = {
  const InvitationsScreen = () => {
  const unreadNotifications = notifications.filter(n => !n.isRead);
  return (
- <div className="min-h-screen pt-[48px] bg-[#0F1115]">
+ <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
  <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
  <div className="flex items-center gap-3">
@@ -15822,6 +15870,66 @@ const BORDER_MAP = {
  {/* FEATURE 1: Onboarding Tutorial Overlay */}
  {showOnboarding && <OnboardingOverlay />}
  {showTourGuide && <TourGuidePopup />}
+
+ {showTutorial && !showPrelaunchModal && !showOnboarding && (
+   <div className="fixed inset-0 z-[95] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+     <div className="bg-[#151A22] rounded-3xl max-w-sm w-full border border-[#222A36] overflow-hidden shadow-2xl">
+       {tutorialStep === 0 && (
+         <div>
+           <div className="bg-gradient-to-br from-[#1E90FF] to-[#0066CC] p-8 text-center">
+             <div className="text-6xl mb-4">🏟️</div>
+             <h2 className="text-2xl font-black text-white mb-2">Welcome to Huddle Up!</h2>
+             <p className="text-white/80 text-sm">Find sports watch parties at local bars</p>
+           </div>
+           <div className="p-6 text-center">
+             <p className="text-white/70 text-sm mb-6">Never watch the game alone again. Join watch parties with other passionate fans.</p>
+             <button onClick={() => setTutorialStep(1)} className="w-full py-3 bg-[#1E90FF] text-white font-bold rounded-xl mb-3">Next →</button>
+             <button onClick={closeTutorial} className="text-white/50 text-sm">Skip Tutorial</button>
+           </div>
+         </div>
+       )}
+       {tutorialStep === 1 && (
+         <div className="p-6">
+           <h2 className="text-xl font-black text-white text-center mb-6">How It Works</h2>
+           <div className="space-y-4 mb-6">
+             <div className="flex items-center gap-4 p-3 bg-white/5 rounded-xl">
+               <span className="text-3xl">🔍</span>
+               <div><div className="text-white font-bold text-sm">Find Your Game</div><div className="text-white/60 text-xs">Search for your favorite team's game</div></div>
+             </div>
+             <div className="flex items-center gap-4 p-3 bg-white/5 rounded-xl">
+               <span className="text-3xl">🏟️</span>
+               <div><div className="text-white font-bold text-sm">Pick a Venue</div><div className="text-white/60 text-xs">See which bars are hosting watch parties</div></div>
+             </div>
+             <div className="flex items-center gap-4 p-3 bg-white/5 rounded-xl">
+               <span className="text-3xl">🎉</span>
+               <div><div className="text-white font-bold text-sm">Show Up & Party</div><div className="text-white/60 text-xs">Join other fans and watch together!</div></div>
+             </div>
+           </div>
+           <div className="flex gap-3">
+             <button onClick={() => setTutorialStep(0)} className="flex-1 py-3 bg-white/10 text-white font-bold rounded-xl">← Back</button>
+             <button onClick={() => setTutorialStep(2)} className="flex-1 py-3 bg-[#1E90FF] text-white font-bold rounded-xl">Next →</button>
+           </div>
+         </div>
+       )}
+       {tutorialStep === 2 && (
+         <div>
+           <div className="bg-gradient-to-br from-orange-500 to-red-500 p-8 text-center">
+             <div className="text-6xl mb-4">🎉</div>
+             <h2 className="text-2xl font-black text-white mb-2">Ready to Find Your Crew?</h2>
+           </div>
+           <div className="p-6 text-center">
+             <p className="text-white/70 text-sm mb-6">Discover watch parties near you and join the fun!</p>
+             <button onClick={() => { closeTutorial(); setCurrentScreen('browseParties'); }} className="w-full py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-xl mb-3 text-lg">🎉 Find Parties Near Me!</button>
+             <button onClick={closeTutorial} className="text-white/50 text-sm">I'll do this later</button>
+           </div>
+         </div>
+       )}
+       <div className="flex justify-center gap-2 pb-4">
+         {[0,1,2].map(i => <div key={i} className={`w-2 h-2 rounded-full ${i === tutorialStep ? 'bg-[#1E90FF]' : 'bg-white/20'}`} />)}
+       </div>
+     </div>
+   </div>
+ )}
  
  
 
@@ -15894,6 +16002,25 @@ const BORDER_MAP = {
  {currentScreen === 'privacyPolicy' && <PrivacyPolicyScreen />}
  {currentScreen === 'venueDetail' && <VenueDetailScreen />}
  {currentScreen === 'inviteFriends' && renderInviteFriendsScreen()}
+
+{user && !['welcome', 'login', 'signup', 'signupType', 'forgotPassword'].includes(currentScreen) && (
+<div className="fixed bottom-0 left-0 right-0 z-[50] bg-[#151A22] border-t border-[#222A36]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+<div className="flex items-center justify-around py-2 max-w-lg mx-auto">
+<button onClick={() => { setCurrentScreen('games'); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 px-4 py-1 transition-colors ${currentScreen === 'games' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
+<Home className="w-5 h-5" /><span className="text-[10px] font-semibold">Home</span>
+</button>
+<button onClick={() => { setCurrentScreen('browseParties'); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 px-4 py-1 transition-colors ${currentScreen === 'browseParties' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
+<Search className="w-5 h-5" /><span className="text-[10px] font-semibold">Browse</span>
+</button>
+<button onClick={() => { setCurrentScreen('myParties'); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 px-4 py-1 transition-colors ${currentScreen === 'myParties' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
+<Calendar className="w-5 h-5" /><span className="text-[10px] font-semibold">My Parties</span>
+</button>
+<button onClick={() => { setCurrentScreen('profile'); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 px-4 py-1 transition-colors ${currentScreen === 'profile' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
+<User className="w-5 h-5" /><span className="text-[10px] font-semibold">Profile</span>
+</button>
+</div>
+</div>
+)}
 
  {editProfileOpen && (
  <EditProfileModal
