@@ -5226,9 +5226,9 @@ const qrScannerRef = useRef(null);
  </p>
  <button
  onClick={onCreateParty}
- className="px-8 py-3.5 bg-[#1E90FF] text-white font-bold text-sm rounded-xl shadow-sm hover:opacity-90 transition-all"
+ className="primary-btn create-btn px-8 py-3.5 text-white font-bold text-sm rounded-xl shadow-lg shadow-emerald-500/20"
  >
- Create First Party
+ <span className="btn-icon">+</span> Create First Party
  </button>
  <p className="text-[#A0A4AB]/50 text-xs mt-3">🚀 Soft launch — early hosts get extra visibility</p>
  </div>
@@ -11130,8 +11130,8 @@ const BORDER_MAP = {
  <div className="text-4xl mb-3">🎉</div>
  <h3 className="text-lg font-bold text-white mb-2">Create a Watch Party First</h3>
  <p className="text-[#A0A4AB] text-sm mb-4">To promote a game at your venue, you need to create a watch party for it first. Then you can add specials and boost visibility.</p>
- <button onClick={() => setCurrentScreen('games')} className="px-5 py-2.5 bg-[#1E90FF] text-white font-bold rounded-xl text-sm hover:bg-[#1E90FF]/80 transition-colors inline-flex items-center gap-2">
- <Plus className="w-4 h-4" /> Browse Games & Create Party
+ <button onClick={() => setCurrentScreen('games')} className="primary-btn create-btn px-5 py-2.5 text-white font-bold rounded-xl text-sm inline-flex items-center gap-2">
+ <Plus className="w-4 h-4 btn-icon" /> Browse Games & Create Party
  </button>
  </div>
  )}
@@ -11189,8 +11189,8 @@ const BORDER_MAP = {
  <div className="text-4xl mb-3">📢</div>
  <h3 className="text-lg font-bold text-white mb-2">No Active Promotions</h3>
  <p className="text-[#A0A4AB] text-sm mb-4">Create a watch party first, then come back here to promote it with specials and deals!</p>
- <button onClick={() => setCurrentScreen('games')} className="px-5 py-2.5 bg-[#1E90FF] text-white font-bold rounded-xl text-sm hover:bg-[#1E90FF]/80 transition-colors inline-flex items-center gap-2">
- <Plus className="w-4 h-4" /> Browse Games & Create Party
+ <button onClick={() => setCurrentScreen('games')} className="primary-btn create-btn px-5 py-2.5 text-white font-bold rounded-xl text-sm inline-flex items-center gap-2">
+ <Plus className="w-4 h-4 btn-icon" /> Browse Games & Create Party
  </button>
  </div>
  ) : (
@@ -11648,7 +11648,7 @@ const BORDER_MAP = {
            <h3 className="text-white font-bold text-2xl mb-2">No Parties Found</h3>
            <p className="text-white/70 text-base mb-6">There are no watch parties in {bpCity !== 'All' ? bpCity : (currentCity || 'your area')} right now.</p>
            <div className="flex flex-col items-center gap-3">
-             <button onClick={() => setCurrentScreen('games')} className="w-full max-w-xs py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-xl text-base shadow-lg shadow-orange-500/20 transition-all hover:shadow-orange-500/40 active:scale-[0.97]">Create the First Party 🎉</button>
+             <button onClick={() => setCurrentScreen('games')} className="primary-btn create-btn w-full max-w-xs py-3 text-white font-bold rounded-xl text-base shadow-lg shadow-emerald-500/20"><span className="btn-icon">🎉</span> Create the First Party</button>
              {hasFilters && (<button onClick={() => { setBpSports([]); setBpCity('All'); setBpSearch(''); setBpSort('soonest'); }} className="w-full max-w-xs py-3 bg-[#222A36] hover:bg-[#2A3340] text-white font-bold rounded-xl text-sm transition-all">Clear All Filters</button>)}
              <button onClick={() => setBpCity('All')} className="text-[#1E90FF] text-sm font-semibold hover:text-[#1E90FF]/80">Search Nearby Cities</button>
            </div>
@@ -11765,9 +11765,9 @@ const BORDER_MAP = {
            </p>
            <button
              onClick={() => setCurrentScreen('games')}
-             className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-xl"
+             className="primary-btn find-btn px-6 py-3 text-white font-bold rounded-xl"
            >
-             Browse Games & Create Party
+             <span className="btn-icon">🔍</span> Browse Games & Create Party
            </button>
          </div>
        ) : (
@@ -11990,9 +11990,9 @@ const BORDER_MAP = {
  <p className="text-white/70 text-base mb-6">You haven't joined any parties yet. Find a game and join the fun!</p>
  <button
  onClick={() => { setCurrentScreen('browseParties'); window.scrollTo(0,0); }}
- className="w-full max-w-xs py-3 bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white font-bold rounded-xl text-base shadow-lg shadow-[#1E90FF]/20 transition-all hover:shadow-[#1E90FF]/40 active:scale-[0.97]"
+ className="primary-btn find-btn w-full max-w-xs py-3 text-white font-bold rounded-xl text-base shadow-lg"
  >
- Browse Parties 🔍
+ <span className="btn-icon">🔍</span> Browse Parties
  </button>
  </div>
  ) : (
@@ -12696,9 +12696,9 @@ const BORDER_MAP = {
  <p className="text-white/70 text-base mb-6">You haven't joined any parties yet. Find a game and join the fun!</p>
  <button
  onClick={() => { setCurrentScreen('browseParties'); window.scrollTo(0,0); }}
- className="w-full max-w-xs py-3 bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white font-bold rounded-xl text-base shadow-lg shadow-[#1E90FF]/20 transition-all hover:shadow-[#1E90FF]/40 active:scale-[0.97]"
+ className="primary-btn find-btn w-full max-w-xs py-3 text-white font-bold rounded-xl text-base shadow-lg"
  >
- Browse Parties 🔍
+ <span className="btn-icon">🔍</span> Browse Parties
  </button>
  </div>
  ) : (
@@ -15942,7 +15942,7 @@ const BORDER_MAP = {
            </div>
            <div className="p-6 text-center">
              <p className="text-white/70 text-sm mb-6">Discover watch parties near you and join the fun!</p>
-             <button onClick={() => { closeTutorial(); setCurrentScreen('browseParties'); }} className="w-full py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-xl mb-3 text-lg">🎉 Find Parties Near Me!</button>
+             <button onClick={() => { closeTutorial(); setCurrentScreen('browseParties'); }} className="primary-btn find-btn w-full py-3 text-white font-bold rounded-xl mb-3 text-lg"><span className="btn-icon">🎉</span> Find Parties Near Me!</button>
              <button onClick={closeTutorial} className="text-white/50 text-sm">I'll do this later</button>
            </div>
          </div>
