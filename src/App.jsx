@@ -5930,9 +5930,9 @@ const qrScannerRef = useRef(null);
 )}
 
 <div className="flex items-center gap-2 mb-2">
-<MapPin className="w-3.5 h-3.5 text-[#1E90FF]" />
-<span className="text-white/70 text-xs font-semibold">{currentCity || 'Boca Raton'}</span>
-<button onClick={() => setLocationDropdownOpen(!locationDropdownOpen)} className="text-[#1E90FF] text-[10px] font-bold ml-1 hover:text-[#1E90FF]/80">Change</button>
+<MapPin className="w-4 h-4 text-[#1E90FF]" />
+<span className="text-white/70 text-sm font-semibold">{currentCity || 'Boca Raton'}</span>
+<button onClick={() => setLocationDropdownOpen(!locationDropdownOpen)} className="text-[#1E90FF] text-xs font-bold ml-1 hover:text-[#1E90FF]/80">Change</button>
 </div>
 
 <div className="grid grid-cols-2 gap-3 mb-3">
@@ -5942,8 +5942,8 @@ const qrScannerRef = useRef(null);
 <Plus className="w-6 h-6 text-white" />
 </div>
 <div>
-<div className="text-white font-black text-sm" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>CREATE PARTY</div>
-<div className="text-emerald-300/70 text-[10px] font-semibold">Pick a game below</div>
+<div className="text-white font-black text-base" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>CREATE PARTY</div>
+<div className="text-emerald-300/70 text-xs font-semibold">Pick a game below</div>
 </div>
 </div>
 </button>
@@ -5953,8 +5953,8 @@ const qrScannerRef = useRef(null);
 <Search className="w-6 h-6 text-white" />
 </div>
 <div>
-<div className="text-white font-black text-sm" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>FIND PARTIES</div>
-{(() => { const upcoming = parties.filter(p => new Date(p.gameTime) >= new Date()).length; return upcoming > 0 ? <div className="text-orange-300/70 text-[10px] font-semibold">{upcoming} near you</div> : <div className="text-white/50 text-[10px]">Join a watch party</div>; })()}
+<div className="text-white font-black text-base" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>FIND PARTIES</div>
+{(() => { const upcoming = parties.filter(p => new Date(p.gameTime) >= new Date()).length; return upcoming > 0 ? <div className="text-orange-300/70 text-xs font-semibold">{upcoming} near you</div> : <div className="text-white/50 text-xs">Join a watch party</div>; })()}
 </div>
 </div>
 </button>
@@ -5999,24 +5999,24 @@ Become a Sponsor →
 
 <div className="grid grid-cols-2 gap-3 mb-3">
 <button onClick={() => { setCurrentScreen('trending'); window.scrollTo(0,0); }} className="relative bg-gradient-to-br from-amber-900/30 to-orange-900/20 border-2 border-amber-500/40 rounded-2xl p-4 text-center hover:border-amber-400/60 transition-all active:scale-[0.97]" style={{ minHeight: '100px' }}>
-<div className="text-3xl mb-1.5">👑</div>
-<div className="text-white text-sm font-bold">Featured</div>
-<div className="text-amber-400/70 text-[10px] mt-0.5">Premium parties</div>
+<div className="text-4xl mb-1.5">👑</div>
+<div className="text-white text-base font-bold">Featured</div>
+<div className="text-amber-400/70 text-xs mt-0.5">Premium parties</div>
 </button>
 <button onClick={() => { setCurrentScreen('profile'); window.scrollTo(0,0); setTimeout(() => { const el = document.querySelector('[data-section="favorite-teams"]'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 400); }} className="relative bg-[#151A22] border border-[#222A36] rounded-2xl p-4 text-center hover:border-amber-500/40 transition-all active:scale-[0.97]" style={{ minHeight: '100px' }}>
-<div className="text-3xl mb-1.5">⭐</div>
-<div className="text-white text-sm font-bold">My Teams</div>
-{user?.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 && <span className="absolute top-2.5 right-2.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">{Object.keys(user.favoriteTeams).length}</span>}
+<div className="text-4xl mb-1.5">⭐</div>
+<div className="text-white text-base font-bold">My Teams</div>
+{user?.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 && <span className="absolute top-2.5 right-2.5 bg-red-500 text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5">{Object.keys(user.favoriteTeams).length}</span>}
 </button>
 <button onClick={() => { setCurrentScreen('myParties'); window.scrollTo(0,0); }} className="relative bg-[#151A22] border border-[#222A36] rounded-2xl p-4 text-center hover:border-[#1E90FF]/40 transition-all active:scale-[0.97]" style={{ minHeight: '100px' }}>
-<div className="text-3xl mb-1.5">📅</div>
-<div className="text-white text-sm font-bold">My Parties</div>
-{(() => { const joined = parties.filter(p => userParties.includes(p.id) && new Date(p.gameTime) >= new Date()).length; return joined > 0 ? <span className="absolute top-2.5 right-2.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">{joined}</span> : null; })()}
+<div className="text-4xl mb-1.5">📅</div>
+<div className="text-white text-base font-bold">My Parties</div>
+{(() => { const joined = parties.filter(p => userParties.includes(p.id) && new Date(p.gameTime) >= new Date()).length; return joined > 0 ? <span className="absolute top-2.5 right-2.5 bg-red-500 text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5">{joined}</span> : null; })()}
 </button>
 <button onClick={() => { setCurrentScreen('browseParties'); window.scrollTo(0,0); }} className="relative bg-[#151A22] border border-[#222A36] rounded-2xl p-4 text-center hover:border-emerald-500/40 transition-all active:scale-[0.97]" style={{ minHeight: '100px' }}>
-<div className="text-3xl mb-1.5">📍</div>
-<div className="text-white text-sm font-bold">Near Me</div>
-{(() => { const nearby = parties.filter(p => new Date(p.gameTime) >= new Date()).length; return nearby > 0 ? <span className="absolute top-2.5 right-2.5 bg-[#1E90FF] text-white text-[10px] font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">{nearby}</span> : null; })()}
+<div className="text-4xl mb-1.5">📍</div>
+<div className="text-white text-base font-bold">Near Me</div>
+{(() => { const nearby = parties.filter(p => new Date(p.gameTime) >= new Date()).length; return nearby > 0 ? <span className="absolute top-2.5 right-2.5 bg-[#1E90FF] text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5">{nearby}</span> : null; })()}
 </button>
 </div>
 
@@ -6024,7 +6024,7 @@ Become a Sponsor →
  <div className="mb-4 rounded-2xl overflow-hidden border border-red-500/30 bg-gradient-to-r from-red-900/30 via-[#151A22] to-pink-900/20">
    <div className="px-4 pt-3 pb-2 flex items-center gap-2">
      <Clock className="w-5 h-5 text-red-400 animate-pulse" />
-     <h3 className="text-white font-black text-sm" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>LAST CHANCE — STARTING SOON!</h3>
+     <h3 className="text-white font-black text-base" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>LAST CHANCE — STARTING SOON!</h3>
    </div>
    <div className="px-4 pb-3 space-y-2">
      {lastChanceParties.map(lp => {
@@ -6060,7 +6060,7 @@ Become a Sponsor →
  <div className="mb-4 rounded-2xl overflow-hidden border border-orange-500/30 bg-gradient-to-br from-orange-900/30 via-[#151A22] to-amber-900/20">
    <div className="px-4 pt-3 pb-2 flex items-center gap-2">
      <Flame className="w-5 h-5 text-orange-400" />
-     <h3 className="text-white font-black text-sm" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>TRENDING PARTIES RIGHT NOW</h3>
+     <h3 className="text-white font-black text-base" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>TRENDING PARTIES RIGHT NOW</h3>
    </div>
    <div className="px-4 pb-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
      {hotParties.map(hp => {
@@ -6265,7 +6265,7 @@ Become a Sponsor →
 
  <div className="glow-divider my-[15px]" />
 
- <h2 id="find-your-sport" className="text-white font-bold text-xl mb-[15px] uppercase tracking-[1px] section-header-glow" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em', scrollMarginTop: '60px' }}>FIND YOUR SPORT</h2>
+ <h2 id="find-your-sport" className="text-white font-bold text-2xl mb-[15px] uppercase tracking-[1px] section-header-glow" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em', scrollMarginTop: '60px' }}>FIND YOUR SPORT</h2>
  <div className="relative" data-tour-id="sports-scroller">
  <div
  ref={sportsScrollRef}
@@ -6373,12 +6373,12 @@ Become a Sponsor →
  className={`flex-shrink-0 w-[280px] bg-[#151A22] p-5 rounded-[12px] border border-[#222A36] hover:border-[#1E90FF]/50 cursor-pointer active:scale-[0.98] transition-all duration-200 sport-card-glow ${game.gameStatus === 'live' ? 'sport-card-live' : ''}`}
  >
  <div className="flex items-center justify-between mb-2">
- <span className="px-2 py-0.5 bg-[#1E90FF]/20 text-[#1E90FF] text-[10px] font-bold rounded-full border border-[#1E90FF]/30">
+ <span className="px-2.5 py-1 bg-[#1E90FF]/20 text-[#1E90FF] text-xs font-bold rounded-full border border-[#1E90FF]/30">
  {game.sport}
  </span>
  <div className="flex items-center gap-1.5">
  {gameParties.length > 0 && (
- <span className="px-2 py-0.5 bg-purple-500/20 text-purple-300 text-[10px] font-bold rounded-full border border-purple-500/30">
+ <span className="px-2.5 py-1 bg-purple-500/20 text-purple-300 text-xs font-bold rounded-full border border-purple-500/30">
  {gameParties.length} {gameParties.length === 1 ? 'Party' : 'Parties'}
  </span>
  )}
@@ -6414,7 +6414,7 @@ Become a Sponsor →
  <div className="flex items-center justify-center gap-2 mb-2">
  <div className="flex-1 flex flex-col items-center gap-1">
  {game.homeLogo && <img src={game.homeLogo} alt="" className="w-12 h-12 object-contain" />}
- <span className="text-xs font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.homeTeam}</span>
+ <span className="text-sm font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.homeTeam}</span>
  </div>
  <div className={`text-2xl font-black flex-shrink-0 ${game.gameStatus === 'live' ? 'score-led' : ''}`} style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
  <span className={game.homeScore > game.awayScore ? 'text-emerald-400' : 'text-white'}>{game.homeScore}</span>
@@ -6423,10 +6423,10 @@ Become a Sponsor →
  </div>
  <div className="flex-1 flex flex-col items-center gap-1">
  {game.awayLogo && <img src={game.awayLogo} alt="" className="w-12 h-12 object-contain" />}
- <span className="text-xs font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.awayTeam}</span>
+ <span className="text-sm font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.awayTeam}</span>
  </div>
  </div>
- <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${game.gameStatus === 'live' ? 'bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse' : 'bg-gray-500/20 text-[#A0A4AB] border border-gray-500/30'}`}>
+ <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${game.gameStatus === 'live' ? 'bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse' : 'bg-gray-500/20 text-[#A0A4AB] border border-gray-500/30'}`}>
  {game.statusDetail}
  </span>
  </div>
@@ -6434,16 +6434,16 @@ Become a Sponsor →
  <div className="flex items-center justify-center gap-3 mb-2">
  <div className="flex-1 flex flex-col items-center gap-1">
  {game.homeLogo && <img src={game.homeLogo} alt="" className="w-12 h-12 object-contain" />}
- <span className="text-xs font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.homeTeam}</span>
+ <span className="text-sm font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.homeTeam}</span>
  </div>
- <span className="text-base font-black text-[#1E90FF] flex-shrink-0" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>VS</span>
+ <span className="text-lg font-black text-[#1E90FF] flex-shrink-0" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>VS</span>
  <div className="flex-1 flex flex-col items-center gap-1">
  {game.awayLogo && <img src={game.awayLogo} alt="" className="w-12 h-12 object-contain" />}
- <span className="text-xs font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.awayTeam}</span>
+ <span className="text-sm font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.awayTeam}</span>
  </div>
  </div>
  )}
- <div className="flex flex-col items-center gap-0.5 text-[#A0A4AB] text-xs mt-1">
+ <div className="flex flex-col items-center gap-0.5 text-[#A0A4AB] text-sm mt-1">
  <div className="flex items-center gap-1">
  <Calendar className="w-3 h-3" />
  {formatDateTime(game.startTime)}
@@ -7439,7 +7439,7 @@ const BORDER_MAP = {
  <button
  onClick={() => handleJoinParty(party.id)}
  disabled={isFull}
- className={`w-full mt-3 py-3.5 rounded-xl font-bold text-base transition-all active:scale-[0.97] ${
+ className={`w-full mt-3 py-4 rounded-xl font-black text-lg transition-all active:scale-[0.97] ${
  isFull
  ? 'bg-gray-500/20 text-[#A0A4AB]/70 border-2 border-gray-500/30 cursor-not-allowed'
  : 'bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white shadow-lg shadow-[#1E90FF]/20 hover:shadow-[#1E90FF]/40 hover:translate-y-[-1px]'
@@ -11502,7 +11502,7 @@ const BORDER_MAP = {
            <button onClick={(e) => { e.stopPropagation(); openShareMenu(party); }} className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300"><Share2 className="w-3 h-3" /> Share</button>
          </div>
          {user && Array.isArray(party.attendees) && !party.attendees.includes(user.email) && party.hostEmail !== user.email ? (
-           <button onClick={(e) => { e.stopPropagation(); handleJoinParty(party.id); }} className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white font-bold text-sm rounded-xl shadow-lg shadow-[#1E90FF]/20 hover:shadow-[#1E90FF]/40 hover:translate-y-[-1px] transition-all active:scale-[0.97]">
+           <button onClick={(e) => { e.stopPropagation(); handleJoinParty(party.id); }} className="flex items-center gap-1.5 px-5 py-2.5 bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white font-bold text-base rounded-xl shadow-lg shadow-[#1E90FF]/20 hover:shadow-[#1E90FF]/40 hover:translate-y-[-1px] transition-all active:scale-[0.97]">
              Join 🎉
            </button>
          ) : user && Array.isArray(party.attendees) && party.attendees.includes(user.email) ? (
@@ -15950,73 +15950,73 @@ const BORDER_MAP = {
 </div>
 </div>
 <button onClick={() => { setCurrentScreen('browseParties'); setHamburgerOpen(false); window.scrollTo(0, 0); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 transition-colors text-left active:scale-[0.98] border border-orange-500/30">
-<Search className="w-5 h-5 text-orange-400" /><span className="text-orange-400 text-sm font-bold">Browse All Parties</span>
+<Search className="w-5 h-5 text-orange-400" /><span className="text-orange-400 text-base font-bold">Browse All Parties</span>
 </button>
 <button onClick={() => { setCurrentScreen('myParties'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-500/10 transition-colors text-left active:scale-[0.98]">
-<Calendar className="w-5 h-5 text-orange-400" /><span className="text-white text-sm font-semibold">My Parties</span>
+<Calendar className="w-5 h-5 text-orange-400" /><span className="text-white text-base font-semibold">My Parties</span>
 </button>
 <button onClick={() => { setCurrentScreen('profile'); setHamburgerOpen(false); setTimeout(() => { const el = document.querySelector('[data-section="favorite-teams"]'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 400); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-amber-500/10 transition-colors text-left active:scale-[0.98]">
-<Star className="w-5 h-5 text-amber-400" /><span className="text-white text-sm font-semibold">My Favorite Teams</span>
+<Star className="w-5 h-5 text-amber-400" /><span className="text-white text-base font-semibold">My Favorite Teams</span>
 {user?.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 && (
 <span className="ml-auto text-xs text-amber-400 font-bold">{Object.keys(user.favoriteTeams).length}</span>
 )}
 </button>
 <button onClick={() => { setCurrentScreen('invitations'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-yellow-500/10 transition-colors text-left active:scale-[0.98]">
-<Bell className="w-5 h-5 text-yellow-400" /><span className="text-white text-sm font-semibold">Notifications</span>
+<Bell className="w-5 h-5 text-yellow-400" /><span className="text-white text-base font-semibold">Notifications</span>
 {totalAlerts > 0 && <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{totalAlerts}</span>}
 </button>
 <div className="border-t border-[#222A36] my-2" />
 <button onClick={() => { setCurrentScreen('notificationSettings'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors text-left active:scale-[0.98]">
-<Settings className="w-5 h-5 text-white/60" /><span className="text-white text-sm font-semibold">Settings</span>
+<Settings className="w-5 h-5 text-white/60" /><span className="text-white text-base font-semibold">Settings</span>
 </button>
 <button onClick={() => { setShowQA(true); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-indigo-500/10 transition-colors text-left active:scale-[0.98]">
-<Shield className="w-5 h-5 text-indigo-400" /><span className="text-white text-sm font-semibold">Help & FAQ</span>
+<Shield className="w-5 h-5 text-indigo-400" /><span className="text-white text-base font-semibold">Help & FAQ</span>
 </button>
 <button onClick={() => setMoreOptionsOpen(!moreOptionsOpen)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors text-left active:scale-[0.98]">
-<ChevronRight className={`w-5 h-5 text-white/60 transition-transform ${moreOptionsOpen ? 'rotate-90' : ''}`} /><span className="text-white text-sm font-semibold">More Options</span>
+<ChevronRight className={`w-5 h-5 text-white/60 transition-transform ${moreOptionsOpen ? 'rotate-90' : ''}`} /><span className="text-white text-base font-semibold">More Options</span>
 <ChevronDown className={`w-4 h-4 text-white/40 ml-auto transition-transform ${moreOptionsOpen ? 'rotate-180' : ''}`} />
 </button>
 {moreOptionsOpen && (
 <div className="space-y-1 pl-2">
 {!isAppInstalled && (
 <button onClick={() => { handlePwaInstall(); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1E90FF]/10 transition-colors text-left active:scale-[0.98]">
-<Download className="w-5 h-5 text-[#1E90FF]" /><span className="text-white text-sm font-semibold">Install App</span>
+<Download className="w-5 h-5 text-[#1E90FF]" /><span className="text-white text-base font-semibold">Install App</span>
 </button>
 )}
 <button onClick={() => { setCurrentScreen('teamChats'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-teal-500/10 transition-colors text-left active:scale-[0.98]">
-<MessageCircle className="w-5 h-5 text-teal-400" /><span className="text-white text-sm font-semibold">Team Chat</span>
+<MessageCircle className="w-5 h-5 text-teal-400" /><span className="text-white text-base font-semibold">Team Chat</span>
 </button>
 <button onClick={() => { setCurrentScreen('fanFinder'); if (currentCity && nearbyFans.length === 0) searchNearbyFans(currentCity); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1E90FF]/10 transition-colors text-left active:scale-[0.98]">
-<UserPlus className="w-5 h-5 text-[#1E90FF]" /><span className="text-white text-sm font-semibold">Find Fans</span>
+<UserPlus className="w-5 h-5 text-[#1E90FF]" /><span className="text-white text-base font-semibold">Find Fans</span>
 </button>
 <button onClick={() => { setCurrentScreen('predictions'); loadPredictions(); loadPredictionLeaderboard(); window.scrollTo({ top: 0, behavior: 'instant' }); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-500/10 transition-colors text-left active:scale-[0.98]">
-<Target className="w-5 h-5 text-emerald-400" /><span className="text-white text-sm font-semibold">Predictions</span>
+<Target className="w-5 h-5 text-emerald-400" /><span className="text-white text-base font-semibold">Predictions</span>
 </button>
 <button onClick={() => { setCurrentScreen('fantasy'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-500/10 transition-colors text-left active:scale-[0.98]">
-<Trophy className="w-5 h-5 text-orange-400" /><span className="text-white text-sm font-semibold">Fantasy</span>
+<Trophy className="w-5 h-5 text-orange-400" /><span className="text-white text-base font-semibold">Fantasy</span>
 </button>
 <button onClick={() => { setCurrentScreen('inviteFriends'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-500/10 transition-colors text-left active:scale-[0.98]">
-<UserPlus className="w-5 h-5 text-emerald-400" /><span className="text-white text-sm font-semibold">Invite Friends</span>
+<UserPlus className="w-5 h-5 text-emerald-400" /><span className="text-white text-base font-semibold">Invite Friends</span>
 </button>
 <button onClick={() => { setHamburgerOpen(false); if (currentScreen !== 'games') { setCurrentScreen('games'); setTimeout(() => startSpotlightTour(), 600); } else { startSpotlightTour(); } }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1E90FF]/10 transition-colors text-left active:scale-[0.98]">
-<Map className="w-5 h-5 text-[#1E90FF]" /><span className="text-white text-sm font-semibold">Learn The App</span>
+<Map className="w-5 h-5 text-[#1E90FF]" /><span className="text-white text-base font-semibold">Learn The App</span>
 </button>
 </div>
 )}
 <div className="border-t border-[#222A36] my-2" />
 {userVenue && (
 <button onClick={() => { setCurrentScreen('venueDashboard'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-green-500/10 transition-colors text-left active:scale-[0.98]">
-<Building2 className="w-5 h-5 text-green-400" /><span className="text-white text-sm font-semibold">Venue Hub</span>
+<Building2 className="w-5 h-5 text-green-400" /><span className="text-white text-base font-semibold">Venue Hub</span>
 </button>
 )}
 {isAdmin && (
 <button onClick={() => { setCurrentScreen('admin'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-purple-500/10 transition-colors text-left active:scale-[0.98]">
-<Settings className="w-5 h-5 text-purple-400" /><span className="text-white text-sm font-semibold">Admin Panel</span>
+<Settings className="w-5 h-5 text-purple-400" /><span className="text-white text-base font-semibold">Admin Panel</span>
 </button>
 )}
 <div className="border-t border-[#222A36] my-2" />
 <button onClick={() => { handleLogout(); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-500/10 transition-colors text-left active:scale-[0.98]">
-<LogOut className="w-5 h-5 text-red-400" /><span className="text-red-400 text-sm font-semibold">Logout</span>
+<LogOut className="w-5 h-5 text-red-400" /><span className="text-red-400 text-base font-semibold">Logout</span>
 </button>
 </div>
  </div>
@@ -16088,21 +16088,21 @@ const BORDER_MAP = {
 <div className="fixed bottom-0 left-0 right-0 z-[50] bg-[#151A22] border-t border-[#222A36]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
 <div className="grid grid-cols-5 py-1.5 max-w-lg mx-auto">
 <button onClick={() => { setCurrentScreen('games'); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 py-1 transition-colors ${currentScreen === 'games' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
-<Home className="w-5 h-5" /><span className="text-[10px] font-semibold">Home</span>
+<Home className="w-6 h-6" /><span className="text-[11px] font-bold">Home</span>
 </button>
 <button onClick={() => { setCurrentScreen('browseParties'); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 py-1 transition-colors ${currentScreen === 'browseParties' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
-<Search className="w-5 h-5" /><span className="text-[10px] font-semibold">Browse</span>
+<Search className="w-6 h-6" /><span className="text-[11px] font-bold">Browse</span>
 </button>
 <button onClick={() => { setCurrentScreen('myCrew'); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 py-1 transition-colors relative ${currentScreen === 'myCrew' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
-<Users className="w-5 h-5" /><span className="text-[10px] font-semibold">Crew</span>
-{(friendRequests.length + dmUnreadCount) > 0 && <span className="absolute top-0 right-[20%] bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">{friendRequests.length + dmUnreadCount}</span>}
+<Users className="w-6 h-6" /><span className="text-[11px] font-bold">Crew</span>
+{(friendRequests.length + dmUnreadCount) > 0 && <span className="absolute top-0 right-[20%] bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{friendRequests.length + dmUnreadCount}</span>}
 </button>
 <button onClick={() => { setCurrentScreen('rewards'); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 py-1 transition-colors ${currentScreen === 'rewards' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
-<Gift className="w-5 h-5" /><span className="text-[10px] font-semibold">Rewards</span>
+<Gift className="w-6 h-6" /><span className="text-[11px] font-bold">Rewards</span>
 </button>
 <button onClick={() => { setCurrentScreen('profile'); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 py-1 transition-colors relative ${currentScreen === 'profile' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
-<User className="w-5 h-5" /><span className="text-[10px] font-semibold">Me</span>
-{totalAlerts > 0 && <span className="absolute top-0 right-[20%] bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">{totalAlerts}</span>}
+<User className="w-6 h-6" /><span className="text-[11px] font-bold">Me</span>
+{totalAlerts > 0 && <span className="absolute top-0 right-[20%] bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{totalAlerts}</span>}
 </button>
 </div>
 </div>
