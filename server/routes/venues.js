@@ -127,7 +127,10 @@ router.put('/me', requireAuth, async (req, res) => {
     const { name, address, city, type, phone, website, capacity, description, logo, picture } = req.body;
     const v = venue.rows[0];
 
-    if (!name || !address) return res.status(400).json({ error: 'Business name and address are required' });
+    const effectiveName = (name !== undefined && name !== null) ? name : v.name;
+    const effectiveAddress = (address !== undefined && address !== null) ? address : v.address;
+
+    if (!effectiveName) return res.status(400).json({ error: 'Business name is required' });
 
     await pool.query(
       `UPDATE venues SET
@@ -136,8 +139,8 @@ router.put('/me', requireAuth, async (req, res) => {
         logo = $9, picture = $10
        WHERE id = $11`,
       [
-        name,
-        address,
+        effectiveName,
+        effectiveAddress,
         city !== undefined ? city : v.city,
         type || v.type,
         phone !== undefined ? phone : v.phone,

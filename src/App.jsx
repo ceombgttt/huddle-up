@@ -10095,7 +10095,8 @@ const BORDER_MAP = {
  input.onchange = async (e) => {
  const file = e.target.files?.[0];
  if (!file) return;
- if (!file.type.startsWith('image/')) {
+ const fileType = file.type || 'image/jpeg';
+ if (!fileType.startsWith('image/')) {
  alert('Please select an image file');
  return;
  }
@@ -10109,7 +10110,7 @@ const BORDER_MAP = {
  const fileBuffer = await file.arrayBuffer();
  const uploadRes = await fetch('/api/uploads/venue-image/upload', {
  method: 'POST',
- headers: { 'Content-Type': file.type, 'x-image-type': imageType },
+ headers: { 'Content-Type': fileType, 'x-file-content-type': fileType, 'x-image-type': imageType },
  credentials: 'include',
  body: fileBuffer,
  });
@@ -10118,11 +10119,7 @@ const BORDER_MAP = {
  throw new Error(errData.error || 'Upload failed');
  }
  const { objectPath } = await uploadRes.json();
- await api.venues.updateMine({
- name: userVenue.name,
- address: userVenue.address,
- [imageType]: objectPath
- });
+ await api.venues.updateMine({ [imageType]: objectPath });
  await loadVenues();
  } catch (err) {
  alert('Failed to upload image: ' + err.message);
