@@ -367,7 +367,16 @@ body {
 
 .brand-gradient-bg {
   background:
-    radial-gradient(ellipse at top left, rgba(30, 144, 255, 0.1) 0%, transparent 50%),
-    radial-gradient(ellipse at bottom right, rgba(255, 215, 0, 0.08) 0%, transparent 50%),
-    linear-gradient(135deg, #0a1628 0%, #0f1829 25%, #1a1d29 50%, #1e2838 75%, #0f1115 100%);
+    radial-gradient(ellipse 1200px 800px at 10% 20%, rgba(30, 144, 255, 0.25) 0%, rgba(30, 144, 255, 0.12) 25%, transparent 55%),
+    radial-gradient(ellipse 1200px 800px at 90% 80%, rgba(255, 215, 0, 0.20) 0%, rgba(255, 215, 0, 0.10) 25%, transparent 55%),
+    radial-gradient(ellipse 600px 400px at 50% 50%, rgba(30, 144, 255, 0.06) 0%, transparent 50%),
+    linear-gradient(135deg, #001a33 0%, #000d1a 20%, #000000 40%, #1a0f00 60%, #0d0a00 80%, #000000 100%);
+}
+
+.dramatic-bg {
+  background:
+    radial-gradient(ellipse 1400px 900px at 5% 10%, rgba(30, 144, 255, 0.22) 0%, rgba(30, 144, 255, 0.10) 30%, transparent 60%),
+    radial-gradient(ellipse 1400px 900px at 95% 90%, rgba(255, 215, 0, 0.18) 0%, rgba(255, 215, 0, 0.08) 30%, transparent 60%),
+    radial-gradient(ellipse 600px 400px at 50% 50%, rgba(30, 144, 255, 0.05) 0%, transparent 55%),
+    linear-gradient(135deg, #001a33 0%, #000d1a 20%, #000000 40%, #1a0f00 60%, #0d0a00 80%, #000000 100%);
 }

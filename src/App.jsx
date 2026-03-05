@@ -15815,7 +15815,7 @@ const BORDER_MAP = {
 
  return (
  <div
-   className="font-sans fixed inset-0 overflow-y-auto overflow-x-hidden"
+   className="font-sans fixed inset-0 overflow-y-auto overflow-x-hidden dramatic-bg"
    style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'none' }}
    onTouchStart={handleTouchStart}
    onTouchEnd={handleTouchEnd}
