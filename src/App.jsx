@@ -408,7 +408,7 @@ const DEMO_MAIN_SPONSOR = {
 
 const MAIN_BANNER_HEIGHT = 60;
 const SOFT_LAUNCH_START = new Date('2026-02-01');
-const MainBrandBanner = ({ userCount = 0, user: bannerUser, onProfileClick, totalAlerts = 0 }) => {
+const MainBrandBanner = ({ userCount = 0, user: bannerUser, onProfileClick, onMenuClick, totalAlerts = 0 }) => {
  const daysSinceLaunch = Math.floor((Date.now() - SOFT_LAUNCH_START.getTime()) / (1000 * 60 * 60 * 24));
  const showBadge = daysSinceLaunch < 90;
  const isNew = userCount >= 100 || daysSinceLaunch >= 30;
@@ -435,6 +435,9 @@ const MainBrandBanner = ({ userCount = 0, user: bannerUser, onProfileClick, tota
  {isNew ? 'New!' : 'Soft Launch'}
  </span>
  )}
+ <button onClick={onMenuClick} className="p-2 rounded-xl hover:bg-white/10 transition-colors active:scale-95">
+ <Menu className="w-5 h-5 text-white/70" />
+ </button>
  <button onClick={onProfileClick} className="relative p-0.5 rounded-full active:scale-95 transition-transform" style={{ background: 'linear-gradient(135deg, #1E90FF, #FFD700)', padding: '2px' }}>
  <div className="rounded-full overflow-hidden bg-[#151A22]">
  {bannerUser?.profilePicture ? (
@@ -5837,98 +5840,6 @@ const qrScannerRef = useRef(null);
 
  const gamesScreenJSX = () => (
  <div className="min-h-screen pt-2 pb-[72px] brand-gradient-bg">
-
- {hamburgerOpen && (
- <>
- <div className="fixed inset-0 bg-black/50 z-[70] transition-opacity" onClick={() => { setHamburgerOpen(false); setMoreOptionsOpen(false); }} />
- <div className="fixed top-0 right-0 bottom-0 w-72 bg-[#151A22] z-[80] shadow-2xl overflow-y-auto hamburger-menu" style={{ animation: 'slideInRight 300ms ease-in-out' }}>
- <div className="flex items-center justify-between p-4 border-b border-[#222A36]">
- <span className="text-white font-black text-lg" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>MENU</span>
- <button onClick={() => setHamburgerOpen(false)} className="p-2 rounded-xl hover:bg-[#222A36] transition-colors active:scale-95">
- <X className="w-6 h-6 text-white" />
- </button>
- </div>
- <div className="p-3 space-y-1">
-<div className="flex items-center gap-3 p-4 mb-2 bg-[#0F1115] rounded-xl border border-[#222A36]">
-{user?.profilePicture ? <img src={user.profilePicture} alt="" className="w-10 h-10 rounded-full object-cover" /> : <div className="w-10 h-10 rounded-full bg-[#1E90FF]/20 flex items-center justify-center"><User className="w-5 h-5 text-[#1E90FF]" /></div>}
-<div>
-<div className="text-white font-bold text-sm">{user?.name}</div>
-<div className="text-white/50 text-xs">{user?.points || 0} pts</div>
-</div>
-</div>
-<button onClick={() => { setCurrentScreen('browseParties'); setHamburgerOpen(false); window.scrollTo(0, 0); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 transition-colors text-left active:scale-[0.98] border border-orange-500/30">
-<Search className="w-5 h-5 text-orange-400" /><span className="text-orange-400 text-sm font-bold">Browse All Parties</span>
-</button>
-<button onClick={() => { setCurrentScreen('myParties'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-500/10 transition-colors text-left active:scale-[0.98]">
-<Calendar className="w-5 h-5 text-orange-400" /><span className="text-white text-sm font-semibold">My Parties</span>
-</button>
-<button onClick={() => { setCurrentScreen('profile'); setHamburgerOpen(false); setTimeout(() => { const el = document.querySelector('[data-section="favorite-teams"]'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 400); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-amber-500/10 transition-colors text-left active:scale-[0.98]">
-<Star className="w-5 h-5 text-amber-400" /><span className="text-white text-sm font-semibold">My Favorite Teams</span>
-{user?.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 && (
-<span className="ml-auto text-xs text-amber-400 font-bold">{Object.keys(user.favoriteTeams).length}</span>
-)}
-</button>
-<button onClick={() => { setCurrentScreen('invitations'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-yellow-500/10 transition-colors text-left active:scale-[0.98]">
-<Bell className="w-5 h-5 text-yellow-400" /><span className="text-white text-sm font-semibold">Notifications</span>
-{totalAlerts > 0 && <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{totalAlerts}</span>}
-</button>
-<div className="border-t border-[#222A36] my-2" />
-<button onClick={() => { setCurrentScreen('notificationSettings'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors text-left active:scale-[0.98]">
-<Settings className="w-5 h-5 text-white/60" /><span className="text-white text-sm font-semibold">Settings</span>
-</button>
-<button onClick={() => { setShowQA(true); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-indigo-500/10 transition-colors text-left active:scale-[0.98]">
-<Shield className="w-5 h-5 text-indigo-400" /><span className="text-white text-sm font-semibold">Help & FAQ</span>
-</button>
-<button onClick={() => setMoreOptionsOpen(!moreOptionsOpen)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors text-left active:scale-[0.98]">
-<ChevronRight className={`w-5 h-5 text-white/60 transition-transform ${moreOptionsOpen ? 'rotate-90' : ''}`} /><span className="text-white text-sm font-semibold">More Options</span>
-<ChevronDown className={`w-4 h-4 text-white/40 ml-auto transition-transform ${moreOptionsOpen ? 'rotate-180' : ''}`} />
-</button>
-{moreOptionsOpen && (
-<div className="space-y-1 pl-2">
-{!isAppInstalled && (
-<button onClick={() => { handlePwaInstall(); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1E90FF]/10 transition-colors text-left active:scale-[0.98]">
-<Download className="w-5 h-5 text-[#1E90FF]" /><span className="text-white text-sm font-semibold">Install App</span>
-</button>
-)}
-<button onClick={() => { setCurrentScreen('teamChats'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-teal-500/10 transition-colors text-left active:scale-[0.98]">
-<MessageCircle className="w-5 h-5 text-teal-400" /><span className="text-white text-sm font-semibold">Team Chat</span>
-</button>
-<button onClick={() => { setCurrentScreen('fanFinder'); if (currentCity && nearbyFans.length === 0) searchNearbyFans(currentCity); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1E90FF]/10 transition-colors text-left active:scale-[0.98]">
-<UserPlus className="w-5 h-5 text-[#1E90FF]" /><span className="text-white text-sm font-semibold">Find Fans</span>
-</button>
-<button onClick={() => { setCurrentScreen('predictions'); loadPredictions(); loadPredictionLeaderboard(); window.scrollTo({ top: 0, behavior: 'instant' }); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-500/10 transition-colors text-left active:scale-[0.98]">
-<Target className="w-5 h-5 text-emerald-400" /><span className="text-white text-sm font-semibold">Predictions</span>
-</button>
-<button onClick={() => { setCurrentScreen('fantasy'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-500/10 transition-colors text-left active:scale-[0.98]">
-<Trophy className="w-5 h-5 text-orange-400" /><span className="text-white text-sm font-semibold">Fantasy</span>
-</button>
-<button onClick={() => { setCurrentScreen('inviteFriends'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-500/10 transition-colors text-left active:scale-[0.98]">
-<UserPlus className="w-5 h-5 text-emerald-400" /><span className="text-white text-sm font-semibold">Invite Friends</span>
-</button>
-<button onClick={() => { setHamburgerOpen(false); if (currentScreen !== 'games') { setCurrentScreen('games'); setTimeout(() => startSpotlightTour(), 600); } else { startSpotlightTour(); } }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1E90FF]/10 transition-colors text-left active:scale-[0.98]">
-<Map className="w-5 h-5 text-[#1E90FF]" /><span className="text-white text-sm font-semibold">Learn The App</span>
-</button>
-</div>
-)}
-<div className="border-t border-[#222A36] my-2" />
-{userVenue && (
-<button onClick={() => { setCurrentScreen('venueDashboard'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-green-500/10 transition-colors text-left active:scale-[0.98]">
-<Building2 className="w-5 h-5 text-green-400" /><span className="text-white text-sm font-semibold">Venue Hub</span>
-</button>
-)}
-{isAdmin && (
-<button onClick={() => { setCurrentScreen('admin'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-purple-500/10 transition-colors text-left active:scale-[0.98]">
-<Settings className="w-5 h-5 text-purple-400" /><span className="text-white text-sm font-semibold">Admin Panel</span>
-</button>
-)}
-<div className="border-t border-[#222A36] my-2" />
-<button onClick={() => { handleLogout(); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-500/10 transition-colors text-left active:scale-[0.98]">
-<LogOut className="w-5 h-5 text-red-400" /><span className="text-red-400 text-sm font-semibold">Logout</span>
-</button>
-</div>
- </div>
- </>
- )}
 
  {showInstallBanner && !isAppInstalled && !isStandalone && (
  <div className="sticky top-[60px] left-0 right-0 z-[60]" style={{ animation: 'slideDown 300ms ease-out' }}>
@@ -16014,9 +15925,101 @@ const BORDER_MAP = {
  {user && !['welcome', 'login', 'signup', 'forgotPassword'].includes(currentScreen) && (
  <>
  <div className="fixed top-0 left-0 right-0 z-[60]" style={{ height: `${MAIN_BANNER_HEIGHT}px` }}>
- <MainBrandBanner userCount={softLaunchStats.users} user={user} onProfileClick={() => setCurrentScreen('profile')} totalAlerts={totalAlerts} />
+ <MainBrandBanner userCount={softLaunchStats.users} user={user} onProfileClick={() => setCurrentScreen('profile')} onMenuClick={() => setHamburgerOpen(true)} totalAlerts={totalAlerts} />
  </div>
  <div style={{ height: `${MAIN_BANNER_HEIGHT}px` }} />
+ </>
+ )}
+
+ {hamburgerOpen && user && (
+ <>
+ <div className="fixed inset-0 bg-black/50 z-[70] transition-opacity" onClick={() => { setHamburgerOpen(false); setMoreOptionsOpen(false); }} />
+ <div className="fixed top-0 right-0 bottom-0 w-72 bg-[#151A22] z-[80] shadow-2xl overflow-y-auto hamburger-menu" style={{ animation: 'slideInRight 300ms ease-in-out' }}>
+ <div className="flex items-center justify-between p-4 border-b border-[#222A36]">
+ <span className="text-white font-black text-lg" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>MENU</span>
+ <button onClick={() => setHamburgerOpen(false)} className="p-2 rounded-xl hover:bg-[#222A36] transition-colors active:scale-95">
+ <X className="w-6 h-6 text-white" />
+ </button>
+ </div>
+ <div className="p-3 space-y-1">
+<div className="flex items-center gap-3 p-4 mb-2 bg-[#0F1115] rounded-xl border border-[#222A36]">
+{user?.profilePicture ? <img src={user.profilePicture} alt="" className="w-10 h-10 rounded-full object-cover" /> : <div className="w-10 h-10 rounded-full bg-[#1E90FF]/20 flex items-center justify-center"><User className="w-5 h-5 text-[#1E90FF]" /></div>}
+<div>
+<div className="text-white font-bold text-sm">{user?.name}</div>
+<div className="text-white/50 text-xs">{user?.points || 0} pts</div>
+</div>
+</div>
+<button onClick={() => { setCurrentScreen('browseParties'); setHamburgerOpen(false); window.scrollTo(0, 0); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 transition-colors text-left active:scale-[0.98] border border-orange-500/30">
+<Search className="w-5 h-5 text-orange-400" /><span className="text-orange-400 text-sm font-bold">Browse All Parties</span>
+</button>
+<button onClick={() => { setCurrentScreen('myParties'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-500/10 transition-colors text-left active:scale-[0.98]">
+<Calendar className="w-5 h-5 text-orange-400" /><span className="text-white text-sm font-semibold">My Parties</span>
+</button>
+<button onClick={() => { setCurrentScreen('profile'); setHamburgerOpen(false); setTimeout(() => { const el = document.querySelector('[data-section="favorite-teams"]'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 400); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-amber-500/10 transition-colors text-left active:scale-[0.98]">
+<Star className="w-5 h-5 text-amber-400" /><span className="text-white text-sm font-semibold">My Favorite Teams</span>
+{user?.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 && (
+<span className="ml-auto text-xs text-amber-400 font-bold">{Object.keys(user.favoriteTeams).length}</span>
+)}
+</button>
+<button onClick={() => { setCurrentScreen('invitations'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-yellow-500/10 transition-colors text-left active:scale-[0.98]">
+<Bell className="w-5 h-5 text-yellow-400" /><span className="text-white text-sm font-semibold">Notifications</span>
+{totalAlerts > 0 && <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{totalAlerts}</span>}
+</button>
+<div className="border-t border-[#222A36] my-2" />
+<button onClick={() => { setCurrentScreen('notificationSettings'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors text-left active:scale-[0.98]">
+<Settings className="w-5 h-5 text-white/60" /><span className="text-white text-sm font-semibold">Settings</span>
+</button>
+<button onClick={() => { setShowQA(true); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-indigo-500/10 transition-colors text-left active:scale-[0.98]">
+<Shield className="w-5 h-5 text-indigo-400" /><span className="text-white text-sm font-semibold">Help & FAQ</span>
+</button>
+<button onClick={() => setMoreOptionsOpen(!moreOptionsOpen)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors text-left active:scale-[0.98]">
+<ChevronRight className={`w-5 h-5 text-white/60 transition-transform ${moreOptionsOpen ? 'rotate-90' : ''}`} /><span className="text-white text-sm font-semibold">More Options</span>
+<ChevronDown className={`w-4 h-4 text-white/40 ml-auto transition-transform ${moreOptionsOpen ? 'rotate-180' : ''}`} />
+</button>
+{moreOptionsOpen && (
+<div className="space-y-1 pl-2">
+{!isAppInstalled && (
+<button onClick={() => { handlePwaInstall(); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1E90FF]/10 transition-colors text-left active:scale-[0.98]">
+<Download className="w-5 h-5 text-[#1E90FF]" /><span className="text-white text-sm font-semibold">Install App</span>
+</button>
+)}
+<button onClick={() => { setCurrentScreen('teamChats'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-teal-500/10 transition-colors text-left active:scale-[0.98]">
+<MessageCircle className="w-5 h-5 text-teal-400" /><span className="text-white text-sm font-semibold">Team Chat</span>
+</button>
+<button onClick={() => { setCurrentScreen('fanFinder'); if (currentCity && nearbyFans.length === 0) searchNearbyFans(currentCity); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1E90FF]/10 transition-colors text-left active:scale-[0.98]">
+<UserPlus className="w-5 h-5 text-[#1E90FF]" /><span className="text-white text-sm font-semibold">Find Fans</span>
+</button>
+<button onClick={() => { setCurrentScreen('predictions'); loadPredictions(); loadPredictionLeaderboard(); window.scrollTo({ top: 0, behavior: 'instant' }); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-500/10 transition-colors text-left active:scale-[0.98]">
+<Target className="w-5 h-5 text-emerald-400" /><span className="text-white text-sm font-semibold">Predictions</span>
+</button>
+<button onClick={() => { setCurrentScreen('fantasy'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-500/10 transition-colors text-left active:scale-[0.98]">
+<Trophy className="w-5 h-5 text-orange-400" /><span className="text-white text-sm font-semibold">Fantasy</span>
+</button>
+<button onClick={() => { setCurrentScreen('inviteFriends'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-500/10 transition-colors text-left active:scale-[0.98]">
+<UserPlus className="w-5 h-5 text-emerald-400" /><span className="text-white text-sm font-semibold">Invite Friends</span>
+</button>
+<button onClick={() => { setHamburgerOpen(false); if (currentScreen !== 'games') { setCurrentScreen('games'); setTimeout(() => startSpotlightTour(), 600); } else { startSpotlightTour(); } }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1E90FF]/10 transition-colors text-left active:scale-[0.98]">
+<Map className="w-5 h-5 text-[#1E90FF]" /><span className="text-white text-sm font-semibold">Learn The App</span>
+</button>
+</div>
+)}
+<div className="border-t border-[#222A36] my-2" />
+{userVenue && (
+<button onClick={() => { setCurrentScreen('venueDashboard'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-green-500/10 transition-colors text-left active:scale-[0.98]">
+<Building2 className="w-5 h-5 text-green-400" /><span className="text-white text-sm font-semibold">Venue Hub</span>
+</button>
+)}
+{isAdmin && (
+<button onClick={() => { setCurrentScreen('admin'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-purple-500/10 transition-colors text-left active:scale-[0.98]">
+<Settings className="w-5 h-5 text-purple-400" /><span className="text-white text-sm font-semibold">Admin Panel</span>
+</button>
+)}
+<div className="border-t border-[#222A36] my-2" />
+<button onClick={() => { handleLogout(); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-500/10 transition-colors text-left active:scale-[0.98]">
+<LogOut className="w-5 h-5 text-red-400" /><span className="text-red-400 text-sm font-semibold">Logout</span>
+</button>
+</div>
+ </div>
  </>
  )}
 
