@@ -5,6 +5,11 @@ import confetti from 'canvas-confetti';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { api } from './api.js';
+import adNFL from '@assets/20260304_2334_Image_Generation_remix_01kjy4adavfs9vfwhwt6a1fzj_1772686251670.png';
+import adNBA from '@assets/20260304_2335_Image_Generation_remix_01kjy4dgpvf3p83bfvzkzbget_1772686251669.png';
+import adNHL from '@assets/20260304_2342_Huddle_Up_Sports_Banner_remix_01kjy4tqf6fj3bwgpk_1772686251669.png';
+import adMLB from '@assets/20260304_2331_Sports_Bar_Excitement_remix_01kjy46em3em9ss98wh8_1772686251670.png';
+import adMain from '@assets/20260304_2344_Image_Generation_remix_01kjy4zcxhfyrremqej8jp2mv_1772686251665.png';
 
 class ScreenErrorBoundary extends React.Component {
   constructor(props) {
@@ -6049,11 +6054,11 @@ const qrScannerRef = useRef(null);
 
 {(() => {
 const adSlots = [
-{ id: 'slot1', icon: '🏈', title: 'NFL Sponsor Slot', subtitle: 'Reach thousands of sports fans', available: true, sport: 'NFL' },
-{ id: 'slot2', icon: '🏀', title: 'NBA Sponsor Slot', subtitle: 'Become a sponsor today', available: true, sport: 'NBA' },
-{ id: 'slot3', icon: '⚾', title: 'MLB Sponsor Slot', subtitle: 'Connect with passionate fans', available: true, sport: 'MLB' },
-{ id: 'slot4', icon: '🏒', title: 'NHL Sponsor Slot', subtitle: 'Premium ad placement', available: true, sport: 'NHL' },
-{ id: 'main', icon: '🏟️', title: 'Main Homepage Spot', subtitle: 'Premium placement', available: true, featured: true }
+{ id: 'slot1', title: 'NFL Watch Party Sponsor', sport: 'NFL', image: adNFL, available: true },
+{ id: 'slot2', title: 'NBA Game Night Sponsor', sport: 'NBA', image: adNBA, available: true },
+{ id: 'slot3', title: 'Official Game Night Sponsor', sport: 'MLB', image: adMLB, available: true },
+{ id: 'slot4', title: 'NHL Game Night Sponsor', sport: 'NHL', image: adNHL, available: true },
+{ id: 'main', title: 'Host Your Watch Party Here', sport: 'Main', image: adMain, available: true, featured: true }
 ];
 return (
 <div className="ad-carousel-wrap">
@@ -6063,14 +6068,14 @@ onTouchEnd={(e) => { const diff = adTouchStartRef.current - e.changedTouches[0].
 >
 <div className="ad-carousel-slides" style={{ transform: `translateX(-${adSlideIndex * 100}%)` }}>
 {adSlots.map((ad) => (
-<div key={ad.id} className={`ad-slide ${ad.featured ? 'ad-featured' : ''} ${ad.available ? 'ad-available' : ''}`}>
-{ad.available && <div className="absolute top-3 left-3 bg-emerald-500 text-white px-2.5 py-1 rounded-full text-[10px] font-bold uppercase">Available</div>}
-<div className="text-4xl mb-2">{ad.icon}</div>
-<h3 className="text-white font-bold text-base mb-1">{ad.title}</h3>
-<p className="text-white/70 text-xs mb-3">{ad.subtitle}</p>
-<button onClick={() => { if (window.confirm('Interested in sponsoring? Contact us at sponsors@huddleupusa.com')) { window.location.href = 'mailto:sponsors@huddleupusa.com?subject=Sponsor Inquiry - ' + ad.title; } }} className={`px-5 py-2 rounded-lg font-bold text-sm transition-all active:scale-95 ${ad.featured ? 'bg-amber-400 text-gray-900' : 'bg-white text-gray-900'}`}>
+<div key={ad.id} className="ad-slide" style={{ padding: 0, minHeight: 'auto', background: 'none' }}>
+<div className="relative w-full">
+<img src={ad.image} alt={ad.title} className="w-full h-auto rounded-2xl" style={{ display: 'block' }} />
+<div className="absolute top-3 left-3 bg-emerald-500 text-white px-2.5 py-1 rounded-full text-[10px] font-bold uppercase shadow-lg">Available</div>
+<button onClick={() => { if (window.confirm('Interested in sponsoring? Contact us at sponsors@huddleupusa.com')) { window.location.href = 'mailto:sponsors@huddleupusa.com?subject=Sponsor Inquiry - ' + ad.title; } }} className="absolute bottom-3 right-3 px-4 py-2 rounded-lg font-bold text-sm transition-all active:scale-95 bg-white/90 text-gray-900 backdrop-blur-sm shadow-lg hover:bg-white">
 Become a Sponsor →
 </button>
+</div>
 </div>
 ))}
 </div>
