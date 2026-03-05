@@ -6759,7 +6759,7 @@ const BORDER_MAP = {
 
  return (
  <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115] sports-tech-bg">
- <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36] relative z-[1]">
+ <div className="sticky top-[48px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-2 flex items-center justify-between">
  <button
  onClick={() => setCurrentScreen('games')}
