@@ -12547,10 +12547,10 @@ const BORDER_MAP = {
  })}
  </div>
  ) : (
- <div className="text-center py-4">
- <Star className="w-10 h-10 text-amber-400/30 mx-auto mb-2" />
- <p className="text-white font-bold text-sm mb-1">No teams selected yet</p>
- <p className="text-[#A0A4AB] text-xs mb-3">Add your favorite teams to filter games and get personalized alerts!</p>
+ <div className="text-center py-8 border-2 border-dashed border-white/10 rounded-2xl bg-white/[0.03]">
+ <div className="text-6xl mb-4">⭐</div>
+ <h3 className="text-white font-bold text-2xl mb-2">No Favorite Teams Yet</h3>
+ <p className="text-white/60 text-sm mb-5 px-4">Add your favorite teams to get personalized recommendations and game alerts!</p>
  </div>
  )}
  {unselectedSports.length > 0 && (
