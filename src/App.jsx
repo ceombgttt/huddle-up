@@ -5818,26 +5818,10 @@ const qrScannerRef = useRef(null);
  <div className="flex-shrink-0 energy-dot">
  <img src="/huddle-up-shield.png" alt="Huddle Up" className="h-10 drop-shadow-sm" />
  </div>
- <div className="flex items-center gap-4">
- <button onClick={() => setCurrentScreen('trending')} data-tour-id="trending" className="relative p-2 rounded-xl hover:bg-amber-500/20 transition-colors active:scale-95 nav-icon-glow">
- <Crown className="w-6 h-6 text-amber-400" />
- </button>
- <button onClick={() => setCurrentScreen('invitations')} data-tour-id="alerts" className="relative p-2 rounded-xl hover:bg-[#222A36] transition-colors active:scale-95">
- <Bell className="w-6 h-6 text-white" />
+ <div className="flex items-center gap-2">
+ <button onClick={() => setCurrentScreen('profile')} data-tour-id="profile" className="relative p-1.5 rounded-xl hover:bg-[#222A36] transition-colors active:scale-95">
+ {user.profilePicture ? <ProfileAvatar src={user.profilePicture} name={user.name} size="xs" className="border-2 border-[#1E90FF]/50" /> : <User className="w-7 h-7 text-white" />}
  {totalAlerts > 0 && <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center font-bold">{totalAlerts}</span>}
- </button>
- <button onClick={() => setCurrentScreen('myCrew')} data-tour-id="my-crew" className="relative p-2 rounded-xl hover:bg-[#1E90FF]/20 transition-colors active:scale-95">
- <Users className="w-6 h-6 text-[#1E90FF]" />
- {(friendRequests.length + dmUnreadCount) > 0 && <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full text-white text-[8px] flex items-center justify-center font-bold">{friendRequests.length + dmUnreadCount}</span>}
- </button>
- <button onClick={() => setCurrentScreen('profile')} data-tour-id="profile" className="p-2 rounded-xl hover:bg-[#222A36] transition-colors active:scale-95">
- {user.profilePicture ? <ProfileAvatar src={user.profilePicture} name={user.name} size="xs" className="border border-[#1E90FF]/50" /> : <User className="w-6 h-6 text-white" />}
- </button>
- <button onClick={() => setCurrentScreen('rewards')} data-tour-id="rewards" className="p-2 rounded-xl hover:bg-yellow-500/20 transition-colors active:scale-95">
- <Gift className="w-6 h-6 text-yellow-400" />
- </button>
- <button onClick={() => setHamburgerOpen(true)} className="p-2 rounded-xl hover:bg-[#222A36] transition-colors active:scale-95">
- <Menu className="w-6 h-6 text-white" />
  </button>
  </div>
  </div>
@@ -6044,19 +6028,26 @@ const qrScannerRef = useRef(null);
  </div>
  </div>
 
-<div className="grid grid-cols-3 gap-2 mb-3">
-<button onClick={() => { setCurrentScreen('profile'); window.scrollTo(0,0); setTimeout(() => { const el = document.querySelector('[data-section="favorite-teams"]'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 400); }} className="bg-[#151A22] border border-[#222A36] rounded-xl p-3 text-center hover:border-amber-500/40 transition-all active:scale-[0.97]">
-<div className="text-2xl mb-1">⭐</div>
-<div className="text-white text-xs font-bold">My Teams</div>
-{user?.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 && <div className="text-amber-400 text-[10px] font-bold mt-0.5">{Object.keys(user.favoriteTeams).length}</div>}
+<div className="grid grid-cols-2 gap-3 mb-3">
+<button onClick={() => { setCurrentScreen('trending'); window.scrollTo(0,0); }} className="relative bg-gradient-to-br from-amber-900/30 to-orange-900/20 border-2 border-amber-500/40 rounded-2xl p-4 text-center hover:border-amber-400/60 transition-all active:scale-[0.97]" style={{ minHeight: '100px' }}>
+<div className="text-3xl mb-1.5">👑</div>
+<div className="text-white text-sm font-bold">Featured</div>
+<div className="text-amber-400/70 text-[10px] mt-0.5">Premium parties</div>
 </button>
-<button onClick={() => { setCurrentScreen('myParties'); window.scrollTo(0,0); }} className="bg-[#151A22] border border-[#222A36] rounded-xl p-3 text-center hover:border-[#1E90FF]/40 transition-all active:scale-[0.97]">
-<div className="text-2xl mb-1">📅</div>
-<div className="text-white text-xs font-bold">Upcoming</div>
+<button onClick={() => { setCurrentScreen('profile'); window.scrollTo(0,0); setTimeout(() => { const el = document.querySelector('[data-section="favorite-teams"]'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 400); }} className="relative bg-[#151A22] border border-[#222A36] rounded-2xl p-4 text-center hover:border-amber-500/40 transition-all active:scale-[0.97]" style={{ minHeight: '100px' }}>
+<div className="text-3xl mb-1.5">⭐</div>
+<div className="text-white text-sm font-bold">My Teams</div>
+{user?.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 && <span className="absolute top-2.5 right-2.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">{Object.keys(user.favoriteTeams).length}</span>}
 </button>
-<button onClick={() => { setCurrentScreen('browseParties'); window.scrollTo(0,0); }} className="bg-[#151A22] border border-[#222A36] rounded-xl p-3 text-center hover:border-emerald-500/40 transition-all active:scale-[0.97]">
-<div className="text-2xl mb-1">📍</div>
-<div className="text-white text-xs font-bold">Near Me</div>
+<button onClick={() => { setCurrentScreen('myParties'); window.scrollTo(0,0); }} className="relative bg-[#151A22] border border-[#222A36] rounded-2xl p-4 text-center hover:border-[#1E90FF]/40 transition-all active:scale-[0.97]" style={{ minHeight: '100px' }}>
+<div className="text-3xl mb-1.5">📅</div>
+<div className="text-white text-sm font-bold">My Parties</div>
+{(() => { const joined = parties.filter(p => userParties.includes(p.id) && new Date(p.gameTime) >= new Date()).length; return joined > 0 ? <span className="absolute top-2.5 right-2.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">{joined}</span> : null; })()}
+</button>
+<button onClick={() => { setCurrentScreen('browseParties'); window.scrollTo(0,0); }} className="relative bg-[#151A22] border border-[#222A36] rounded-2xl p-4 text-center hover:border-emerald-500/40 transition-all active:scale-[0.97]" style={{ minHeight: '100px' }}>
+<div className="text-3xl mb-1.5">📍</div>
+<div className="text-white text-sm font-bold">Near Me</div>
+{(() => { const nearby = parties.filter(p => new Date(p.gameTime) >= new Date()).length; return nearby > 0 ? <span className="absolute top-2.5 right-2.5 bg-[#1E90FF] text-white text-[10px] font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">{nearby}</span> : null; })()}
 </button>
 </div>
 
@@ -12318,21 +12309,8 @@ const BORDER_MAP = {
  <div className="min-h-screen pt-[48px] pb-[72px] bg-[#0F1115]">
  <div className="sticky top-[48px] z-30 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-3">
- <div className="flex items-center justify-between">
- <button
- onClick={() => setCurrentScreen('games')}
- className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors"
- >
- <ArrowLeft className="w-5 h-5" />
- Back
- </button>
- <button
- onClick={handleLogout}
- className="flex items-center gap-2 px-4 py-2 bg-red-500/20 text-red-300 rounded-xl hover:bg-red-500/30 transition-colors"
- >
- <LogOut className="w-4 h-4" />
- Logout
- </button>
+ <div className="flex items-center justify-center">
+ <h1 className="text-white font-black text-lg" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>MY PROFILE</h1>
  </div>
  </div>
  </div>
@@ -12522,6 +12500,38 @@ const BORDER_MAP = {
  );
  })()}
  </div>
+ </div>
+
+ <div className="bg-[#151A22] rounded-2xl border border-[#222A36] shadow-xl overflow-hidden">
+ <button onClick={() => { setCurrentScreen('invitations'); }} className="w-full flex items-center gap-3 px-5 py-4 hover:bg-white/5 transition-colors text-left border-b border-[#222A36]">
+ <Bell className="w-5 h-5 text-yellow-400" />
+ <span className="text-white text-sm font-semibold flex-1">Notifications</span>
+ {totalAlerts > 0 && <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{totalAlerts}</span>}
+ <ChevronRight className="w-4 h-4 text-white/30" />
+ </button>
+ <button onClick={() => { setCurrentScreen('profile'); setTimeout(() => { const el = document.querySelector('[data-section="favorite-teams"]'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 100); }} className="w-full flex items-center gap-3 px-5 py-4 hover:bg-white/5 transition-colors text-left border-b border-[#222A36]">
+ <Star className="w-5 h-5 text-amber-400" />
+ <span className="text-white text-sm font-semibold flex-1">My Favorite Teams</span>
+ {user?.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 && <span className="text-amber-400 text-xs font-bold">{Object.keys(user.favoriteTeams).length}</span>}
+ <ChevronRight className="w-4 h-4 text-white/30" />
+ </button>
+ <button onClick={() => { setCurrentScreen('notificationSettings'); }} className="w-full flex items-center gap-3 px-5 py-4 hover:bg-white/5 transition-colors text-left border-b border-[#222A36]">
+ <Settings className="w-5 h-5 text-white/60" />
+ <span className="text-white text-sm font-semibold flex-1">Settings</span>
+ <ChevronRight className="w-4 h-4 text-white/30" />
+ </button>
+ <button onClick={() => { setShowQA(true); }} className="w-full flex items-center gap-3 px-5 py-4 hover:bg-white/5 transition-colors text-left border-b border-[#222A36]">
+ <HelpCircle className="w-5 h-5 text-indigo-400" />
+ <span className="text-white text-sm font-semibold flex-1">Help & FAQ</span>
+ <ChevronRight className="w-4 h-4 text-white/30" />
+ </button>
+ {!isAppInstalled && (
+ <button onClick={() => { handlePwaInstall(); }} className="w-full flex items-center gap-3 px-5 py-4 hover:bg-white/5 transition-colors text-left">
+ <Download className="w-5 h-5 text-[#1E90FF]" />
+ <span className="text-white text-sm font-semibold flex-1">Install App</span>
+ <ChevronRight className="w-4 h-4 text-white/30" />
+ </button>
+ )}
  </div>
 
  {(() => {
@@ -12910,6 +12920,13 @@ const BORDER_MAP = {
  )}
  </div>
 
+ <button
+ onClick={handleLogout}
+ className="w-full flex items-center justify-center gap-2 py-4 bg-red-500/10 text-red-400 font-bold rounded-2xl border border-red-500/20 hover:bg-red-500/20 transition-colors"
+ >
+ <LogOut className="w-5 h-5" />
+ Log Out
+ </button>
 
  </div>
  </div>
@@ -16005,18 +16022,23 @@ const BORDER_MAP = {
 
 {user && !['welcome', 'login', 'signup', 'signupType', 'forgotPassword'].includes(currentScreen) && (
 <div className="fixed bottom-0 left-0 right-0 z-[50] bg-[#151A22] border-t border-[#222A36]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-<div className="flex items-center justify-around py-2 max-w-lg mx-auto">
-<button onClick={() => { setCurrentScreen('games'); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 px-4 py-1 transition-colors ${currentScreen === 'games' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
+<div className="grid grid-cols-5 py-1.5 max-w-lg mx-auto">
+<button onClick={() => { setCurrentScreen('games'); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 py-1 transition-colors ${currentScreen === 'games' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
 <Home className="w-5 h-5" /><span className="text-[10px] font-semibold">Home</span>
 </button>
-<button onClick={() => { setCurrentScreen('browseParties'); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 px-4 py-1 transition-colors ${currentScreen === 'browseParties' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
+<button onClick={() => { setCurrentScreen('browseParties'); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 py-1 transition-colors ${currentScreen === 'browseParties' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
 <Search className="w-5 h-5" /><span className="text-[10px] font-semibold">Browse</span>
 </button>
-<button onClick={() => { setCurrentScreen('myParties'); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 px-4 py-1 transition-colors ${currentScreen === 'myParties' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
-<Calendar className="w-5 h-5" /><span className="text-[10px] font-semibold">My Parties</span>
+<button onClick={() => { setCurrentScreen('myCrew'); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 py-1 transition-colors relative ${currentScreen === 'myCrew' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
+<Users className="w-5 h-5" /><span className="text-[10px] font-semibold">Crew</span>
+{(friendRequests.length + dmUnreadCount) > 0 && <span className="absolute top-0 right-[20%] bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">{friendRequests.length + dmUnreadCount}</span>}
 </button>
-<button onClick={() => { setCurrentScreen('profile'); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 px-4 py-1 transition-colors ${currentScreen === 'profile' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
-<User className="w-5 h-5" /><span className="text-[10px] font-semibold">Profile</span>
+<button onClick={() => { setCurrentScreen('rewards'); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 py-1 transition-colors ${currentScreen === 'rewards' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
+<Gift className="w-5 h-5" /><span className="text-[10px] font-semibold">Rewards</span>
+</button>
+<button onClick={() => { setCurrentScreen('profile'); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 py-1 transition-colors relative ${currentScreen === 'profile' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
+<User className="w-5 h-5" /><span className="text-[10px] font-semibold">Me</span>
+{totalAlerts > 0 && <span className="absolute top-0 right-[20%] bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">{totalAlerts}</span>}
 </button>
 </div>
 </div>
