@@ -2963,13 +2963,37 @@ const qrScannerRef = useRef(null);
  }
  };
 
+ const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+ const fireJoinConfetti = () => {
+ if (prefersReducedMotion) return;
+ const colors = ['#1E90FF', '#FFD700', '#10B981', '#ff6b6b'];
+ const end = Date.now() + 1800;
+ const interval = setInterval(() => {
+ if (Date.now() > end) { clearInterval(interval); return; }
+ confetti({ particleCount: 40, startVelocity: 45, spread: 80, origin: { x: 0, y: 0.6 }, colors, ticks: 200, gravity: 1.2, scalar: 1.2 });
+ confetti({ particleCount: 40, startVelocity: 45, spread: 80, origin: { x: 1, y: 0.6 }, colors, ticks: 200, gravity: 1.2, scalar: 1.2 });
+ confetti({ particleCount: 60, startVelocity: 55, spread: 100, origin: { x: 0.5, y: 1 }, colors, ticks: 300, gravity: 0.8, scalar: 1.4, shapes: ['circle', 'square'] });
+ }, 250);
+ };
+
+ const [joiningPartyId, setJoiningPartyId] = useState(null);
+ const [justJoinedPartyId, setJustJoinedPartyId] = useState(null);
+
  const handleJoinParty = async (partyId) => {
  try {
+ setJoiningPartyId(partyId);
  await api.parties.join(partyId);
+ fireJoinConfetti();
+ if (!prefersReducedMotion && navigator.vibrate) navigator.vibrate([50, 100, 50]);
+ setJoiningPartyId(null);
+ setJustJoinedPartyId(partyId);
+ setTimeout(() => setJustJoinedPartyId(null), 2500);
  await loadParties();
  await loadUserParties();
  loadBadgeStats();
  } catch (error) {
+ setJoiningPartyId(null);
  alert(error.message);
  }
  };
@@ -6040,10 +6064,10 @@ Become a Sponsor →
            className={`p-3 rounded-xl cursor-pointer active:scale-[0.99] transition-all ${isLiveNow ? 'bg-red-500/20 border border-red-500/40' : 'bg-[#151A22] border border-[#222A36] hover:border-red-500/30'}`}>
            <div className="flex items-center justify-between">
              <div className="flex items-center gap-2 min-w-0">
-               {isLiveNow && <span className="px-2 py-0.5 bg-red-500 text-white text-[10px] font-black rounded-full animate-pulse">LIVE</span>}
+               {isLiveNow && <span className="px-2 py-0.5 bg-red-500 text-white text-[10px] font-black rounded-full live-badge-pulse">LIVE</span>}
                <span className="text-white font-bold text-sm truncate">{lp.awayTeam} @ {lp.homeTeam}</span>
              </div>
-             <span className={`text-xs font-black px-2 py-1 rounded-full flex-shrink-0 ${isLiveNow ? 'bg-red-500 text-white animate-pulse' : 'bg-red-500/20 text-red-400'}`}>{countdown}</span>
+             <span className={`text-xs font-black px-2 py-1 rounded-full flex-shrink-0 ${isLiveNow ? 'bg-red-500 text-white live-badge-pulse' : 'bg-red-500/20 text-red-400'}`}>{countdown}</span>
            </div>
            <div className="flex items-center gap-3 mt-1.5 text-xs text-[#A0A4AB]">
              <span className="flex items-center gap-1"><MapPin className="w-3 h-3 text-emerald-400" />{lp.venueName || 'TBD'}</span>
@@ -6426,7 +6450,7 @@ Become a Sponsor →
  <span className="text-sm font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.awayTeam}</span>
  </div>
  </div>
- <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${game.gameStatus === 'live' ? 'bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse' : 'bg-gray-500/20 text-[#A0A4AB] border border-gray-500/30'}`}>
+ <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${game.gameStatus === 'live' ? 'bg-red-500/20 text-red-400 border border-red-500/30 live-badge-pulse' : 'bg-gray-500/20 text-[#A0A4AB] border border-gray-500/30'}`}>
  {game.statusDetail}
  </span>
  </div>
@@ -6733,7 +6757,7 @@ const BORDER_MAP = {
  {selectedGame.awayRecord && <div className="text-xs text-[#A0A4AB]/70">{selectedGame.awayRecord}</div>}
  </div>
  </div>
- <span className={`px-4 py-1.5 text-sm font-bold rounded-full ${selectedGame.gameStatus === 'live' ? 'bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse' : 'bg-gray-500/20 text-[#A0A4AB] border border-gray-500/30'}`}>
+ <span className={`px-4 py-1.5 text-sm font-bold rounded-full ${selectedGame.gameStatus === 'live' ? 'bg-red-500/20 text-red-400 border border-red-500/30 live-badge-pulse' : 'bg-gray-500/20 text-[#A0A4AB] border border-gray-500/30'}`}>
  {selectedGame.statusDetail}
  </span>
  </>
@@ -7436,17 +7460,24 @@ const BORDER_MAP = {
  )}
 
  {!isAttending && party.hostEmail !== user.email && (
+ justJoinedPartyId === party.id ? (
+ <button className="w-full mt-3 py-4 rounded-xl font-black text-lg join-btn-wow joined-success">
+ <span className="checkmark-pop">✓</span> You're Going!
+ </button>
+ ) : (
  <button
  onClick={() => handleJoinParty(party.id)}
- disabled={isFull}
- className={`w-full mt-3 py-4 rounded-xl font-black text-lg transition-all active:scale-[0.97] ${
+ disabled={isFull || joiningPartyId === party.id}
+ className={`w-full mt-3 py-4 rounded-xl font-black text-lg join-btn-wow ${
+ joiningPartyId === party.id ? 'joining bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white' :
  isFull
  ? 'bg-gray-500/20 text-[#A0A4AB]/70 border-2 border-gray-500/30 cursor-not-allowed'
  : 'bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white shadow-lg shadow-[#1E90FF]/20 hover:shadow-[#1E90FF]/40 hover:translate-y-[-1px]'
  }`}
  >
- {isFull ? 'Party Full' : 'Join This Party 🎉'}
+ {joiningPartyId === party.id ? 'Joining...' : isFull ? 'Party Full' : 'Join This Party 🎉'}
  </button>
+ )
  )}
  </div>
  </div>
@@ -11476,7 +11507,7 @@ const BORDER_MAP = {
            ) : <span className="text-lg flex-shrink-0">{getSportIcon(party.sport)}</span>; })()}
            <div className="min-w-0">
              <span className="text-white font-bold text-sm">{String(party.homeTeam || '?')} vs {String(party.awayTeam || '?')}</span>
-             {isLive && <span className="ml-2 px-2 py-0.5 bg-red-500 text-white text-[10px] font-black rounded-full animate-pulse">LIVE</span>}
+             {isLive && <span className="ml-2 px-2 py-0.5 bg-red-500 text-white text-[10px] font-black rounded-full live-badge-pulse">LIVE</span>}
              {isPopular && !isLive && <span className="ml-2 text-orange-400 text-[10px] font-bold">🔥 POPULAR</span>}
            </div>
          </div>
@@ -11499,9 +11530,15 @@ const BORDER_MAP = {
            <button onClick={(e) => { e.stopPropagation(); openShareMenu(party); }} className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300"><Share2 className="w-3 h-3" /> Share</button>
          </div>
          {user && Array.isArray(party.attendees) && !party.attendees.includes(user.email) && party.hostEmail !== user.email ? (
-           <button onClick={(e) => { e.stopPropagation(); handleJoinParty(party.id); }} className="flex items-center gap-1.5 px-5 py-2.5 bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white font-bold text-base rounded-xl shadow-lg shadow-[#1E90FF]/20 hover:shadow-[#1E90FF]/40 hover:translate-y-[-1px] transition-all active:scale-[0.97]">
-             Join 🎉
+           justJoinedPartyId === party.id ? (
+           <button className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl font-bold text-base join-btn-wow joined-success">
+             <span className="checkmark-pop">✓</span> Going!
            </button>
+           ) : (
+           <button onClick={(e) => { e.stopPropagation(); handleJoinParty(party.id); }} disabled={joiningPartyId === party.id} className={`flex items-center gap-1.5 px-5 py-2.5 bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white font-bold text-base rounded-xl shadow-lg shadow-[#1E90FF]/20 hover:shadow-[#1E90FF]/40 hover:translate-y-[-1px] transition-all join-btn-wow ${joiningPartyId === party.id ? 'joining' : ''}`}>
+             {joiningPartyId === party.id ? 'Joining...' : 'Join 🎉'}
+           </button>
+           )
          ) : user && Array.isArray(party.attendees) && party.attendees.includes(user.email) ? (
            <span className="flex items-center gap-1 px-3 py-1.5 bg-green-500/20 text-green-400 text-xs font-bold rounded-full border border-green-500/30">
              <Check className="w-3 h-3" /> Joined
@@ -13477,7 +13514,7 @@ const BORDER_MAP = {
        <div className="flex items-center justify-between mb-2">
          <span className="text-xs text-[#1E90FF] bg-[#1E90FF]/10 px-2 py-0.5 rounded-full font-bold">{game.sport}</span>
          {game.gameStatus === 'live' ? (
-           <span className="text-xs text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full font-bold animate-pulse">LIVE</span>
+           <span className="text-xs text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full font-bold live-badge-pulse">LIVE</span>
          ) : isStarted ? (
            <span className="text-xs text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-full">Started</span>
          ) : (

@@ -136,11 +136,32 @@
 }
 
 .sport-card-live {
-  animation: border-glow-shift 2s ease-in-out infinite;
-  box-shadow: 0 0 15px rgba(239, 68, 68, 0.08), 0 0 30px rgba(239, 68, 68, 0.04);
+  animation: liveCardPulse 2s ease-in-out infinite;
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.25), 0 0 40px rgba(30, 144, 255, 0.1);
+  border-color: rgba(239, 68, 68, 0.4) !important;
 }
 
 .sport-card-live::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(
+    45deg,
+    #1E90FF,
+    #ef4444,
+    #FFD700,
+    #ef4444,
+    #1E90FF
+  );
+  background-size: 400% 400%;
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0.5;
+  filter: blur(8px);
+  animation: liveGlowRotate 3s linear infinite;
+}
+
+.sport-card-live::after {
   content: '';
   position: absolute;
   top: 0;
@@ -149,12 +170,85 @@
   height: 2px;
   background: linear-gradient(90deg,
     transparent,
-    rgba(239, 68, 68, 0.5),
-    rgba(30, 144, 255, 0.5),
+    rgba(239, 68, 68, 0.7),
+    rgba(255, 215, 0, 0.5),
+    rgba(30, 144, 255, 0.7),
     transparent
   );
   background-size: 200% 100%;
-  animation: glow-line-sweep 3s linear infinite;
+  animation: glow-line-sweep 2s linear infinite;
+}
+
+@keyframes liveCardPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.25), 0 0 40px rgba(30, 144, 255, 0.1);
+  }
+  50% {
+    transform: scale(1.015);
+    box-shadow: 0 8px 32px rgba(239, 68, 68, 0.35), 0 0 50px rgba(30, 144, 255, 0.2);
+  }
+}
+
+@keyframes liveGlowRotate {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.live-badge-pulse {
+  animation: liveBadgePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes liveBadgePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.1); }
+}
+
+.join-btn-wow {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.join-btn-wow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.5s;
+}
+
+.join-btn-wow:active::before {
+  transform: translateX(100%);
+}
+
+.join-btn-wow.joining {
+  transform: scale(1.05);
+  box-shadow: 0 12px 32px rgba(30, 144, 255, 0.6);
+}
+
+.join-btn-wow.joined-success {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+  animation: joinSuccessPulse 0.6s ease;
+}
+
+@keyframes joinSuccessPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.checkmark-pop {
+  display: inline-block;
+  animation: checkmarkPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes checkmarkPop {
+  0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+  50% { transform: scale(1.2) rotate(10deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
 }
 
 .live-indicator-ring {
@@ -497,6 +591,7 @@
   .glow-divider-green,
   .sport-card-glow::after,
   .sport-card-live::before,
+  .sport-card-live::after,
   .featured-shimmer::after,
   .sports-tech-bg::before,
   .nav-glow-bar::before,
@@ -507,7 +602,12 @@
   .brand-text-glow,
   .sport-pill-active::before,
   .sport-pill-live::after,
-  .energy-dot::before {
+  .energy-dot::before,
+  .join-btn-wow,
+  .join-btn-wow.joining,
+  .join-btn-wow.joined-success,
+  .live-badge-pulse,
+  .checkmark-pop {
     animation: none !important;
   }
   .sport-card-live {
