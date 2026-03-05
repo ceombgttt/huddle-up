@@ -6512,48 +6512,6 @@ const qrScannerRef = useRef(null);
  );
  })()}
 
- {/* FEATURED: FIFA WORLD CUP 2026 BANNER */}
- {(() => {
- const wcGames = games.filter(g => g.sport === 'FIFA World Cup' || g.sport === 'FIFA Club World Cup');
- const wcHasStarted = wcGames.length > 0;
- return (
- <div className="max-w-4xl mx-auto px-4 pt-2 pb-2">
- <button
- onClick={() => {
- if (wcHasStarted) {
- setSelectedSports(['FIFA World Cup']);
- }
- }}
- className={`w-full rounded-[10px] overflow-hidden ${!wcHasStarted ? 'cursor-default' : ''}`}
- >
- <div className="relative bg-gradient-to-r from-amber-900/80 via-yellow-700/60 to-amber-900/80 border border-yellow-500/40 rounded-[10px] p-3 overflow-hidden">
- <div className="relative flex items-center gap-3">
- <div className="flex-shrink-0">
- <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400 via-amber-500 to-yellow-600 flex items-center justify-center">
- <span className="text-2xl">🏆</span>
- </div>
- </div>
- <div className="flex-1 min-w-0">
- <div className="flex items-center gap-1.5 mb-0.5">
- <span className="px-1.5 py-0.5 bg-red-500/80 text-white text-[9px] font-black uppercase rounded tracking-wider">Featured</span>
- {!wcHasStarted && <span className="px-1.5 py-0.5 bg-yellow-500/30 text-yellow-300 text-[9px] font-black uppercase rounded tracking-wider">Coming Soon</span>}
- {wcHasStarted && <span className="px-1.5 py-0.5 bg-green-500/30 text-green-300 text-[9px] font-black uppercase rounded tracking-wider animate-pulse">Live Now</span>}
- </div>
- <h3 className="text-base font-black text-white leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
- FIFA WORLD CUP 2026
- </h3>
- <div className="flex items-center gap-1.5 mt-1">
- <span className="text-sm">🇺🇸</span><span className="text-sm">🇲🇽</span><span className="text-sm">🇨🇦</span><span className="text-sm">🇧🇷</span><span className="text-sm">🇩🇪</span><span className="text-sm">🇦🇷</span><span className="text-sm">🇫🇷</span>
- <span className="text-yellow-300/60 text-[10px] font-bold ml-auto">{wcHasStarted ? 'View games →' : 'June 2026'}</span>
- </div>
- </div>
- </div>
- </div>
- </button>
- </div>
- );
- })()}
-
  {/* SPECIAL EVENTS - Big games, finals, playoffs */}
  {(() => {
  const MAJOR_SPORTS = new Set(['UFC', 'Boxing', 'Formula 1', 'Champions League', 'FIFA World Cup', 'UFC/MMA']);
