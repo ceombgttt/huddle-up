@@ -6410,8 +6410,11 @@ Become a Sponsor →
  <div className="max-w-4xl mx-auto px-4 pt-4 pb-2" data-tour-id="game-cards">
  <div className="flex items-center justify-between mb-3">
  <div>
- <span className="text-white font-bold text-sm">Tap any game to start a watch party</span>
- <span className="text-[#A0A4AB] text-xs ml-2">({filteredGames.length} {filteredGames.length === 1 ? 'game' : 'games'})</span>
+ <div className="flex items-center gap-2">
+ <span className="text-lg">👇</span>
+ <span className="text-white font-black text-base uppercase tracking-wide" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>Tap Any Game to Start a Watch Party</span>
+ </div>
+ <span className="text-[#A0A4AB] text-xs">({filteredGames.length} {filteredGames.length === 1 ? 'game' : 'games'})</span>
  </div>
  {hasActiveFilters && (
    <button onClick={() => { setDateFilter('All'); setSortOption('Soonest'); setSelectedSports([]); setSearchTerm(''); setMyTeamsOnly(false); }} className="text-[#1E90FF] text-xs font-bold hover:text-[#1E90FF]/80 transition-colors">
