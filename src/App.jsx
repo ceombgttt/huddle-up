@@ -15355,7 +15355,7 @@ const BORDER_MAP = {
          <div ref={dmEndRef} />
        </div>
 
-       <div className="fixed bottom-0 left-0 right-0 bg-[#0F1115] border-t border-[#222A36] p-3 z-20">
+       <div className="fixed bottom-0 left-0 right-0 bg-[#0F1115] border-t border-[#222A36] p-3 z-[60]" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom, 0px))' }}>
          <div className="max-w-4xl mx-auto flex gap-2">
            <input
              type="text"
@@ -16118,7 +16118,7 @@ const BORDER_MAP = {
  {currentScreen === 'venueDetail' && <VenueDetailScreen />}
  {currentScreen === 'inviteFriends' && renderInviteFriendsScreen()}
 
-{user && !['welcome', 'login', 'signup', 'signupType', 'forgotPassword'].includes(currentScreen) && (
+{user && !['welcome', 'login', 'signup', 'signupType', 'forgotPassword', 'dmChat', 'gameDetail'].includes(currentScreen) && !(currentScreen === 'teamChats' && teamChatSelectedRoom) && (
 <div className="fixed bottom-0 left-0 right-0 z-[50] bg-[#151A22] border-t border-[#222A36]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
 <div className="grid grid-cols-5 py-1.5 max-w-lg mx-auto">
 <button onClick={() => { setCurrentScreen('games'); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 py-1 transition-colors ${currentScreen === 'games' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
