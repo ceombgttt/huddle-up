@@ -6017,14 +6017,14 @@ const qrScannerRef = useRef(null);
 </div>
 
 <div className="grid grid-cols-2 gap-3 mb-3">
-<button onClick={() => { setCurrentScreen('games'); window.scrollTo(0,0); }} className="relative overflow-hidden rounded-2xl border border-emerald-500/40 bg-gradient-to-br from-emerald-900/40 to-[#151A22] p-4 text-center hover:border-emerald-500/60 transition-all active:scale-[0.97]" style={{ minHeight: '80px' }}>
+<button onClick={() => { if (currentScreen !== 'games') { setCurrentScreen('games'); setTimeout(() => { const el = document.querySelector('[data-tour-id="game-cards"]'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 400); } else { const el = document.querySelector('[data-tour-id="game-cards"]'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } }} className="relative overflow-hidden rounded-2xl border border-emerald-500/40 bg-gradient-to-br from-emerald-900/40 to-[#151A22] p-4 text-center hover:border-emerald-500/60 transition-all active:scale-[0.97]" style={{ minHeight: '80px' }}>
 <div className="flex flex-col items-center gap-2">
 <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
 <Plus className="w-6 h-6 text-white" />
 </div>
 <div>
 <div className="text-white font-black text-sm" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>CREATE PARTY</div>
-<div className="text-emerald-300/70 text-[10px] font-semibold">Host a watch party</div>
+<div className="text-emerald-300/70 text-[10px] font-semibold">Pick a game below</div>
 </div>
 </div>
 </button>
