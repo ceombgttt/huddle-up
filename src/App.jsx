@@ -5999,50 +5999,6 @@ const qrScannerRef = useRef(null);
 )}
 
 
-{(() => {
- const wcStart = new Date('2026-06-11T19:00:00Z');
- const diff = wcStart.getTime() - wcTick;
- if (diff <= 0) return null;
- const days = Math.floor(diff / 86400000);
- const hrs = Math.floor((diff % 86400000) / 3600000);
- const mins = Math.floor((diff % 3600000) / 60000);
- const secs = Math.floor((diff % 60000) / 1000);
- return (
- <div
- onClick={() => { setSelectedSports(['FIFA World Cup']); setCurrentScreen('games'); window.scrollTo(0,0); }}
- className="mb-3 relative overflow-hidden rounded-2xl border border-emerald-500/40 cursor-pointer hover:border-emerald-400/60 transition-all active:scale-[0.99]"
- style={{ background: 'linear-gradient(135deg, #064e3b 0%, #065f46 30%, #047857 60%, #059669 100%)' }}
- >
- <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
- <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
- <div className="relative p-4">
- <div className="flex items-center gap-3 mb-3">
- <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center border border-white/20">
- <img src="https://flagcdn.com/w80/us.png" alt="USA" className="w-5 h-4 object-cover rounded-sm" onError={(e) => { e.target.onerror=null; e.target.style.display='none'; }} />
- </div>
- <div className="flex-1">
- <h3 className="text-white font-black text-sm tracking-wide" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>FIFA WORLD CUP 2026</h3>
- <p className="text-emerald-200/80 text-[10px] font-semibold">USA • MEXICO • CANADA</p>
- </div>
- <div className="flex gap-1">
- <img src="https://flagcdn.com/w40/mx.png" alt="" className="w-5 h-3.5 object-cover rounded-sm opacity-70" onError={(e) => { e.target.onerror=null; e.target.style.display='none'; }} />
- <img src="https://flagcdn.com/w40/ca.png" alt="" className="w-5 h-3.5 object-cover rounded-sm opacity-70" onError={(e) => { e.target.onerror=null; e.target.style.display='none'; }} />
- </div>
- </div>
- <div className="grid grid-cols-4 gap-2 mb-2">
- {[{v: days, l: 'DAYS'}, {v: hrs, l: 'HRS'}, {v: mins, l: 'MIN'}, {v: secs, l: 'SEC'}].map(({v, l}) => (
- <div key={l} className="text-center bg-black/30 rounded-lg py-2 border border-white/10">
- <div className="text-white font-black text-xl leading-none" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{String(v).padStart(2, '0')}</div>
- <div className="text-emerald-300/60 text-[9px] font-bold mt-1">{l}</div>
- </div>
- ))}
- </div>
- <p className="text-emerald-200/50 text-[10px] text-center font-semibold">Tap to see World Cup matches & create watch parties</p>
- </div>
- </div>
- );
-})()}
-
  <div onClick={() => { setCurrentScreen('browseParties'); window.scrollTo(0, 0); }} className="mb-3 relative overflow-hidden rounded-2xl border border-orange-500/40 bg-gradient-to-r from-orange-900/40 via-[#151A22] to-orange-900/30 cursor-pointer hover:border-orange-500/60 transition-all active:scale-[0.99]">
  <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full -translate-y-1/2 translate-x-1/2" />
  <div className="p-4 flex items-center gap-4">
@@ -6694,6 +6650,52 @@ const BORDER_MAP = {
    </div>
  );
  })()}
+
+{(() => {
+ const wcStart = new Date('2026-06-11T19:00:00Z');
+ const diff = wcStart.getTime() - wcTick;
+ if (diff <= 0) return null;
+ const days = Math.floor(diff / 86400000);
+ const hrs = Math.floor((diff % 86400000) / 3600000);
+ const mins = Math.floor((diff % 3600000) / 60000);
+ const secs = Math.floor((diff % 60000) / 1000);
+ return (
+ <div className="max-w-4xl mx-auto px-4 pb-2">
+ <div
+ onClick={() => { setSelectedSports(['FIFA World Cup']); setCurrentScreen('games'); window.scrollTo(0,0); }}
+ className="mb-3 relative overflow-hidden rounded-2xl border border-emerald-500/40 cursor-pointer hover:border-emerald-400/60 transition-all active:scale-[0.99]"
+ style={{ background: 'linear-gradient(135deg, #064e3b 0%, #065f46 30%, #047857 60%, #059669 100%)' }}
+ >
+ <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+ <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+ <div className="relative p-4">
+ <div className="flex items-center gap-3 mb-3">
+ <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center border border-white/20">
+ <img src="https://flagcdn.com/w80/us.png" alt="USA" className="w-5 h-4 object-cover rounded-sm" onError={(e) => { e.target.onerror=null; e.target.style.display='none'; }} />
+ </div>
+ <div className="flex-1">
+ <h3 className="text-white font-black text-sm tracking-wide" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>FIFA WORLD CUP 2026</h3>
+ <p className="text-emerald-200/80 text-[10px] font-semibold">USA • MEXICO • CANADA</p>
+ </div>
+ <div className="flex gap-1">
+ <img src="https://flagcdn.com/w40/mx.png" alt="" className="w-5 h-3.5 object-cover rounded-sm opacity-70" onError={(e) => { e.target.onerror=null; e.target.style.display='none'; }} />
+ <img src="https://flagcdn.com/w40/ca.png" alt="" className="w-5 h-3.5 object-cover rounded-sm opacity-70" onError={(e) => { e.target.onerror=null; e.target.style.display='none'; }} />
+ </div>
+ </div>
+ <div className="grid grid-cols-4 gap-2 mb-2">
+ {[{v: days, l: 'DAYS'}, {v: hrs, l: 'HRS'}, {v: mins, l: 'MIN'}, {v: secs, l: 'SEC'}].map(({v, l}) => (
+ <div key={l} className="text-center bg-black/30 rounded-lg py-2 border border-white/10">
+ <div className="text-white font-black text-xl leading-none" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{String(v).padStart(2, '0')}</div>
+ <div className="text-emerald-300/60 text-[9px] font-bold mt-1">{l}</div>
+ </div>
+ ))}
+ </div>
+ <p className="text-emerald-200/50 text-[10px] text-center font-semibold">Tap to see World Cup matches & create watch parties</p>
+ </div>
+ </div>
+ </div>
+ );
+})()}
 
  <CopyrightFooter />
  </div>
