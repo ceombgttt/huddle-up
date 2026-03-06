@@ -16342,9 +16342,9 @@ const BORDER_MAP = {
    const fpShowCityInput = findPartiesShowCity || false;
    const totalResults = searchFiltered.length + searchFilteredGames.length;
    return (
-     <div className="min-h-screen bg-[#0F1115] pt-[60px] pb-[72px]">
-       <div style={{ position: 'sticky', top: '60px', zIndex: 1, height: '220px', width: '100%', pointerEvents: 'none' }}>
-         <MapContainer center={defaultCenter} zoom={11} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false} dragging={false} zoomControl={false} doubleClickZoom={false} touchZoom={false} keyboard={false} attributionControl={false}>
+     <div style={{ position: 'fixed', top: '60px', left: 0, right: 0, bottom: '72px', display: 'flex', flexDirection: 'column', zIndex: 0 }}>
+       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0 }}>
+         <MapContainer center={defaultCenter} zoom={12} style={{ height: '100%', width: '100%' }} scrollWheelZoom={true} dragging={true} zoomControl={false} doubleClickZoom={true} touchZoom={true} keyboard={true} attributionControl={false}>
            <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
            {mapMarkers.map(p => {
              const v = partyVenues[p.id];
@@ -16352,148 +16352,146 @@ const BORDER_MAP = {
              const isLive = gt <= now && gt >= fourHoursAgo;
              return (
                <Marker key={p.id} position={[parseFloat(v.latitude), parseFloat(v.longitude)]}
-                 icon={L.divIcon({ className: 'leaflet-custom-marker', html: `<div style="background:${isLive ? '#ff4757' : '#1E90FF'};width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.5)">${fpSportIcons[p.sport] || '📍'}</div>`, iconSize: [30, 30], iconAnchor: [15, 15] })} />
+                 icon={L.divIcon({ className: 'leaflet-custom-marker', html: `<div style="background:${isLive ? '#ff4757' : '#1E90FF'};width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;border:2px solid white;box-shadow:0 2px 10px rgba(0,0,0,0.5);cursor:pointer">${fpSportIcons[p.sport] || '📍'}</div>`, iconSize: [34, 34], iconAnchor: [17, 17] })}>
+                 <Popup><div className="text-center"><strong>{p.homeTeam && p.awayTeam ? `${p.awayTeam} vs ${p.homeTeam}` : p.title}</strong><br/><span style={{ fontSize: '12px', color: '#aaa' }}>{p.venueName || 'TBD'}</span><br/>{isLive && <span style={{ color: '#ff4757', fontWeight: 'bold', fontSize: '11px' }}>LIVE NOW</span>}<br/><button onClick={() => { setSelectedGame({ id: p.gameId || p.id, sport: p.sport, homeTeam: p.homeTeam, awayTeam: p.awayTeam, startTime: p.gameTime }); setCurrentScreen('gameDetail'); }} style={{ background: '#1E90FF', color: 'white', border: 'none', padding: '4px 12px', borderRadius: '6px', marginTop: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>View Party</button></div></Popup>
+               </Marker>
              );
            })}
          </MapContainer>
        </div>
-       <div className="relative" style={{ zIndex: 2, background: '#0F1115' }}>
-       <div className="relative overflow-hidden" style={{ height: '70px', background: 'linear-gradient(135deg, #001a33 0%, #0a1628 50%, #1a0f00 100%)' }}>
-         <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 30% 50%, rgba(30,144,255,0.15) 0%, transparent 60%)' }} />
-         <div className="relative z-[1] flex items-center justify-center h-full px-6">
-           <div className="text-center">
-             <div className="text-lg font-black" style={{ color: '#FFD700', textShadow: '0 2px 10px rgba(255,215,0,0.3)', letterSpacing: '1px' }}>FIND YOUR CREW. WATCH THE GAME!</div>
-           </div>
-         </div>
-       </div>
-       <div className="flex gap-3 px-4 py-3">
-         <button onClick={() => { if (navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { const lat = pos.coords.latitude; const lng = pos.coords.longitude; fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`).then(r => r.json()).then(d => { const city = d.address?.city || d.address?.town || d.address?.village || 'Your Location'; setCurrentCity(`${city}, ${d.address?.state || ''}`); setFindPartiesShowCity(false); }).catch(() => setCurrentCity('Your Location')); }, () => { alert('Please enable location access to use Near Me'); }); } else { alert('Location is not supported by your browser'); } }} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white text-sm" style={{ background: 'linear-gradient(135deg, #1E90FF, #1873cc)' }}>
-           <Navigation className="w-4 h-4" /> Near Me
+       <div style={{ position: 'absolute', top: '8px', left: '12px', right: '12px', zIndex: 10, display: 'flex', gap: '8px' }}>
+         <button onClick={() => { if (navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { const lat = pos.coords.latitude; const lng = pos.coords.longitude; fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`).then(r => r.json()).then(d => { const city = d.address?.city || d.address?.town || d.address?.village || 'Your Location'; setCurrentCity(`${city}, ${d.address?.state || ''}`); setFindPartiesShowCity(false); }).catch(() => setCurrentCity('Your Location')); }, () => { alert('Please enable location access to use Near Me'); }); } else { alert('Location is not supported by your browser'); } }} className="flex items-center gap-1.5 px-3 py-2 rounded-full font-bold text-white text-xs shadow-lg" style={{ background: 'linear-gradient(135deg, #1E90FF, #1873cc)', boxShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>
+           <Navigation className="w-3.5 h-3.5" /> Near Me
          </button>
-         <button onClick={() => setFindPartiesShowCity(!fpShowCityInput)} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white text-sm" style={{ background: '#2a2d39' }}>
-           <MapPin className="w-4 h-4" /> Enter City
+         <button onClick={() => setFindPartiesShowCity(!fpShowCityInput)} className="flex items-center gap-1.5 px-3 py-2 rounded-full font-bold text-white text-xs shadow-lg" style={{ background: '#1a1d28', boxShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>
+           <MapPin className="w-3.5 h-3.5" /> {currentCity || 'Enter City'}
          </button>
        </div>
        {fpShowCityInput && (
-         <div className="px-4 pb-3">
-           <div className="flex gap-2">
-             <input type="text" value={fpCityInput} onChange={(e) => setFindPartiesCityInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && fpCityInput.trim()) { setCurrentCity(fpCityInput.trim()); setFindPartiesShowCity(false); setFindPartiesCityInput(''); } }} placeholder="Type a city name..." className="flex-1 px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" autoFocus />
-             <button onClick={() => { if (fpCityInput.trim()) { setCurrentCity(fpCityInput.trim()); setFindPartiesShowCity(false); setFindPartiesCityInput(''); } }} className="px-4 py-2.5 bg-[#1E90FF] text-white font-bold text-sm rounded-xl">Go</button>
+         <div style={{ position: 'absolute', top: '48px', left: '12px', right: '12px', zIndex: 10 }}>
+           <div className="flex gap-2 p-2 rounded-xl shadow-xl" style={{ background: '#151A22', border: '1px solid #222A36' }}>
+             <input type="text" value={fpCityInput} onChange={(e) => setFindPartiesCityInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && fpCityInput.trim()) { setCurrentCity(fpCityInput.trim()); setFindPartiesShowCity(false); setFindPartiesCityInput(''); } }} placeholder="Type a city name..." className="flex-1 px-3 py-2 bg-[#0F1115] border border-[#222A36] rounded-lg text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" autoFocus />
+             <button onClick={() => { if (fpCityInput.trim()) { setCurrentCity(fpCityInput.trim()); setFindPartiesShowCity(false); setFindPartiesCityInput(''); } }} className="px-4 py-2 bg-[#1E90FF] text-white font-bold text-sm rounded-lg">Go</button>
            </div>
          </div>
        )}
-       <div className="px-4 pb-3">
-         <div className="relative">
-           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0A4AB]" />
-           <input type="text" value={fpSearch} onChange={(e) => setFindPartiesSearch(e.target.value)} placeholder="Search teams, venues, hosts..." className="w-full pl-10 pr-10 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" />
-           {fpSearch && <button onClick={() => setFindPartiesSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A0A4AB] hover:text-white"><X className="w-4 h-4" /></button>}
+       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, maxHeight: '60%', zIndex: 5, display: 'flex', flexDirection: 'column', borderTopLeftRadius: '20px', borderTopRightRadius: '20px', background: '#0F1115', boxShadow: '0 -4px 20px rgba(0,0,0,0.5)' }}>
+         <div style={{ padding: '10px 0 4px', display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
+           <div style={{ width: '40px', height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.3)' }} />
          </div>
-       </div>
-       <div className="px-4 pb-3 overflow-x-auto hide-scrollbar">
-         <div className="flex gap-2" style={{ minWidth: 'max-content' }}>
-           {fpSportList.map(sp => (
-             <button key={sp} onClick={() => setFindPartiesSport(sp)} className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${fpSport === sp ? 'bg-[#1E90FF] text-white' : 'bg-[#151A22] text-[#A0A4AB] border border-[#222A36] hover:border-[#1E90FF]/40'}`}>
-               {sp !== 'All' && <span className="mr-1">{fpSportIcons[sp]}</span>}{sp}
-             </button>
-           ))}
-         </div>
-       </div>
-       <div className="px-4 pb-2">
-         <div className="flex items-center justify-between">
-           <h2 className="text-white font-black text-lg">{searchFiltered.length} {searchFiltered.length === 1 ? 'Party' : 'Parties'} • {searchFilteredGames.length} Games</h2>
-           <span className="text-[#A0A4AB] text-xs">{currentCity || 'All Locations'}</span>
-         </div>
-       </div>
-       {liveParties.length > 0 && (
-         <div className="px-3 pb-2">
-           <div className="flex items-center gap-2 mb-2 px-1">
-             <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />
-             <span className="text-red-400 text-xs font-black uppercase tracking-wider">Live Now</span>
+         <div className="px-3 pb-2 pt-1" style={{ flexShrink: 0 }}>
+           <div className="text-center mb-2">
+             <span className="text-sm font-black" style={{ color: '#FFD700', letterSpacing: '1px' }}>FIND YOUR CREW. WATCH THE GAME!</span>
            </div>
-           <div className="space-y-2">
-             {liveParties.map(p => (
-               <div key={p.id} onClick={() => { setSelectedGame({ id: p.gameId || p.id, sport: p.sport, homeTeam: p.homeTeam, awayTeam: p.awayTeam, startTime: p.gameTime }); setCurrentScreen('gameDetail'); }} className="bg-[#151A22] rounded-xl border border-red-500/30 overflow-hidden cursor-pointer hover:border-red-500/50 transition-all active:scale-[0.99]">
-                 <div className="flex items-center p-3 gap-3">
-                   <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center text-2xl flex-shrink-0">{fpSportIcons[p.sport] || '🏟️'}</div>
-                   <div className="flex-1 min-w-0">
-                     <div className="text-white font-bold text-[15px] truncate">{p.homeTeam && p.awayTeam ? `${p.awayTeam} vs ${p.homeTeam}` : p.title || 'Watch Party'}</div>
-                     <div className="text-[#A0A4AB] text-xs mt-0.5 truncate flex items-center gap-1"><MapPin className="w-3 h-3 text-emerald-400 flex-shrink-0" />{p.venueName || 'TBD'}</div>
-                     <div className="text-[#A0A4AB] text-xs mt-0.5">{p.attendeeCount || p.attendees?.length || 0} 👤 going</div>
-                   </div>
-                   <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                     <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">LIVE</span>
-                     <button onClick={(e) => { e.stopPropagation(); setSelectedGame({ id: p.gameId || p.id, sport: p.sport, homeTeam: p.homeTeam, awayTeam: p.awayTeam, startTime: p.gameTime }); setCurrentScreen('gameDetail'); }} className="px-3 py-1.5 bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white text-xs font-bold rounded-lg">Join</button>
-                   </div>
-                 </div>
+           <div className="relative mb-2">
+             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0A4AB]" />
+             <input type="text" value={fpSearch} onChange={(e) => setFindPartiesSearch(e.target.value)} placeholder="Search teams, venues, hosts..." className="w-full pl-10 pr-10 py-2 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" />
+             {fpSearch && <button onClick={() => setFindPartiesSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A0A4AB] hover:text-white"><X className="w-4 h-4" /></button>}
+           </div>
+           <div className="overflow-x-auto hide-scrollbar mb-2">
+             <div className="flex gap-1.5" style={{ minWidth: 'max-content' }}>
+               {fpSportList.map(sp => (
+                 <button key={sp} onClick={() => setFindPartiesSport(sp)} className={`px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap transition-all ${fpSport === sp ? 'bg-[#1E90FF] text-white' : 'bg-[#151A22] text-[#A0A4AB] border border-[#222A36]'}`}>
+                   {sp !== 'All' && <span className="mr-0.5">{fpSportIcons[sp]}</span>}{sp}
+                 </button>
+               ))}
+             </div>
+           </div>
+           <div className="flex items-center justify-between">
+             <span className="text-white font-black text-sm">{searchFiltered.length} {searchFiltered.length === 1 ? 'Party' : 'Parties'} • {searchFilteredGames.length} Games</span>
+             <span className="text-[#A0A4AB] text-[11px]">{currentCity || 'All Locations'}</span>
+           </div>
+         </div>
+         <div style={{ flex: 1, overflowY: 'auto', paddingBottom: '8px' }}>
+           {liveParties.length > 0 && (
+             <div className="px-3 pb-2">
+               <div className="flex items-center gap-2 mb-1.5 px-1">
+                 <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                 <span className="text-red-400 text-[11px] font-black uppercase tracking-wider">Live Now</span>
                </div>
-             ))}
-           </div>
-         </div>
-       )}
-       {upcomingParties.length > 0 && (
-       <div className="px-3 pb-2">
-         {liveParties.length > 0 && (
-           <div className="flex items-center gap-2 mb-2 px-1 mt-2">
-             <Calendar className="w-3.5 h-3.5 text-[#1E90FF]" />
-             <span className="text-[#1E90FF] text-xs font-black uppercase tracking-wider">Upcoming Parties</span>
-           </div>
-         )}
-         <div className="space-y-2">
-           {upcomingParties.map(p => (
-             <div key={p.id} onClick={() => { setSelectedGame({ id: p.gameId || p.id, sport: p.sport, homeTeam: p.homeTeam, awayTeam: p.awayTeam, startTime: p.gameTime }); setCurrentScreen('gameDetail'); }} className="bg-[#151A22] rounded-xl border border-[#222A36] overflow-hidden cursor-pointer hover:border-[#1E90FF]/30 transition-all active:scale-[0.99]">
-               <div className="flex items-center p-3 gap-3">
-                 <div className="w-12 h-12 rounded-xl bg-[#1E90FF]/10 flex items-center justify-center text-2xl flex-shrink-0">{fpSportIcons[p.sport] || '🏟️'}</div>
-                 <div className="flex-1 min-w-0">
-                   <div className="text-white font-bold text-[15px] truncate">{p.homeTeam && p.awayTeam ? `${p.awayTeam} vs ${p.homeTeam}` : p.title || 'Watch Party'}</div>
-                   <div className="text-[#A0A4AB] text-xs mt-0.5 truncate flex items-center gap-1"><MapPin className="w-3 h-3 text-emerald-400 flex-shrink-0" />{p.venueName || 'TBD'}</div>
-                   <div className="text-[#A0A4AB] text-xs mt-0.5">{new Date(p.gameTime).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} • {new Date(p.gameTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })} • {p.attendeeCount || p.attendees?.length || 0} 👤</div>
-                 </div>
-                 <button onClick={(e) => { e.stopPropagation(); setSelectedGame({ id: p.gameId || p.id, sport: p.sport, homeTeam: p.homeTeam, awayTeam: p.awayTeam, startTime: p.gameTime }); setCurrentScreen('gameDetail'); }} className="px-3 py-1.5 bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white text-xs font-bold rounded-lg flex-shrink-0">Join</button>
+               <div className="space-y-1.5">
+                 {liveParties.map(p => (
+                   <div key={p.id} onClick={() => { setSelectedGame({ id: p.gameId || p.id, sport: p.sport, homeTeam: p.homeTeam, awayTeam: p.awayTeam, startTime: p.gameTime }); setCurrentScreen('gameDetail'); }} className="bg-[#151A22] rounded-xl border border-red-500/30 overflow-hidden cursor-pointer active:scale-[0.99]">
+                     <div className="flex items-center p-2.5 gap-2.5">
+                       <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center text-xl flex-shrink-0">{fpSportIcons[p.sport] || '🏟️'}</div>
+                       <div className="flex-1 min-w-0">
+                         <div className="text-white font-bold text-[13px] truncate">{p.homeTeam && p.awayTeam ? `${p.awayTeam} vs ${p.homeTeam}` : p.title || 'Watch Party'}</div>
+                         <div className="text-[#A0A4AB] text-[11px] truncate flex items-center gap-1"><MapPin className="w-3 h-3 text-emerald-400 flex-shrink-0" />{p.venueName || 'TBD'}</div>
+                       </div>
+                       <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                         <span className="bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">LIVE</span>
+                         <button onClick={(e) => { e.stopPropagation(); setSelectedGame({ id: p.gameId || p.id, sport: p.sport, homeTeam: p.homeTeam, awayTeam: p.awayTeam, startTime: p.gameTime }); setCurrentScreen('gameDetail'); }} className="px-2.5 py-1 bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white text-[11px] font-bold rounded-lg">Join</button>
+                       </div>
+                     </div>
+                   </div>
+                 ))}
                </div>
              </div>
-           ))}
-         </div>
-       </div>
-       )}
-       {searchFilteredGames.length > 0 && (
-       <div className="px-3 pb-4">
-         <div className="flex items-center gap-2 mb-2 px-1 mt-2">
-           <span className="text-lg">🏟️</span>
-           <span className="text-white/70 text-xs font-black uppercase tracking-wider">Games {fpSearch ? 'Matching' : 'Today & Upcoming'}</span>
-         </div>
-         <div className="space-y-2">
-           {searchFilteredGames.slice(0, 15).map(g => {
-             const gt = new Date(g.startTime || g.date);
-             const gIsLive = gt <= now && gt >= fourHoursAgo;
-             const gameParties = allParties.filter(p => p.gameId === g.id);
-             return (
-             <div key={g.id} onClick={() => { setSelectedGame(g); setCurrentScreen('gameDetail'); }} className={`bg-[#151A22] rounded-xl border ${gIsLive ? 'border-red-500/30' : 'border-[#222A36]'} overflow-hidden cursor-pointer hover:border-[#1E90FF]/30 transition-all active:scale-[0.99]`}>
-               <div className="flex items-center p-3 gap-3">
-                 <div className={`w-12 h-12 rounded-xl ${gIsLive ? 'bg-red-500/20' : 'bg-white/5'} flex items-center justify-center text-2xl flex-shrink-0`}>{fpSportIcons[g.sport] || '🏟️'}</div>
-                 <div className="flex-1 min-w-0">
-                   <div className="text-white font-bold text-[15px] truncate">{g.awayTeam} vs {g.homeTeam}</div>
-                   <div className="text-[#A0A4AB] text-xs mt-0.5">{g.sport}</div>
-                   <div className="text-[#A0A4AB] text-xs mt-0.5">{gt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} • {gt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</div>
-                 </div>
-                 <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                   {gIsLive && <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">LIVE</span>}
-                   {gameParties.length > 0 && <span className="text-emerald-400 text-[10px] font-bold">{gameParties.length} {gameParties.length === 1 ? 'party' : 'parties'}</span>}
-                   <button onClick={(e) => { e.stopPropagation(); setSelectedGame(g); setCurrentScreen('gameDetail'); }} className="px-3 py-1.5 bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white text-xs font-bold rounded-lg">View</button>
-                 </div>
+           )}
+           {upcomingParties.length > 0 && (
+           <div className="px-3 pb-2">
+             {liveParties.length > 0 && (
+               <div className="flex items-center gap-2 mb-1.5 px-1 mt-1">
+                 <Calendar className="w-3 h-3 text-[#1E90FF]" />
+                 <span className="text-[#1E90FF] text-[11px] font-black uppercase tracking-wider">Upcoming</span>
                </div>
+             )}
+             <div className="space-y-1.5">
+               {upcomingParties.map(p => (
+                 <div key={p.id} onClick={() => { setSelectedGame({ id: p.gameId || p.id, sport: p.sport, homeTeam: p.homeTeam, awayTeam: p.awayTeam, startTime: p.gameTime }); setCurrentScreen('gameDetail'); }} className="bg-[#151A22] rounded-xl border border-[#222A36] overflow-hidden cursor-pointer active:scale-[0.99]">
+                   <div className="flex items-center p-2.5 gap-2.5">
+                     <div className="w-10 h-10 rounded-lg bg-[#1E90FF]/10 flex items-center justify-center text-xl flex-shrink-0">{fpSportIcons[p.sport] || '🏟️'}</div>
+                     <div className="flex-1 min-w-0">
+                       <div className="text-white font-bold text-[13px] truncate">{p.homeTeam && p.awayTeam ? `${p.awayTeam} vs ${p.homeTeam}` : p.title || 'Watch Party'}</div>
+                       <div className="text-[#A0A4AB] text-[11px] truncate flex items-center gap-1"><MapPin className="w-3 h-3 text-emerald-400 flex-shrink-0" />{p.venueName || 'TBD'}</div>
+                       <div className="text-[#A0A4AB] text-[11px]">{new Date(p.gameTime).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} • {new Date(p.gameTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</div>
+                     </div>
+                     <button onClick={(e) => { e.stopPropagation(); setSelectedGame({ id: p.gameId || p.id, sport: p.sport, homeTeam: p.homeTeam, awayTeam: p.awayTeam, startTime: p.gameTime }); setCurrentScreen('gameDetail'); }} className="px-2.5 py-1 bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white text-[11px] font-bold rounded-lg flex-shrink-0">Join</button>
+                   </div>
+                 </div>
+               ))}
              </div>
-           );})}
+           </div>
+           )}
+           {searchFilteredGames.length > 0 && (
+           <div className="px-3 pb-3">
+             <div className="flex items-center gap-2 mb-1.5 px-1 mt-1">
+               <span className="text-sm">🏟️</span>
+               <span className="text-white/70 text-[11px] font-black uppercase tracking-wider">Games {fpSearch ? 'Matching' : 'Today & Upcoming'}</span>
+             </div>
+             <div className="space-y-1.5">
+               {searchFilteredGames.slice(0, 15).map(g => {
+                 const gt = new Date(g.startTime || g.date);
+                 const gIsLive = gt <= now && gt >= fourHoursAgo;
+                 const gameParties = allParties.filter(p => p.gameId === g.id);
+                 return (
+                 <div key={g.id} onClick={() => { setSelectedGame(g); setCurrentScreen('gameDetail'); }} className={`bg-[#151A22] rounded-xl border ${gIsLive ? 'border-red-500/30' : 'border-[#222A36]'} overflow-hidden cursor-pointer active:scale-[0.99]`}>
+                   <div className="flex items-center p-2.5 gap-2.5">
+                     <div className={`w-10 h-10 rounded-lg ${gIsLive ? 'bg-red-500/20' : 'bg-white/5'} flex items-center justify-center text-xl flex-shrink-0`}>{fpSportIcons[g.sport] || '🏟️'}</div>
+                     <div className="flex-1 min-w-0">
+                       <div className="text-white font-bold text-[13px] truncate">{g.awayTeam} vs {g.homeTeam}</div>
+                       <div className="text-[#A0A4AB] text-[11px]">{g.sport} • {gt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} • {gt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</div>
+                     </div>
+                     <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                       {gIsLive && <span className="bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">LIVE</span>}
+                       {gameParties.length > 0 && <span className="text-emerald-400 text-[10px] font-bold">{gameParties.length} party</span>}
+                       <button onClick={(e) => { e.stopPropagation(); setSelectedGame(g); setCurrentScreen('gameDetail'); }} className="px-2.5 py-1 bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white text-[11px] font-bold rounded-lg">View</button>
+                     </div>
+                   </div>
+                 </div>
+               );})}
+             </div>
+           </div>
+           )}
+           {searchFiltered.length === 0 && searchFilteredGames.length === 0 && (
+             <div className="text-center py-10 px-6">
+               <div className="text-5xl mb-3">{fpSearch || fpSport !== 'All' ? '🔍' : '🏟️'}</div>
+               <h3 className="text-white font-bold text-lg mb-2">{fpSearch ? 'No Results Found' : fpSport !== 'All' ? `No ${fpSport} Events` : 'No Parties Yet'}</h3>
+               <p className="text-[#A0A4AB] text-sm mb-4">{fpSearch ? `No matches for "${fpSearch}"` : fpSport !== 'All' ? `No ${fpSport} parties or games right now.` : 'No watch parties scheduled. Be the first to create one!'}</p>
+               {fpSearch ? <button onClick={() => setFindPartiesSearch('')} className="px-5 py-2.5 bg-[#1E90FF] text-white font-bold rounded-xl text-sm">Clear Search</button> : fpSport !== 'All' ? <button onClick={() => setFindPartiesSport('All')} className="px-5 py-2.5 bg-[#1E90FF] text-white font-bold rounded-xl text-sm">Show All Sports</button> : <button onClick={() => setCurrentScreen('games')} className="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-xl text-sm">Create a Party</button>}
+             </div>
+           )}
          </div>
-       </div>
-       )}
-       {searchFiltered.length === 0 && searchFilteredGames.length === 0 && (
-         <div className="text-center py-16 px-6">
-           <div className="text-6xl mb-4">{fpSearch || fpSport !== 'All' ? '🔍' : '🏟️'}</div>
-           <h3 className="text-white font-bold text-xl mb-2">{fpSearch ? 'No Results Found' : fpSport !== 'All' ? `No ${fpSport} Events` : 'No Parties Yet'}</h3>
-           <p className="text-[#A0A4AB] text-sm mb-6">{fpSearch ? `No matches for "${fpSearch}"` : fpSport !== 'All' ? `No ${fpSport} parties or games right now.` : 'No watch parties scheduled right now. Be the first to create one!'}</p>
-           {fpSearch ? <button onClick={() => setFindPartiesSearch('')} className="px-6 py-3 bg-[#1E90FF] text-white font-bold rounded-xl">Clear Search</button> : fpSport !== 'All' ? <button onClick={() => setFindPartiesSport('All')} className="px-6 py-3 bg-[#1E90FF] text-white font-bold rounded-xl">Show All Sports</button> : <button onClick={() => setCurrentScreen('games')} className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-xl">Create a Party</button>}
-         </div>
-       )}
        </div>
      </div>
    );
