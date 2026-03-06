@@ -1353,12 +1353,12 @@ const HuddleUpApp = () => {
    if (localStorage.getItem('skipIntros') === 'true') return;
    setIntroStage(0);
    setShowIntroSplash(true);
-   setTimeout(() => setIntroStage(1), 500);
-   setTimeout(() => setIntroStage(2), 1200);
-   setTimeout(() => setIntroStage(3), 1800);
-   setTimeout(() => setIntroStage(4), 2400);
-   setTimeout(() => { setIntroStage(5); try { confetti({ particleCount: 60, spread: 80, origin: { y: 0.6 }, colors: ['#1E90FF', '#FFD700'] }); } catch(e){} }, 2800);
-   setTimeout(() => setShowIntroSplash(false), 3200);
+   setTimeout(() => setIntroStage(1), 1000);
+   setTimeout(() => setIntroStage(2), 2000);
+   setTimeout(() => setIntroStage(3), 3000);
+   setTimeout(() => setIntroStage(4), 4000);
+   setTimeout(() => setIntroStage(5), 4500);
+   setTimeout(() => setShowIntroSplash(false), 5000);
  };
  const skipIntroSplash = () => { setShowIntroSplash(false); };
  const neverShowIntro = () => { localStorage.setItem('skipIntros', 'true'); setShowIntroSplash(false); };
@@ -16043,28 +16043,36 @@ const BORDER_MAP = {
  )}
 
  {showIntroSplash && (
-   <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center overflow-hidden" onClick={skipIntroSplash} style={{ cursor: 'pointer' }}>
-     <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #001a33 0%, #000d1a 50%, #000000 100%)' }} />
+   <div className="cinematic-intro" onClick={skipIntroSplash}>
+     <div className="cinematic-bg" />
+     <div className={`cinematic-particles ${introStage >= 1 ? 'visible' : ''}`} />
      <div className="relative z-[2] flex flex-col items-center justify-center">
-       <div style={{ width: '180px', height: '180px', marginBottom: '50px', opacity: introStage >= 1 ? 1 : 0, transform: introStage >= 1 ? 'translateY(0) scale(1)' : 'translateY(-80px) scale(0.5)', transition: 'all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55)' }}>
-         <img src="/huddle-up-shield.png" alt="Huddle Up" style={{ width: '100%', height: '100%', filter: introStage >= 4 ? 'drop-shadow(0 15px 60px rgba(30, 144, 255, 0.9)) drop-shadow(0 0 30px rgba(255, 215, 0, 0.4))' : 'drop-shadow(0 10px 40px rgba(30, 144, 255, 0.6))', transition: 'filter 0.6s ease' }} />
+       <div className={`cinematic-logo ${introStage >= 1 ? 'visible' : ''}`}>
+         <div className="cinematic-logo-glow" />
+         <div className="cinematic-logo-trail" />
+         <img src="/huddle-up-shield.png" alt="Huddle Up" />
        </div>
-       <div style={{ textAlign: 'center', margin: '10px 0' }}>
-         {['FIND', 'YOUR', 'CREW.'].map((w, i) => (
-           <span key={w} className="intro-word-blue" style={{ display: 'inline-block', margin: '0 8px', fontSize: '34px', fontWeight: 900, opacity: introStage >= 2 ? 1 : 0, transform: introStage >= 2 ? 'translateY(0)' : 'translateY(20px)', transition: `all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) ${i * 0.15}s` }}>{w}</span>
-         ))}
+       <div className={`cinematic-line cine-blue ${introStage >= 2 ? 'visible' : ''}`}>
+         {'FIND'.split('').map((c, i) => <span key={`f${i}`} className="cine-letter" style={{ transitionDelay: `${i * 50}ms` }}>{c}</span>)}
+         <span className="cine-space" />
+         {'YOUR'.split('').map((c, i) => <span key={`y${i}`} className="cine-letter" style={{ transitionDelay: `${(i + 5) * 50}ms` }}>{c}</span>)}
+         <span className="cine-space" />
+         {'CREW.'.split('').map((c, i) => <span key={`c${i}`} className="cine-letter" style={{ transitionDelay: `${(i + 10) * 50}ms` }}>{c}</span>)}
        </div>
-       <div style={{ textAlign: 'center', margin: '10px 0' }}>
-         {['WATCH', 'THE', 'GAME.'].map((w, i) => (
-           <span key={w} className="intro-word-gold" style={{ display: 'inline-block', margin: '0 8px', fontSize: '34px', fontWeight: 900, opacity: introStage >= 3 ? 1 : 0, transform: introStage >= 3 ? 'translateY(0)' : 'translateY(20px)', transition: `all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) ${i * 0.15}s` }}>{w}</span>
-         ))}
+       <div className={`cinematic-line cine-gold ${introStage >= 3 ? 'visible' : ''}`}>
+         {'WATCH'.split('').map((c, i) => <span key={`w${i}`} className="cine-letter" style={{ transitionDelay: `${i * 50}ms` }}>{c}</span>)}
+         <span className="cine-space" />
+         {'THE'.split('').map((c, i) => <span key={`t${i}`} className="cine-letter" style={{ transitionDelay: `${(i + 6) * 50}ms` }}>{c}</span>)}
+         <span className="cine-space" />
+         {'GAME.'.split('').map((c, i) => <span key={`g${i}`} className="cine-letter" style={{ transitionDelay: `${(i + 10) * 50}ms` }}>{c}</span>)}
        </div>
      </div>
-     {introStage >= 4 && <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at center, rgba(30, 144, 255, 0.3) 0%, transparent 60%)', animation: 'scorePulse 0.6s ease' }} />}
-     {introStage >= 1 && (
-       <div className="absolute bottom-10 right-6 z-[3] flex flex-col gap-2 items-end">
-         <button onClick={(e) => { e.stopPropagation(); skipIntroSplash(); }} className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white" style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(10px)' }}>Skip →</button>
-         <button onClick={(e) => { e.stopPropagation(); neverShowIntro(); }} className="text-white/40 text-xs underline px-2 py-1">Don't show again</button>
+     <div className={`cinematic-glow ${introStage >= 4 ? 'active' : ''}`} />
+     <div className={`cinematic-fadeout ${introStage >= 5 ? 'active' : ''}`} />
+     {introStage >= 2 && (
+       <div className="absolute bottom-10 right-8 z-[101] flex flex-col gap-2 items-end">
+         <button onClick={(e) => { e.stopPropagation(); skipIntroSplash(); }} className="px-6 py-3 rounded-lg text-sm font-semibold" style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.3)', color: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', cursor: 'pointer' }}>Skip</button>
+         <button onClick={(e) => { e.stopPropagation(); neverShowIntro(); }} style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.35)', fontSize: '12px', cursor: 'pointer', textDecoration: 'underline', padding: '4px' }}>Don't show again</button>
        </div>
      )}
    </div>

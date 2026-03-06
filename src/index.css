@@ -530,18 +530,163 @@ input, textarea, select {
   .celebrate-pulse-ring { display: none; }
 }
 
-.intro-word-blue {
-  color: #1E90FF;
-  background: linear-gradient(90deg, #1E90FF, #00CED1);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.cinematic-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
 }
 
-.intro-word-gold {
-  color: #FFD700;
-  background: linear-gradient(90deg, #FFD700, #FFA500);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.cinematic-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #001a33 0%, #000d1a 25%, #0a0f1a 50%, #1a0f00 75%, #000 100%);
+  background-size: 400% 400%;
+  animation: cineBgFlow 5s ease-in-out;
+}
+
+.cinematic-particles {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(2px 2px at 20% 30%, rgba(255,215,0,0.3), transparent),
+    radial-gradient(2px 2px at 60% 70%, rgba(30,144,255,0.3), transparent),
+    radial-gradient(1px 1px at 50% 50%, rgba(255,215,0,0.2), transparent),
+    radial-gradient(1px 1px at 80% 10%, rgba(30,144,255,0.2), transparent),
+    radial-gradient(2px 2px at 90% 60%, rgba(255,215,0,0.3), transparent),
+    radial-gradient(1px 1px at 30% 80%, rgba(30,144,255,0.2), transparent);
+  background-size: 200% 200%;
+  animation: cineParticles 6s ease-in-out infinite;
+  opacity: 0;
+}
+
+.cinematic-particles.visible { animation: cineParticlesFadeIn 1.5s ease-in forwards, cineParticles 6s ease-in-out infinite; }
+
+.cinematic-logo {
+  width: 180px;
+  height: 180px;
+  margin-bottom: 70px;
+  position: relative;
+  opacity: 0;
+  transform: translateY(200px) scale(0.8);
+  transition: all 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  z-index: 2;
+}
+
+.cinematic-logo.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.cinematic-logo-glow {
+  position: absolute;
+  inset: -30px;
+  background: radial-gradient(circle, rgba(30,144,255,0.4) 0%, rgba(255,215,0,0.2) 50%, transparent 70%);
+  filter: blur(30px);
+  opacity: 0;
+  border-radius: 50%;
+}
+
+.cinematic-logo.visible .cinematic-logo-glow {
+  opacity: 1;
+  animation: cineLogoGlow 3s ease-in-out 0.5s infinite;
+}
+
+.cinematic-logo-trail {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(30,144,255,0.3), transparent);
+  filter: blur(20px);
+  opacity: 0;
+  transition: opacity 0.8s ease-out;
+}
+
+.cinematic-logo.visible .cinematic-logo-trail {
+  opacity: 1;
+  animation: cineTrailFade 1.2s ease-out forwards;
+}
+
+.cinematic-logo img {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 20px 60px rgba(30,144,255,0.6));
+  position: relative;
+  z-index: 1;
+}
+
+.cinematic-line {
+  font-size: 34px;
+  font-weight: 900;
+  text-align: center;
+  margin: 12px 0;
+  letter-spacing: 3px;
+  position: relative;
+  z-index: 2;
+}
+
+.cinematic-line .cine-letter {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.cinematic-line.visible .cine-letter {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cinematic-line .cine-space { display: inline-block; width: 0.3em; }
+
+.cinematic-line.cine-blue { color: #1E90FF; }
+.cinematic-line.cine-blue .cine-letter { color: #1E90FF; text-shadow: 0 0 20px rgba(30,144,255,0.4), 0 4px 20px rgba(0,0,0,0.5); }
+
+.cinematic-line.cine-gold { color: #FFD700; }
+.cinematic-line.cine-gold .cine-letter { color: #FFD700; text-shadow: 0 0 20px rgba(255,215,0,0.4), 0 4px 20px rgba(0,0,0,0.5); }
+
+.cinematic-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(30,144,255,0.2) 0%, rgba(255,215,0,0.1) 40%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.8s ease-in;
+  pointer-events: none;
+}
+
+.cinematic-glow.active { opacity: 1; animation: cineDramaticPulse 1s ease-in-out; }
+
+.cinematic-fadeout {
+  position: absolute;
+  inset: 0;
+  background: #0F1115;
+  opacity: 0;
+  transition: opacity 0.5s ease-in;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.cinematic-fadeout.active { opacity: 1; }
+
+@keyframes cineBgFlow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+@keyframes cineParticles { 0%,100% { background-position: 0% 0%; } 50% { background-position: 100% 100%; } }
+@keyframes cineParticlesFadeIn { 0% { opacity: 0; } 100% { opacity: 1; } }
+@keyframes cineLogoGlow { 0%,100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 1; } }
+@keyframes cineTrailFade { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-100px); } }
+@keyframes cineDramaticPulse { 0% { transform: scale(1); opacity: 0; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 0.8; } }
+
+@media (max-width: 768px) {
+  .cinematic-logo { width: 140px; height: 140px; margin-bottom: 50px; }
+  .cinematic-line { font-size: 28px; letter-spacing: 2px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cinematic-bg, .cinematic-particles, .cinematic-logo-glow, .cinematic-logo-trail { animation: none !important; }
+  .cinematic-logo { transition-duration: 0.01s; }
+  .cinematic-line .cine-letter { transition-duration: 0.01s; }
 }
