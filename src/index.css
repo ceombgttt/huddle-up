@@ -529,3 +529,19 @@ input, textarea, select {
   .celebrate-glow { opacity: 0.3; }
   .celebrate-pulse-ring { display: none; }
 }
+
+.intro-word-blue {
+  color: #1E90FF;
+  background: linear-gradient(90deg, #1E90FF, #00CED1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.intro-word-gold {
+  color: #FFD700;
+  background: linear-gradient(90deg, #FFD700, #FFA500);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

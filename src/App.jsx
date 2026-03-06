@@ -16046,17 +16046,17 @@ const BORDER_MAP = {
    <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center overflow-hidden" onClick={skipIntroSplash} style={{ cursor: 'pointer' }}>
      <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #001a33 0%, #000d1a 50%, #000000 100%)' }} />
      <div className="relative z-[2] flex flex-col items-center justify-center">
-       <div style={{ width: '130px', height: '130px', marginBottom: '50px', opacity: introStage >= 1 ? 1 : 0, transform: introStage >= 1 ? 'translateY(0) scale(1)' : 'translateY(-80px) scale(0.5)', transition: 'all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55)' }}>
+       <div style={{ width: '180px', height: '180px', marginBottom: '50px', opacity: introStage >= 1 ? 1 : 0, transform: introStage >= 1 ? 'translateY(0) scale(1)' : 'translateY(-80px) scale(0.5)', transition: 'all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55)' }}>
          <img src="/huddle-up-shield.png" alt="Huddle Up" style={{ width: '100%', height: '100%', filter: introStage >= 4 ? 'drop-shadow(0 15px 60px rgba(30, 144, 255, 0.9)) drop-shadow(0 0 30px rgba(255, 215, 0, 0.4))' : 'drop-shadow(0 10px 40px rgba(30, 144, 255, 0.6))', transition: 'filter 0.6s ease' }} />
        </div>
-       <div style={{ fontSize: '32px', fontWeight: 900, textAlign: 'center', margin: '10px 0', background: 'linear-gradient(90deg, #1E90FF, #00CED1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+       <div style={{ textAlign: 'center', margin: '10px 0' }}>
          {['FIND', 'YOUR', 'CREW.'].map((w, i) => (
-           <span key={w} style={{ display: 'inline-block', margin: '0 8px', opacity: introStage >= 2 ? 1 : 0, transform: introStage >= 2 ? 'translateY(0)' : 'translateY(20px)', transition: `all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) ${i * 0.15}s` }}>{w}</span>
+           <span key={w} className="intro-word-blue" style={{ display: 'inline-block', margin: '0 8px', fontSize: '34px', fontWeight: 900, opacity: introStage >= 2 ? 1 : 0, transform: introStage >= 2 ? 'translateY(0)' : 'translateY(20px)', transition: `all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) ${i * 0.15}s` }}>{w}</span>
          ))}
        </div>
-       <div style={{ fontSize: '32px', fontWeight: 900, textAlign: 'center', margin: '10px 0', background: 'linear-gradient(90deg, #FFD700, #FFA500)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+       <div style={{ textAlign: 'center', margin: '10px 0' }}>
          {['WATCH', 'THE', 'GAME.'].map((w, i) => (
-           <span key={w} style={{ display: 'inline-block', margin: '0 8px', opacity: introStage >= 3 ? 1 : 0, transform: introStage >= 3 ? 'translateY(0)' : 'translateY(20px)', transition: `all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) ${i * 0.15}s` }}>{w}</span>
+           <span key={w} className="intro-word-gold" style={{ display: 'inline-block', margin: '0 8px', fontSize: '34px', fontWeight: 900, opacity: introStage >= 3 ? 1 : 0, transform: introStage >= 3 ? 'translateY(0)' : 'translateY(20px)', transition: `all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) ${i * 0.15}s` }}>{w}</span>
          ))}
        </div>
      </div>
