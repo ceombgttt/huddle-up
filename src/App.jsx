@@ -7555,32 +7555,68 @@ const BORDER_MAP = {
     const rm = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (!rm) {
       const tc = getTeamColors(selectedGame.sport, selectedGame.homeTeam) || getTeamColors(selectedGame.sport, selectedGame.awayTeam) || ['#1E90FF', '#FFD700'];
-      const end = Date.now() + 2000;
+      const end = Date.now() + 4000;
       const iv = setInterval(() => {
         if (Date.now() > end) { clearInterval(iv); return; }
-        confetti({ particleCount: 60, spread: 100, origin: { x: 0.5, y: 0.5 }, colors: tc, scalar: 2 });
-        confetti({ particleCount: 30, startVelocity: 50, spread: 80, origin: { x: Math.random(), y: 1 }, colors: tc, scalar: 1.5 });
-      }, 250);
+        confetti({ particleCount: 70, spread: 120, origin: { x: 0.5, y: 0.4 }, colors: tc, scalar: 2, shapes: ['circle', 'square'] });
+        confetti({ particleCount: 35, startVelocity: 55, spread: 90, origin: { x: Math.random() * 0.4, y: 1 }, colors: tc, scalar: 1.5 });
+        confetti({ particleCount: 35, startVelocity: 55, spread: 90, origin: { x: 0.6 + Math.random() * 0.4, y: 1 }, colors: tc, scalar: 1.5 });
+      }, 200);
     }
-    if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]);
+    if (navigator.vibrate) navigator.vibrate([150, 60, 150, 60, 150, 60, 300]);
     try {
       const actx = new (window.AudioContext || window.webkitAudioContext)();
-      const notes = [523.25, 659.25, 783.99, 1046.50];
-      notes.forEach((freq, i) => {
+      const t = actx.currentTime;
+      const horn = actx.createOscillator();
+      const hornGain = actx.createGain();
+      horn.type = 'sawtooth';
+      horn.frequency.setValueAtTime(220, t);
+      horn.frequency.linearRampToValueAtTime(440, t + 0.15);
+      hornGain.gain.setValueAtTime(0.35, t);
+      hornGain.gain.linearRampToValueAtTime(0.25, t + 0.3);
+      hornGain.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
+      horn.connect(hornGain);
+      hornGain.connect(actx.destination);
+      horn.start(t);
+      horn.stop(t + 1.2);
+      const bellNotes = [784, 988, 1175, 1318, 1568];
+      bellNotes.forEach((freq, i) => {
         const osc = actx.createOscillator();
-        const gain = actx.createGain();
+        const g = actx.createGain();
         osc.type = 'sine';
         osc.frequency.value = freq;
-        gain.gain.setValueAtTime(0.3, actx.currentTime + i * 0.12);
-        gain.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + i * 0.12 + 0.3);
-        osc.connect(gain);
-        gain.connect(actx.destination);
-        osc.start(actx.currentTime + i * 0.12);
-        osc.stop(actx.currentTime + i * 0.12 + 0.3);
+        const start = t + 0.4 + i * 0.15;
+        g.gain.setValueAtTime(0.25, start);
+        g.gain.exponentialRampToValueAtTime(0.001, start + 0.4);
+        osc.connect(g);
+        g.connect(actx.destination);
+        osc.start(start);
+        osc.stop(start + 0.4);
       });
-      setTimeout(() => actx.close(), 2000);
+      const noiseLen = 2.5;
+      const bufSize = actx.sampleRate * noiseLen;
+      const buf = actx.createBuffer(1, bufSize, actx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * 0.08;
+      const noise = actx.createBufferSource();
+      noise.buffer = buf;
+      const bandpass = actx.createBiquadFilter();
+      bandpass.type = 'bandpass';
+      bandpass.frequency.value = 3000;
+      bandpass.Q.value = 0.5;
+      const noiseGain = actx.createGain();
+      noiseGain.gain.setValueAtTime(0.0, t);
+      noiseGain.gain.linearRampToValueAtTime(0.15, t + 0.3);
+      noiseGain.gain.setValueAtTime(0.15, t + 1.5);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, t + noiseLen);
+      noise.connect(bandpass);
+      bandpass.connect(noiseGain);
+      noiseGain.connect(actx.destination);
+      noise.start(t);
+      noise.stop(t + noiseLen);
+      setTimeout(() => actx.close(), 4000);
     } catch (e) {}
-    setTimeout(() => setCelebrateActive(false), 2000);
+    setTimeout(() => setCelebrateActive(false), 3500);
   }}
   disabled={celebrateActive}
   className="fixed z-[45] flex flex-col items-center justify-center celebrate-btn"
