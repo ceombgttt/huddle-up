@@ -1347,6 +1347,7 @@ const HuddleUpApp = () => {
  const [prelaunchDismissed, setPrelaunchDismissed] = useState(false);
  const [showTutorial, setShowTutorial] = useState(false);
  const [tutorialStep, setTutorialStep] = useState(0);
+ const [featuredTab, setFeaturedTab] = useState('parties');
  const [showIntroSplash, setShowIntroSplash] = useState(false);
  const [introStage, setIntroStage] = useState(0);
  const launchIntroSplash = () => {
@@ -14726,21 +14727,30 @@ const BORDER_MAP = {
  <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>FEATURED</h2>
  </div>
  </div>
- <div className="p-4 max-w-2xl mx-auto space-y-6">
+ <div className="p-4 max-w-2xl mx-auto space-y-4">
  <div className="p-4 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-xl border border-amber-500/20">
  <p className="text-amber-400 font-bold text-sm flex items-center gap-2"><Crown className="w-4 h-4" /> Pro & Featured Spotlight</p>
  <p className="text-white/60 text-xs mt-1">Parties from Pro members and Featured venues get priority placement here.</p>
+ </div>
+ <div className="flex gap-2">
+ <button onClick={() => setFeaturedTab('parties')} className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all ${featuredTab === 'parties' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40' : 'bg-[#151A22] text-white/50 border border-[#222A36] hover:border-white/20'}`}>
+ <Crown className="w-4 h-4" /> Parties {trendingData?.featuredParties?.length > 0 && <span className="bg-amber-500/30 text-amber-300 text-[10px] font-black px-1.5 py-0.5 rounded-full">{trendingData.featuredParties.length}</span>}
+ </button>
+ <button onClick={() => setFeaturedTab('venues')} className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all ${featuredTab === 'venues' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/40' : 'bg-[#151A22] text-white/50 border border-[#222A36] hover:border-white/20'}`}>
+ <Building2 className="w-4 h-4" /> Venues {trendingData?.featuredVenues?.length > 0 && <span className="bg-orange-500/30 text-orange-300 text-[10px] font-black px-1.5 py-0.5 rounded-full">{trendingData.featuredVenues.length}</span>}
+ </button>
  </div>
  {trendingLoading && (
  <div className="text-center py-12"><Loader2 className="w-8 h-8 text-amber-400 animate-spin mx-auto" /></div>
  )}
  {trendingData && (
  <>
- {trendingData.featuredParties?.length > 0 && (
+ {featuredTab === 'parties' && (
  <div>
  <h3 className="text-sm font-bold text-amber-400 uppercase tracking-wider mb-3 flex items-center gap-2">
  <Crown className="w-4 h-4" /> Featured Parties
  </h3>
+ {trendingData.featuredParties?.length > 0 ? (
  <div className="space-y-3">
  {trendingData.featuredParties.map(party => {
  const gt = new Date(party.gameTime);
@@ -14793,13 +14803,22 @@ const BORDER_MAP = {
  );
  })}
  </div>
+ ) : (
+ <div className="text-center py-12 bg-white/5 rounded-2xl border-2 border-dashed border-white/10">
+ <div className="text-5xl mb-3">🎉</div>
+ <p className="text-lg font-bold text-white mb-2">No Featured Parties Yet</p>
+ <p className="text-sm text-[#A0A4AB] mb-4">Pro members and Featured venue parties will appear here.</p>
+ <button onClick={() => setCurrentScreen('browseParties')} className="px-6 py-2.5 bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity">Browse All Parties</button>
  </div>
  )}
- {trendingData.featuredVenues?.length > 0 && (
+ </div>
+ )}
+ {featuredTab === 'venues' && (
  <div>
  <h3 className="text-sm font-bold text-orange-400 uppercase tracking-wider mb-3 flex items-center gap-2">
  <Building2 className="w-4 h-4" /> Featured Venues
  </h3>
+ {trendingData.featuredVenues?.length > 0 ? (
  <div className="space-y-2">
  {trendingData.featuredVenues.map(venue => (
  <div key={venue.id} onClick={() => { setSelectedVenueId(venue.id); setCurrentScreen('venueDetail'); }} className={`p-4 bg-[#151A22] rounded-xl border ${venue.featuredTier === 'featured' ? 'border-amber-500/40' : 'border-[#222A36]'} hover:border-amber-500/50 transition-colors cursor-pointer`}>
@@ -14820,16 +14839,14 @@ const BORDER_MAP = {
  </div>
  ))}
  </div>
+ ) : (
+ <div className="text-center py-12 bg-white/5 rounded-2xl border-2 border-dashed border-white/10">
+ <div className="text-5xl mb-3">🏟️</div>
+ <p className="text-lg font-bold text-white mb-2">No Featured Venues Yet</p>
+ <p className="text-sm text-[#A0A4AB] mb-4">Featured venues with enhanced visibility will appear here.</p>
+ <button onClick={() => setCurrentScreen('findVenues')} className="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity">Find Venues Near Me</button>
  </div>
  )}
- {!trendingData.featuredParties?.length && !trendingData.featuredVenues?.length && (
- <div className="text-center py-12 text-[#A0A4AB]">
- <Crown className="w-16 h-16 mx-auto mb-4 opacity-30" />
- <p className="text-lg font-bold mb-2 text-white">No Featured Content Yet</p>
- <p className="text-sm">Pro members and Featured venues will appear here.</p>
- <button onClick={() => setCurrentScreen('proUpgrade')} className="mt-4 px-6 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold rounded-full text-sm hover:opacity-90 transition-opacity">
- Upgrade to Pro
- </button>
  </div>
  )}
  </>
