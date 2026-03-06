@@ -16353,14 +16353,14 @@ const BORDER_MAP = {
      <div style={{ position: 'fixed', top: '60px', left: 0, right: 0, bottom: '72px', display: 'flex', flexDirection: 'column', zIndex: 0 }}>
        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0 }}>
          <MapContainer center={defaultCenter} zoom={userCenter ? 13 : 12} style={{ height: '100%', width: '100%' }} scrollWheelZoom={true} dragging={true} zoomControl={false} doubleClickZoom={true} touchZoom={true} keyboard={true} attributionControl={false}>
-           <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
+           <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
            <FpMapRecenter />
            {venueMarkers.map(({ venue: vm, parties: vps }) => {
              const hasLive = vps.some(p => { const gt = new Date(p.gameTime); return gt <= now && gt >= fourHoursAgo; });
              const nextP = vps[0];
              return (
                <Marker key={vm.id} position={[parseFloat(vm.latitude), parseFloat(vm.longitude)]}
-                 icon={L.divIcon({ className: 'leaflet-custom-marker', html: `<div style="background:${hasLive ? '#ff4757' : '#10B981'};width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;border:2px solid white;box-shadow:0 2px 10px rgba(0,0,0,0.5);cursor:pointer;position:relative">${hasLive ? '🔴' : '📍'}<span style="position:absolute;top:-6px;right:-6px;background:#1E90FF;color:white;font-size:10px;font-weight:bold;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;border:1.5px solid #0F1115">${vps.length}</span></div>`, iconSize: [36, 36], iconAnchor: [18, 18] })}>
+                 icon={L.divIcon({ className: 'leaflet-custom-marker', html: `<div style="background:${hasLive ? '#E53935' : '#1565C0'};width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;border:3px solid white;box-shadow:0 2px 12px rgba(0,0,0,0.35);cursor:pointer;position:relative">${hasLive ? '🔴' : '🍺'}<span style="position:absolute;top:-7px;right:-7px;background:#FF6D00;color:white;font-size:10px;font-weight:bold;min-width:20px;height:20px;border-radius:10px;display:flex;align-items:center;justify-content:center;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.3)">${vps.length}</span></div>`, iconSize: [38, 38], iconAnchor: [19, 19] })}>
                  <Popup><div className="text-center" style={{ minWidth: '150px' }}><strong style={{ fontSize: '13px' }}>{vm.name}</strong><br/><span style={{ fontSize: '11px', color: '#aaa' }}>{vm.type || 'Sports Bar'}</span><br/><span style={{ fontSize: '12px', color: '#10B981', fontWeight: 'bold' }}>{vps.length} {vps.length === 1 ? 'party' : 'parties'}</span>{hasLive && <><br/><span style={{ color: '#ff4757', fontWeight: 'bold', fontSize: '11px' }}>LIVE NOW</span></>}<br/>{nextP && <span style={{ fontSize: '11px', color: '#ccc' }}>{nextP.homeTeam && nextP.awayTeam ? `${nextP.awayTeam} vs ${nextP.homeTeam}` : nextP.title || ''}</span>}<br/><button onClick={() => { setSelectedGame({ id: nextP.gameId || nextP.id, sport: nextP.sport, homeTeam: nextP.homeTeam, awayTeam: nextP.awayTeam, startTime: nextP.gameTime }); setCurrentScreen('gameDetail'); }} style={{ background: '#1E90FF', color: 'white', border: 'none', padding: '4px 12px', borderRadius: '6px', marginTop: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>View Party</button></div></Popup>
                </Marker>
              );
@@ -16525,14 +16525,14 @@ const BORDER_MAP = {
      <div style={{ position: 'fixed', top: '60px', left: 0, right: 0, bottom: '72px', display: 'flex', flexDirection: 'column', zIndex: 0 }}>
        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0 }}>
          <MapContainer center={defaultCenter} zoom={fvUserCenter ? 13 : 12} style={{ height: '100%', width: '100%' }} scrollWheelZoom={true} dragging={true} zoomControl={false} doubleClickZoom={true} touchZoom={true} keyboard={true} attributionControl={false}>
-           <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
+           <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
            <FvMapRecenter />
            {mapVenues.map(v => {
              const vParties = venuePartyLookup[v.name?.toLowerCase()] || [];
              const hasLive = vParties.some(p => { const gt = new Date(p.gameTime); return gt <= now && gt >= new Date(now.getTime() - 4*60*60*1000); });
              return (
              <Marker key={v.id} position={[parseFloat(v.latitude), parseFloat(v.longitude)]}
-               icon={L.divIcon({ className: 'leaflet-custom-marker', html: `<div style="background:${hasLive ? '#ff4757' : vParties.length > 0 ? '#10B981' : '#1E90FF'};width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;border:2px solid white;box-shadow:0 2px 10px rgba(0,0,0,0.5);cursor:pointer">${hasLive ? '🔴' : vParties.length > 0 ? '🎉' : '📍'}</div>`, iconSize: [34, 34], iconAnchor: [17, 17] })}>
+               icon={L.divIcon({ className: 'leaflet-custom-marker', html: `<div style="background:${hasLive ? '#E53935' : vParties.length > 0 ? '#1565C0' : '#455A64'};width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;border:3px solid white;box-shadow:0 2px 10px rgba(0,0,0,0.3);cursor:pointer">${hasLive ? '🔴' : vParties.length > 0 ? '🍺' : '📍'}</div>`, iconSize: [36, 36], iconAnchor: [18, 18] })}>
                <Popup><div className="text-center"><strong>{v.name}</strong><br/><span style={{ fontSize: '11px', color: '#aaa' }}>{v.type || 'Sports Bar'}</span><br/>{vParties.length > 0 && <span style={{ fontSize: '12px', color: '#10B981', fontWeight: 'bold' }}>{vParties.length} {vParties.length === 1 ? 'party' : 'parties'}</span>}<br/><button onClick={() => { setSelectedVenueId(v.id); setCurrentScreen('venueDetail'); }} style={{ background: '#1E90FF', color: 'white', border: 'none', padding: '4px 12px', borderRadius: '6px', marginTop: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>View Venue</button></div></Popup>
              </Marker>
            );})}

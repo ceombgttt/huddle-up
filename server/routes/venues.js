@@ -4,6 +4,27 @@ import { requireAuth, requireAdmin } from '../middleware/auth.js';
 
 const router = Router();
 
+async function geocodeVenuesMissingCoords(venueRows) {
+  const toGeocode = venueRows.filter(v => !v.latitude && !v.longitude && v.address);
+  for (const v of toGeocode) {
+    try {
+      const cleanAddr = v.address.replace(/,?\s*(suite|ste|unit|apt|#)\s*[#]?\s*\w+/gi, '').trim();
+      const addr = encodeURIComponent(`${cleanAddr}${v.city ? ', ' + v.city : ''}`);
+      const resp = await fetch(`https://nominatim.openstreetmap.org/search?q=${addr}&format=json&limit=1`, {
+        headers: { 'User-Agent': 'HuddleUp/1.0' }
+      });
+      const data = await resp.json();
+      if (data && data[0]) {
+        await pool.query('UPDATE venues SET latitude = $1, longitude = $2 WHERE id = $3', [data[0].lat, data[0].lon, v.id]);
+        console.log(`Geocoded venue "${v.name}" → ${data[0].lat}, ${data[0].lon}`);
+      }
+      await new Promise(r => setTimeout(r, 1100));
+    } catch (e) {
+      console.error(`Geocode failed for "${v.name}":`, e.message);
+    }
+  }
+}
+
 router.get('/', async (req, res) => {
   try {
     const result = await pool.query(`
@@ -35,11 +56,15 @@ router.get('/', async (req, res) => {
       description: v.description,
       logo: v.logo,
       picture: v.picture,
+      latitude: v.latitude,
+      longitude: v.longitude,
       totalParties: parseInt(v.total_parties),
       totalFans: parseInt(v.total_fans),
       venueTrialEndsAt: v.venue_trial_ends_at,
       onTrial: v.venue_trial_ends_at && new Date(v.venue_trial_ends_at) > new Date() && !['venue', 'featured_venue', 'sponsor'].includes(v.owner_tier)
     }));
+
+    geocodeVenuesMissingCoords(result.rows);
 
     res.json(venues);
   } catch (error) {
