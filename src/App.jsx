@@ -7563,6 +7563,23 @@ const BORDER_MAP = {
       }, 250);
     }
     if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]);
+    try {
+      const actx = new (window.AudioContext || window.webkitAudioContext)();
+      const notes = [523.25, 659.25, 783.99, 1046.50];
+      notes.forEach((freq, i) => {
+        const osc = actx.createOscillator();
+        const gain = actx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.3, actx.currentTime + i * 0.12);
+        gain.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + i * 0.12 + 0.3);
+        osc.connect(gain);
+        gain.connect(actx.destination);
+        osc.start(actx.currentTime + i * 0.12);
+        osc.stop(actx.currentTime + i * 0.12 + 0.3);
+      });
+      setTimeout(() => actx.close(), 2000);
+    } catch (e) {}
     setTimeout(() => setCelebrateActive(false), 2000);
   }}
   disabled={celebrateActive}
