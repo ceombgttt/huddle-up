@@ -2259,6 +2259,14 @@ const qrScannerRef = useRef(null);
  }
  }, [selectedSports, isPauseScreen, getSponsorsForSport]);
 
+ useEffect(() => {
+ if (isPauseScreen) return;
+ const interval = setInterval(() => {
+ setAdSlideIndex(prev => (prev + 1) % 5);
+ }, 3000);
+ return () => clearInterval(interval);
+ }, [isPauseScreen]);
+
  const loadUserData = async () => {
  try {
  const userData = await api.auth.me();
