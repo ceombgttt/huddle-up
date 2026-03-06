@@ -6046,7 +6046,7 @@ const qrScannerRef = useRef(null);
 </div>
 </div>
 </button>
-<button onClick={() => { setCurrentScreen('browseParties'); window.scrollTo(0,0); }} className="relative overflow-hidden rounded-2xl border border-orange-500/40 bg-gradient-to-br from-orange-900/40 to-[#151A22] p-4 text-center hover:border-orange-500/60 transition-all active:scale-[0.97]" style={{ minHeight: '80px' }}>
+<button onClick={() => { setCurrentScreen('findVenues'); window.scrollTo(0,0); }} className="relative overflow-hidden rounded-2xl border border-orange-500/40 bg-gradient-to-br from-orange-900/40 to-[#151A22] p-4 text-center hover:border-orange-500/60 transition-all active:scale-[0.97]" style={{ minHeight: '80px' }}>
 <div className="flex flex-col items-center gap-2">
 <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30">
 <Search className="w-6 h-6 text-white" />
@@ -16320,8 +16320,7 @@ const BORDER_MAP = {
    const defaultCenter = mapVenues.length > 0 ? [parseFloat(mapVenues[0].latitude), parseFloat(mapVenues[0].longitude)] : [26.1224, -80.1373];
    return (
      <div className="min-h-screen bg-[#0F1115] pt-[60px] pb-[72px]">
-       {mapVenues.length > 0 && (
-         <div className="find-venues-map" style={{ height: '300px', width: '100%', position: 'relative', zIndex: 0 }}>
+       <div className="find-venues-map" style={{ height: '300px', width: '100%', position: 'relative', zIndex: 0 }}>
            <MapContainer center={defaultCenter} zoom={12} style={{ height: '100%', width: '100%' }} scrollWheelZoom={true}>
              <TileLayer attribution='&copy; OpenStreetMap' url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
              {mapVenues.map(v => {
@@ -16334,8 +16333,7 @@ const BORDER_MAP = {
                </Marker>
              );})}
            </MapContainer>
-         </div>
-       )}
+       </div>
        <div className="relative overflow-hidden" style={{ height: '100px', background: 'linear-gradient(135deg, #001a33 0%, #0a1628 50%, #1a0f00 100%)' }}>
          <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 30% 50%, rgba(30,144,255,0.15) 0%, transparent 60%)' }} />
          <div className="relative z-[1] flex items-center justify-center h-full px-6">
