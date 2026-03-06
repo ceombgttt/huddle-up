@@ -1377,6 +1377,7 @@ const HuddleUpApp = () => {
  }, [user, showPrelaunchModal, showOnboarding]);
  const [wcTick, setWcTick] = useState(Date.now());
  useEffect(() => { if (currentScreen !== 'games') return; const id = setInterval(() => setWcTick(Date.now()), 1000); return () => clearInterval(id); }, [currentScreen]);
+useEffect(() => { window.scrollTo(0, 0); }, [currentScreen]);
  const [softLaunchDismissed, setSoftLaunchDismissed] = useState(() => {
    const stored = localStorage.getItem('softlaunch_banner_dismissed');
    if (!stored) return false;
