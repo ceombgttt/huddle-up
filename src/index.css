@@ -680,6 +680,11 @@ input, textarea, select {
 @keyframes cineTrailFade { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-100px); } }
 @keyframes cineDramaticPulse { 0% { transform: scale(1); opacity: 0; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 0.8; } }
 
+.find-venues-map .leaflet-container { z-index: 0 !important; }
+.find-venues-map .leaflet-pane { z-index: 1 !important; }
+.find-venues-map .leaflet-top, .find-venues-map .leaflet-bottom { z-index: 2 !important; }
+.find-venues-map .leaflet-popup-pane { z-index: 3 !important; }
+
 @media (max-width: 768px) {
   .cinematic-logo { width: 140px; height: 140px; margin-bottom: 50px; }
   .cinematic-line { font-size: 28px; letter-spacing: 2px; }

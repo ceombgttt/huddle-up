@@ -39,7 +39,8 @@ The UI/UX prioritizes intuitive navigation and visual engagement, incorporating 
 -   **Improved Join Buttons**: Enhanced visual styling for party join actions.
 -   **Live Score Celebrations**: When a user's favorite team scores during a live game, the app fires team-colored confetti, shows a popup with score details (THREE!/TOUCHDOWN!/SCORED!), and triggers haptic vibration. Detects score changes via the 60-second ESPN polling cycle. Toggle and test button in Notification Settings. Respects prefers-reduced-motion.
 -   **Manual Celebration Button**: Floating button on game detail screen with 15-second crowd cheer audio, confetti, and haptic feedback. Uses `/public/crowd-cheer.mp3` (15s audio file).
--   **Intro Splash Screen**: Cinematic 3.2-second animated intro on login/signup. Shield logo flies in with glow, "FIND YOUR CREW." and "WATCH THE GAME." appear word-by-word with gradient text, blue/gold confetti finale. Skip button and "Don't show again" option (uses `skipIntros` localStorage key). z-index: 200.
+-   **Intro Splash Screen**: Cinematic 5-second animated intro on login/signup. Shield logo rises with glow trail, "FIND YOUR CREW." and "WATCH THE GAME." appear letter-by-letter with gradient text, dramatic glow pulse, smooth fade-out. Skip button and "Don't show again" option (uses `skipIntros` localStorage key). z-index: 200.
+-   **Find Venues Page**: Map-based venue discovery page (`findVenues` screen) with Leaflet dark map, venue pins, banner section, Near Me/Enter City search buttons, and scrollable venue list with category icons, star ratings, and stats. Accessible from hamburger menu and home screen "Venues" quick action.
 
 ## External Dependencies
 -   **PostgreSQL**: Database.

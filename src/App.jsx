@@ -1993,7 +1993,7 @@ const qrScannerRef = useRef(null);
  const activeSponsors = adminSponsors.filter(s => s.status === 'active');
 
  const formScreens = ['welcome', 'login', 'signup', 'forgotPassword', 'claimVenue', 'createParty'];
- const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', 'qrCheckin', 'myParties', 'myCrew', 'fanFinder', 'invitations', 'venueDashboard', 'sponsorDashboard', 'teamChats', 'trending', 'myTickets', 'alerts', 'userProfile', 'dmChat', 'proUpgrade', 'venueDetail', 'inviteFriends', 'notificationSettings', 'nearbyParties', 'browseParties', ...formScreens];
+ const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', 'qrCheckin', 'myParties', 'myCrew', 'fanFinder', 'invitations', 'venueDashboard', 'sponsorDashboard', 'teamChats', 'trending', 'myTickets', 'alerts', 'userProfile', 'dmChat', 'proUpgrade', 'venueDetail', 'inviteFriends', 'notificationSettings', 'nearbyParties', 'browseParties', 'findVenues', ...formScreens];
  const isFormScreen = formScreens.includes(currentScreen);
  const isPauseScreen = pauseScreens.includes(currentScreen);
 
@@ -6112,10 +6112,10 @@ Become a Sponsor →
 <div className="text-white text-base font-bold">My Parties</div>
 {(() => { const joined = parties.filter(p => userParties.includes(p.id) && new Date(p.gameTime) >= new Date()).length; return joined > 0 ? <span className="absolute top-2.5 right-2.5 bg-red-500 text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5">{joined}</span> : null; })()}
 </button>
-<button onClick={() => { setCurrentScreen('browseParties'); window.scrollTo(0,0); }} className="relative bg-[#151A22] border border-[#222A36] rounded-2xl p-4 text-center hover:border-emerald-500/40 transition-all active:scale-[0.97]" style={{ minHeight: '100px' }}>
+<button onClick={() => { setCurrentScreen('findVenues'); window.scrollTo(0,0); }} className="relative bg-[#151A22] border border-[#222A36] rounded-2xl p-4 text-center hover:border-emerald-500/40 transition-all active:scale-[0.97]" style={{ minHeight: '100px' }}>
 <div className="text-4xl mb-1.5">📍</div>
-<div className="text-white text-base font-bold">Near Me</div>
-{(() => { const nearby = parties.filter(p => new Date(p.gameTime) >= new Date()).length; return nearby > 0 ? <span className="absolute top-2.5 right-2.5 bg-[#1E90FF] text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5">{nearby}</span> : null; })()}
+<div className="text-white text-base font-bold">Venues</div>
+{(() => { const vc = venues.filter(v => v.verified).length; return vc > 0 ? <span className="absolute top-2.5 right-2.5 bg-[#1E90FF] text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5">{vc}</span> : null; })()}
 </button>
 </div>
 
@@ -16170,6 +16170,9 @@ const BORDER_MAP = {
 <button onClick={() => { setCurrentScreen('browseParties'); setHamburgerOpen(false); window.scrollTo(0, 0); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 transition-colors text-left active:scale-[0.98] border border-orange-500/30">
 <Search className="w-5 h-5 text-orange-400" /><span className="text-orange-400 text-base font-bold">Browse All Parties</span>
 </button>
+<button onClick={() => { setCurrentScreen('findVenues'); setHamburgerOpen(false); window.scrollTo(0, 0); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-[#1E90FF]/10 hover:bg-[#1E90FF]/20 transition-colors text-left active:scale-[0.98] border border-[#1E90FF]/30">
+<Map className="w-5 h-5 text-[#1E90FF]" /><span className="text-[#1E90FF] text-base font-bold">Find Venues Near Me</span>
+</button>
 <button onClick={() => { setCurrentScreen('myParties'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-500/10 transition-colors text-left active:scale-[0.98]">
 <Calendar className="w-5 h-5 text-orange-400" /><span className="text-white text-base font-semibold">My Parties</span>
 </button>
@@ -16300,6 +16303,88 @@ const BORDER_MAP = {
  {currentScreen === 'termsOfService' && <TermsOfServiceScreen />}
  {currentScreen === 'privacyPolicy' && <PrivacyPolicyScreen />}
  {currentScreen === 'venueDetail' && <VenueDetailScreen />}
+ {currentScreen === 'findVenues' && (() => {
+   const getCatIcon = (type) => {
+     const cats = { 'Sports Bar': { icon: '🍺', color: '#FF6B35' }, 'Restaurant': { icon: '🍴', color: '#E63946' }, 'Restaurant & Bar': { icon: '🍴', color: '#E63946' }, 'Pub': { icon: '🍻', color: '#10B981' }, 'Lounge': { icon: '🎵', color: '#8B5CF6' }, 'Bar & Grill': { icon: '🍺', color: '#FF6B35' } };
+     const c = cats[type] || cats['Sports Bar'];
+     return <div className="w-10 h-10 rounded-full flex items-center justify-center text-xl" style={{ background: c.color }}>{c.icon}</div>;
+   };
+   const renderStars = (r) => Array.from({ length: 5 }, (_, i) => <span key={i} style={{ color: i < Math.round(r || 0) ? '#FFD700' : '#444', fontSize: '14px' }}>★</span>);
+   const vList = venues.filter(v => v.verified);
+   const mapVenues = vList.filter(v => v.latitude && v.longitude);
+   const defaultCenter = mapVenues.length > 0 ? [parseFloat(mapVenues[0].latitude), parseFloat(mapVenues[0].longitude)] : [26.1224, -80.1373];
+   return (
+     <div className="min-h-screen bg-[#0F1115] pt-[60px] pb-[72px]">
+       {mapVenues.length > 0 && (
+         <div className="find-venues-map" style={{ height: '250px', width: '100%', position: 'relative', zIndex: 0 }}>
+           <MapContainer center={defaultCenter} zoom={12} style={{ height: '100%', width: '100%' }} scrollWheelZoom={true}>
+             <TileLayer attribution='&copy; OpenStreetMap' url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
+             {mapVenues.map(v => (
+               <Marker key={v.id} position={[parseFloat(v.latitude), parseFloat(v.longitude)]}
+                 icon={L.divIcon({ className: 'leaflet-custom-marker', html: `<div style="background:${v.featured ? '#FFD700' : '#1E90FF'};width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.4)">📍</div>`, iconSize: [32, 32], iconAnchor: [16, 16] })}>
+                 <Popup><div className="text-center"><strong>{v.name}</strong><br/><span style={{ fontSize: '12px', color: '#666' }}>{v.type || 'Sports Bar'}</span><br/><button onClick={() => { setSelectedVenueId(v.id); setCurrentScreen('venueDetail'); }} style={{ background: '#1E90FF', color: 'white', border: 'none', padding: '4px 12px', borderRadius: '6px', marginTop: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>View Venue</button></div></Popup>
+               </Marker>
+             ))}
+           </MapContainer>
+         </div>
+       )}
+       <div className="relative overflow-hidden" style={{ height: '110px', background: 'linear-gradient(135deg, #001a33 0%, #0a1628 50%, #1a0f00 100%)' }}>
+         <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 30% 50%, rgba(30,144,255,0.15) 0%, transparent 60%)' }} />
+         <div className="relative z-[1] flex items-center justify-center h-full px-6">
+           <div className="text-center">
+             <div className="text-2xl font-black" style={{ color: '#FFD700', textShadow: '0 2px 10px rgba(255,215,0,0.3)', letterSpacing: '1px' }}>THE BEST PLACE TO</div>
+             <div className="text-2xl font-black" style={{ color: '#FFD700', textShadow: '0 2px 10px rgba(255,215,0,0.3)', letterSpacing: '1px' }}>WATCH THE GAME!</div>
+           </div>
+           <div className="ml-4 text-5xl">🍺</div>
+         </div>
+       </div>
+       <div className="flex gap-3 px-4 py-4">
+         <button onClick={() => { if (navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { const lat = pos.coords.latitude; const lng = pos.coords.longitude; fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`).then(r => r.json()).then(d => { const city = d.address?.city || d.address?.town || d.address?.village || 'Your Location'; setCurrentCity(`${city}, ${d.address?.state || ''}`); }).catch(() => setCurrentCity('Your Location')); }, () => { alert('Please enable location access to use Near Me'); }); } else { alert('Location is not supported by your browser'); } }} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white text-sm" style={{ background: '#1E90FF' }}>
+           <Navigation className="w-4 h-4" /> Near Me
+         </button>
+         <button onClick={() => { setLocationDropdownOpen(true); }} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white text-sm" style={{ background: '#333' }}>
+           <MapPin className="w-4 h-4" /> Enter City
+         </button>
+       </div>
+       <div className="px-4 pb-2">
+         <div className="flex items-center justify-between">
+           <h2 className="text-white font-black text-lg">{vList.length} Venues</h2>
+           <span className="text-[#A0A4AB] text-xs">{currentCity || 'All Locations'}</span>
+         </div>
+       </div>
+       <div className="divide-y divide-[#222A36]">
+         {vList.length === 0 ? (
+           <div className="text-center py-16 px-6">
+             <div className="text-6xl mb-4">🏟️</div>
+             <h3 className="text-white font-bold text-xl mb-2">No Venues Yet</h3>
+             <p className="text-[#A0A4AB] text-sm mb-6">Be the first venue to join Huddle Up in your area!</p>
+             <button onClick={() => setCurrentScreen('signup')} className="px-6 py-3 bg-[#1E90FF] text-white font-bold rounded-xl">Register Your Venue</button>
+           </div>
+         ) : vList.map(v => (
+           <div key={v.id} onClick={() => { setSelectedVenueId(v.id); setCurrentScreen('venueDetail'); }} className="flex items-center px-4 py-3 cursor-pointer hover:bg-[#151A22] transition-colors active:scale-[0.99]">
+             <div className="w-20 h-20 rounded-xl overflow-hidden mr-3 flex-shrink-0 bg-[#151A22] flex items-center justify-center">
+               {v.imageUrl ? <img src={v.imageUrl} alt={v.name} className="w-full h-full object-cover" /> : <Building2 className="w-8 h-8 text-[#A0A4AB]" />}
+             </div>
+             <div className="flex-1 min-w-0">
+               <div className="flex items-center gap-1.5">
+                 <h3 className="text-white font-bold text-[15px] truncate">{v.name}</h3>
+                 {v.featured && <span className="text-amber-400 text-xs">⭐</span>}
+               </div>
+               <p className="text-[#A0A4AB] text-xs mt-0.5 truncate">{v.type || 'Sports Bar'} • {v.address}</p>
+               <div className="mt-1">{renderStars(v.avg_rating || v.rating || 0)}</div>
+               <div className="text-[#A0A4AB] text-xs mt-1 flex items-center gap-2">
+                 {v.total_parties != null && <span>{v.total_parties} parties</span>}
+                 {v.total_fans != null && <span>{v.total_fans} 👤</span>}
+                 {v.follower_count != null && <span>{v.follower_count} followers</span>}
+               </div>
+             </div>
+             <div className="ml-3 flex-shrink-0">{getCatIcon(v.type)}</div>
+           </div>
+         ))}
+       </div>
+     </div>
+   );
+ })()}
  {currentScreen === 'inviteFriends' && renderInviteFriendsScreen()}
 
 {user && !['welcome', 'login', 'signup', 'signupType', 'forgotPassword', 'dmChat', 'gameDetail'].includes(currentScreen) && !(currentScreen === 'teamChats' && teamChatSelectedRoom) && (
