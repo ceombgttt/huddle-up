@@ -7565,7 +7565,7 @@ const BORDER_MAP = {
     }
     if (navigator.vibrate) navigator.vibrate([150, 60, 150, 60, 150, 60, 300]);
     try {
-      const audio = new Audio('/crowd-cheer.mp3');
+      const audio = new Audio('/crowd-cheer.mp3?v=2');
       audio.volume = 0.7;
       audio.play().catch(() => {});
     } catch (e) {}
