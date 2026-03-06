@@ -6154,6 +6154,15 @@ Become a Sponsor →
              <span className="flex items-center gap-1"><MapPin className="w-3 h-3 text-emerald-400" />{lp.venueName || 'TBD'}</span>
              <span className="flex items-center gap-1"><Users className="w-3 h-3 text-[#1E90FF]" />{lp.attendeeCount} going</span>
            </div>
+           <div className="mt-2">
+           {userParties.includes(lp.id) || justJoinedPartyId === lp.id ? (
+             <span className="flex items-center gap-1.5 text-xs text-emerald-400 font-bold"><CheckCircle className="w-3.5 h-3.5" /> Joined</span>
+           ) : (
+             <button onClick={(e) => { e.stopPropagation(); handleJoinParty(lp.id); }} disabled={joiningPartyId === lp.id} className="w-full py-2 bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white font-bold text-sm rounded-lg shadow-lg shadow-[#1E90FF]/20 hover:shadow-[#1E90FF]/40 transition-all active:scale-[0.97]">
+               {joiningPartyId === lp.id ? 'Joining...' : 'Join This Party 🎉'}
+             </button>
+           )}
+           </div>
          </div>
        );
      })}
@@ -6184,6 +6193,15 @@ Become a Sponsor →
              <span className="flex items-center gap-1"><Users className="w-3 h-3 text-[#1E90FF]" />{hp.attendeeCount} fans</span>
            </div>
            <p className="text-xs text-orange-400/60 mt-1">{gt.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</p>
+           <div className="mt-2">
+           {userParties.includes(hp.id) || justJoinedPartyId === hp.id ? (
+             <span className="flex items-center gap-1.5 text-xs text-emerald-400 font-bold"><CheckCircle className="w-3.5 h-3.5" /> Joined</span>
+           ) : (
+             <button onClick={(e) => { e.stopPropagation(); handleJoinParty(hp.id); }} disabled={joiningPartyId === hp.id} className="w-full py-2 bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white font-bold text-sm rounded-lg shadow-lg shadow-[#1E90FF]/20 hover:shadow-[#1E90FF]/40 transition-all active:scale-[0.97]">
+               {joiningPartyId === hp.id ? 'Joining...' : 'Join This Party 🎉'}
+             </button>
+           )}
+           </div>
          </div>
        );
      })}
@@ -14761,6 +14779,15 @@ const BORDER_MAP = {
  <button onClick={(e) => { e.stopPropagation(); openShareMenu(party); }} className="flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 transition-colors">
  <Share2 className="w-3 h-3" /> Share
  </button>
+ <div className="ml-auto">
+ {userParties.includes(party.id) || justJoinedPartyId === party.id ? (
+ <span className="flex items-center gap-1.5 text-xs text-emerald-400 font-bold"><CheckCircle className="w-3.5 h-3.5" /> Joined</span>
+ ) : (
+ <button onClick={(e) => { e.stopPropagation(); handleJoinParty(party.id); }} disabled={joiningPartyId === party.id} className="px-4 py-1.5 bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white font-bold text-sm rounded-lg shadow-lg shadow-[#1E90FF]/20 hover:shadow-[#1E90FF]/40 transition-all active:scale-[0.97]">
+ {joiningPartyId === party.id ? 'Joining...' : 'Join 🎉'}
+ </button>
+ )}
+ </div>
  </div>
  </div>
  );
