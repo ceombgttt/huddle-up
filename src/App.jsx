@@ -7555,56 +7555,23 @@ const BORDER_MAP = {
     const rm = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (!rm) {
       const tc = getTeamColors(selectedGame.sport, selectedGame.homeTeam) || getTeamColors(selectedGame.sport, selectedGame.awayTeam) || ['#1E90FF', '#FFD700'];
-      const end = Date.now() + 4000;
+      const end = Date.now() + 15000;
       const iv = setInterval(() => {
         if (Date.now() > end) { clearInterval(iv); return; }
         confetti({ particleCount: 70, spread: 120, origin: { x: 0.5, y: 0.4 }, colors: tc, scalar: 2, shapes: ['circle', 'square'] });
         confetti({ particleCount: 35, startVelocity: 55, spread: 90, origin: { x: Math.random() * 0.4, y: 1 }, colors: tc, scalar: 1.5 });
         confetti({ particleCount: 35, startVelocity: 55, spread: 90, origin: { x: 0.6 + Math.random() * 0.4, y: 1 }, colors: tc, scalar: 1.5 });
-      }, 200);
+      }, 300);
     }
     if (navigator.vibrate) navigator.vibrate([150, 60, 150, 60, 150, 60, 300]);
     try {
-      const actx = new (window.AudioContext || window.webkitAudioContext)();
-      const t = actx.currentTime;
-      const horn = actx.createOscillator();
-      const hornGain = actx.createGain();
-      horn.type = 'sawtooth';
-      horn.frequency.setValueAtTime(220, t);
-      horn.frequency.linearRampToValueAtTime(440, t + 0.15);
-      hornGain.gain.setValueAtTime(0.35, t);
-      hornGain.gain.linearRampToValueAtTime(0.25, t + 0.3);
-      hornGain.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
-      horn.connect(hornGain);
-      hornGain.connect(actx.destination);
-      horn.start(t);
-      horn.stop(t + 1.2);
-      const bellNotes = [784, 988, 1175, 1318, 1568];
-      bellNotes.forEach((freq, i) => {
-        const osc = actx.createOscillator();
-        const g = actx.createGain();
-        osc.type = 'sine';
-        osc.frequency.value = freq;
-        const start = t + 0.4 + i * 0.15;
-        g.gain.setValueAtTime(0.25, start);
-        g.gain.exponentialRampToValueAtTime(0.001, start + 0.4);
-        osc.connect(g);
-        g.connect(actx.destination);
-        osc.start(start);
-        osc.stop(start + 0.4);
-      });
-      fetch('/crowd-cheer.mp3').then(r => r.arrayBuffer()).then(ab => actx.decodeAudioData(ab)).then(audioBuf => {
-        const src = actx.createBufferSource();
-        src.buffer = audioBuf;
-        const cheerGain = actx.createGain();
-        cheerGain.gain.setValueAtTime(0.5, t);
-        src.connect(cheerGain);
-        cheerGain.connect(actx.destination);
-        src.start(t + 0.15);
-      }).catch(() => {});
-      setTimeout(() => actx.close(), 5000);
+      const audio = new Audio('/crowd-cheer.mp3');
+      audio.volume = 0.6;
+      audio.loop = true;
+      audio.play().catch(() => {});
+      setTimeout(() => { audio.loop = false; audio.pause(); }, 15000);
     } catch (e) {}
-    setTimeout(() => setCelebrateActive(false), 3500);
+    setTimeout(() => setCelebrateActive(false), 15000);
   }}
   disabled={celebrateActive}
   className="fixed z-[45] flex flex-col items-center justify-center celebrate-btn"
