@@ -1405,6 +1405,7 @@ const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
 const [findPartiesSearch, setFindPartiesSearch] = useState('');
 const [findPartiesCityInput, setFindPartiesCityInput] = useState('');
 const [findPartiesShowCity, setFindPartiesShowCity] = useState(false);
+const [findPartiesSport, setFindPartiesSport] = useState('All');
  const [venues, setVenues] = useState(SAMPLE_VENUES);
  const [venueClaims, setVenueClaims] = useState([]);
  const [selectedVenue, setSelectedVenue] = useState(null);
@@ -16308,45 +16309,42 @@ const BORDER_MAP = {
  {currentScreen === 'venueDetail' && <VenueDetailScreen />}
  {currentScreen === 'findParties' && (() => {
    const fpSportIcons = { 'NFL': '🏈', 'NBA': '🏀', 'NHL': '🏒', 'MLB': '⚾', 'MLS': '⚽', 'College Football': '🏈', 'College Basketball': '🏀', 'Premier League': '⚽', 'La Liga': '⚽', 'Liga MX': '⚽', 'Champions League': '⚽', 'UFC/MMA': '🥊', 'Boxing': '🥊', 'NASCAR': '🏁', 'F1': '🏎️', 'Tennis': '🎾', 'Golf': '⛳' };
+   const fpSportList = ['All', 'NFL', 'NBA', 'NHL', 'MLB', 'MLS', 'College Football', 'College Basketball', 'Premier League', 'UFC/MMA', 'Boxing'];
    const now = new Date();
    const fourHoursAgo = new Date(now.getTime() - 4*60*60*1000);
-   const allUpcoming = parties.filter(p => new Date(p.gameTime) >= fourHoursAgo).sort((a, b) => new Date(a.gameTime) - new Date(b.gameTime));
-   const liveParties = allUpcoming.filter(p => { const gt = new Date(p.gameTime); return gt <= now && gt >= fourHoursAgo; });
-   const upcomingOnly = allUpcoming.filter(p => new Date(p.gameTime) > now);
-   const upcomingGames = games.filter(g => new Date(g.startTime || g.date) >= fourHoursAgo).sort((a, b) => new Date(a.startTime || a.date) - new Date(b.startTime || b.date));
+   const allParties = parties.filter(p => new Date(p.gameTime) >= fourHoursAgo).sort((a, b) => new Date(a.gameTime) - new Date(b.gameTime));
+   const allGames = games.filter(g => new Date(g.startTime || g.date) >= fourHoursAgo).sort((a, b) => new Date(a.startTime || a.date) - new Date(b.startTime || b.date));
+   const fpSearch = findPartiesSearch || '';
+   const fpSearchLower = fpSearch.toLowerCase();
+   const fpSport = findPartiesSport || 'All';
+   const sportFiltered = fpSport === 'All' ? allParties : allParties.filter(p => p.sport === fpSport);
+   const sportFilteredGames = fpSport === 'All' ? allGames : allGames.filter(g => g.sport === fpSport);
+   const searchFiltered = fpSearch ? sportFiltered.filter(p => {
+     const title = (p.homeTeam && p.awayTeam ? `${p.awayTeam} vs ${p.homeTeam}` : p.title || '').toLowerCase();
+     return title.includes(fpSearchLower) || (p.venueName || '').toLowerCase().includes(fpSearchLower) || (p.hostName || '').toLowerCase().includes(fpSearchLower) || (p.sport || '').toLowerCase().includes(fpSearchLower);
+   }) : sportFiltered;
+   const searchFilteredGames = fpSearch ? sportFilteredGames.filter(g => {
+     return `${g.awayTeam || ''} vs ${g.homeTeam || ''}`.toLowerCase().includes(fpSearchLower) || (g.sport || '').toLowerCase().includes(fpSearchLower);
+   }) : sportFilteredGames;
+   const liveParties = searchFiltered.filter(p => { const gt = new Date(p.gameTime); return gt <= now && gt >= fourHoursAgo; });
+   const upcomingParties = searchFiltered.filter(p => new Date(p.gameTime) > now);
    const partyVenues = {};
-   allUpcoming.forEach(p => {
+   allParties.forEach(p => {
      if (p.venueName) {
-       const vn = p.venueName.toLowerCase();
-       const v = venues.find(x => x.name?.toLowerCase() === vn);
+       const v = venues.find(x => x.name?.toLowerCase() === p.venueName.toLowerCase());
        if (v && v.latitude && v.longitude) partyVenues[p.id] = v;
      }
    });
-   const mapMarkers = allUpcoming.filter(p => partyVenues[p.id]);
+   const mapMarkers = allParties.filter(p => partyVenues[p.id]);
    const firstWithCoords = mapMarkers[0] ? partyVenues[mapMarkers[0].id] : null;
    const defaultCenter = firstWithCoords ? [parseFloat(firstWithCoords.latitude), parseFloat(firstWithCoords.longitude)] : [26.1224, -80.1373];
-   const fpSearch = (typeof findPartiesSearch === 'string') ? findPartiesSearch : '';
-   const fpSearchLower = fpSearch.toLowerCase();
-   const filteredParties = fpSearch ? allUpcoming.filter(p => {
-     const title = (p.homeTeam && p.awayTeam ? `${p.awayTeam} vs ${p.homeTeam}` : p.title || '').toLowerCase();
-     const venue = (p.venueName || '').toLowerCase();
-     const host = (p.hostName || '').toLowerCase();
-     const sport = (p.sport || '').toLowerCase();
-     return title.includes(fpSearchLower) || venue.includes(fpSearchLower) || host.includes(fpSearchLower) || sport.includes(fpSearchLower);
-   }) : allUpcoming;
-   const filteredLive = fpSearch ? filteredParties.filter(p => { const gt = new Date(p.gameTime); return gt <= now && gt >= fourHoursAgo; }) : liveParties;
-   const filteredUpcoming = fpSearch ? filteredParties.filter(p => new Date(p.gameTime) > now) : upcomingOnly;
-   const filteredGames = fpSearch ? upcomingGames.filter(g => {
-     const title = `${g.awayTeam || ''} vs ${g.homeTeam || ''}`.toLowerCase();
-     const sport = (g.sport || '').toLowerCase();
-     return title.includes(fpSearchLower) || sport.includes(fpSearchLower);
-   }) : upcomingGames;
-   const fpCityInput = (typeof findPartiesCityInput === 'string') ? findPartiesCityInput : '';
-   const fpShowCityInput = (typeof findPartiesShowCity === 'boolean') ? findPartiesShowCity : false;
+   const fpCityInput = findPartiesCityInput || '';
+   const fpShowCityInput = findPartiesShowCity || false;
+   const totalResults = searchFiltered.length + searchFilteredGames.length;
    return (
      <div className="min-h-screen bg-[#0F1115] pt-[60px] pb-[72px]">
-       <div className="find-venues-map" style={{ height: '280px', width: '100%', position: 'relative', zIndex: 0 }}>
-         <MapContainer center={defaultCenter} zoom={12} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false} dragging={false} zoomControl={false} doubleClickZoom={false} touchZoom={false} keyboard={false} attributionControl={false}>
+       <div className="find-venues-map" style={{ height: '280px', width: '100%', position: 'relative', zIndex: 0, pointerEvents: 'none' }}>
+         <MapContainer center={defaultCenter} zoom={11} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false} dragging={false} zoomControl={false} doubleClickZoom={false} touchZoom={false} keyboard={false} attributionControl={false}>
            <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
            {mapMarkers.map(p => {
              const v = partyVenues[p.id];
@@ -16354,35 +16352,31 @@ const BORDER_MAP = {
              const isLive = gt <= now && gt >= fourHoursAgo;
              return (
                <Marker key={p.id} position={[parseFloat(v.latitude), parseFloat(v.longitude)]}
-                 icon={L.divIcon({ className: 'leaflet-custom-marker', html: `<div style="background:${isLive ? '#ff4757' : '#1E90FF'};width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;border:2px solid white;box-shadow:0 2px 10px rgba(0,0,0,0.5)">${isLive ? '🔴' : fpSportIcons[p.sport] || '🎉'}</div>`, iconSize: [34, 34], iconAnchor: [17, 17] })}>
-                 <Popup><div className="text-center"><strong>{p.homeTeam && p.awayTeam ? `${p.awayTeam} vs ${p.homeTeam}` : p.title}</strong><br/><span style={{ fontSize: '12px', color: '#aaa' }}>{v.name}</span><br/>{isLive && <span style={{ color: '#ff4757', fontWeight: 'bold', fontSize: '11px' }}>LIVE NOW</span>}<br/><button onClick={() => { setSelectedGame({ id: p.gameId || p.id, sport: p.sport, homeTeam: p.homeTeam, awayTeam: p.awayTeam, startTime: p.gameTime }); setCurrentScreen('gameDetail'); }} style={{ background: '#1E90FF', color: 'white', border: 'none', padding: '4px 12px', borderRadius: '6px', marginTop: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>View Party</button></div></Popup>
-               </Marker>
+                 icon={L.divIcon({ className: 'leaflet-custom-marker', html: `<div style="background:${isLive ? '#ff4757' : '#1E90FF'};width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.5)">${fpSportIcons[p.sport] || '📍'}</div>`, iconSize: [30, 30], iconAnchor: [15, 15] })} />
              );
            })}
          </MapContainer>
        </div>
-       <div className="relative overflow-hidden" style={{ height: '80px', background: 'linear-gradient(135deg, #1a0500 0%, #0a1628 50%, #001a33 100%)' }}>
-         <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 70% 50%, rgba(255,107,107,0.12) 0%, transparent 60%)' }} />
+       <div className="relative overflow-hidden" style={{ height: '70px', background: 'linear-gradient(135deg, #001a33 0%, #0a1628 50%, #1a0f00 100%)' }}>
+         <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 30% 50%, rgba(30,144,255,0.15) 0%, transparent 60%)' }} />
          <div className="relative z-[1] flex items-center justify-center h-full px-6">
            <div className="text-center">
-             <div className="text-lg font-black" style={{ color: '#FFD700', textShadow: '0 2px 10px rgba(255,215,0,0.3)', letterSpacing: '1px' }}>FIND YOUR CREW.</div>
-             <div className="text-lg font-black" style={{ color: '#FFD700', textShadow: '0 2px 10px rgba(255,215,0,0.3)', letterSpacing: '1px' }}>WATCH THE GAME!</div>
+             <div className="text-lg font-black" style={{ color: '#FFD700', textShadow: '0 2px 10px rgba(255,215,0,0.3)', letterSpacing: '1px' }}>FIND YOUR CREW. WATCH THE GAME!</div>
            </div>
-           <div className="ml-4 text-3xl">🎉</div>
          </div>
        </div>
        <div className="flex gap-3 px-4 py-3">
          <button onClick={() => { if (navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { const lat = pos.coords.latitude; const lng = pos.coords.longitude; fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`).then(r => r.json()).then(d => { const city = d.address?.city || d.address?.town || d.address?.village || 'Your Location'; setCurrentCity(`${city}, ${d.address?.state || ''}`); setFindPartiesShowCity(false); }).catch(() => setCurrentCity('Your Location')); }, () => { alert('Please enable location access to use Near Me'); }); } else { alert('Location is not supported by your browser'); } }} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white text-sm" style={{ background: 'linear-gradient(135deg, #1E90FF, #1873cc)' }}>
            <Navigation className="w-4 h-4" /> Near Me
          </button>
-         <button onClick={() => { setFindPartiesShowCity(!fpShowCityInput); }} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white text-sm" style={{ background: '#2a2d39' }}>
+         <button onClick={() => setFindPartiesShowCity(!fpShowCityInput)} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white text-sm" style={{ background: '#2a2d39' }}>
            <MapPin className="w-4 h-4" /> Enter City
          </button>
        </div>
        {fpShowCityInput && (
          <div className="px-4 pb-3">
            <div className="flex gap-2">
-             <input type="text" value={fpCityInput} onChange={(e) => setFindPartiesCityInput(e.target.value)} placeholder="Type a city name..." className="flex-1 px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" autoFocus />
+             <input type="text" value={fpCityInput} onChange={(e) => setFindPartiesCityInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && fpCityInput.trim()) { setCurrentCity(fpCityInput.trim()); setFindPartiesShowCity(false); setFindPartiesCityInput(''); } }} placeholder="Type a city name..." className="flex-1 px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" autoFocus />
              <button onClick={() => { if (fpCityInput.trim()) { setCurrentCity(fpCityInput.trim()); setFindPartiesShowCity(false); setFindPartiesCityInput(''); } }} className="px-4 py-2.5 bg-[#1E90FF] text-white font-bold text-sm rounded-xl">Go</button>
            </div>
          </div>
@@ -16394,20 +16388,29 @@ const BORDER_MAP = {
            {fpSearch && <button onClick={() => setFindPartiesSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A0A4AB] hover:text-white"><X className="w-4 h-4" /></button>}
          </div>
        </div>
+       <div className="px-4 pb-3 overflow-x-auto hide-scrollbar">
+         <div className="flex gap-2" style={{ minWidth: 'max-content' }}>
+           {fpSportList.map(sp => (
+             <button key={sp} onClick={() => setFindPartiesSport(sp)} className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${fpSport === sp ? 'bg-[#1E90FF] text-white' : 'bg-[#151A22] text-[#A0A4AB] border border-[#222A36] hover:border-[#1E90FF]/40'}`}>
+               {sp !== 'All' && <span className="mr-1">{fpSportIcons[sp]}</span>}{sp}
+             </button>
+           ))}
+         </div>
+       </div>
        <div className="px-4 pb-2">
          <div className="flex items-center justify-between">
-           <h2 className="text-white font-black text-lg">{filteredParties.length} {filteredParties.length === 1 ? 'Party' : 'Parties'}</h2>
+           <h2 className="text-white font-black text-lg">{searchFiltered.length} {searchFiltered.length === 1 ? 'Party' : 'Parties'} • {searchFilteredGames.length} Games</h2>
            <span className="text-[#A0A4AB] text-xs">{currentCity || 'All Locations'}</span>
          </div>
        </div>
-       {filteredLive.length > 0 && (
+       {liveParties.length > 0 && (
          <div className="px-3 pb-2">
            <div className="flex items-center gap-2 mb-2 px-1">
              <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />
              <span className="text-red-400 text-xs font-black uppercase tracking-wider">Live Now</span>
            </div>
            <div className="space-y-2">
-             {filteredLive.map(p => (
+             {liveParties.map(p => (
                <div key={p.id} onClick={() => { setSelectedGame({ id: p.gameId || p.id, sport: p.sport, homeTeam: p.homeTeam, awayTeam: p.awayTeam, startTime: p.gameTime }); setCurrentScreen('gameDetail'); }} className="bg-[#151A22] rounded-xl border border-red-500/30 overflow-hidden cursor-pointer hover:border-red-500/50 transition-all active:scale-[0.99]">
                  <div className="flex items-center p-3 gap-3">
                    <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center text-2xl flex-shrink-0">{fpSportIcons[p.sport] || '🏟️'}</div>
@@ -16426,16 +16429,16 @@ const BORDER_MAP = {
            </div>
          </div>
        )}
-       {filteredUpcoming.length > 0 && (
+       {upcomingParties.length > 0 && (
        <div className="px-3 pb-2">
-         {filteredLive.length > 0 && (
+         {liveParties.length > 0 && (
            <div className="flex items-center gap-2 mb-2 px-1 mt-2">
              <Calendar className="w-3.5 h-3.5 text-[#1E90FF]" />
              <span className="text-[#1E90FF] text-xs font-black uppercase tracking-wider">Upcoming Parties</span>
            </div>
          )}
          <div className="space-y-2">
-           {filteredUpcoming.map(p => (
+           {upcomingParties.map(p => (
              <div key={p.id} onClick={() => { setSelectedGame({ id: p.gameId || p.id, sport: p.sport, homeTeam: p.homeTeam, awayTeam: p.awayTeam, startTime: p.gameTime }); setCurrentScreen('gameDetail'); }} className="bg-[#151A22] rounded-xl border border-[#222A36] overflow-hidden cursor-pointer hover:border-[#1E90FF]/30 transition-all active:scale-[0.99]">
                <div className="flex items-center p-3 gap-3">
                  <div className="w-12 h-12 rounded-xl bg-[#1E90FF]/10 flex items-center justify-center text-2xl flex-shrink-0">{fpSportIcons[p.sport] || '🏟️'}</div>
@@ -16451,17 +16454,17 @@ const BORDER_MAP = {
          </div>
        </div>
        )}
-       {filteredGames.length > 0 && (
+       {searchFilteredGames.length > 0 && (
        <div className="px-3 pb-4">
          <div className="flex items-center gap-2 mb-2 px-1 mt-2">
            <span className="text-lg">🏟️</span>
            <span className="text-white/70 text-xs font-black uppercase tracking-wider">Games {fpSearch ? 'Matching' : 'Today & Upcoming'}</span>
          </div>
          <div className="space-y-2">
-           {filteredGames.slice(0, fpSearch ? 20 : 10).map(g => {
+           {searchFilteredGames.slice(0, 15).map(g => {
              const gt = new Date(g.startTime || g.date);
              const gIsLive = gt <= now && gt >= fourHoursAgo;
-             const gameParties = allUpcoming.filter(p => p.gameId === g.id);
+             const gameParties = allParties.filter(p => p.gameId === g.id);
              return (
              <div key={g.id} onClick={() => { setSelectedGame(g); setCurrentScreen('gameDetail'); }} className={`bg-[#151A22] rounded-xl border ${gIsLive ? 'border-red-500/30' : 'border-[#222A36]'} overflow-hidden cursor-pointer hover:border-[#1E90FF]/30 transition-all active:scale-[0.99]`}>
                <div className="flex items-center p-3 gap-3">
@@ -16482,12 +16485,12 @@ const BORDER_MAP = {
          </div>
        </div>
        )}
-       {filteredParties.length === 0 && filteredGames.length === 0 && (
+       {searchFiltered.length === 0 && searchFilteredGames.length === 0 && (
          <div className="text-center py-16 px-6">
-           <div className="text-6xl mb-4">{fpSearch ? '🔍' : '🎉'}</div>
-           <h3 className="text-white font-bold text-xl mb-2">{fpSearch ? 'No Results Found' : 'No Parties Yet'}</h3>
-           <p className="text-[#A0A4AB] text-sm mb-6">{fpSearch ? `No matches for "${fpSearch}"` : 'No watch parties scheduled right now. Be the first to create one!'}</p>
-           {fpSearch ? <button onClick={() => setFindPartiesSearch('')} className="px-6 py-3 bg-[#1E90FF] text-white font-bold rounded-xl">Clear Search</button> : <button onClick={() => setCurrentScreen('games')} className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-xl">Create a Party 🎉</button>}
+           <div className="text-6xl mb-4">{fpSearch || fpSport !== 'All' ? '🔍' : '🏟️'}</div>
+           <h3 className="text-white font-bold text-xl mb-2">{fpSearch ? 'No Results Found' : fpSport !== 'All' ? `No ${fpSport} Events` : 'No Parties Yet'}</h3>
+           <p className="text-[#A0A4AB] text-sm mb-6">{fpSearch ? `No matches for "${fpSearch}"` : fpSport !== 'All' ? `No ${fpSport} parties or games right now.` : 'No watch parties scheduled right now. Be the first to create one!'}</p>
+           {fpSearch ? <button onClick={() => setFindPartiesSearch('')} className="px-6 py-3 bg-[#1E90FF] text-white font-bold rounded-xl">Clear Search</button> : fpSport !== 'All' ? <button onClick={() => setFindPartiesSport('All')} className="px-6 py-3 bg-[#1E90FF] text-white font-bold rounded-xl">Show All Sports</button> : <button onClick={() => setCurrentScreen('games')} className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-xl">Create a Party</button>}
          </div>
        )}
      </div>
