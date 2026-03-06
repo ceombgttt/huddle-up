@@ -1993,7 +1993,7 @@ const qrScannerRef = useRef(null);
  const activeSponsors = adminSponsors.filter(s => s.status === 'active');
 
  const formScreens = ['welcome', 'login', 'signup', 'forgotPassword', 'claimVenue', 'createParty'];
- const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', 'qrCheckin', 'myParties', 'myCrew', 'fanFinder', 'invitations', 'venueDashboard', 'sponsorDashboard', 'teamChats', 'trending', 'myTickets', 'alerts', 'userProfile', 'dmChat', 'proUpgrade', 'venueDetail', 'inviteFriends', 'notificationSettings', 'nearbyParties', 'browseParties', 'findVenues', ...formScreens];
+ const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', 'qrCheckin', 'myParties', 'myCrew', 'fanFinder', 'invitations', 'venueDashboard', 'sponsorDashboard', 'teamChats', 'trending', 'myTickets', 'alerts', 'userProfile', 'dmChat', 'proUpgrade', 'venueDetail', 'inviteFriends', 'notificationSettings', 'nearbyParties', 'browseParties', 'findVenues', 'findParties', ...formScreens];
  const isFormScreen = formScreens.includes(currentScreen);
  const isPauseScreen = pauseScreens.includes(currentScreen);
 
@@ -6046,7 +6046,7 @@ const qrScannerRef = useRef(null);
 </div>
 </div>
 </button>
-<button onClick={() => { setCurrentScreen('findVenues'); window.scrollTo(0,0); }} className="relative overflow-hidden rounded-2xl border border-orange-500/40 bg-gradient-to-br from-orange-900/40 to-[#151A22] p-4 text-center hover:border-orange-500/60 transition-all active:scale-[0.97]" style={{ minHeight: '80px' }}>
+<button onClick={() => { setCurrentScreen('findParties'); window.scrollTo(0,0); }} className="relative overflow-hidden rounded-2xl border border-orange-500/40 bg-gradient-to-br from-orange-900/40 to-[#151A22] p-4 text-center hover:border-orange-500/60 transition-all active:scale-[0.97]" style={{ minHeight: '80px' }}>
 <div className="flex flex-col items-center gap-2">
 <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30">
 <Search className="w-6 h-6 text-white" />
@@ -16303,6 +16303,131 @@ const BORDER_MAP = {
  {currentScreen === 'termsOfService' && <TermsOfServiceScreen />}
  {currentScreen === 'privacyPolicy' && <PrivacyPolicyScreen />}
  {currentScreen === 'venueDetail' && <VenueDetailScreen />}
+ {currentScreen === 'findParties' && (() => {
+   const fpSportIcons = { 'NFL': '🏈', 'NBA': '🏀', 'NHL': '🏒', 'MLB': '⚾', 'MLS': '⚽', 'College Football': '🏈', 'College Basketball': '🏀', 'Premier League': '⚽', 'La Liga': '⚽', 'Liga MX': '⚽', 'Champions League': '⚽', 'UFC/MMA': '🥊', 'Boxing': '🥊', 'NASCAR': '🏁', 'F1': '🏎️', 'Tennis': '🎾', 'Golf': '⛳' };
+   const now = new Date();
+   const fourHoursAgo = new Date(now.getTime() - 4*60*60*1000);
+   const allUpcoming = parties.filter(p => new Date(p.gameTime) >= fourHoursAgo).sort((a, b) => new Date(a.gameTime) - new Date(b.gameTime));
+   const liveParties = allUpcoming.filter(p => { const gt = new Date(p.gameTime); return gt <= now && gt >= fourHoursAgo; });
+   const upcomingOnly = allUpcoming.filter(p => new Date(p.gameTime) > now);
+   const partyVenues = {};
+   allUpcoming.forEach(p => {
+     if (p.venueName) {
+       const vn = p.venueName.toLowerCase();
+       const v = venues.find(x => x.name?.toLowerCase() === vn);
+       if (v && v.latitude && v.longitude) partyVenues[p.id] = v;
+     }
+   });
+   const mapMarkers = allUpcoming.filter(p => partyVenues[p.id]);
+   const firstWithCoords = mapMarkers[0] ? partyVenues[mapMarkers[0].id] : null;
+   const defaultCenter = firstWithCoords ? [parseFloat(firstWithCoords.latitude), parseFloat(firstWithCoords.longitude)] : [26.1224, -80.1373];
+   return (
+     <div className="min-h-screen bg-[#0F1115] pt-[60px] pb-[72px]">
+       <div className="find-venues-map" style={{ height: '300px', width: '100%', position: 'relative', zIndex: 0 }}>
+         <MapContainer center={defaultCenter} zoom={12} style={{ height: '100%', width: '100%' }} scrollWheelZoom={true}>
+           <TileLayer attribution='&copy; OpenStreetMap' url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
+           {mapMarkers.map(p => {
+             const v = partyVenues[p.id];
+             const gt = new Date(p.gameTime);
+             const isLive = gt <= now && gt >= fourHoursAgo;
+             return (
+               <Marker key={p.id} position={[parseFloat(v.latitude), parseFloat(v.longitude)]}
+                 icon={L.divIcon({ className: 'leaflet-custom-marker', html: `<div style="background:${isLive ? '#ff4757' : '#1E90FF'};width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;border:2px solid white;box-shadow:0 2px 10px rgba(0,0,0,0.5)">${isLive ? '🔴' : fpSportIcons[p.sport] || '🎉'}</div>`, iconSize: [34, 34], iconAnchor: [17, 17] })}>
+                 <Popup><div className="text-center"><strong>{p.homeTeam && p.awayTeam ? `${p.awayTeam} vs ${p.homeTeam}` : p.title}</strong><br/><span style={{ fontSize: '12px', color: '#aaa' }}>{v.name}</span><br/>{isLive && <span style={{ color: '#ff4757', fontWeight: 'bold', fontSize: '11px' }}>LIVE NOW</span>}<br/><button onClick={() => { setSelectedGame({ id: p.gameId || p.id, sport: p.sport, homeTeam: p.homeTeam, awayTeam: p.awayTeam, startTime: p.gameTime }); setCurrentScreen('gameDetail'); }} style={{ background: '#1E90FF', color: 'white', border: 'none', padding: '4px 12px', borderRadius: '6px', marginTop: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>View Party</button></div></Popup>
+               </Marker>
+             );
+           })}
+         </MapContainer>
+       </div>
+       <div className="relative overflow-hidden" style={{ height: '90px', background: 'linear-gradient(135deg, #1a0500 0%, #0a1628 50%, #001a33 100%)' }}>
+         <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 70% 50%, rgba(255,107,107,0.12) 0%, transparent 60%)' }} />
+         <div className="relative z-[1] flex items-center justify-center h-full px-6">
+           <div className="text-center">
+             <div className="text-xl font-black" style={{ color: '#FFD700', textShadow: '0 2px 10px rgba(255,215,0,0.3)', letterSpacing: '1px' }}>FIND YOUR CREW.</div>
+             <div className="text-xl font-black" style={{ color: '#FFD700', textShadow: '0 2px 10px rgba(255,215,0,0.3)', letterSpacing: '1px' }}>WATCH THE GAME!</div>
+           </div>
+           <div className="ml-4 text-4xl">🎉</div>
+         </div>
+       </div>
+       <div className="flex gap-3 px-4 py-3">
+         <button onClick={() => { if (navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { const lat = pos.coords.latitude; const lng = pos.coords.longitude; fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`).then(r => r.json()).then(d => { const city = d.address?.city || d.address?.town || d.address?.village || 'Your Location'; setCurrentCity(`${city}, ${d.address?.state || ''}`); }).catch(() => setCurrentCity('Your Location')); }, () => { alert('Please enable location access to use Near Me'); }); } else { alert('Location is not supported by your browser'); } }} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white text-sm" style={{ background: 'linear-gradient(135deg, #1E90FF, #1873cc)' }}>
+           <Navigation className="w-4 h-4" /> Near Me
+         </button>
+         <button onClick={() => { setLocationDropdownOpen(true); }} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white text-sm" style={{ background: '#2a2d39' }}>
+           <MapPin className="w-4 h-4" /> Enter City
+         </button>
+       </div>
+       <div className="px-4 pb-2">
+         <div className="flex items-center justify-between">
+           <h2 className="text-white font-black text-lg">{allUpcoming.length} {allUpcoming.length === 1 ? 'Party' : 'Parties'}</h2>
+           <span className="text-[#A0A4AB] text-xs">{currentCity || 'All Locations'}</span>
+         </div>
+       </div>
+       {liveParties.length > 0 && (
+         <div className="px-3 pb-2">
+           <div className="flex items-center gap-2 mb-2 px-1">
+             <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />
+             <span className="text-red-400 text-xs font-black uppercase tracking-wider">Live Now</span>
+           </div>
+           <div className="space-y-2">
+             {liveParties.map(p => {
+               const matchedVenue = venues.find(v => v.name?.toLowerCase() === p.venueName?.toLowerCase());
+               return (
+               <div key={p.id} onClick={() => { setSelectedGame({ id: p.gameId || p.id, sport: p.sport, homeTeam: p.homeTeam, awayTeam: p.awayTeam, startTime: p.gameTime }); setCurrentScreen('gameDetail'); }} className="bg-[#151A22] rounded-xl border border-red-500/30 overflow-hidden cursor-pointer hover:border-red-500/50 transition-all active:scale-[0.99]">
+                 <div className="flex items-center p-3 gap-3">
+                   <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center text-2xl flex-shrink-0">{fpSportIcons[p.sport] || '🏟️'}</div>
+                   <div className="flex-1 min-w-0">
+                     <div className="text-white font-bold text-[15px] truncate">{p.homeTeam && p.awayTeam ? `${p.awayTeam} vs ${p.homeTeam}` : p.title || 'Watch Party'}</div>
+                     <div className="text-[#A0A4AB] text-xs mt-0.5 truncate flex items-center gap-1"><MapPin className="w-3 h-3 text-emerald-400 flex-shrink-0" />{p.venueName || 'TBD'}</div>
+                     <div className="text-[#A0A4AB] text-xs mt-0.5">{p.attendeeCount || p.attendees?.length || 0} 👤 going</div>
+                   </div>
+                   <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                     <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">LIVE</span>
+                     <button onClick={(e) => { e.stopPropagation(); setSelectedGame({ id: p.gameId || p.id, sport: p.sport, homeTeam: p.homeTeam, awayTeam: p.awayTeam, startTime: p.gameTime }); setCurrentScreen('gameDetail'); }} className="px-3 py-1.5 bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white text-xs font-bold rounded-lg">Join</button>
+                   </div>
+                 </div>
+               </div>
+             );
+             })}
+           </div>
+         </div>
+       )}
+       <div className="px-3 pb-4">
+         {upcomingOnly.length > 0 && liveParties.length > 0 && (
+           <div className="flex items-center gap-2 mb-2 px-1 mt-2">
+             <Calendar className="w-3.5 h-3.5 text-[#1E90FF]" />
+             <span className="text-[#1E90FF] text-xs font-black uppercase tracking-wider">Upcoming</span>
+           </div>
+         )}
+         <div className="space-y-2">
+           {allUpcoming.length === 0 ? (
+             <div className="text-center py-16 px-6">
+               <div className="text-6xl mb-4">🎉</div>
+               <h3 className="text-white font-bold text-xl mb-2">No Parties Yet</h3>
+               <p className="text-[#A0A4AB] text-sm mb-6">No watch parties scheduled right now. Be the first to create one!</p>
+               <button onClick={() => setCurrentScreen('games')} className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-xl">Create a Party 🎉</button>
+             </div>
+           ) : upcomingOnly.map(p => {
+             const matchedVenue = venues.find(v => v.name?.toLowerCase() === p.venueName?.toLowerCase());
+             return (
+             <div key={p.id} onClick={() => { setSelectedGame({ id: p.gameId || p.id, sport: p.sport, homeTeam: p.homeTeam, awayTeam: p.awayTeam, startTime: p.gameTime }); setCurrentScreen('gameDetail'); }} className="bg-[#151A22] rounded-xl border border-[#222A36] overflow-hidden cursor-pointer hover:border-[#1E90FF]/30 transition-all active:scale-[0.99]">
+               <div className="flex items-center p-3 gap-3">
+                 <div className="w-12 h-12 rounded-xl bg-[#1E90FF]/10 flex items-center justify-center text-2xl flex-shrink-0">{fpSportIcons[p.sport] || '🏟️'}</div>
+                 <div className="flex-1 min-w-0">
+                   <div className="text-white font-bold text-[15px] truncate">{p.homeTeam && p.awayTeam ? `${p.awayTeam} vs ${p.homeTeam}` : p.title || 'Watch Party'}</div>
+                   <div className="text-[#A0A4AB] text-xs mt-0.5 truncate flex items-center gap-1"><MapPin className="w-3 h-3 text-emerald-400 flex-shrink-0" />{p.venueName || 'TBD'}</div>
+                   <div className="text-[#A0A4AB] text-xs mt-0.5">{new Date(p.gameTime).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} • {new Date(p.gameTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })} • {p.attendeeCount || p.attendees?.length || 0} 👤</div>
+                 </div>
+                 <button onClick={(e) => { e.stopPropagation(); setSelectedGame({ id: p.gameId || p.id, sport: p.sport, homeTeam: p.homeTeam, awayTeam: p.awayTeam, startTime: p.gameTime }); setCurrentScreen('gameDetail'); }} className="px-3 py-1.5 bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white text-xs font-bold rounded-lg flex-shrink-0">Join</button>
+               </div>
+             </div>
+           );
+           })}
+         </div>
+       </div>
+     </div>
+   );
+ })()}
  {currentScreen === 'findVenues' && (() => {
    const getCatIcon = (type) => {
      const cats = { 'Sports Bar': { icon: '🍺', color: '#FF6B35' }, 'Restaurant': { icon: '🍴', color: '#E63946' }, 'Restaurant & Bar': { icon: '🍴', color: '#E63946' }, 'Pub': { icon: '🍻', color: '#10B981' }, 'Lounge': { icon: '🎵', color: '#8B5CF6' }, 'Bar & Grill': { icon: '🍺', color: '#FF6B35' } };
