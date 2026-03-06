@@ -16312,7 +16312,8 @@ const BORDER_MAP = {
    const fpSportList = ['All', 'NFL', 'NBA', 'NHL', 'MLB', 'MLS', 'College Football', 'College Basketball', 'Premier League', 'UFC/MMA', 'Boxing'];
    const now = new Date();
    const fourHoursAgo = new Date(now.getTime() - 4*60*60*1000);
-   const allParties = parties.filter(p => new Date(p.gameTime) >= fourHoursAgo).sort((a, b) => new Date(a.gameTime) - new Date(b.gameTime));
+   const parseGT = (gt) => { const d = new Date(gt); return isNaN(d.getTime()) ? null : d; };
+   const allParties = parties.filter(p => { const d = parseGT(p.gameTime); return !d || d >= fourHoursAgo; }).sort((a, b) => { const da = parseGT(a.gameTime); const db = parseGT(b.gameTime); if (!da && !db) return 0; if (!da) return 1; if (!db) return -1; return da - db; });
    const allGames = games.filter(g => new Date(g.startTime || g.date) >= fourHoursAgo).sort((a, b) => new Date(a.startTime || a.date) - new Date(b.startTime || b.date));
    const fpSearch = findPartiesSearch || '';
    const fpSearchLower = fpSearch.toLowerCase();
@@ -16326,8 +16327,8 @@ const BORDER_MAP = {
    const searchFilteredGames = fpSearch ? sportFilteredGames.filter(g => {
      return `${g.awayTeam || ''} vs ${g.homeTeam || ''}`.toLowerCase().includes(fpSearchLower) || (g.sport || '').toLowerCase().includes(fpSearchLower);
    }) : sportFilteredGames;
-   const liveParties = searchFiltered.filter(p => { const gt = new Date(p.gameTime); return gt <= now && gt >= fourHoursAgo; });
-   const upcomingParties = searchFiltered.filter(p => new Date(p.gameTime) > now);
+   const liveParties = searchFiltered.filter(p => { const d = parseGT(p.gameTime); return d && d <= now && d >= fourHoursAgo; });
+   const upcomingParties = searchFiltered.filter(p => { const d = parseGT(p.gameTime); return !d || d > now; });
    const partyVenues = {};
    const venuePartyMap = {};
    allParties.forEach(p => {
