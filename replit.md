@@ -37,6 +37,7 @@ The UI/UX prioritizes intuitive navigation and visual engagement, incorporating 
 -   **Home Screen Primary Actions & Quick Actions**: Streamlined user entry points and contextual shortcuts.
 -   **Empty States**: User-friendly design for screens with no content.
 -   **Improved Join Buttons**: Enhanced visual styling for party join actions.
+-   **Live Score Celebrations**: When a user's favorite team scores during a live game, the app fires team-colored confetti, shows a popup with score details (THREE!/TOUCHDOWN!/SCORED!), and triggers haptic vibration. Detects score changes via the 60-second ESPN polling cycle. Toggle and test button in Notification Settings. Respects prefers-reduced-motion.
 
 ## External Dependencies
 -   **PostgreSQL**: Database.

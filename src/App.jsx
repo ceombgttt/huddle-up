@@ -1393,7 +1393,10 @@ const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
  const [selectedVenueId, setSelectedVenueId] = useState(null);
  const [games, setGames] = useState(SAMPLE_GAMES);
  const [loadingGames, setLoadingGames] = useState(false);
- 
+ const prevScoresRef = useRef({});
+ const [scoreCelebration, setScoreCelebration] = useState(null);
+ const [scoreCelebrationsEnabled, setScoreCelebrationsEnabled] = useState(() => localStorage.getItem('score_celebrations') !== 'false');
+
  const [sponsorIndex, setSponsorIndex] = useState(0);
  const [sponsorBanners, setSponsorBanners] = useState([]);
  const [adminSponsors, setAdminSponsors] = useState([]);
@@ -1767,7 +1770,9 @@ const qrScannerRef = useRef(null);
  );
  const existingIds = new Set(liveGames.map(g => g.id));
  const deduped = missingSamples.filter(g => !existingIds.has(g.id));
- setGames([...liveGames, ...deduped]);
+ const allGames = [...liveGames, ...deduped];
+ checkScoreChanges(allGames);
+ setGames(allGames);
  } else {
  setGames(SAMPLE_GAMES);
  }
@@ -2975,6 +2980,56 @@ const qrScannerRef = useRef(null);
  confetti({ particleCount: 40, startVelocity: 45, spread: 80, origin: { x: 1, y: 0.6 }, colors, ticks: 200, gravity: 1.2, scalar: 1.2 });
  confetti({ particleCount: 60, startVelocity: 55, spread: 100, origin: { x: 0.5, y: 1 }, colors, ticks: 300, gravity: 0.8, scalar: 1.4, shapes: ['circle', 'square'] });
  }, 250);
+ };
+
+ const fireScoreCelebration = (teamName, points, sport) => {
+   const rm = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+   setScoreCelebration({ team: teamName, points, sport });
+   setTimeout(() => setScoreCelebration(null), 4000);
+   if (rm) return;
+   const tc = TEAM_COLORS[teamName] || ['#1E90FF', '#FFD700'];
+   const isThreePointer = sport === 'NBA' && points === 3;
+   const isTouchdown = sport === 'NFL' && points >= 6;
+   const dur = (isThreePointer || isTouchdown) ? 3000 : 2000;
+   const end = Date.now() + dur;
+   const interval = setInterval(() => {
+     if (Date.now() > end) { clearInterval(interval); return; }
+     if (isThreePointer || isTouchdown) {
+       confetti({ particleCount: 80, startVelocity: 55, spread: 120, origin: { x: 0.5, y: 0.3 }, colors: tc, scalar: 2, shapes: ['circle'] });
+       confetti({ particleCount: 40, startVelocity: 50, spread: 80, origin: { x: 0, y: 0.5 }, colors: tc, scalar: 1.5 });
+       confetti({ particleCount: 40, startVelocity: 50, spread: 80, origin: { x: 1, y: 0.5 }, colors: tc, scalar: 1.5 });
+     } else {
+       confetti({ particleCount: 50, startVelocity: 45, spread: 80, origin: { x: Math.random(), y: 0.6 }, colors: tc, scalar: 1.5 });
+     }
+   }, 250);
+   if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 100]);
+ };
+
+ const checkScoreChanges = (newGames) => {
+   if (!user?.favoriteTeams || !scoreCelebrationsEnabled) return;
+   const myTeamNames = Object.values(user.favoriteTeams).map(t => t.toLowerCase());
+   if (!myTeamNames.length) return;
+   const liveIds = new Set();
+   for (const game of newGames) {
+     if (game.gameStatus !== 'live') continue;
+     liveIds.add(game.id);
+     const prev = prevScoresRef.current[game.id];
+     if (!prev) { prevScoresRef.current[game.id] = { h: game.homeScore || 0, a: game.awayScore || 0 }; continue; }
+     const newH = game.homeScore || 0;
+     const newA = game.awayScore || 0;
+     const homeMatch = myTeamNames.includes(game.homeTeam?.toLowerCase());
+     const awayMatch = myTeamNames.includes(game.awayTeam?.toLowerCase());
+     if (newH > prev.h && homeMatch) {
+       fireScoreCelebration(game.homeTeam, newH - prev.h, game.sport);
+     }
+     if (newA > prev.a && awayMatch) {
+       fireScoreCelebration(game.awayTeam, newA - prev.a, game.sport);
+     }
+     prevScoresRef.current[game.id] = { h: newH, a: newA };
+   }
+   for (const id of Object.keys(prevScoresRef.current)) {
+     if (!liveIds.has(id)) delete prevScoresRef.current[id];
+   }
  };
 
  const [joiningPartyId, setJoiningPartyId] = useState(null);
@@ -11900,6 +11955,28 @@ const BORDER_MAP = {
        </div>
 
        <div className="bg-[#151A22] rounded-2xl border border-[#222A36] p-5">
+         <h3 className="text-orange-300 font-bold text-sm mb-2 uppercase">🎉 Score Celebrations</h3>
+         <div className="flex items-center justify-between py-3 border-b border-[#222A36]">
+           <div>
+             <div className="text-white text-sm font-semibold">Celebrate When My Teams Score</div>
+             <div className="text-[#A0A4AB] text-xs mt-0.5">Confetti + popup when your favorite teams score live</div>
+           </div>
+           <button
+             onClick={() => { const next = !scoreCelebrationsEnabled; setScoreCelebrationsEnabled(next); localStorage.setItem('score_celebrations', next ? 'true' : 'false'); }}
+             className={`w-11 h-6 rounded-full transition-colors relative ${scoreCelebrationsEnabled ? 'bg-emerald-500' : 'bg-[#333]'}`}
+           >
+             <div className="w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform" style={{ transform: scoreCelebrationsEnabled ? 'translateX(22px)' : 'translateX(0)', left: scoreCelebrationsEnabled ? '1px' : '2px' }} />
+           </button>
+         </div>
+         <button
+           onClick={() => { const teamName = user?.favoriteTeams ? Object.values(user.favoriteTeams)[0] : 'Miami Heat'; fireScoreCelebration(teamName || 'Miami Heat', 3, 'NBA'); }}
+           className="mt-3 w-full py-2.5 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-xl text-sm active:scale-[0.97] transition-all"
+         >
+           🎉 Test Celebration
+         </button>
+       </div>
+
+       <div className="bg-[#151A22] rounded-2xl border border-[#222A36] p-5">
          <h3 className="text-orange-300 font-bold text-sm mb-2 uppercase">Party & Events</h3>
          <PrefToggle label="Party Reminders" prefKey="partyReminders" description="1 hour before party starts" />
          <PrefToggle label="Suggested Parties" prefKey="suggestedParties" description="Parties you might like" />
@@ -15893,6 +15970,17 @@ const BORDER_MAP = {
  {/* FEATURE 1: Onboarding Tutorial Overlay */}
  {showOnboarding && <OnboardingOverlay />}
  {showTourGuide && <TourGuidePopup />}
+
+ {scoreCelebration && (
+   <div className="fixed inset-0 z-[100] pointer-events-none flex items-center justify-center p-4" style={{ animation: 'scorePopIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)' }}>
+     <div className="bg-gradient-to-br from-[#1E90FF]/95 to-[#10B981]/95 px-10 py-8 rounded-3xl text-center shadow-2xl border-2 border-white/30 backdrop-blur-md" style={{ animation: 'scorePulse 0.6s ease' }}>
+       <div className="text-7xl mb-3" style={{ animation: 'iconBounce 0.6s ease' }}>🎉</div>
+       <div className="text-2xl font-black text-white uppercase tracking-wider mb-2" style={{ textShadow: '0 4px 8px rgba(0,0,0,0.3)' }}>{scoreCelebration.team}</div>
+       <div className="text-4xl font-black text-[#FFD700] mb-1" style={{ textShadow: '0 4px 12px rgba(0,0,0,0.5)', animation: 'scorePulse 0.6s ease' }}>+{scoreCelebration.points} {scoreCelebration.sport === 'NFL' && scoreCelebration.points >= 6 ? 'TOUCHDOWN!' : scoreCelebration.sport === 'NBA' && scoreCelebration.points === 3 ? 'THREE!' : 'SCORED!'}</div>
+       <div className="text-white/60 text-xs mt-2 font-bold uppercase tracking-widest">{scoreCelebration.sport} • Live</div>
+     </div>
+   </div>
+ )}
 
  {showTutorial && !showPrelaunchModal && !showOnboarding && (
    <div className="fixed inset-0 z-[95] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
