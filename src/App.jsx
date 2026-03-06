@@ -16316,7 +16316,7 @@ const BORDER_MAP = {
    return (
      <div className="min-h-screen bg-[#0F1115] pt-[60px] pb-[72px]">
        {mapVenues.length > 0 && (
-         <div className="find-venues-map" style={{ height: '250px', width: '100%', position: 'relative', zIndex: 0 }}>
+         <div className="find-venues-map" style={{ height: '300px', width: '100%', position: 'relative', zIndex: 0 }}>
            <MapContainer center={defaultCenter} zoom={12} style={{ height: '100%', width: '100%' }} scrollWheelZoom={true}>
              <TileLayer attribution='&copy; OpenStreetMap' url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
              {mapVenues.map(v => (
