@@ -16309,8 +16309,13 @@ const BORDER_MAP = {
      const c = cats[type] || cats['Sports Bar'];
      return <div className="w-10 h-10 rounded-full flex items-center justify-center text-xl" style={{ background: c.color }}>{c.icon}</div>;
    };
+   const fvSportIcons = { 'NFL': '🏈', 'NBA': '🏀', 'NHL': '🏒', 'MLB': '⚾', 'MLS': '⚽', 'College Football': '🏈', 'College Basketball': '🏀', 'Premier League': '⚽', 'La Liga': '⚽', 'Liga MX': '⚽', 'Champions League': '⚽', 'UFC/MMA': '🥊', 'Boxing': '🥊', 'NASCAR': '🏁', 'F1': '🏎️', 'Tennis': '🎾', 'Golf': '⛳' };
    const renderStars = (r) => Array.from({ length: 5 }, (_, i) => <span key={i} style={{ color: i < Math.round(r || 0) ? '#FFD700' : '#444', fontSize: '14px' }}>★</span>);
    const vList = venues.filter(v => v.verified);
+   const now = new Date();
+   const upcomingParties = parties.filter(p => new Date(p.gameTime) >= now);
+   const venuePartyLookup = {};
+   upcomingParties.forEach(p => { if (p.venueName) { const k = p.venueName.toLowerCase(); if (!venuePartyLookup[k]) venuePartyLookup[k] = []; venuePartyLookup[k].push(p); } });
    const mapVenues = vList.filter(v => v.latitude && v.longitude);
    const defaultCenter = mapVenues.length > 0 ? [parseFloat(mapVenues[0].latitude), parseFloat(mapVenues[0].longitude)] : [26.1224, -80.1373];
    return (
@@ -16319,30 +16324,33 @@ const BORDER_MAP = {
          <div className="find-venues-map" style={{ height: '300px', width: '100%', position: 'relative', zIndex: 0 }}>
            <MapContainer center={defaultCenter} zoom={12} style={{ height: '100%', width: '100%' }} scrollWheelZoom={true}>
              <TileLayer attribution='&copy; OpenStreetMap' url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
-             {mapVenues.map(v => (
+             {mapVenues.map(v => {
+               const vParties = venuePartyLookup[v.name?.toLowerCase()] || [];
+               const hasLive = vParties.some(p => { const gt = new Date(p.gameTime); return gt <= now && gt >= new Date(now.getTime() - 4*60*60*1000); });
+               return (
                <Marker key={v.id} position={[parseFloat(v.latitude), parseFloat(v.longitude)]}
-                 icon={L.divIcon({ className: 'leaflet-custom-marker', html: `<div style="background:${v.featured ? '#FFD700' : '#1E90FF'};width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.4)">📍</div>`, iconSize: [32, 32], iconAnchor: [16, 16] })}>
-                 <Popup><div className="text-center"><strong>{v.name}</strong><br/><span style={{ fontSize: '12px', color: '#666' }}>{v.type || 'Sports Bar'}</span><br/><button onClick={() => { setSelectedVenueId(v.id); setCurrentScreen('venueDetail'); }} style={{ background: '#1E90FF', color: 'white', border: 'none', padding: '4px 12px', borderRadius: '6px', marginTop: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>View Venue</button></div></Popup>
+                 icon={L.divIcon({ className: 'leaflet-custom-marker', html: `<div style="background:${hasLive ? '#ff4757' : vParties.length > 0 ? '#10B981' : '#1E90FF'};width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.4)">${hasLive ? '🔴' : vParties.length > 0 ? '🎉' : '📍'}</div>`, iconSize: [32, 32], iconAnchor: [16, 16] })}>
+                 <Popup><div className="text-center"><strong>{v.name}</strong><br/>{vParties.length > 0 && <span style={{ fontSize: '12px', color: '#10B981', fontWeight: 'bold' }}>{vParties.length} {vParties.length === 1 ? 'party' : 'parties'}</span>}<br/><button onClick={() => { setSelectedVenueId(v.id); setCurrentScreen('venueDetail'); }} style={{ background: '#1E90FF', color: 'white', border: 'none', padding: '4px 12px', borderRadius: '6px', marginTop: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>View Venue</button></div></Popup>
                </Marker>
-             ))}
+             );})}
            </MapContainer>
          </div>
        )}
-       <div className="relative overflow-hidden" style={{ height: '110px', background: 'linear-gradient(135deg, #001a33 0%, #0a1628 50%, #1a0f00 100%)' }}>
+       <div className="relative overflow-hidden" style={{ height: '100px', background: 'linear-gradient(135deg, #001a33 0%, #0a1628 50%, #1a0f00 100%)' }}>
          <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 30% 50%, rgba(30,144,255,0.15) 0%, transparent 60%)' }} />
          <div className="relative z-[1] flex items-center justify-center h-full px-6">
            <div className="text-center">
-             <div className="text-2xl font-black" style={{ color: '#FFD700', textShadow: '0 2px 10px rgba(255,215,0,0.3)', letterSpacing: '1px' }}>THE BEST PLACE TO</div>
-             <div className="text-2xl font-black" style={{ color: '#FFD700', textShadow: '0 2px 10px rgba(255,215,0,0.3)', letterSpacing: '1px' }}>WATCH THE GAME!</div>
+             <div className="text-xl font-black" style={{ color: '#FFD700', textShadow: '0 2px 10px rgba(255,215,0,0.3)', letterSpacing: '1px' }}>THE BEST PLACE TO</div>
+             <div className="text-xl font-black" style={{ color: '#FFD700', textShadow: '0 2px 10px rgba(255,215,0,0.3)', letterSpacing: '1px' }}>WATCH THE GAME!</div>
            </div>
-           <div className="ml-4 text-5xl">🍺</div>
+           <div className="ml-4 text-4xl">🍺</div>
          </div>
        </div>
-       <div className="flex gap-3 px-4 py-4">
-         <button onClick={() => { if (navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { const lat = pos.coords.latitude; const lng = pos.coords.longitude; fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`).then(r => r.json()).then(d => { const city = d.address?.city || d.address?.town || d.address?.village || 'Your Location'; setCurrentCity(`${city}, ${d.address?.state || ''}`); }).catch(() => setCurrentCity('Your Location')); }, () => { alert('Please enable location access to use Near Me'); }); } else { alert('Location is not supported by your browser'); } }} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white text-sm" style={{ background: '#1E90FF' }}>
+       <div className="flex gap-3 px-4 py-3">
+         <button onClick={() => { if (navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { const lat = pos.coords.latitude; const lng = pos.coords.longitude; fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`).then(r => r.json()).then(d => { const city = d.address?.city || d.address?.town || d.address?.village || 'Your Location'; setCurrentCity(`${city}, ${d.address?.state || ''}`); }).catch(() => setCurrentCity('Your Location')); }, () => { alert('Please enable location access to use Near Me'); }); } else { alert('Location is not supported by your browser'); } }} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white text-sm" style={{ background: 'linear-gradient(135deg, #1E90FF, #1873cc)' }}>
            <Navigation className="w-4 h-4" /> Near Me
          </button>
-         <button onClick={() => { setLocationDropdownOpen(true); }} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white text-sm" style={{ background: '#333' }}>
+         <button onClick={() => { setLocationDropdownOpen(true); }} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white text-sm" style={{ background: '#2a2d39' }}>
            <MapPin className="w-4 h-4" /> Enter City
          </button>
        </div>
@@ -16352,7 +16360,7 @@ const BORDER_MAP = {
            <span className="text-[#A0A4AB] text-xs">{currentCity || 'All Locations'}</span>
          </div>
        </div>
-       <div className="divide-y divide-[#222A36]">
+       <div className="space-y-2 px-3 pb-4">
          {vList.length === 0 ? (
            <div className="text-center py-16 px-6">
              <div className="text-6xl mb-4">🏟️</div>
@@ -16360,27 +16368,50 @@ const BORDER_MAP = {
              <p className="text-[#A0A4AB] text-sm mb-6">Be the first venue to join Huddle Up in your area!</p>
              <button onClick={() => setCurrentScreen('signup')} className="px-6 py-3 bg-[#1E90FF] text-white font-bold rounded-xl">Register Your Venue</button>
            </div>
-         ) : vList.map(v => (
-           <div key={v.id} onClick={() => { setSelectedVenueId(v.id); setCurrentScreen('venueDetail'); }} className="flex items-center px-4 py-3 cursor-pointer hover:bg-[#151A22] transition-colors active:scale-[0.99]">
-             <div className="w-20 h-20 rounded-xl overflow-hidden mr-3 flex-shrink-0 bg-[#151A22] flex items-center justify-center">
-               {v.imageUrl ? <img src={v.imageUrl} alt={v.name} className="w-full h-full object-cover" /> : <Building2 className="w-8 h-8 text-[#A0A4AB]" />}
-             </div>
-             <div className="flex-1 min-w-0">
-               <div className="flex items-center gap-1.5">
-                 <h3 className="text-white font-bold text-[15px] truncate">{v.name}</h3>
-                 {v.featured && <span className="text-amber-400 text-xs">⭐</span>}
+         ) : vList.map(v => {
+           const vParties = venuePartyLookup[v.name?.toLowerCase()] || [];
+           const nextParty = vParties.sort((a, b) => new Date(a.gameTime) - new Date(b.gameTime))[0];
+           return (
+           <div key={v.id} onClick={() => { setSelectedVenueId(v.id); setCurrentScreen('venueDetail'); }} className="bg-[#151A22] rounded-xl border border-[#222A36] overflow-hidden cursor-pointer hover:border-[#1E90FF]/30 transition-all active:scale-[0.99]">
+             <div className="flex items-center p-3">
+               <div className="w-20 h-20 rounded-xl overflow-hidden mr-3 flex-shrink-0 bg-[#0F1115] flex items-center justify-center">
+                 {v.imageUrl ? <img src={v.imageUrl} alt={v.name} className="w-full h-full object-cover" /> : <Building2 className="w-8 h-8 text-[#A0A4AB]" />}
                </div>
-               <p className="text-[#A0A4AB] text-xs mt-0.5 truncate">{v.type || 'Sports Bar'} • {v.address}</p>
-               <div className="mt-1">{renderStars(v.avg_rating || v.rating || 0)}</div>
-               <div className="text-[#A0A4AB] text-xs mt-1 flex items-center gap-2">
-                 {v.total_parties != null && <span>{v.total_parties} parties</span>}
-                 {v.total_fans != null && <span>{v.total_fans} 👤</span>}
-                 {v.follower_count != null && <span>{v.follower_count} followers</span>}
+               <div className="flex-1 min-w-0">
+                 <div className="flex items-center gap-1.5">
+                   <h3 className="text-white font-bold text-[15px] truncate">{v.name}</h3>
+                   {v.featured && <span className="text-amber-400 text-xs">⭐</span>}
+                 </div>
+                 <p className="text-[#A0A4AB] text-xs mt-0.5 truncate">{v.type || 'Sports Bar'} • {v.address}</p>
+                 <div className="mt-1">{renderStars(v.avg_rating || v.rating || 0)}</div>
+                 <div className="text-[#A0A4AB] text-xs mt-1 flex items-center gap-2">
+                   {v.total_parties != null && <span>{v.total_parties} parties</span>}
+                   {v.total_fans != null && <span>{v.total_fans} 👤</span>}
+                 </div>
                </div>
+               <div className="ml-2 flex-shrink-0">{getCatIcon(v.type)}</div>
              </div>
-             <div className="ml-3 flex-shrink-0">{getCatIcon(v.type)}</div>
+             {nextParty && (
+               <div className="border-t border-[#222A36] px-3 py-2.5 flex items-center gap-3" style={{ background: 'rgba(30,144,255,0.05)' }}>
+                 <span className="text-xl flex-shrink-0">{fvSportIcons[nextParty.sport] || '🏟️'}</span>
+                 <div className="flex-1 min-w-0">
+                   <div className="text-white text-sm font-bold truncate">{nextParty.homeTeam && nextParty.awayTeam ? `${nextParty.awayTeam} vs ${nextParty.homeTeam}` : nextParty.title || 'Watch Party'}</div>
+                   <div className="text-[#A0A4AB] text-xs mt-0.5">{new Date(nextParty.gameTime).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} • {new Date(nextParty.gameTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</div>
+                 </div>
+                 <div className="flex items-center gap-1 flex-shrink-0">
+                   <span className="text-[#A0A4AB] text-xs font-bold">{nextParty.attendeeCount || nextParty.attendees?.length || 0}👤</span>
+                   {(() => { const gt = new Date(nextParty.gameTime); const isLive = gt <= now && gt >= new Date(now.getTime() - 4*60*60*1000); return isLive ? <span className="bg-red-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full ml-1">LIVE</span> : null; })()}
+                 </div>
+               </div>
+             )}
+             {vParties.length > 1 && (
+               <div className="px-3 py-1.5 border-t border-[#222A36]">
+                 <span className="text-[#1E90FF] text-xs font-bold">+{vParties.length - 1} more {vParties.length - 1 === 1 ? 'party' : 'parties'}</span>
+               </div>
+             )}
            </div>
-         ))}
+         );})
+         }
        </div>
      </div>
    );

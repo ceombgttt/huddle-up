@@ -1,0 +1,710 @@
+# REPLIT PROMPT: FIND PARTIES - VENUE CARDS WITH PARTY INFO
+
+**Map + Venue cards (each showing the party happening there)!** 🎉
+
+---
+
+## 🎯 PASTE THIS INTO REPLIT:
+
+```
+CREATE "FIND PARTIES" PAGE - SHOWS VENUES WITH PARTIES
+
+User clicks "FIND PARTIES" → New page showing:
+1. MAP (pins where parties are happening)
+2. BANNER
+3. List of VENUES (each card shows venue + the party happening there)
+
+═══════════════════════════════════════════════════
+
+EXACT CARD FORMAT:
+
+┌────────────────────────────────────┐
+│ ┌──┬────────────────────┬──┐       │
+│ │📷│Jones Sports Bar    │🍺│       │ ← Venue info
+│ │  │Sports Bar • 1.2mi  │  │       │
+│ │  │⭐⭐⭐⭐⭐         │  │       │
+│ │  │────────────────────│  │       │
+│ │  │🏀 Heat vs Lakers   │  │       │ ← Party happening here
+│ │  │Thu, Mar 5 • 7:00 PM│  │       │
+│ │  │23👤 going         │  │       │
+│ └──┴────────────────────┴──┘       │
+└────────────────────────────────────┘
+
+Each card has:
+- TOP: Venue photo, name, category, rating
+- BOTTOM: Game info, time, attendees
+
+═══════════════════════════════════════════════════
+
+CREATE FILE: src/pages/FindPartiesPage.jsx
+
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { GoogleMap, Marker, useLoadScript } from '@react-google-maps/api';
+import './FindPartiesPage.css';
+
+function FindPartiesPage() {
+  const navigate = useNavigate();
+  const [venuesWithParties, setVenuesWithParties] = useState([]);
+  const [mapCenter, setMapCenter] = useState({ lat: 26.3683, lng: -80.1289 });
+  const [loading, setLoading] = useState(true);
+
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_KEY || ''
+  });
+
+  useEffect(() => {
+    loadNearbyVenuesWithParties();
+  }, []);
+
+  const loadNearbyVenuesWithParties = async () => {
+    try {
+      const position = await getUserLocation();
+      const data = await fetchVenuesWithParties(position.lat, position.lng, 10);
+      setVenuesWithParties(data);
+      setMapCenter(position);
+    } catch (error) {
+      const data = await fetchVenuesWithParties(26.3683, -80.1289, 25);
+      setVenuesWithParties(data);
+    }
+    setLoading(false);
+  };
+
+  const handleNearMe = async () => {
+    try {
+      const position = await getUserLocation();
+      const data = await fetchVenuesWithParties(position.lat, position.lng, 10);
+      setVenuesWithParties(data);
+      setMapCenter(position);
+    } catch (error) {
+      alert('Please enable location access');
+    }
+  };
+
+  const handleCitySearch = () => {
+    const city = prompt('Enter city name:');
+    if (city) searchByCity(city);
+  };
+
+  const searchByCity = async (cityName) => {
+    alert(`Searching ${cityName}...`);
+  };
+
+  const getUserLocation = () => {
+    return new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        reject
+      );
+    });
+  };
+
+  const fetchVenuesWithParties = async (lat, lng, radius) => {
+    // TODO: Replace with actual API call
+    // GET /api/venues/with-parties?lat={lat}&lng={lng}&radius={radius}
+    
+    // Mock data - venues with their parties:
+    return [
+      {
+        // VENUE INFO
+        venueId: 'venue_1',
+        venueName: 'Jones Sports Bar',
+        venueCategory: 'Sports Bar',
+        venueImage: 'https://via.placeholder.com/80',
+        venueRating: 5,
+        venueScreens: 36,
+        distance: '1.2mi',
+        latitude: lat + 0.01,
+        longitude: lng + 0.01,
+        
+        // PARTY INFO (happening at this venue)
+        partyId: 'party_1',
+        gameTitle: 'Heat vs Lakers',
+        sportIcon: '🏀',
+        gameTime: 'Thu, Mar 5 • 7:00 PM',
+        attendees: 23,
+        isLive: true
+      },
+      {
+        venueId: 'venue_2',
+        venueName: 'Blue Buzz Tavern',
+        venueCategory: 'Pub',
+        venueImage: 'https://via.placeholder.com/80',
+        venueRating: 5,
+        venueScreens: 38,
+        distance: '2.1mi',
+        latitude: lat - 0.01,
+        longitude: lng - 0.01,
+        
+        partyId: 'party_2',
+        gameTitle: 'Newcastle vs Barcelona',
+        sportIcon: '⚽',
+        gameTime: 'Sat, Mar 7 • 4:00 PM',
+        attendees: 15,
+        isLive: false
+      },
+      {
+        venueId: 'venue_3',
+        venueName: 'Central City Tap',
+        venueCategory: 'Sports Bar',
+        venueImage: 'https://via.placeholder.com/80',
+        venueRating: 4,
+        venueScreens: 30,
+        distance: '3.2mi',
+        latitude: lat + 0.02,
+        longitude: lng - 0.02,
+        
+        partyId: 'party_3',
+        gameTitle: 'Cowboys vs Eagles',
+        sportIcon: '🏈',
+        gameTime: 'Sun, Mar 8 • 1:00 PM',
+        attendees: 31,
+        isLive: false
+      }
+    ];
+  };
+
+  const getCategoryIcon = (category) => {
+    const icons = {
+      'Sports Bar': { icon: '🍺', color: '#FF6B35' },
+      'Pub': { icon: '🍻', color: '#10B981' },
+      'Restaurant': { icon: '🍴', color: '#E63946' }
+    };
+    return icons[category] || icons['Sports Bar'];
+  };
+
+  const renderStars = (rating) => {
+    return Array.from({ length: 5 }, (_, i) => (
+      <span key={i} style={{ color: i < rating ? '#FFD700' : '#444' }}>★</span>
+    ));
+  };
+
+  return (
+    <div className="find-parties-page">
+      {/* HEADER */}
+      <header className="page-header">
+        <button className="back-btn" onClick={() => navigate(-1)}>
+          ← Back
+        </button>
+        <div className="header-logo">
+          <img src="/huddle-up-logo.svg" alt="Logo" />
+          <span>HUDDLE UP</span>
+        </div>
+        <div className="spacer"></div>
+      </header>
+
+      {/* MAP - SHOWS WHERE PARTIES ARE */}
+      <div className="map-container">
+        {isLoaded ? (
+          <GoogleMap
+            mapContainerStyle={{ width: '100%', height: '100%' }}
+            center={mapCenter}
+            zoom={13}
+            options={{
+              styles: [
+                { elementType: 'geometry', stylers: [{ color: '#1a1d29' }] },
+                { elementType: 'labels.text.fill', stylers: [{ color: '#8a8a8a' }] }
+              ],
+              disableDefaultUI: false,
+              zoomControl: true
+            }}
+          >
+            {venuesWithParties.map(item => (
+              <Marker
+                key={item.partyId}
+                position={{ lat: item.latitude, lng: item.longitude }}
+                onClick={() => navigate(`/party/${item.partyId}`)}
+                icon={{
+                  path: window.google.maps.SymbolPath.CIRCLE,
+                  fillColor: item.isLive ? '#ff4757' : '#1E90FF',
+                  fillOpacity: 1,
+                  strokeColor: '#fff',
+                  strokeWeight: 2,
+                  scale: 12
+                }}
+              />
+            ))}
+          </GoogleMap>
+        ) : (
+          <div className="map-loading">Loading map...</div>
+        )}
+      </div>
+
+      {/* BANNER */}
+      <div className="banner">
+        <div className="banner-overlay"></div>
+        <h2 className="banner-text">THE BEST PLACE TO WATCH THE GAME!</h2>
+      </div>
+
+      {/* SEARCH */}
+      <div className="search-controls">
+        <button className="near-me-btn" onClick={handleNearMe}>
+          📍 Near Me
+        </button>
+        <button className="city-btn" onClick={handleCitySearch}>
+          🏙️ Enter City
+        </button>
+      </div>
+
+      {/* VENUE LIST WITH PARTIES */}
+      <div className="venues-list">
+        {loading ? (
+          <div className="loading">Finding parties...</div>
+        ) : venuesWithParties.length === 0 ? (
+          <div className="no-parties">No parties found nearby</div>
+        ) : (
+          venuesWithParties.map(item => {
+            const { icon, color } = getCategoryIcon(item.venueCategory);
+            
+            return (
+              <div 
+                key={item.partyId}
+                className="venue-party-card"
+                onClick={() => navigate(`/party/${item.partyId}`)}
+              >
+                {/* VENUE SECTION */}
+                <div className="venue-section">
+                  {/* Venue Image */}
+                  <div className="venue-image">
+                    <img src={item.venueImage} alt={item.venueName} />
+                  </div>
+
+                  {/* Venue Info */}
+                  <div className="venue-info">
+                    <h3 className="venue-name">{item.venueName}</h3>
+                    <p className="venue-category">
+                      {item.venueCategory} • {item.distance}
+                    </p>
+                    <div className="venue-rating">
+                      {renderStars(item.venueRating)}
+                    </div>
+                    <p className="venue-screens">
+                      {item.venueScreens} Screens
+                    </p>
+                  </div>
+
+                  {/* Category Icon */}
+                  <div className="category-icon">
+                    <div className="icon-circle" style={{ background: color }}>
+                      {icon}
+                    </div>
+                  </div>
+                </div>
+
+                {/* DIVIDER */}
+                <div className="card-divider"></div>
+
+                {/* PARTY SECTION */}
+                <div className="party-section">
+                  <div className="sport-icon">{item.sportIcon}</div>
+                  <div className="party-details">
+                    <h4 className="game-title">{item.gameTitle}</h4>
+                    <p className="game-time">{item.gameTime}</p>
+                    <p className="attendees">{item.attendees}👤 going</p>
+                  </div>
+                  {item.isLive && (
+                    <div className="live-badge">🔴 LIVE</div>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default FindPartiesPage;
+
+═══════════════════════════════════════════════════
+
+CREATE FILE: src/pages/FindPartiesPage.css
+
+.find-parties-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #0f1115;
+}
+
+/* HEADER */
+.page-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #1a1d29;
+  height: 60px;
+  border-bottom: 1px solid #2a2d39;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: #1E90FF;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.header-logo img {
+  width: 32px;
+  height: 32px;
+}
+
+.spacer {
+  width: 60px;
+}
+
+/* MAP */
+.map-container {
+  width: 100%;
+  height: 300px;
+  background: #1a1d29;
+}
+
+.map-loading {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+}
+
+/* BANNER */
+.banner {
+  height: 100px;
+  background: linear-gradient(135deg, #1a1d29, #0f1115);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0,0,0,0.7), rgba(0,0,0,0.5));
+}
+
+.banner-text {
+  position: relative;
+  z-index: 2;
+  font-size: 22px;
+  font-weight: 900;
+  color: #FFD700;
+  text-align: center;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.9);
+  margin: 0;
+  padding: 0 20px;
+}
+
+/* SEARCH */
+.search-controls {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: #0f1115;
+}
+
+.near-me-btn,
+.city-btn {
+  flex: 1;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.near-me-btn {
+  background: linear-gradient(135deg, #1E90FF, #1873cc);
+  color: white;
+}
+
+.city-btn {
+  background: #2a2d39;
+  color: white;
+}
+
+/* VENUES LIST */
+.venues-list {
+  flex: 1;
+  padding-bottom: 80px;
+}
+
+.loading,
+.no-parties {
+  text-align: center;
+  padding: 40px 20px;
+  color: #888;
+}
+
+/* VENUE + PARTY CARD */
+.venue-party-card {
+  background: #1a1d29;
+  margin: 8px 16px;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.venue-party-card:hover {
+  transform: scale(1.02);
+}
+
+/* VENUE SECTION (TOP HALF) */
+.venue-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+}
+
+.venue-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.venue-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.venue-info {
+  flex: 1;
+}
+
+.venue-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 4px 0;
+}
+
+.venue-category {
+  font-size: 14px;
+  color: #888;
+  margin: 0 0 6px 0;
+}
+
+.venue-rating {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+}
+
+.venue-screens {
+  font-size: 13px;
+  color: #aaa;
+  margin: 0;
+}
+
+.category-icon {
+  flex-shrink: 0;
+}
+
+.icon-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+
+/* DIVIDER */
+.card-divider {
+  height: 1px;
+  background: #2a2d39;
+  margin: 0 12px;
+}
+
+/* PARTY SECTION (BOTTOM HALF) */
+.party-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(30, 144, 255, 0.05);
+}
+
+.sport-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  background: #2a2d39;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.party-details {
+  flex: 1;
+}
+
+.game-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 4px 0;
+}
+
+.game-time {
+  font-size: 14px;
+  color: #aaa;
+  margin: 0 0 4px 0;
+}
+
+.attendees {
+  font-size: 13px;
+  color: #10B981;
+  font-weight: 600;
+  margin: 0;
+}
+
+.live-badge {
+  background: #ff4757;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 900;
+  flex-shrink: 0;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .map-container {
+    height: 250px;
+  }
+  
+  .banner {
+    height: 90px;
+  }
+  
+  .banner-text {
+    font-size: 18px;
+  }
+}
+
+═══════════════════════════════════════════════════
+
+UPDATE HEADER BUTTON:
+
+Find "FIND PARTIES" button (top-right) and update:
+
+<FindPartiesButton onClick={() => navigate('/find-parties')}>
+  FIND PARTIES
+</FindPartiesButton>
+
+═══════════════════════════════════════════════════
+
+ADD ROUTE:
+
+In App.jsx:
+
+import FindPartiesPage from './pages/FindPartiesPage';
+
+<Route path="/find-parties" element={<FindPartiesPage />} />
+
+═══════════════════════════════════════════════════
+
+API ENDPOINT NEEDED:
+
+GET /api/venues/with-parties?lat={lat}&lng={lng}&radius={miles}
+
+Returns venues that have active parties:
+{
+  venues: [
+    {
+      // Venue info
+      venueId, venueName, venueCategory, venueImage,
+      venueRating, venueScreens, distance,
+      latitude, longitude,
+      
+      // Party info (happening at this venue)
+      partyId, gameTitle, sportIcon,
+      gameTime, attendees, isLive
+    }
+  ]
+}
+
+═══════════════════════════════════════════════════
+
+INSTALL:
+
+npm install @react-google-maps/api
+
+Add to .env:
+REACT_APP_GOOGLE_MAPS_KEY=your_key_here
+
+═══════════════════════════════════════════════════
+
+RESULT:
+
+User clicks "FIND PARTIES" (top-right) → New page showing:
+
+1. MAP with pins where parties are happening ✅
+2. Banner ✅
+3. List of VENUE cards, each showing:
+   - TOP: Venue photo, name, category, rating, screens
+   - BOTTOM: Game happening there, time, attendees ✅
+
+Perfect combination of venue + party info! 🎉
+```
+
+---
+
+## 🎯 EXACTLY WHAT YOU ASKED FOR:
+
+Each card shows:
+
+**TOP HALF (Venue):**
+- Photo
+- Name
+- Category
+- Rating
+- Screens
+
+**BOTTOM HALF (Party):**
+- Sport icon
+- Game matchup
+- Time
+- Attendees
+- "LIVE" badge if happening now
+
+---
+
+**PASTE INTO REPLIT NOW!** 🚀
+
+**This is the perfect combination!** ✅
+
