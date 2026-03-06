@@ -16343,7 +16343,7 @@ const BORDER_MAP = {
    const totalResults = searchFiltered.length + searchFilteredGames.length;
    return (
      <div className="min-h-screen bg-[#0F1115] pt-[60px] pb-[72px]">
-       <div className="find-venues-map" style={{ height: '280px', width: '100%', position: 'relative', zIndex: 0, pointerEvents: 'none' }}>
+       <div style={{ position: 'sticky', top: '60px', zIndex: 1, height: '220px', width: '100%', pointerEvents: 'none' }}>
          <MapContainer center={defaultCenter} zoom={11} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false} dragging={false} zoomControl={false} doubleClickZoom={false} touchZoom={false} keyboard={false} attributionControl={false}>
            <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
            {mapMarkers.map(p => {
@@ -16357,6 +16357,7 @@ const BORDER_MAP = {
            })}
          </MapContainer>
        </div>
+       <div className="relative" style={{ zIndex: 2, background: '#0F1115' }}>
        <div className="relative overflow-hidden" style={{ height: '70px', background: 'linear-gradient(135deg, #001a33 0%, #0a1628 50%, #1a0f00 100%)' }}>
          <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 30% 50%, rgba(30,144,255,0.15) 0%, transparent 60%)' }} />
          <div className="relative z-[1] flex items-center justify-center h-full px-6">
@@ -16493,6 +16494,7 @@ const BORDER_MAP = {
            {fpSearch ? <button onClick={() => setFindPartiesSearch('')} className="px-6 py-3 bg-[#1E90FF] text-white font-bold rounded-xl">Clear Search</button> : fpSport !== 'All' ? <button onClick={() => setFindPartiesSport('All')} className="px-6 py-3 bg-[#1E90FF] text-white font-bold rounded-xl">Show All Sports</button> : <button onClick={() => setCurrentScreen('games')} className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-xl">Create a Party</button>}
          </div>
        )}
+       </div>
      </div>
    );
  })()}
