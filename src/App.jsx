@@ -1528,6 +1528,8 @@ const [adminRaffleImageUploading, setAdminRaffleImageUploading] = useState(false
  const [showPushBanner, setShowPushBanner] = useState(false);
  const [notifPrefs, setNotifPrefs] = useState(null);
  const [openChatPartyId, setOpenChatPartyId] = useState(null);
+ const [chatPartyName, setChatPartyName] = useState('');
+ const [chatPrevScreen, setChatPrevScreen] = useState('gameDetail');
  const [chatMessages, setChatMessages] = useState([]);
  const [chatInput, setChatInput] = useState('');
  const [chatLoading, setChatLoading] = useState(false);
@@ -2000,7 +2002,7 @@ const qrScannerRef = useRef(null);
  const activeSponsors = adminSponsors.filter(s => s.status === 'active');
 
  const formScreens = ['welcome', 'login', 'signup', 'forgotPassword', 'claimVenue', 'createParty'];
- const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', 'qrCheckin', 'myParties', 'myCrew', 'fanFinder', 'invitations', 'venueDashboard', 'sponsorDashboard', 'teamChats', 'trending', 'myTickets', 'alerts', 'userProfile', 'dmChat', 'proUpgrade', 'venueDetail', 'inviteFriends', 'notificationSettings', 'nearbyParties', 'browseParties', 'findVenues', 'findParties', 'gameDetail', ...formScreens];
+ const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', 'qrCheckin', 'myParties', 'myCrew', 'fanFinder', 'invitations', 'venueDashboard', 'sponsorDashboard', 'teamChats', 'trending', 'myTickets', 'alerts', 'userProfile', 'dmChat', 'partyChat', 'proUpgrade', 'venueDetail', 'inviteFriends', 'notificationSettings', 'nearbyParties', 'browseParties', 'findVenues', 'findParties', 'gameDetail', ...formScreens];
  const isFormScreen = formScreens.includes(currentScreen);
  const isPauseScreen = pauseScreens.includes(currentScreen);
 
@@ -3176,15 +3178,14 @@ const qrScannerRef = useRef(null);
  }
  };
 
- const openPartyChat = async (partyId) => {
- if (openChatPartyId === partyId) {
- setOpenChatPartyId(null);
- setChatMessages([]);
- if (chatPollRef.current) clearInterval(chatPollRef.current);
- return;
- }
+ const openPartyChat = async (partyId, partyName) => {
+ setChatPrevScreen(currentScreen);
  setOpenChatPartyId(partyId);
+ setChatPartyName(partyName || 'Party Chat');
  setChatInput('');
+ setChatMessages([]);
+ setChatTrashTalk(false);
+ setCurrentScreen('partyChat');
  setChatLoading(true);
  try {
  const msgs = await api.chat.getMessages(partyId);
@@ -7281,12 +7282,8 @@ const BORDER_MAP = {
  {(isAttending || party.hostEmail === user.email) && (
  <>
  <button
- onClick={() => openPartyChat(party.id)}
- className={`w-full mt-2 py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
- openChatPartyId === party.id
- ? 'bg-purple-500/30 text-purple-300 border-2 border-purple-500/40'
- : 'bg-purple-500/10 text-purple-300 border-2 border-purple-500/20 hover:bg-purple-500/20'
- } active:scale-[0.98]`}
+ onClick={() => openPartyChat(party.id, `${party.awayTeam || ''} ${party.awayTeam ? '@' : ''} ${party.homeTeam || party.sport || 'Party'}`)}
+ className="w-full mt-2 py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-purple-500/10 text-purple-300 border-2 border-purple-500/20 hover:bg-purple-500/20 active:scale-[0.98]"
  >
  <MessageCircle className="w-4 h-4" />
  Party Chat
@@ -7455,114 +7452,6 @@ const BORDER_MAP = {
  </div>
  )}
 
- {openChatPartyId === party.id && (
- <div className="mt-3 bg-[#151A22]/80 rounded-xl border border-[#222A36] overflow-hidden">
- <div className="p-3 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-b border-[#222A36] flex items-center justify-between">
- <h4 className="text-white font-bold text-sm flex items-center gap-2">
- <MessageCircle className="w-4 h-4 text-purple-400" />
- Party Chat
- </h4>
- <button onClick={() => { setOpenChatPartyId(null); }} className="p-1 rounded-lg hover:bg-white/10 transition-colors">
- <X className="w-4 h-4 text-[#A0A4AB]" />
- </button>
- </div>
- <div className="h-64 overflow-y-auto p-3 space-y-3">
- {chatLoading ? (
- <div className="flex items-center justify-center h-full">
- <Loader2 className="w-6 h-6 text-purple-400 animate-spin" />
- </div>
- ) : chatMessages.length === 0 ? (
- <div className="flex flex-col items-center justify-center h-full gap-3">
- <MessageCircle className="w-8 h-8 text-purple-400/30" />
- <p className="text-white font-bold text-sm">Start the conversation!</p>
- <p className="text-[#A0A4AB]/70 text-xs text-center leading-relaxed max-w-xs">Say hi, share your predictions, or ask who's sitting where. Every great party starts with someone breaking the ice.</p>
- <div className="flex flex-wrap justify-center gap-1.5">
- {['Say hi! 👋', "Who's coming?", 'Lets go! 🔥'].map((starter) => (
- <button
- key={starter}
- onClick={() => { if (chatInputRef.current) { chatInputRef.current.value = starter; chatInputRef.current.focus(); } }}
- className="px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs hover:bg-purple-500/20 transition-colors"
- >
- {starter}
- </button>
- ))}
- </div>
- </div>
- ) : (
- chatMessages.map((msg) => {
- const isMe = msg.user_id === user.id;
- const isFantasy = msg.message_type === 'fantasy';
- return (
- <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
- <div className={`max-w-[80%] ${isMe ? 'order-2' : ''}`}>
- {!isMe && (
- <div className="flex items-center gap-1.5 mb-1">
- <ProfileAvatar src={msg.profile_picture} name={msg.user_name} size="xs" />
- <span className="text-xs text-[#A0A4AB] font-medium">{msg.user_name}</span>
- {msg.is_founder && <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded-md font-bold" style={{ fontSize: '8px', backgroundColor: '#F5B400', color: '#0F1115' }}>⭐</span>}
- </div>
- )}
- {isFantasy && (
- <div className="flex items-center gap-1 mb-0.5">
- <span className="text-[10px] font-bold text-orange-400 uppercase tracking-wider">🏈 Trash Talk</span>
- </div>
- )}
- <div className={`px-3 py-2 rounded-2xl text-sm ${
- isFantasy
- ? 'bg-gradient-to-r from-orange-500/30 to-red-500/30 text-orange-100 border border-orange-500/40 rounded-br-md'
- : isMe
- ? 'bg-[#1E90FF] text-white rounded-br-md'
- : 'bg-[#151A22] text-gray-200 rounded-bl-md'
- }`}>
- {msg.message}
- </div>
- <div className={`text-[10px] text-[#A0A4AB]/70 mt-0.5 ${isMe ? 'text-right' : ''}`}>
- {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
- </div>
- </div>
- </div>
- );
- })
- )}
- <div ref={chatEndRef} />
- </div>
- <div className="p-3 border-t border-[#222A36]">
- {chatTrashTalk && (
- <div className="mb-2 px-2 py-1 bg-orange-500/20 border border-orange-500/30 rounded-lg flex items-center gap-1">
- <span className="text-[10px] text-orange-400 font-bold">🏈 TRASH TALK MODE</span>
- <button onClick={() => setChatTrashTalk(false)} className="ml-auto text-orange-400 hover:text-orange-300">
- <X className="w-3 h-3" />
- </button>
- </div>
- )}
- <div className="flex gap-2">
- <button
- onClick={() => setChatTrashTalk(!chatTrashTalk)}
- className={`p-2 rounded-full transition-all ${chatTrashTalk ? 'bg-orange-500 text-white' : 'bg-[#151A22] text-[#A0A4AB] hover:text-orange-400'}`}
- title="Fantasy Trash Talk"
- >
- <Trophy className="w-4 h-4" />
- </button>
- <input
- ref={chatInputRef}
- type="text"
- defaultValue=""
- onKeyDown={(e) => e.key === 'Enter' && sendChatMessage(party.id)}
- placeholder={chatTrashTalk ? "Talk trash about their fantasy team..." : "Type a message..."}
- maxLength={500}
- className={`flex-1 bg-[#151A22] border rounded-full px-4 py-2 text-white text-sm placeholder-gray-500 focus:outline-none ${chatTrashTalk ? 'border-orange-500/50 focus:border-orange-500' : 'border-[#222A36] focus:border-purple-500/50'}`}
- />
- <button
- onClick={() => sendChatMessage(party.id)}
- disabled={chatSending}
- className={`text-white p-2 rounded-full hover:opacity-90 transition-all disabled:opacity-50 ${chatTrashTalk ? 'bg-gradient-to-r from-orange-500 to-red-500' : 'bg-gradient-to-r from-purple-500 to-pink-500'}`}
- >
- <Send className="w-4 h-4" />
- </button>
- </div>
- </div>
- </div>
- )}
 
  </>
  )}
@@ -16393,6 +16282,122 @@ const BORDER_MAP = {
  {currentScreen === 'fanFinder' && renderFanFinderScreen()}
  {currentScreen === 'myCrew' && renderMyCrewScreen()}
  {currentScreen === 'dmChat' && renderDmChatScreen()}
+ {currentScreen === 'partyChat' && openChatPartyId && (
+ <div className="fixed inset-0 bg-[#0F1115] z-[40] flex flex-col" style={{ top: '60px' }}>
+ <div className="flex items-center gap-3 px-4 py-3 bg-[#151A22] border-b border-[#222A36]">
+ <button onClick={() => { if (chatPollRef.current) clearInterval(chatPollRef.current); setOpenChatPartyId(null); setCurrentScreen(chatPrevScreen || 'gameDetail'); }} className="p-2 rounded-xl hover:bg-white/10 transition-colors active:scale-95">
+ <ArrowLeft className="w-5 h-5 text-white" />
+ </button>
+ <div className="flex-1 min-w-0">
+ <h2 className="text-white font-black text-base truncate flex items-center gap-2">
+ <MessageCircle className="w-5 h-5 text-purple-400" />
+ {chatPartyName}
+ </h2>
+ <p className="text-purple-300/60 text-xs">Party Chat</p>
+ </div>
+ <div className="flex items-center gap-1 text-purple-400 bg-purple-500/20 px-2 py-1 rounded-full text-xs font-bold">
+ <Users className="w-3 h-3" /> {chatMessages.length > 0 ? [...new Set(chatMessages.map(m => m.user_id))].length : 0}
+ </div>
+ </div>
+ <div className="flex-1 overflow-y-auto p-4 space-y-3">
+ {chatLoading ? (
+ <div className="flex items-center justify-center h-full">
+ <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+ </div>
+ ) : chatMessages.length === 0 ? (
+ <div className="flex flex-col items-center justify-center h-full gap-4">
+ <div className="w-20 h-20 rounded-full bg-purple-500/10 flex items-center justify-center">
+ <MessageCircle className="w-10 h-10 text-purple-400/40" />
+ </div>
+ <p className="text-white font-bold text-lg">Start the conversation!</p>
+ <p className="text-[#A0A4AB]/70 text-sm text-center leading-relaxed max-w-xs">Say hi, share your predictions, or ask who's sitting where. Every great party starts with someone breaking the ice.</p>
+ <div className="flex flex-wrap justify-center gap-2">
+ {['Say hi! 👋', "Who's coming?", 'Lets go! 🔥', 'Great game! 🏆'].map((starter) => (
+ <button
+ key={starter}
+ onClick={() => { if (chatInputRef.current) { chatInputRef.current.value = starter; chatInputRef.current.focus(); } }}
+ className="px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-sm hover:bg-purple-500/20 transition-colors"
+ >
+ {starter}
+ </button>
+ ))}
+ </div>
+ </div>
+ ) : (
+ chatMessages.map((msg) => {
+ const isMe = msg.user_id === user.id;
+ const isFantasy = msg.message_type === 'fantasy';
+ return (
+ <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+ <div className={`max-w-[80%] ${isMe ? 'order-2' : ''}`}>
+ {!isMe && (
+ <div className="flex items-center gap-1.5 mb-1">
+ <ProfileAvatar src={msg.profile_picture} name={msg.user_name} size="xs" />
+ <span className="text-xs text-[#A0A4AB] font-medium">{msg.user_name}</span>
+ {msg.is_founder && <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded-md font-bold" style={{ fontSize: '8px', backgroundColor: '#F5B400', color: '#0F1115' }}>⭐</span>}
+ </div>
+ )}
+ {isFantasy && (
+ <div className="flex items-center gap-1 mb-0.5">
+ <span className="text-[10px] font-bold text-orange-400 uppercase tracking-wider">🏈 Trash Talk</span>
+ </div>
+ )}
+ <div className={`px-3.5 py-2.5 rounded-2xl text-sm ${
+ isFantasy
+ ? 'bg-gradient-to-r from-orange-500/30 to-red-500/30 text-orange-100 border border-orange-500/40 rounded-br-md'
+ : isMe
+ ? 'bg-[#1E90FF] text-white rounded-br-md'
+ : 'bg-[#151A22] text-gray-200 border border-[#222A36] rounded-bl-md'
+ }`}>
+ {msg.message}
+ </div>
+ <div className={`text-[10px] text-[#A0A4AB]/70 mt-0.5 ${isMe ? 'text-right' : ''}`}>
+ {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+ </div>
+ </div>
+ </div>
+ );
+ })
+ )}
+ <div ref={chatEndRef} />
+ </div>
+ <div className="p-3 bg-[#151A22] border-t border-[#222A36]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 8px)' }}>
+ {chatTrashTalk && (
+ <div className="mb-2 px-3 py-1.5 bg-orange-500/20 border border-orange-500/30 rounded-xl flex items-center gap-1">
+ <span className="text-xs text-orange-400 font-bold">🏈 TRASH TALK MODE</span>
+ <button onClick={() => setChatTrashTalk(false)} className="ml-auto text-orange-400 hover:text-orange-300">
+ <X className="w-3.5 h-3.5" />
+ </button>
+ </div>
+ )}
+ <div className="flex gap-2">
+ <button
+ onClick={() => setChatTrashTalk(!chatTrashTalk)}
+ className={`p-2.5 rounded-full transition-all ${chatTrashTalk ? 'bg-orange-500 text-white' : 'bg-[#0F1115] text-[#A0A4AB] hover:text-orange-400 border border-[#222A36]'}`}
+ title="Fantasy Trash Talk"
+ >
+ <Trophy className="w-5 h-5" />
+ </button>
+ <input
+ ref={chatInputRef}
+ type="text"
+ defaultValue=""
+ onKeyDown={(e) => e.key === 'Enter' && sendChatMessage(openChatPartyId)}
+ placeholder={chatTrashTalk ? "Talk trash about their fantasy team..." : "Type a message..."}
+ maxLength={500}
+ className={`flex-1 bg-[#0F1115] border rounded-full px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none ${chatTrashTalk ? 'border-orange-500/50 focus:border-orange-500' : 'border-[#222A36] focus:border-purple-500/50'}`}
+ />
+ <button
+ onClick={() => sendChatMessage(openChatPartyId)}
+ disabled={chatSending}
+ className={`text-white p-2.5 rounded-full hover:opacity-90 transition-all disabled:opacity-50 ${chatTrashTalk ? 'bg-gradient-to-r from-orange-500 to-red-500' : 'bg-gradient-to-r from-purple-500 to-pink-500'}`}
+ >
+ <Send className="w-5 h-5" />
+ </button>
+ </div>
+ </div>
+ </div>
+ )}
  {currentScreen === 'rewards' && <RewardsScreen />}
  {currentScreen === 'invitations' && <InvitationsScreen />}
  {currentScreen === 'qrCheckin' && <QrCheckinScreen />}
@@ -16718,7 +16723,7 @@ const BORDER_MAP = {
  })()}
  {currentScreen === 'inviteFriends' && renderInviteFriendsScreen()}
 
-{user && !['welcome', 'login', 'signup', 'signupType', 'forgotPassword', 'dmChat', 'gameDetail'].includes(currentScreen) && !(currentScreen === 'teamChats' && teamChatSelectedRoom) && (
+{user && !['welcome', 'login', 'signup', 'signupType', 'forgotPassword', 'dmChat', 'partyChat', 'gameDetail'].includes(currentScreen) && !(currentScreen === 'teamChats' && teamChatSelectedRoom) && (
 <div className="fixed bottom-0 left-0 right-0 z-[50] bg-[#151A22] border-t border-[#222A36]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
 <div className="grid grid-cols-5 py-1.5 max-w-lg mx-auto">
 <button onClick={() => { setCurrentScreen('games'); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 py-1 transition-colors ${currentScreen === 'games' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
