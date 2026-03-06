@@ -7593,28 +7593,16 @@ const BORDER_MAP = {
         osc.start(start);
         osc.stop(start + 0.4);
       });
-      const noiseLen = 2.5;
-      const bufSize = actx.sampleRate * noiseLen;
-      const buf = actx.createBuffer(1, bufSize, actx.sampleRate);
-      const data = buf.getChannelData(0);
-      for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * 0.08;
-      const noise = actx.createBufferSource();
-      noise.buffer = buf;
-      const bandpass = actx.createBiquadFilter();
-      bandpass.type = 'bandpass';
-      bandpass.frequency.value = 3000;
-      bandpass.Q.value = 0.5;
-      const noiseGain = actx.createGain();
-      noiseGain.gain.setValueAtTime(0.0, t);
-      noiseGain.gain.linearRampToValueAtTime(0.15, t + 0.3);
-      noiseGain.gain.setValueAtTime(0.15, t + 1.5);
-      noiseGain.gain.exponentialRampToValueAtTime(0.001, t + noiseLen);
-      noise.connect(bandpass);
-      bandpass.connect(noiseGain);
-      noiseGain.connect(actx.destination);
-      noise.start(t);
-      noise.stop(t + noiseLen);
-      setTimeout(() => actx.close(), 4000);
+      fetch('/crowd-cheer.mp3').then(r => r.arrayBuffer()).then(ab => actx.decodeAudioData(ab)).then(audioBuf => {
+        const src = actx.createBufferSource();
+        src.buffer = audioBuf;
+        const cheerGain = actx.createGain();
+        cheerGain.gain.setValueAtTime(0.5, t);
+        src.connect(cheerGain);
+        cheerGain.connect(actx.destination);
+        src.start(t + 0.15);
+      }).catch(() => {});
+      setTimeout(() => actx.close(), 5000);
     } catch (e) {}
     setTimeout(() => setCelebrateActive(false), 3500);
   }}
