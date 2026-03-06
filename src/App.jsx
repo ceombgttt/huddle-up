@@ -7566,10 +7566,8 @@ const BORDER_MAP = {
     if (navigator.vibrate) navigator.vibrate([150, 60, 150, 60, 150, 60, 300]);
     try {
       const audio = new Audio('/crowd-cheer.mp3');
-      audio.volume = 0.6;
-      audio.loop = true;
+      audio.volume = 0.7;
       audio.play().catch(() => {});
-      setTimeout(() => { audio.loop = false; audio.pause(); }, 15000);
     } catch (e) {}
     setTimeout(() => setCelebrateActive(false), 15000);
   }}
