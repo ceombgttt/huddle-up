@@ -2251,7 +2251,7 @@ const qrScannerRef = useRef(null);
  setSponsorIndex(0);
  const interval = setInterval(() => {
  setSponsorIndex(prev => (prev + 1) % sponsors.length);
- }, 5000);
+ }, 3000);
  return () => clearInterval(interval);
  } else {
  setSponsorIndex(0);
@@ -6584,7 +6584,7 @@ Become a Sponsor →
  >
  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-sponsor-shimmer pointer-events-none" />
  <div className="relative flex items-center">
- <div className="flex-shrink-0 w-[30%] bg-black/20 flex items-center justify-center overflow-hidden rounded-l-[10px] h-[70px]">
+ <div className="flex-shrink-0 w-[28%] bg-black/20 flex items-center justify-center overflow-hidden rounded-l-[10px] h-[56px]">
  {sponsor.logoUrl ? (
  <img src={sponsor.logoUrl} alt={sponsor.name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling && (e.target.nextSibling.style.display = 'flex'); }} />
  ) : null}
@@ -6595,7 +6595,7 @@ Become a Sponsor →
  <span className="text-3xl hidden items-center justify-center">{SPORT_ICONS[selectedSports[0] || 'All'] || '📢'}</span>
  ) : null}
  </div>
- <div className="flex-1 flex flex-col justify-center p-3 min-w-0">
+ <div className="flex-1 flex flex-col justify-center px-3 py-2 min-w-0">
  <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
  {sponsor.tier === 'premium' && (
  <span className="px-1.5 py-0.5 bg-gradient-to-r from-amber-500/30 to-yellow-500/30 text-yellow-300 text-[9px] font-bold uppercase rounded tracking-wider flex items-center gap-0.5">
@@ -6613,8 +6613,8 @@ Become a Sponsor →
  </span>
  )}
  </div>
- <h3 className="text-white font-extrabold text-base truncate leading-tight">{sponsor.name}</h3>
- <p className="text-gray-200 text-xs truncate">{sponsor.tagline}</p>
+ <h3 className="text-white font-extrabold text-sm truncate leading-tight">{sponsor.name}</h3>
+ <p className="text-gray-200 text-[11px] truncate">{sponsor.tagline}</p>
  <div className="flex gap-1 mt-1.5">
  {sponsors.map((_, i) => (
  <div key={i} className={`h-1 rounded-full transition-all duration-300 ${i === sponsorIndex % sponsors.length ? 'bg-white w-4' : 'bg-white/25 w-1'}`} />
