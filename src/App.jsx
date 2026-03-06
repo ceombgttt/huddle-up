@@ -1347,6 +1347,21 @@ const HuddleUpApp = () => {
  const [prelaunchDismissed, setPrelaunchDismissed] = useState(false);
  const [showTutorial, setShowTutorial] = useState(false);
  const [tutorialStep, setTutorialStep] = useState(0);
+ const [showIntroSplash, setShowIntroSplash] = useState(false);
+ const [introStage, setIntroStage] = useState(0);
+ const launchIntroSplash = () => {
+   if (localStorage.getItem('skipIntros') === 'true') return;
+   setIntroStage(0);
+   setShowIntroSplash(true);
+   setTimeout(() => setIntroStage(1), 500);
+   setTimeout(() => setIntroStage(2), 1200);
+   setTimeout(() => setIntroStage(3), 1800);
+   setTimeout(() => setIntroStage(4), 2400);
+   setTimeout(() => { setIntroStage(5); try { confetti({ particleCount: 60, spread: 80, origin: { y: 0.6 }, colors: ['#1E90FF', '#FFD700'] }); } catch(e){} }, 2800);
+   setTimeout(() => setShowIntroSplash(false), 3200);
+ };
+ const skipIntroSplash = () => { setShowIntroSplash(false); };
+ const neverShowIntro = () => { localStorage.setItem('skipIntros', 'true'); setShowIntroSplash(false); };
  const closeTutorial = () => { localStorage.setItem('huddle_tutorial_done', 'true'); setShowTutorial(false); };
  const scrollToFindYourSport = () => {
    const el = document.getElementById('find-your-sport');
@@ -2346,6 +2361,7 @@ const qrScannerRef = useRef(null);
  loadNotifications();
  loadBadgeStats();
  loadFriends();
+ launchIntroSplash();
  } catch (error) {
  alert(error.message);
  }
@@ -2368,6 +2384,7 @@ const qrScannerRef = useRef(null);
  } else {
  setCurrentScreen('games');
  }
+ launchIntroSplash();
  } catch (error) {
  alert(error.message);
  }
@@ -16022,6 +16039,34 @@ const BORDER_MAP = {
        <div className="text-4xl font-black text-[#FFD700] mb-1" style={{ textShadow: '0 4px 12px rgba(0,0,0,0.5)', animation: 'scorePulse 0.6s ease' }}>+{scoreCelebration.points} {scoreCelebration.sport === 'NFL' && scoreCelebration.points >= 6 ? 'TOUCHDOWN!' : scoreCelebration.sport === 'NBA' && scoreCelebration.points === 3 ? 'THREE!' : 'SCORED!'}</div>
        <div className="text-white/60 text-xs mt-2 font-bold uppercase tracking-widest">{scoreCelebration.sport} • Live</div>
      </div>
+   </div>
+ )}
+
+ {showIntroSplash && (
+   <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center overflow-hidden" onClick={skipIntroSplash} style={{ cursor: 'pointer' }}>
+     <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #001a33 0%, #000d1a 50%, #000000 100%)' }} />
+     <div className="relative z-[2] flex flex-col items-center justify-center">
+       <div style={{ width: '130px', height: '130px', marginBottom: '50px', opacity: introStage >= 1 ? 1 : 0, transform: introStage >= 1 ? 'translateY(0) scale(1)' : 'translateY(-80px) scale(0.5)', transition: 'all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55)' }}>
+         <img src="/huddle-up-shield.png" alt="Huddle Up" style={{ width: '100%', height: '100%', filter: introStage >= 4 ? 'drop-shadow(0 15px 60px rgba(30, 144, 255, 0.9)) drop-shadow(0 0 30px rgba(255, 215, 0, 0.4))' : 'drop-shadow(0 10px 40px rgba(30, 144, 255, 0.6))', transition: 'filter 0.6s ease' }} />
+       </div>
+       <div style={{ fontSize: '32px', fontWeight: 900, textAlign: 'center', margin: '10px 0', background: 'linear-gradient(90deg, #1E90FF, #00CED1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+         {['FIND', 'YOUR', 'CREW.'].map((w, i) => (
+           <span key={w} style={{ display: 'inline-block', margin: '0 8px', opacity: introStage >= 2 ? 1 : 0, transform: introStage >= 2 ? 'translateY(0)' : 'translateY(20px)', transition: `all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) ${i * 0.15}s` }}>{w}</span>
+         ))}
+       </div>
+       <div style={{ fontSize: '32px', fontWeight: 900, textAlign: 'center', margin: '10px 0', background: 'linear-gradient(90deg, #FFD700, #FFA500)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+         {['WATCH', 'THE', 'GAME.'].map((w, i) => (
+           <span key={w} style={{ display: 'inline-block', margin: '0 8px', opacity: introStage >= 3 ? 1 : 0, transform: introStage >= 3 ? 'translateY(0)' : 'translateY(20px)', transition: `all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) ${i * 0.15}s` }}>{w}</span>
+         ))}
+       </div>
+     </div>
+     {introStage >= 4 && <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at center, rgba(30, 144, 255, 0.3) 0%, transparent 60%)', animation: 'scorePulse 0.6s ease' }} />}
+     {introStage >= 1 && (
+       <div className="absolute bottom-10 right-6 z-[3] flex flex-col gap-2 items-end">
+         <button onClick={(e) => { e.stopPropagation(); skipIntroSplash(); }} className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white" style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(10px)' }}>Skip →</button>
+         <button onClick={(e) => { e.stopPropagation(); neverShowIntro(); }} className="text-white/40 text-xs underline px-2 py-1">Don't show again</button>
+       </div>
+     )}
    </div>
  )}
 
