@@ -1397,6 +1397,9 @@ const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
  const [scoreCelebration, setScoreCelebration] = useState(null);
  const [scoreCelebrationsEnabled, setScoreCelebrationsEnabled] = useState(() => localStorage.getItem('score_celebrations') !== 'false');
 
+ const [celebrateActive, setCelebrateActive] = useState(false);
+ const [celebrateCount, setCelebrateCount] = useState(0);
+
  const [sponsorIndex, setSponsorIndex] = useState(0);
  const [sponsorBanners, setSponsorBanners] = useState([]);
  const [adminSponsors, setAdminSponsors] = useState([]);
@@ -7542,6 +7545,40 @@ const BORDER_MAP = {
  )}
  </div>
  </div>
+
+{user && (
+<button
+  onClick={() => {
+    if (celebrateActive) return;
+    setCelebrateActive(true);
+    setCelebrateCount(p => p + 1);
+    const rm = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!rm) {
+      const tc = getTeamColors(selectedGame.sport, selectedGame.homeTeam) || getTeamColors(selectedGame.sport, selectedGame.awayTeam) || ['#1E90FF', '#FFD700'];
+      const end = Date.now() + 2000;
+      const iv = setInterval(() => {
+        if (Date.now() > end) { clearInterval(iv); return; }
+        confetti({ particleCount: 60, spread: 100, origin: { x: 0.5, y: 0.5 }, colors: tc, scalar: 2 });
+        confetti({ particleCount: 30, startVelocity: 50, spread: 80, origin: { x: Math.random(), y: 1 }, colors: tc, scalar: 1.5 });
+      }, 250);
+    }
+    if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]);
+    setTimeout(() => setCelebrateActive(false), 2000);
+  }}
+  disabled={celebrateActive}
+  className="fixed z-[45] flex flex-col items-center justify-center celebrate-btn"
+  style={{ bottom: '24px', right: '20px', width: '72px', height: '72px', borderRadius: '50%', border: 'none', cursor: celebrateActive ? 'default' : 'pointer' }}
+>
+  <div className="celebrate-glow" />
+  <span className={`text-3xl ${celebrateActive ? 'celebrate-icon-pop' : 'celebrate-icon-float'}`}>🎉</span>
+  <span className="text-[8px] font-black text-white uppercase tracking-wider mt-0.5">Celebrate</span>
+  {celebrateCount > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-black rounded-full min-w-[20px] h-[20px] flex items-center justify-center px-1">{celebrateCount}x</span>}
+  <div className="celebrate-pulse-ring" />
+  <div className="celebrate-pulse-ring" style={{ animationDelay: '0.5s' }} />
+  <div className="celebrate-pulse-ring" style={{ animationDelay: '1s' }} />
+</button>
+)}
+
  </div>
  );
  };

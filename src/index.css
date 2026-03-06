@@ -455,3 +455,77 @@ input, textarea, select {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.3) rotate(10deg); }
 }
+
+.celebrate-btn {
+  background: linear-gradient(135deg, #FF6B6B, #FFD700);
+  box-shadow: 0 8px 32px rgba(255, 107, 107, 0.5);
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.celebrate-btn:active:not(:disabled) {
+  transform: scale(0.9) !important;
+}
+
+.celebrate-btn:disabled {
+  opacity: 0.7;
+}
+
+.celebrate-glow {
+  position: absolute;
+  inset: -4px;
+  background: linear-gradient(135deg, #FF6B6B, #FFD700);
+  border-radius: 50%;
+  filter: blur(16px);
+  opacity: 0.5;
+  animation: celebrateGlow 2s ease-in-out infinite;
+  z-index: -1;
+}
+
+.celebrate-icon-float {
+  animation: celebrateFloat 2s ease-in-out infinite;
+}
+
+.celebrate-icon-pop {
+  animation: celebratePop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.celebrate-pulse-ring {
+  position: absolute;
+  inset: -6px;
+  border: 2px solid #FFD700;
+  border-radius: 50%;
+  animation: celebratePulseRing 2s ease-out infinite;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes celebrateGlow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.08); }
+}
+
+@keyframes celebrateFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes celebratePop {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.4) rotate(15deg); }
+  50% { transform: scale(0.85) rotate(-10deg); }
+  75% { transform: scale(1.2) rotate(5deg); }
+}
+
+@keyframes celebratePulseRing {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .celebrate-glow,
+  .celebrate-icon-float,
+  .celebrate-icon-pop,
+  .celebrate-pulse-ring { animation: none; }
+  .celebrate-glow { opacity: 0.3; }
+  .celebrate-pulse-ring { display: none; }
+}
