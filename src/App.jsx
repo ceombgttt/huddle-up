@@ -1462,6 +1462,7 @@ const [findPartiesSport, setFindPartiesSport] = useState('All');
  const [adminRaffles, setAdminRaffles] = useState([]);
  const [adminRaffleForm, setAdminRaffleForm] = useState(null);
  const [adminRaffleSaving, setAdminRaffleSaving] = useState(false);
+const [adminRaffleImageUploading, setAdminRaffleImageUploading] = useState(false);
  const [adminAffiliates, setAdminAffiliates] = useState([]);
  const [adminAffiliateForm, setAdminAffiliateForm] = useState(null);
  const [adminAffiliateSaving, setAdminAffiliateSaving] = useState(false);
@@ -9178,7 +9179,7 @@ const BORDER_MAP = {
  <Gift className="inline w-5 h-5 mr-2 text-yellow-400" /> RAFFLE MANAGEMENT
  </h2>
  <button
- onClick={() => setAdminRaffleForm({ title: '', description: '', prizeDescription: '', prizeIcon: '🎟️', pointsPerEntry: 100, maxEntriesPerUser: 10, endDate: '' })}
+ onClick={() => setAdminRaffleForm({ title: '', description: '', prizeDescription: '', prizeIcon: '🎟️', pointsPerEntry: 100, maxEntriesPerUser: 10, endDate: '', imageUrl: '' })}
  className="px-4 py-2 bg-gradient-to-r from-yellow-500 to-amber-500 text-white font-bold rounded-xl text-sm hover:shadow-yellow-500/30 transition-all"
  >
  <Plus className="w-4 h-4 inline mr-1" /> New Raffle
@@ -9208,6 +9209,43 @@ const BORDER_MAP = {
  <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Description</label>
  <textarea value={adminRaffleForm.description} onChange={e => setAdminRaffleForm(f => ({ ...f, description: e.target.value }))}
  rows={2} className="w-full px-4 py-2.5 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" placeholder="Optional details..." />
+ </div>
+ <div className="sm:col-span-2">
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Prize Image</label>
+ <div className="flex items-center gap-3">
+ {adminRaffleForm.imageUrl ? (
+ <div className="relative">
+ <img src={adminRaffleForm.imageUrl.startsWith('/objects/') ? `/api/uploads/serve/${adminRaffleForm.imageUrl.replace('/objects/', '')}` : adminRaffleForm.imageUrl} alt="Prize" className="w-20 h-20 rounded-xl object-cover border border-[#222A36]" />
+ <button onClick={() => setAdminRaffleForm(f => ({ ...f, imageUrl: '' }))} className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs">×</button>
+ </div>
+ ) : (
+ <div className="w-20 h-20 rounded-xl border-2 border-dashed border-[#222A36] flex items-center justify-center text-[#A0A4AB]">
+ <Camera className="w-6 h-6" />
+ </div>
+ )}
+ <button disabled={adminRaffleImageUploading} onClick={() => {
+ const input = document.createElement('input');
+ input.type = 'file'; input.accept = 'image/*';
+ input.onchange = async (ev) => {
+ const file = ev.target.files?.[0];
+ if (!file) return;
+ if (!file.type.startsWith('image/')) { alert('Please select an image file'); return; }
+ if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB'); return; }
+ setAdminRaffleImageUploading(true);
+ try {
+ const buf = await file.arrayBuffer();
+ const uploadRes = await fetch('/api/uploads/venue-image/upload', { method: 'POST', headers: { 'Content-Type': file.type, 'x-file-content-type': file.type, 'x-image-type': 'raffle-image' }, credentials: 'include', body: buf });
+ if (!uploadRes.ok) throw new Error((await uploadRes.json().catch(() => ({}))).error || 'Upload failed');
+ const { objectPath } = await uploadRes.json();
+ setAdminRaffleForm(f => ({ ...f, imageUrl: objectPath }));
+ } catch (err) { alert('Upload failed: ' + err.message); }
+ setAdminRaffleImageUploading(false);
+ };
+ input.click();
+ }} className="px-4 py-2 bg-[#151A22] border border-[#222A36] rounded-xl text-white text-sm font-semibold hover:bg-[#222A36] transition-colors"
+ >{adminRaffleImageUploading ? 'Uploading...' : 'Upload Image'}</button>
+ </div>
+ <p className="text-[#A0A4AB] text-xs mt-1">Optional. Shows on the raffle card. Max 5MB.</p>
  </div>
  <div>
  <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Points Per Entry</label>
@@ -9283,7 +9321,11 @@ const BORDER_MAP = {
  raffle.status === 'active' ? 'border-green-500/20' : raffle.status === 'ended' ? 'border-yellow-500/20' : 'border-red-500/20'
  }`}>
  <div className="flex items-start gap-3">
+ {raffle.image_url ? (
+ <img src={raffle.image_url.startsWith('/objects/') ? `/api/uploads/serve/${raffle.image_url.replace('/objects/', '')}` : raffle.image_url} alt="" className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
+ ) : (
  <span className="text-2xl">{raffle.prize_icon}</span>
+ )}
  <div className="flex-1 min-w-0">
  <div className="flex items-center gap-2 flex-wrap">
  <span className="text-white font-bold">{raffle.title}</span>
@@ -9311,7 +9353,7 @@ const BORDER_MAP = {
  id: raffle.id, title: raffle.title, description: raffle.description || '',
  prizeDescription: raffle.prize_description, prizeIcon: raffle.prize_icon,
  pointsPerEntry: raffle.points_per_entry, maxEntriesPerUser: raffle.max_entries_per_user,
- endDate: raffle.end_date, status: raffle.status,
+ endDate: raffle.end_date, status: raffle.status, imageUrl: raffle.image_url || '',
  })} className="p-2 bg-[#151A22] rounded-lg hover:bg-[#222A36] text-[#A0A4AB] hover:text-white" title="Edit">
  <Pencil className="w-4 h-4" />
  </button>
@@ -13965,6 +14007,11 @@ const BORDER_MAP = {
  const canAfford = rewardsBalance.totalPoints >= entryCost;
  return (
  <div key={raffle.id} className="bg-gradient-to-br from-[#151A22] to-[#1a1f2e] rounded-2xl border border-[#222A36] overflow-hidden">
+ {raffle.image_url && (
+ <div className="w-full h-40 overflow-hidden">
+ <img src={raffle.image_url.startsWith('/objects/') ? `/api/uploads/serve/${raffle.image_url.replace('/objects/', '')}` : raffle.image_url} alt={raffle.title} className="w-full h-full object-cover" />
+ </div>
+ )}
  <div className="bg-gradient-to-r from-yellow-500/20 via-amber-500/10 to-orange-500/20 p-4 border-b border-[#222A36]">
  <div className="flex items-start gap-3">
  <div className="w-14 h-14 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 shadow-lg shadow-orange-500/20">

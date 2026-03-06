@@ -192,6 +192,7 @@ export async function initDB() {
       ALTER TABLE venues ADD COLUMN IF NOT EXISTS logo TEXT;
       ALTER TABLE venues ADD COLUMN IF NOT EXISTS picture TEXT;
       ALTER TABLE venues ADD COLUMN IF NOT EXISTS venue_trial_ends_at TIMESTAMPTZ;
+      ALTER TABLE raffles ADD COLUMN IF NOT EXISTS image_url TEXT;
 
       CREATE TABLE IF NOT EXISTS referral_conversions (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

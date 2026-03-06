@@ -169,14 +169,14 @@ router.get('/admin/all', requireAdmin, async (req, res) => {
 
 router.post('/admin/create', requireAdmin, async (req, res) => {
   try {
-    const { title, description, prizeDescription, prizeIcon, pointsPerEntry, maxEntriesPerUser, endDate } = req.body;
+    const { title, description, prizeDescription, prizeIcon, pointsPerEntry, maxEntriesPerUser, endDate, imageUrl } = req.body;
     if (!title || !prizeDescription || !endDate) {
       return res.status(400).json({ error: 'Title, prize description, and end date are required' });
     }
     const result = await pool.query(
-      `INSERT INTO raffles (title, description, prize_description, prize_icon, points_per_entry, max_entries_per_user, end_date)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-      [title, description || null, prizeDescription, prizeIcon || '🎟️', pointsPerEntry || 100, maxEntriesPerUser || 10, endDate]
+      `INSERT INTO raffles (title, description, prize_description, prize_icon, points_per_entry, max_entries_per_user, end_date, image_url)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [title, description || null, prizeDescription, prizeIcon || '🎟️', pointsPerEntry || 100, maxEntriesPerUser || 10, endDate, imageUrl || null]
     );
     res.json(result.rows[0]);
   } catch (error) {
@@ -187,7 +187,7 @@ router.post('/admin/create', requireAdmin, async (req, res) => {
 
 router.put('/admin/:id', requireAdmin, async (req, res) => {
   try {
-    const { title, description, prizeDescription, prizeIcon, pointsPerEntry, maxEntriesPerUser, endDate, status } = req.body;
+    const { title, description, prizeDescription, prizeIcon, pointsPerEntry, maxEntriesPerUser, endDate, status, imageUrl } = req.body;
     const result = await pool.query(
       `UPDATE raffles SET
         title = COALESCE($1, title),
@@ -197,9 +197,10 @@ router.put('/admin/:id', requireAdmin, async (req, res) => {
         points_per_entry = COALESCE($5, points_per_entry),
         max_entries_per_user = COALESCE($6, max_entries_per_user),
         end_date = COALESCE($7, end_date),
-        status = COALESCE($8, status)
-       WHERE id = $9 RETURNING *`,
-      [title, description, prizeDescription, prizeIcon, pointsPerEntry, maxEntriesPerUser, endDate, status, req.params.id]
+        status = COALESCE($8, status),
+        image_url = COALESCE($9, image_url)
+       WHERE id = $10 RETURNING *`,
+      [title, description, prizeDescription, prizeIcon, pointsPerEntry, maxEntriesPerUser, endDate, status, imageUrl, req.params.id]
     );
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Raffle not found' });
