@@ -16375,7 +16375,7 @@ const BORDER_MAP = {
            </div>
          </div>
        )}
-       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, maxHeight: '60%', zIndex: 5, display: 'flex', flexDirection: 'column', borderTopLeftRadius: '20px', borderTopRightRadius: '20px', background: '#0F1115', boxShadow: '0 -4px 20px rgba(0,0,0,0.5)' }}>
+       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, maxHeight: '70%', zIndex: 5, display: 'flex', flexDirection: 'column', borderTopLeftRadius: '20px', borderTopRightRadius: '20px', background: '#0F1115', boxShadow: '0 -4px 20px rgba(0,0,0,0.5)' }}>
          <div style={{ padding: '10px 0 4px', display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
            <div style={{ width: '40px', height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.3)' }} />
          </div>
@@ -16512,97 +16512,94 @@ const BORDER_MAP = {
    const mapVenues = vList.filter(v => v.latitude && v.longitude);
    const defaultCenter = mapVenues.length > 0 ? [parseFloat(mapVenues[0].latitude), parseFloat(mapVenues[0].longitude)] : [26.1224, -80.1373];
    return (
-     <div className="min-h-screen bg-[#0F1115] pt-[60px] pb-[72px]">
-       <div className="find-venues-map" style={{ height: '300px', width: '100%', position: 'relative', zIndex: 0 }}>
-           <MapContainer center={defaultCenter} zoom={12} style={{ height: '100%', width: '100%' }} scrollWheelZoom={true}>
-             <TileLayer attribution='&copy; OpenStreetMap' url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
-             {mapVenues.map(v => {
-               const vParties = venuePartyLookup[v.name?.toLowerCase()] || [];
-               const hasLive = vParties.some(p => { const gt = new Date(p.gameTime); return gt <= now && gt >= new Date(now.getTime() - 4*60*60*1000); });
-               return (
-               <Marker key={v.id} position={[parseFloat(v.latitude), parseFloat(v.longitude)]}
-                 icon={L.divIcon({ className: 'leaflet-custom-marker', html: `<div style="background:${hasLive ? '#ff4757' : vParties.length > 0 ? '#10B981' : '#1E90FF'};width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.4)">${hasLive ? '🔴' : vParties.length > 0 ? '🎉' : '📍'}</div>`, iconSize: [32, 32], iconAnchor: [16, 16] })}>
-                 <Popup><div className="text-center"><strong>{v.name}</strong><br/>{vParties.length > 0 && <span style={{ fontSize: '12px', color: '#10B981', fontWeight: 'bold' }}>{vParties.length} {vParties.length === 1 ? 'party' : 'parties'}</span>}<br/><button onClick={() => { setSelectedVenueId(v.id); setCurrentScreen('venueDetail'); }} style={{ background: '#1E90FF', color: 'white', border: 'none', padding: '4px 12px', borderRadius: '6px', marginTop: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>View Venue</button></div></Popup>
-               </Marker>
-             );})}
-           </MapContainer>
+     <div style={{ position: 'fixed', top: '60px', left: 0, right: 0, bottom: '72px', display: 'flex', flexDirection: 'column', zIndex: 0 }}>
+       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0 }}>
+         <MapContainer center={defaultCenter} zoom={12} style={{ height: '100%', width: '100%' }} scrollWheelZoom={true} dragging={true} zoomControl={false} doubleClickZoom={true} touchZoom={true} keyboard={true} attributionControl={false}>
+           <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
+           {mapVenues.map(v => {
+             const vParties = venuePartyLookup[v.name?.toLowerCase()] || [];
+             const hasLive = vParties.some(p => { const gt = new Date(p.gameTime); return gt <= now && gt >= new Date(now.getTime() - 4*60*60*1000); });
+             return (
+             <Marker key={v.id} position={[parseFloat(v.latitude), parseFloat(v.longitude)]}
+               icon={L.divIcon({ className: 'leaflet-custom-marker', html: `<div style="background:${hasLive ? '#ff4757' : vParties.length > 0 ? '#10B981' : '#1E90FF'};width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;border:2px solid white;box-shadow:0 2px 10px rgba(0,0,0,0.5);cursor:pointer">${hasLive ? '🔴' : vParties.length > 0 ? '🎉' : '📍'}</div>`, iconSize: [34, 34], iconAnchor: [17, 17] })}>
+               <Popup><div className="text-center"><strong>{v.name}</strong><br/><span style={{ fontSize: '11px', color: '#aaa' }}>{v.type || 'Sports Bar'}</span><br/>{vParties.length > 0 && <span style={{ fontSize: '12px', color: '#10B981', fontWeight: 'bold' }}>{vParties.length} {vParties.length === 1 ? 'party' : 'parties'}</span>}<br/><button onClick={() => { setSelectedVenueId(v.id); setCurrentScreen('venueDetail'); }} style={{ background: '#1E90FF', color: 'white', border: 'none', padding: '4px 12px', borderRadius: '6px', marginTop: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>View Venue</button></div></Popup>
+             </Marker>
+           );})}
+         </MapContainer>
        </div>
-       <div className="relative overflow-hidden" style={{ height: '100px', background: 'linear-gradient(135deg, #001a33 0%, #0a1628 50%, #1a0f00 100%)' }}>
-         <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 30% 50%, rgba(30,144,255,0.15) 0%, transparent 60%)' }} />
-         <div className="relative z-[1] flex items-center justify-center h-full px-6">
-           <div className="text-center">
-             <div className="text-xl font-black" style={{ color: '#FFD700', textShadow: '0 2px 10px rgba(255,215,0,0.3)', letterSpacing: '1px' }}>THE BEST PLACE TO</div>
-             <div className="text-xl font-black" style={{ color: '#FFD700', textShadow: '0 2px 10px rgba(255,215,0,0.3)', letterSpacing: '1px' }}>WATCH THE GAME!</div>
-           </div>
-           <div className="ml-4 text-4xl">🍺</div>
-         </div>
-       </div>
-       <div className="flex gap-3 px-4 py-3">
-         <button onClick={() => { if (navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { const lat = pos.coords.latitude; const lng = pos.coords.longitude; fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`).then(r => r.json()).then(d => { const city = d.address?.city || d.address?.town || d.address?.village || 'Your Location'; setCurrentCity(`${city}, ${d.address?.state || ''}`); }).catch(() => setCurrentCity('Your Location')); }, () => { alert('Please enable location access to use Near Me'); }); } else { alert('Location is not supported by your browser'); } }} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white text-sm" style={{ background: 'linear-gradient(135deg, #1E90FF, #1873cc)' }}>
-           <Navigation className="w-4 h-4" /> Near Me
+       <div style={{ position: 'absolute', top: '8px', left: '12px', right: '12px', zIndex: 10, display: 'flex', gap: '8px' }}>
+         <button onClick={() => { if (navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { const lat = pos.coords.latitude; const lng = pos.coords.longitude; fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`).then(r => r.json()).then(d => { const city = d.address?.city || d.address?.town || d.address?.village || 'Your Location'; setCurrentCity(`${city}, ${d.address?.state || ''}`); }).catch(() => setCurrentCity('Your Location')); }, () => { alert('Please enable location access to use Near Me'); }); } else { alert('Location is not supported by your browser'); } }} className="flex items-center gap-1.5 px-3 py-2 rounded-full font-bold text-white text-xs shadow-lg" style={{ background: 'linear-gradient(135deg, #1E90FF, #1873cc)', boxShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>
+           <Navigation className="w-3.5 h-3.5" /> Near Me
          </button>
-         <button onClick={() => { setLocationDropdownOpen(true); }} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white text-sm" style={{ background: '#2a2d39' }}>
-           <MapPin className="w-4 h-4" /> Enter City
+         <button onClick={() => setLocationDropdownOpen(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-full font-bold text-white text-xs shadow-lg" style={{ background: '#1a1d28', boxShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>
+           <MapPin className="w-3.5 h-3.5" /> {currentCity || 'Enter City'}
          </button>
        </div>
-       <div className="px-4 pb-2">
-         <div className="flex items-center justify-between">
-           <h2 className="text-white font-black text-lg">{vList.length} Venues</h2>
-           <span className="text-[#A0A4AB] text-xs">{currentCity || 'All Locations'}</span>
+       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, maxHeight: '70%', zIndex: 5, display: 'flex', flexDirection: 'column', borderTopLeftRadius: '20px', borderTopRightRadius: '20px', background: '#0F1115', boxShadow: '0 -4px 20px rgba(0,0,0,0.5)' }}>
+         <div style={{ padding: '10px 0 4px', display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
+           <div style={{ width: '40px', height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.3)' }} />
          </div>
-       </div>
-       <div className="space-y-2 px-3 pb-4">
-         {vList.length === 0 ? (
-           <div className="text-center py-16 px-6">
-             <div className="text-6xl mb-4">🏟️</div>
-             <h3 className="text-white font-bold text-xl mb-2">No Venues Yet</h3>
-             <p className="text-[#A0A4AB] text-sm mb-6">Be the first venue to join Huddle Up in your area!</p>
-             <button onClick={() => setCurrentScreen('signup')} className="px-6 py-3 bg-[#1E90FF] text-white font-bold rounded-xl">Register Your Venue</button>
+         <div className="px-3 pb-2 pt-1" style={{ flexShrink: 0 }}>
+           <div className="text-center mb-2">
+             <span className="text-sm font-black" style={{ color: '#FFD700', letterSpacing: '1px' }}>THE BEST PLACE TO WATCH THE GAME!</span>
            </div>
-         ) : vList.map(v => {
-           const vParties = venuePartyLookup[v.name?.toLowerCase()] || [];
-           const nextParty = vParties.sort((a, b) => new Date(a.gameTime) - new Date(b.gameTime))[0];
-           return (
-           <div key={v.id} onClick={() => { setSelectedVenueId(v.id); setCurrentScreen('venueDetail'); }} className="bg-[#151A22] rounded-xl border border-[#222A36] overflow-hidden cursor-pointer hover:border-[#1E90FF]/30 transition-all active:scale-[0.99]">
-             <div className="flex items-center p-3">
-               <div className="w-20 h-20 rounded-xl overflow-hidden mr-3 flex-shrink-0 bg-[#0F1115] flex items-center justify-center">
-                 {v.imageUrl ? <img src={v.imageUrl} alt={v.name} className="w-full h-full object-cover" /> : <Building2 className="w-8 h-8 text-[#A0A4AB]" />}
-               </div>
-               <div className="flex-1 min-w-0">
-                 <div className="flex items-center gap-1.5">
-                   <h3 className="text-white font-bold text-[15px] truncate">{v.name}</h3>
-                   {v.featured && <span className="text-amber-400 text-xs">⭐</span>}
-                 </div>
-                 <p className="text-[#A0A4AB] text-xs mt-0.5 truncate">{v.type || 'Sports Bar'} • {v.address}</p>
-                 <div className="mt-1">{renderStars(v.avg_rating || v.rating || 0)}</div>
-                 <div className="text-[#A0A4AB] text-xs mt-1 flex items-center gap-2">
-                   {v.total_parties != null && <span>{v.total_parties} parties</span>}
-                   {v.total_fans != null && <span>{v.total_fans} 👤</span>}
-                 </div>
-               </div>
-               <div className="ml-2 flex-shrink-0">{getCatIcon(v.type)}</div>
+           <div className="flex items-center justify-between">
+             <span className="text-white font-black text-sm">{vList.length} Venues</span>
+             <span className="text-[#A0A4AB] text-[11px]">{currentCity || 'All Locations'}</span>
+           </div>
+         </div>
+         <div style={{ flex: 1, overflowY: 'auto', paddingBottom: '8px' }}>
+           {vList.length === 0 ? (
+             <div className="text-center py-10 px-6">
+               <div className="text-5xl mb-3">🏟️</div>
+               <h3 className="text-white font-bold text-lg mb-2">No Venues Yet</h3>
+               <p className="text-[#A0A4AB] text-sm mb-4">Be the first venue to join Huddle Up in your area!</p>
+               <button onClick={() => setCurrentScreen('signup')} className="px-5 py-2.5 bg-[#1E90FF] text-white font-bold rounded-xl text-sm">Register Your Venue</button>
              </div>
-             {nextParty && (
-               <div className="border-t border-[#222A36] px-3 py-2.5 flex items-center gap-3" style={{ background: 'rgba(30,144,255,0.05)' }}>
-                 <span className="text-xl flex-shrink-0">{fvSportIcons[nextParty.sport] || '🏟️'}</span>
-                 <div className="flex-1 min-w-0">
-                   <div className="text-white text-sm font-bold truncate">{nextParty.homeTeam && nextParty.awayTeam ? `${nextParty.awayTeam} vs ${nextParty.homeTeam}` : nextParty.title || 'Watch Party'}</div>
-                   <div className="text-[#A0A4AB] text-xs mt-0.5">{new Date(nextParty.gameTime).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} • {new Date(nextParty.gameTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</div>
+           ) : (
+           <div className="space-y-1.5 px-3">
+             {vList.map(v => {
+               const vParties = venuePartyLookup[v.name?.toLowerCase()] || [];
+               const nextParty = vParties.sort((a, b) => new Date(a.gameTime) - new Date(b.gameTime))[0];
+               return (
+               <div key={v.id} onClick={() => { setSelectedVenueId(v.id); setCurrentScreen('venueDetail'); }} className="bg-[#151A22] rounded-xl border border-[#222A36] overflow-hidden cursor-pointer active:scale-[0.99]">
+                 <div className="flex items-center p-2.5">
+                   <div className="w-14 h-14 rounded-lg overflow-hidden mr-2.5 flex-shrink-0 bg-[#0F1115] flex items-center justify-center">
+                     {v.imageUrl ? <img src={v.imageUrl} alt={v.name} className="w-full h-full object-cover" /> : <Building2 className="w-6 h-6 text-[#A0A4AB]" />}
+                   </div>
+                   <div className="flex-1 min-w-0">
+                     <div className="flex items-center gap-1">
+                       <h3 className="text-white font-bold text-[13px] truncate">{v.name}</h3>
+                       {v.featured && <span className="text-amber-400 text-[11px]">⭐</span>}
+                     </div>
+                     <p className="text-[#A0A4AB] text-[11px] truncate">{v.type || 'Sports Bar'} • {v.address}</p>
+                     <div className="mt-0.5">{renderStars(v.avg_rating || v.rating || 0)}</div>
+                   </div>
+                   <div className="ml-2 flex-shrink-0">{getCatIcon(v.type)}</div>
                  </div>
-                 <div className="flex items-center gap-1 flex-shrink-0">
-                   <span className="text-[#A0A4AB] text-xs font-bold">{nextParty.attendeeCount || nextParty.attendees?.length || 0}👤</span>
-                   {(() => { const gt = new Date(nextParty.gameTime); const isLive = gt <= now && gt >= new Date(now.getTime() - 4*60*60*1000); return isLive ? <span className="bg-red-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full ml-1">LIVE</span> : null; })()}
-                 </div>
+                 {nextParty && (
+                   <div className="border-t border-[#222A36] px-2.5 py-2 flex items-center gap-2" style={{ background: 'rgba(30,144,255,0.05)' }}>
+                     <span className="text-lg flex-shrink-0">{fvSportIcons[nextParty.sport] || '🏟️'}</span>
+                     <div className="flex-1 min-w-0">
+                       <div className="text-white text-[12px] font-bold truncate">{nextParty.homeTeam && nextParty.awayTeam ? `${nextParty.awayTeam} vs ${nextParty.homeTeam}` : nextParty.title || 'Watch Party'}</div>
+                       <div className="text-[#A0A4AB] text-[11px]">{new Date(nextParty.gameTime).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} • {new Date(nextParty.gameTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</div>
+                     </div>
+                     <div className="flex items-center gap-1 flex-shrink-0">
+                       {(() => { const gt = new Date(nextParty.gameTime); const isLive = gt <= now && gt >= new Date(now.getTime() - 4*60*60*1000); return isLive ? <span className="bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">LIVE</span> : null; })()}
+                     </div>
+                   </div>
+                 )}
+                 {vParties.length > 1 && (
+                   <div className="px-2.5 py-1 border-t border-[#222A36]">
+                     <span className="text-[#1E90FF] text-[11px] font-bold">+{vParties.length - 1} more {vParties.length - 1 === 1 ? 'party' : 'parties'}</span>
+                   </div>
+                 )}
                </div>
-             )}
-             {vParties.length > 1 && (
-               <div className="px-3 py-1.5 border-t border-[#222A36]">
-                 <span className="text-[#1E90FF] text-xs font-bold">+{vParties.length - 1} more {vParties.length - 1 === 1 ? 'party' : 'parties'}</span>
-               </div>
-             )}
+             );})
+             }
            </div>
-         );})
-         }
+           )}
+         </div>
        </div>
      </div>
    );
