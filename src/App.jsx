@@ -1999,7 +1999,7 @@ const qrScannerRef = useRef(null);
  const activeSponsors = adminSponsors.filter(s => s.status === 'active');
 
  const formScreens = ['welcome', 'login', 'signup', 'forgotPassword', 'claimVenue', 'createParty'];
- const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', 'qrCheckin', 'myParties', 'myCrew', 'fanFinder', 'invitations', 'venueDashboard', 'sponsorDashboard', 'teamChats', 'trending', 'myTickets', 'alerts', 'userProfile', 'dmChat', 'proUpgrade', 'venueDetail', 'inviteFriends', 'notificationSettings', 'nearbyParties', 'browseParties', 'findVenues', 'findParties', ...formScreens];
+ const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', 'qrCheckin', 'myParties', 'myCrew', 'fanFinder', 'invitations', 'venueDashboard', 'sponsorDashboard', 'teamChats', 'trending', 'myTickets', 'alerts', 'userProfile', 'dmChat', 'proUpgrade', 'venueDetail', 'inviteFriends', 'notificationSettings', 'nearbyParties', 'browseParties', 'findVenues', 'findParties', 'gameDetail', ...formScreens];
  const isFormScreen = formScreens.includes(currentScreen);
  const isPauseScreen = pauseScreens.includes(currentScreen);
 
