@@ -16329,31 +16329,39 @@ const BORDER_MAP = {
    const liveParties = searchFiltered.filter(p => { const gt = new Date(p.gameTime); return gt <= now && gt >= fourHoursAgo; });
    const upcomingParties = searchFiltered.filter(p => new Date(p.gameTime) > now);
    const partyVenues = {};
+   const venuePartyMap = {};
    allParties.forEach(p => {
      if (p.venueName) {
-       const v = venues.find(x => x.name?.toLowerCase() === p.venueName.toLowerCase());
-       if (v && v.latitude && v.longitude) partyVenues[p.id] = v;
+       const vn = p.venueName.toLowerCase();
+       const v = venues.find(x => x.name?.toLowerCase() === vn);
+       if (v && v.latitude && v.longitude) {
+         partyVenues[p.id] = v;
+         if (!venuePartyMap[v.id]) venuePartyMap[v.id] = { venue: v, parties: [] };
+         venuePartyMap[v.id].parties.push(p);
+       }
      }
    });
-   const mapMarkers = allParties.filter(p => partyVenues[p.id]);
-   const firstWithCoords = mapMarkers[0] ? partyVenues[mapMarkers[0].id] : null;
-   const defaultCenter = firstWithCoords ? [parseFloat(firstWithCoords.latitude), parseFloat(firstWithCoords.longitude)] : [26.1224, -80.1373];
+   const venueMarkers = Object.values(venuePartyMap);
+   const userCenter = userCoords ? [userCoords.lat, userCoords.lng] : null;
+   const firstVenueCoords = venueMarkers.length > 0 ? [parseFloat(venueMarkers[0].venue.latitude), parseFloat(venueMarkers[0].venue.longitude)] : null;
+   const defaultCenter = userCenter || firstVenueCoords || [26.1224, -80.1373];
+   const FpMapRecenter = () => { const map = useMap(); React.useEffect(() => { if (userCenter) map.setView(userCenter, 13); }, []); return null; };
    const fpCityInput = findPartiesCityInput || '';
    const fpShowCityInput = findPartiesShowCity || false;
    const totalResults = searchFiltered.length + searchFilteredGames.length;
    return (
      <div style={{ position: 'fixed', top: '60px', left: 0, right: 0, bottom: '72px', display: 'flex', flexDirection: 'column', zIndex: 0 }}>
        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0 }}>
-         <MapContainer center={defaultCenter} zoom={12} style={{ height: '100%', width: '100%' }} scrollWheelZoom={true} dragging={true} zoomControl={false} doubleClickZoom={true} touchZoom={true} keyboard={true} attributionControl={false}>
+         <MapContainer center={defaultCenter} zoom={userCenter ? 13 : 12} style={{ height: '100%', width: '100%' }} scrollWheelZoom={true} dragging={true} zoomControl={false} doubleClickZoom={true} touchZoom={true} keyboard={true} attributionControl={false}>
            <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
-           {mapMarkers.map(p => {
-             const v = partyVenues[p.id];
-             const gt = new Date(p.gameTime);
-             const isLive = gt <= now && gt >= fourHoursAgo;
+           <FpMapRecenter />
+           {venueMarkers.map(({ venue: vm, parties: vps }) => {
+             const hasLive = vps.some(p => { const gt = new Date(p.gameTime); return gt <= now && gt >= fourHoursAgo; });
+             const nextP = vps[0];
              return (
-               <Marker key={p.id} position={[parseFloat(v.latitude), parseFloat(v.longitude)]}
-                 icon={L.divIcon({ className: 'leaflet-custom-marker', html: `<div style="background:${isLive ? '#ff4757' : '#1E90FF'};width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;border:2px solid white;box-shadow:0 2px 10px rgba(0,0,0,0.5);cursor:pointer">${fpSportIcons[p.sport] || '📍'}</div>`, iconSize: [34, 34], iconAnchor: [17, 17] })}>
-                 <Popup><div className="text-center"><strong>{p.homeTeam && p.awayTeam ? `${p.awayTeam} vs ${p.homeTeam}` : p.title}</strong><br/><span style={{ fontSize: '12px', color: '#aaa' }}>{p.venueName || 'TBD'}</span><br/>{isLive && <span style={{ color: '#ff4757', fontWeight: 'bold', fontSize: '11px' }}>LIVE NOW</span>}<br/><button onClick={() => { setSelectedGame({ id: p.gameId || p.id, sport: p.sport, homeTeam: p.homeTeam, awayTeam: p.awayTeam, startTime: p.gameTime }); setCurrentScreen('gameDetail'); }} style={{ background: '#1E90FF', color: 'white', border: 'none', padding: '4px 12px', borderRadius: '6px', marginTop: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>View Party</button></div></Popup>
+               <Marker key={vm.id} position={[parseFloat(vm.latitude), parseFloat(vm.longitude)]}
+                 icon={L.divIcon({ className: 'leaflet-custom-marker', html: `<div style="background:${hasLive ? '#ff4757' : '#10B981'};width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;border:2px solid white;box-shadow:0 2px 10px rgba(0,0,0,0.5);cursor:pointer;position:relative">${hasLive ? '🔴' : '📍'}<span style="position:absolute;top:-6px;right:-6px;background:#1E90FF;color:white;font-size:10px;font-weight:bold;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;border:1.5px solid #0F1115">${vps.length}</span></div>`, iconSize: [36, 36], iconAnchor: [18, 18] })}>
+                 <Popup><div className="text-center" style={{ minWidth: '150px' }}><strong style={{ fontSize: '13px' }}>{vm.name}</strong><br/><span style={{ fontSize: '11px', color: '#aaa' }}>{vm.type || 'Sports Bar'}</span><br/><span style={{ fontSize: '12px', color: '#10B981', fontWeight: 'bold' }}>{vps.length} {vps.length === 1 ? 'party' : 'parties'}</span>{hasLive && <><br/><span style={{ color: '#ff4757', fontWeight: 'bold', fontSize: '11px' }}>LIVE NOW</span></>}<br/>{nextP && <span style={{ fontSize: '11px', color: '#ccc' }}>{nextP.homeTeam && nextP.awayTeam ? `${nextP.awayTeam} vs ${nextP.homeTeam}` : nextP.title || ''}</span>}<br/><button onClick={() => { setSelectedGame({ id: nextP.gameId || nextP.id, sport: nextP.sport, homeTeam: nextP.homeTeam, awayTeam: nextP.awayTeam, startTime: nextP.gameTime }); setCurrentScreen('gameDetail'); }} style={{ background: '#1E90FF', color: 'white', border: 'none', padding: '4px 12px', borderRadius: '6px', marginTop: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>View Party</button></div></Popup>
                </Marker>
              );
            })}
@@ -16375,15 +16383,15 @@ const BORDER_MAP = {
            </div>
          </div>
        )}
-       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, maxHeight: '70%', zIndex: 5, display: 'flex', flexDirection: 'column', borderTopLeftRadius: '20px', borderTopRightRadius: '20px', background: '#0F1115', boxShadow: '0 -4px 20px rgba(0,0,0,0.5)' }}>
-         <div style={{ padding: '10px 0 4px', display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
+       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, maxHeight: '55%', zIndex: 5, display: 'flex', flexDirection: 'column', borderTopLeftRadius: '20px', borderTopRightRadius: '20px', background: '#0F1115', boxShadow: '0 -4px 20px rgba(0,0,0,0.5)' }}>
+         <div style={{ padding: '8px 0 2px', display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
            <div style={{ width: '40px', height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.3)' }} />
          </div>
          <div className="px-3 pb-2 pt-1" style={{ flexShrink: 0 }}>
-           <div className="text-center mb-2">
-             <span className="text-sm font-black" style={{ color: '#FFD700', letterSpacing: '1px' }}>FIND YOUR CREW. WATCH THE GAME!</span>
+           <div className="text-center mb-1.5">
+             <span className="text-xs font-black" style={{ color: '#FFD700', letterSpacing: '1px' }}>FIND YOUR CREW. WATCH THE GAME!</span>
            </div>
-           <div className="relative mb-2">
+           <div className="relative mb-1.5">
              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0A4AB]" />
              <input type="text" value={fpSearch} onChange={(e) => setFindPartiesSearch(e.target.value)} placeholder="Search teams, venues, hosts..." className="w-full pl-10 pr-10 py-2 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" />
              {fpSearch && <button onClick={() => setFindPartiesSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A0A4AB] hover:text-white"><X className="w-4 h-4" /></button>}
@@ -16510,12 +16518,15 @@ const BORDER_MAP = {
    const venuePartyLookup = {};
    upcomingParties.forEach(p => { if (p.venueName) { const k = p.venueName.toLowerCase(); if (!venuePartyLookup[k]) venuePartyLookup[k] = []; venuePartyLookup[k].push(p); } });
    const mapVenues = vList.filter(v => v.latitude && v.longitude);
-   const defaultCenter = mapVenues.length > 0 ? [parseFloat(mapVenues[0].latitude), parseFloat(mapVenues[0].longitude)] : [26.1224, -80.1373];
+   const fvUserCenter = userCoords ? [userCoords.lat, userCoords.lng] : null;
+   const defaultCenter = fvUserCenter || (mapVenues.length > 0 ? [parseFloat(mapVenues[0].latitude), parseFloat(mapVenues[0].longitude)] : [26.1224, -80.1373]);
+   const FvMapRecenter = () => { const map = useMap(); React.useEffect(() => { if (fvUserCenter) map.setView(fvUserCenter, 13); }, []); return null; };
    return (
      <div style={{ position: 'fixed', top: '60px', left: 0, right: 0, bottom: '72px', display: 'flex', flexDirection: 'column', zIndex: 0 }}>
        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0 }}>
-         <MapContainer center={defaultCenter} zoom={12} style={{ height: '100%', width: '100%' }} scrollWheelZoom={true} dragging={true} zoomControl={false} doubleClickZoom={true} touchZoom={true} keyboard={true} attributionControl={false}>
+         <MapContainer center={defaultCenter} zoom={fvUserCenter ? 13 : 12} style={{ height: '100%', width: '100%' }} scrollWheelZoom={true} dragging={true} zoomControl={false} doubleClickZoom={true} touchZoom={true} keyboard={true} attributionControl={false}>
            <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
+           <FvMapRecenter />
            {mapVenues.map(v => {
              const vParties = venuePartyLookup[v.name?.toLowerCase()] || [];
              const hasLive = vParties.some(p => { const gt = new Date(p.gameTime); return gt <= now && gt >= new Date(now.getTime() - 4*60*60*1000); });
@@ -16535,13 +16546,13 @@ const BORDER_MAP = {
            <MapPin className="w-3.5 h-3.5" /> {currentCity || 'Enter City'}
          </button>
        </div>
-       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, maxHeight: '70%', zIndex: 5, display: 'flex', flexDirection: 'column', borderTopLeftRadius: '20px', borderTopRightRadius: '20px', background: '#0F1115', boxShadow: '0 -4px 20px rgba(0,0,0,0.5)' }}>
-         <div style={{ padding: '10px 0 4px', display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
+       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, maxHeight: '55%', zIndex: 5, display: 'flex', flexDirection: 'column', borderTopLeftRadius: '20px', borderTopRightRadius: '20px', background: '#0F1115', boxShadow: '0 -4px 20px rgba(0,0,0,0.5)' }}>
+         <div style={{ padding: '8px 0 2px', display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
            <div style={{ width: '40px', height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.3)' }} />
          </div>
          <div className="px-3 pb-2 pt-1" style={{ flexShrink: 0 }}>
-           <div className="text-center mb-2">
-             <span className="text-sm font-black" style={{ color: '#FFD700', letterSpacing: '1px' }}>THE BEST PLACE TO WATCH THE GAME!</span>
+           <div className="text-center mb-1.5">
+             <span className="text-xs font-black" style={{ color: '#FFD700', letterSpacing: '1px' }}>THE BEST PLACE TO WATCH THE GAME!</span>
            </div>
            <div className="flex items-center justify-between">
              <span className="text-white font-black text-sm">{vList.length} Venues</span>
