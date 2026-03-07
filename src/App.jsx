@@ -6798,7 +6798,7 @@ Become a Sponsor →
  </div>
  </div>
 
- <div className="max-w-4xl mx-auto px-4 py-4 space-y-6">
+ <div className="max-w-4xl mx-auto px-4 py-2 space-y-4">
  <div className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36] shadow-xl">
  <div className="flex items-center justify-end mb-3">
  {user && (
@@ -6864,14 +6864,6 @@ Become a Sponsor →
  <span>{selectedGame.venue}</span>
  </div>
  </div>
-
- <button
- onClick={() => setCurrentScreen('createParty')}
- className="w-full py-4 bg-[#1E90FF] text-white font-bold text-lg rounded-2xl shadow-sm hover:opacity-90 transition-all duration-200 flex items-center justify-center gap-2 btn-glow"
- >
- <Plus className="w-5 h-5" />
- CREATE WATCH PARTY
- </button>
 
  {user && selectedGame.gameStatus === 'scheduled' && (() => {
    const existingPred = gamePredictionCache[selectedGame.id] || myPredictions.find(p => p.game_id === selectedGame.id);
@@ -7456,6 +7448,14 @@ Become a Sponsor →
  )}
  </div>
  </div>
+
+ <button
+ onClick={() => setCurrentScreen('createParty')}
+ className="w-full py-4 bg-[#1E90FF] text-white font-bold text-lg rounded-2xl shadow-sm hover:opacity-90 transition-all duration-200 flex items-center justify-center gap-2 btn-glow"
+ >
+ <Plus className="w-5 h-5" />
+ CREATE WATCH PARTY
+ </button>
 
 {user && (
 <button
