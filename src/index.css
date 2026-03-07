@@ -754,3 +754,60 @@ input, textarea, select {
 }
 .join-party-btn-large:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(30,144,255,0.4); }
 .join-party-btn-large:active { transform: scale(0.98); }
+
+/* ========================================
+   AESTHETIC POLISH — Professional Upgrade
+   ======================================== */
+
+body {
+  font-size: 17px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.section-header-glow {
+  font-size: 1.75rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.08em !important;
+}
+
+.primary-btn {
+  font-size: 1.15rem !important;
+  font-weight: 800 !important;
+  padding: 20px 16px !important;
+  min-height: 88px !important;
+}
+
+.primary-cta {
+  font-size: 1.3rem !important;
+  min-height: 88px !important;
+  padding: 22px 30px !important;
+}
+
+.join-party-btn-large {
+  font-size: 1.05rem !important;
+  min-height: 50px !important;
+  font-weight: 800 !important;
+}
+
+.ad-slide {
+  min-height: 140px;
+}
+
+.empty-state h2 {
+  font-size: 1.55rem !important;
+}
+
+.empty-state p {
+  font-size: 1.05rem !important;
+}
+
+.live-badge-pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.05); }
+}

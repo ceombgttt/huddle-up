@@ -3553,10 +3553,10 @@ const qrScannerRef = useRef(null);
  // FEATURE 1: ONBOARDING TUTORIAL OVERLAY
  const OnboardingOverlay = () => {
  const steps = [
- { title: "Find Parties by Sport or Team 🏈", description: "Browse games by sport, search for your favorite teams, and discover watch parties happening near you!", icon: "🔍" },
- { title: "Join Parties & Chat with Fans 💬", description: "Join a watch party, chat with other fans in real-time, and connect with your crew on game day!", icon: "🎉" },
- { title: "Check In with QR Code 📱", description: "Scan the QR code at the venue to check in, earn points, and unlock badges. The more you show up, the higher you climb!", icon: "📍" },
- { title: "Make Predictions & Win Raffles 🏆", description: "Predict game winners, build win streaks, and earn points you can use for raffle entries and prizes!", icon: "🎯" }
+ { title: "Find Parties by Sport or Team", description: "Browse games by sport, search for your favorite teams, and discover watch parties happening near you!", icon: "🏈" },
+ { title: "Join Parties & Chat with Fans", description: "Join a watch party, chat with other fans in real-time, and connect with your crew on game day!", icon: "🏟️" },
+ { title: "Check In with QR Code", description: "Scan the QR code at the venue to check in, earn points, and unlock badges. The more you show up, the higher you climb!", icon: "📱" },
+ { title: "Make Predictions & Win Raffles", description: "Predict game winners, build win streaks, and earn points you can use for raffle entries and prizes!", icon: "🏆" }
  ];
  
  if (!showOnboarding) return null;
@@ -3594,7 +3594,7 @@ const qrScannerRef = useRef(null);
  </button>
  )}
  <button onClick={handleNext} className={`${isLastStep ? 'w-full' : 'flex-1'} py-3 bg-[#1E90FF] text-white rounded-xl font-bold hover:opacity-90 transition-all`}>
- {isLastStep ? "Let's Go! 🚀" : 'Next'}
+ {isLastStep ? "Let's Go!" : 'Next'}
  </button>
  </div>
  <div className="text-center mt-4 text-sm text-[#A0A4AB]/70">Step {onboardingStep + 1} of {steps.length}</div>
@@ -3891,7 +3891,7 @@ const qrScannerRef = useRef(null);
                Skip
              </button>
              <button onClick={handleNext} className="flex-1 px-4 py-2.5 bg-[#1E90FF] text-white rounded-xl text-sm font-bold hover:opacity-90 transition-all">
-               {isLast ? "Let's Go! 🚀" : 'Next →'}
+               {isLast ? "Let's Go!" : 'Next →'}
              </button>
            </div>
          </div>
@@ -3918,7 +3918,7 @@ const qrScannerRef = useRef(null);
  <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[70] flex items-center justify-center p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) { setShowInviteReminder(false); localStorage.setItem('lastInviteReminder', Date.now().toString()); } }}>
  <div className="bg-[#151A22] rounded-2xl p-6 max-w-md w-full border-2 border-[#1E90FF]/30 shadow-2xl" onMouseDown={e => e.stopPropagation()}>
  <div className="text-center mb-5">
- <div className="text-5xl mb-3">{isVenue ? '🏪' : '🎉'}</div>
+ <div className="text-5xl mb-3">{isVenue ? '🏪' : '🏟️'}</div>
  <h2 className="text-2xl font-black text-white mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
  {isVenue ? 'BRING MORE FANS IN!' : 'THE MORE THE MERRIER!'}
  </h2>
@@ -5323,7 +5323,7 @@ const qrScannerRef = useRef(null);
  >
  <span className="btn-icon">+</span> Create First Party
  </button>
- <p className="text-[#A0A4AB]/50 text-xs mt-3">🚀 Soft launch — early hosts get extra visibility</p>
+ <p className="text-[#A0A4AB]/50 text-xs mt-3">Soft launch — early hosts get extra visibility</p>
  </div>
  );
 
@@ -6036,7 +6036,7 @@ const qrScannerRef = useRef(null);
 <X className="w-4 h-4" />
 </button>
 <div className="p-3 flex items-center gap-3">
-<span className="text-xl flex-shrink-0">🚀</span>
+<Zap className="w-5 h-5 text-amber-400 flex-shrink-0" />
 <div className="flex-1 min-w-0">
 <p className="text-white font-bold text-sm">Soft Launch — Boca Raton</p>
 <p className="text-white/80 text-xs">First 100 members get Lifetime Pro FREE + Founder badge</p>
@@ -6059,8 +6059,8 @@ const qrScannerRef = useRef(null);
 <Plus className="w-6 h-6 text-white" />
 </div>
 <div>
-<div className="text-white font-black text-base" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>CREATE PARTY</div>
-<div className="text-emerald-300/70 text-xs font-semibold">Pick a game below</div>
+<div className="text-white font-black text-lg" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>CREATE PARTY</div>
+<div className="text-emerald-300/70 text-sm font-semibold">Pick a game below</div>
 </div>
 </div>
 </button>
@@ -6070,7 +6070,7 @@ const qrScannerRef = useRef(null);
 <Search className="w-6 h-6 text-white" />
 </div>
 <div>
-<div className="text-white font-black text-base" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>FIND PARTIES</div>
+<div className="text-white font-black text-lg" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>FIND PARTIES</div>
 {(() => { const upcoming = parties.filter(p => new Date(p.gameTime) >= new Date()).length; return upcoming > 0 ? <div className="text-orange-300/70 text-xs font-semibold">{upcoming} near you</div> : <div className="text-white/50 text-xs">Join a watch party</div>; })()}
 </div>
 </div>
@@ -6116,22 +6116,22 @@ Become a Sponsor →
 
 <div className="grid grid-cols-2 gap-3 mb-3">
 <button onClick={() => { setCurrentScreen('trending'); window.scrollTo(0,0); }} className="relative bg-gradient-to-br from-amber-900/30 to-orange-900/20 border-2 border-amber-500/40 rounded-2xl p-4 text-center hover:border-amber-400/60 transition-all active:scale-[0.97]" style={{ minHeight: '100px' }}>
-<div className="text-4xl mb-1.5">👑</div>
+<Crown className="w-9 h-9 text-amber-400 mb-1.5" />
 <div className="text-white text-base font-bold">Featured</div>
-<div className="text-amber-400/70 text-xs mt-0.5">Premium parties</div>
+<div className="text-amber-400/70 text-sm mt-0.5">Premium picks</div>
 </button>
 <button onClick={() => { setCurrentScreen('profile'); window.scrollTo(0,0); setTimeout(() => { const el = document.querySelector('[data-section="favorite-teams"]'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 400); }} className="relative bg-[#151A22] border border-[#222A36] rounded-2xl p-4 text-center hover:border-amber-500/40 transition-all active:scale-[0.97]" style={{ minHeight: '100px' }}>
-<div className="text-4xl mb-1.5">⭐</div>
+<Star className="w-9 h-9 text-amber-400 mb-1.5" />
 <div className="text-white text-base font-bold">My Teams</div>
 {user?.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 && <span className="absolute top-2.5 right-2.5 bg-red-500 text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5">{Object.keys(user.favoriteTeams).length}</span>}
 </button>
 <button onClick={() => { setCurrentScreen('myParties'); window.scrollTo(0,0); }} className="relative bg-[#151A22] border border-[#222A36] rounded-2xl p-4 text-center hover:border-[#1E90FF]/40 transition-all active:scale-[0.97]" style={{ minHeight: '100px' }}>
-<div className="text-4xl mb-1.5">📅</div>
+<Calendar className="w-9 h-9 text-[#1E90FF] mb-1.5" />
 <div className="text-white text-base font-bold">My Parties</div>
 {(() => { const joined = parties.filter(p => userParties.includes(p.id) && new Date(p.gameTime) >= new Date()).length; return joined > 0 ? <span className="absolute top-2.5 right-2.5 bg-red-500 text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5">{joined}</span> : null; })()}
 </button>
 <button onClick={() => { setCurrentScreen('findVenues'); window.scrollTo(0,0); }} className="relative bg-[#151A22] border border-[#222A36] rounded-2xl p-4 text-center hover:border-emerald-500/40 transition-all active:scale-[0.97]" style={{ minHeight: '100px' }}>
-<div className="text-4xl mb-1.5">📍</div>
+<MapPin className="w-9 h-9 text-emerald-400 mb-1.5" />
 <div className="text-white text-base font-bold">Venues</div>
 {(() => { const vc = venues.filter(v => v.verified).length; return vc > 0 ? <span className="absolute top-2.5 right-2.5 bg-[#1E90FF] text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5">{vc}</span> : null; })()}
 </button>
@@ -6141,7 +6141,7 @@ Become a Sponsor →
  <div className="mb-4 rounded-2xl overflow-hidden border border-red-500/30 bg-gradient-to-r from-red-900/30 via-[#151A22] to-pink-900/20">
    <div className="px-4 pt-3 pb-2 flex items-center gap-2">
      <Clock className="w-5 h-5 text-red-400 animate-pulse" />
-     <h3 className="text-white font-black text-base" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>LAST CHANCE — STARTING SOON!</h3>
+     <h3 className="text-white font-black text-lg" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>LAST CHANCE — STARTING SOON</h3>
    </div>
    <div className="px-4 pb-3 space-y-2">
      {lastChanceParties.map(lp => {
@@ -6171,7 +6171,7 @@ Become a Sponsor →
              <span className="flex items-center gap-1.5 text-xs text-emerald-400 font-bold"><CheckCircle className="w-3.5 h-3.5" /> Joined</span>
            ) : (
              <button onClick={(e) => { e.stopPropagation(); handleJoinParty(lp.id); }} disabled={joiningPartyId === lp.id} className="w-full py-2 bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white font-bold text-sm rounded-lg shadow-lg shadow-[#1E90FF]/20 hover:shadow-[#1E90FF]/40 transition-all active:scale-[0.97]">
-               {joiningPartyId === lp.id ? 'Joining...' : 'Join This Party 🎉'}
+               {joiningPartyId === lp.id ? 'Joining...' : 'Join This Party'}
              </button>
            )}
            </div>
@@ -6186,7 +6186,7 @@ Become a Sponsor →
  <div className="mb-4 rounded-2xl overflow-hidden border border-orange-500/30 bg-gradient-to-br from-orange-900/30 via-[#151A22] to-amber-900/20">
    <div className="px-4 pt-3 pb-2 flex items-center gap-2">
      <Flame className="w-5 h-5 text-orange-400" />
-     <h3 className="text-white font-black text-base" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>TRENDING PARTIES RIGHT NOW</h3>
+     <h3 className="text-white font-black text-lg" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>TRENDING PARTIES RIGHT NOW</h3>
    </div>
    <div className="px-4 pb-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
      {hotParties.map(hp => {
@@ -6210,7 +6210,7 @@ Become a Sponsor →
              <span className="flex items-center gap-1.5 text-xs text-emerald-400 font-bold"><CheckCircle className="w-3.5 h-3.5" /> Joined</span>
            ) : (
              <button onClick={(e) => { e.stopPropagation(); handleJoinParty(hp.id); }} disabled={joiningPartyId === hp.id} className="w-full py-2 bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white font-bold text-sm rounded-lg shadow-lg shadow-[#1E90FF]/20 hover:shadow-[#1E90FF]/40 transition-all active:scale-[0.97]">
-               {joiningPartyId === hp.id ? 'Joining...' : 'Join This Party 🎉'}
+               {joiningPartyId === hp.id ? 'Joining...' : 'Join This Party'}
              </button>
            )}
            </div>
@@ -6695,8 +6695,8 @@ const BORDER_MAP = {
    <div className="max-w-4xl mx-auto px-4 py-5">
    <div className="glow-divider-amber mb-[15px]" />
    <div className="flex items-center justify-between mb-[15px]">
-   <h3 className="text-white font-bold text-[14px] flex items-center gap-2 uppercase tracking-[1px] section-header-glow" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>
-   <Flame className="w-4 h-4 text-orange-400" />
+   <h3 className="text-white font-bold text-lg flex items-center gap-2 uppercase tracking-[1px] section-header-glow" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>
+   <Flame className="w-5 h-5 text-orange-400" />
    SPECIAL EVENTS
    </h3>
    <span className="text-[10px] text-white/40 font-semibold">{upcomingMajor.length} events</span>
@@ -7197,7 +7197,7 @@ const BORDER_MAP = {
  <div className="flex items-center gap-2">
  <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
  <span className="text-white font-bold text-sm">
- Your team is playing! {party.attendees.length} {myTeam} fans going! 🎉
+ Your team is playing! {party.attendees.length} {myTeam} fans going!
  </span>
  </div>
  </div>
@@ -7474,7 +7474,7 @@ const BORDER_MAP = {
  : 'bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white shadow-lg shadow-[#1E90FF]/20 hover:shadow-[#1E90FF]/40 hover:translate-y-[-1px]'
  }`}
  >
- {joiningPartyId === party.id ? 'Joining...' : isFull ? 'Party Full' : 'Join This Party 🎉'}
+ {joiningPartyId === party.id ? 'Joining...' : isFull ? 'Party Full' : 'Join This Party'}
  </button>
  )
  )}
@@ -8253,7 +8253,7 @@ const BORDER_MAP = {
  {/* Revenue Overview */}
  <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30 p-4 sm:p-8 rounded-2xl overflow-hidden">
  <h2 className="text-xl sm:text-2xl font-black text-white mb-4 sm:mb-6" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
- 💰 REVENUE OVERVIEW
+ REVENUE OVERVIEW
  </h2>
  
  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -10746,7 +10746,7 @@ const BORDER_MAP = {
 
  {/* Tips for Venues */}
  <div className="bg-gradient-to-br from-cyan-500/10 to-[#1E90FF]/10 border border-[#1E90FF]/30 p-6 rounded-2xl">
- <h3 className="text-lg font-black text-white mb-4">💡 Tips to Get More Watch Parties</h3>
+ <h3 className="text-lg font-black text-white mb-4">Tips to Get More Watch Parties</h3>
  <ul className="space-y-2 text-sm text-[#A0A4AB]">
  <li>• Promote your Huddle Up presence on social media and in-store</li>
  <li>• Offer specials during big games to attract more groups</li>
@@ -11616,7 +11616,7 @@ const BORDER_MAP = {
            </button>
            ) : (
            <button onClick={(e) => { e.stopPropagation(); handleJoinParty(party.id); }} disabled={joiningPartyId === party.id} className={`flex items-center gap-1.5 px-5 py-2.5 bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white font-bold text-base rounded-xl shadow-lg shadow-[#1E90FF]/20 hover:shadow-[#1E90FF]/40 hover:translate-y-[-1px] transition-all join-btn-wow ${joiningPartyId === party.id ? 'joining' : ''}`}>
-             {joiningPartyId === party.id ? 'Joining...' : 'Join 🎉'}
+             {joiningPartyId === party.id ? 'Joining...' : 'Join Party'}
            </button>
            )
          ) : user && Array.isArray(party.attendees) && party.attendees.includes(user.email) ? (
@@ -11728,7 +11728,7 @@ const BORDER_MAP = {
            <h3 className="text-white font-bold text-2xl mb-2">No Parties Found</h3>
            <p className="text-white/70 text-base mb-6">There are no watch parties in {bpCity !== 'All' ? bpCity : (currentCity || 'your area')} right now.</p>
            <div className="flex flex-col items-center gap-3">
-             <button onClick={() => setCurrentScreen('games')} className="primary-btn create-btn w-full max-w-xs py-3 text-white font-bold rounded-xl text-base shadow-lg shadow-emerald-500/20"><span className="btn-icon">🎉</span> Create the First Party</button>
+             <button onClick={() => setCurrentScreen('games')} className="primary-btn create-btn w-full max-w-xs py-3 text-white font-bold rounded-xl text-base shadow-lg shadow-emerald-500/20">Create the First Party</button>
              {hasFilters && (<button onClick={() => { setBpSports([]); setBpCity('All'); setBpSearch(''); setBpSort('soonest'); }} className="w-full max-w-xs py-3 bg-[#222A36] hover:bg-[#2A3340] text-white font-bold rounded-xl text-sm transition-all">Clear All Filters</button>)}
              <button onClick={() => setBpCity('All')} className="text-[#1E90FF] text-sm font-semibold hover:text-[#1E90FF]/80">Search Nearby Cities</button>
            </div>
@@ -11980,7 +11980,7 @@ const BORDER_MAP = {
        </div>
 
        <div className="bg-[#151A22] rounded-2xl border border-[#222A36] p-5">
-         <h3 className="text-orange-300 font-bold text-sm mb-2 uppercase">🎉 Score Celebrations</h3>
+         <h3 className="text-orange-300 font-bold text-sm mb-2 uppercase">Score Celebrations</h3>
          <div className="flex items-center justify-between py-3 border-b border-[#222A36]">
            <div>
              <div className="text-white text-sm font-semibold">Celebrate When My Teams Score</div>
@@ -11997,7 +11997,7 @@ const BORDER_MAP = {
            onClick={() => { const teamName = user?.favoriteTeams ? Object.values(user.favoriteTeams)[0] : 'Miami Heat'; fireScoreCelebration(teamName || 'Miami Heat', 3, 'NBA'); }}
            className="mt-3 w-full py-2.5 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-xl text-sm active:scale-[0.97] transition-all"
          >
-           🎉 Test Celebration
+           Test Celebration
          </button>
        </div>
 
@@ -14693,7 +14693,7 @@ const BORDER_MAP = {
  <span className="flex items-center gap-1.5 text-xs text-emerald-400 font-bold"><CheckCircle className="w-3.5 h-3.5" /> Joined</span>
  ) : (
  <button onClick={(e) => { e.stopPropagation(); handleJoinParty(party.id); }} disabled={joiningPartyId === party.id} className="px-4 py-1.5 bg-gradient-to-r from-[#1E90FF] to-[#0066CC] text-white font-bold text-sm rounded-lg shadow-lg shadow-[#1E90FF]/20 hover:shadow-[#1E90FF]/40 transition-all active:scale-[0.97]">
- {joiningPartyId === party.id ? 'Joining...' : 'Join 🎉'}
+ {joiningPartyId === party.id ? 'Joining...' : 'Join Party'}
  </button>
  )}
  </div>
