@@ -12023,76 +12023,72 @@ Become a Sponsor →
  <div>
  <h3 className="text-lg font-bold text-orange-300 mb-3">Hosting ({hostedParties.length})</h3>
  <div className="space-y-3">
- {hostedParties.map(party => (
+ {hostedParties.map(party => {
+ const homeLogo = getTeamLogoUrl(party.sport, party.homeTeam);
+ const awayLogo = getTeamLogoUrl(party.sport, party.awayTeam);
+ const gameDate = party.gameTime ? new Date(party.gameTime) : null;
+ const dateStr = gameDate ? gameDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : '';
+ const timeStr = gameDate ? gameDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : 'TBD';
+ return (
  <div
  key={party.id}
- className="bg-[#151A22] p-5 rounded-xl border border-[#222A36]"
+ className="bg-[#151A22] rounded-2xl border border-[#222A36] overflow-hidden"
  >
- <div className="flex items-center justify-between mb-2">
- <div className="flex items-center gap-2">
- <span className="px-2 py-1 bg-yellow-500/20 text-yellow-300 text-xs font-bold rounded-full border border-yellow-500/30">
- HOST
- </span>
- <span className="text-white font-bold">
- {party.homeTeam} vs {party.awayTeam}
- </span>
- </div>
+ <div className="p-5">
+ <div className="flex items-center justify-between mb-4">
+ <span className="px-3 py-1 bg-yellow-500/20 text-yellow-300 text-xs font-black rounded-full border border-yellow-500/30 uppercase tracking-wider">Host</span>
  <div className="flex items-center gap-1.5">
- <button
- onClick={() => openEditParty(party)}
- className="px-3 py-1.5 bg-[#1E90FF]/20 text-[#1E90FF] text-xs font-bold rounded-lg border border-[#1E90FF]/30 hover:bg-[#1E90FF]/30 transition-all"
- >
- Edit
- </button>
+ <button onClick={() => openEditParty(party)} className="px-4 py-2 bg-[#1E90FF]/20 text-[#1E90FF] text-xs font-bold rounded-lg border border-[#1E90FF]/30 hover:bg-[#1E90FF]/30 transition-all active:scale-95">Edit</button>
  {confirmDeleteId === party.id ? (
  <div className="flex items-center gap-1">
- <button
- onClick={() => handleDeleteParty(party.id)}
- disabled={deletingPartyId === party.id}
- className="px-3 py-1.5 bg-red-500 text-white text-xs font-bold rounded-lg hover:bg-red-600 transition-all disabled:opacity-50"
- >
- {deletingPartyId === party.id ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Confirm'}
- </button>
- <button
- onClick={() => setConfirmDeleteId(null)}
- className="px-2 py-1.5 bg-[#151A22] text-[#A0A4AB] text-xs rounded-lg hover:bg-[#222A36] transition-all"
- >
- Cancel
- </button>
+ <button onClick={() => handleDeleteParty(party.id)} disabled={deletingPartyId === party.id} className="px-3 py-2 bg-red-500 text-white text-xs font-bold rounded-lg hover:bg-red-600 transition-all disabled:opacity-50">{deletingPartyId === party.id ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Confirm'}</button>
+ <button onClick={() => setConfirmDeleteId(null)} className="px-2 py-2 bg-[#222A36] text-[#A0A4AB] text-xs rounded-lg hover:bg-[#2A3040] transition-all">Cancel</button>
  </div>
  ) : (
- <button
- onClick={() => setConfirmDeleteId(party.id)}
- className="px-2 py-1.5 bg-red-500/20 text-red-300 rounded-lg border border-red-500/30 hover:bg-red-500/30 transition-all"
- title="Delete party"
- >
- <Trash2 className="w-4 h-4" />
- </button>
+ <button onClick={() => setConfirmDeleteId(party.id)} className="px-2 py-2 bg-red-500/20 text-red-300 rounded-lg border border-red-500/30 hover:bg-red-500/30 transition-all" title="Delete party"><Trash2 className="w-4 h-4" /></button>
  )}
  </div>
  </div>
- <div className="text-sm text-[#A0A4AB] space-y-1">
- <div className="flex items-center gap-2">
- <MapPin className="w-3 h-3" />
- <AddressLink address={party.venueAddress || party.venueName || party.location} />
+ <div className="flex items-center justify-center gap-6 mb-4">
+ <div className="flex flex-col items-center gap-1.5 min-w-[80px]">
+ {homeLogo ? <img src={homeLogo} alt={party.homeTeam} className="w-14 h-14 object-contain" /> : <div className="w-14 h-14 bg-[#222A36] rounded-full flex items-center justify-center text-white/40 text-lg font-bold">{(party.homeTeam || '?')[0]}</div>}
+ <span className="text-white text-xs font-semibold text-center leading-tight max-w-[90px]">{party.homeTeam}</span>
  </div>
- <div className="flex items-center gap-2">
- <Calendar className="w-3 h-3" />
- <span>{party.gameTime || 'TBD'}</span>
+ <span className="text-white/30 text-lg font-black">VS</span>
+ <div className="flex flex-col items-center gap-1.5 min-w-[80px]">
+ {awayLogo ? <img src={awayLogo} alt={party.awayTeam} className="w-14 h-14 object-contain" /> : <div className="w-14 h-14 bg-[#222A36] rounded-full flex items-center justify-center text-white/40 text-lg font-bold">{(party.awayTeam || '?')[0]}</div>}
+ <span className="text-white text-xs font-semibold text-center leading-tight max-w-[90px]">{party.awayTeam}</span>
  </div>
- <div className="flex items-center gap-2">
- <Users className="w-3 h-3" />
- {party.attendees.length}{party.maxSize ? ` / ${party.maxSize}` : ''} people joined
  </div>
- {party.notes && (
- <p className="text-[#A0A4AB]/70 text-xs mt-1">{party.notes}</p>
+ <div className="bg-[#0F1115] rounded-xl p-3 mb-3">
+ <div className="flex items-center gap-2 mb-1">
+ <MapPin className="w-4 h-4 text-[#1E90FF] flex-shrink-0" />
+ <span className="text-white font-bold text-base truncate">{party.venueName || party.venueAddress || party.location || 'Venue TBD'}</span>
+ </div>
+ {party.venueAddress && party.venueName && (
+ <div className="text-[#A0A4AB] text-xs ml-6"><AddressLink address={party.venueAddress} /></div>
  )}
- <button onClick={() => openShareMenu(party)} className="flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 transition-colors mt-1">
- <Share2 className="w-3 h-3" /> Share Party
+ </div>
+ <div className="flex items-center justify-between text-sm">
+ <div className="flex items-center gap-4">
+ <div className="flex items-center gap-1.5 text-[#A0A4AB]">
+ <Calendar className="w-4 h-4" />
+ <span>{dateStr} {timeStr}</span>
+ </div>
+ <div className="flex items-center gap-1.5 text-[#A0A4AB]">
+ <Users className="w-4 h-4" />
+ <span className="font-semibold">{party.attendees.length}{party.maxSize ? `/${party.maxSize}` : ''}</span>
+ </div>
+ </div>
+ <button onClick={() => openShareMenu(party)} className="flex items-center gap-1.5 text-sm text-emerald-400 hover:text-emerald-300 transition-colors font-semibold active:scale-95">
+ <Share2 className="w-4 h-4" /> Share
  </button>
  </div>
+ {party.notes && <p className="text-[#A0A4AB]/70 text-xs mt-3 italic">{party.notes}</p>}
  </div>
- ))}
+ </div>
+ );
+ })}
  </div>
  </div>
  )}
@@ -12101,43 +12097,63 @@ Become a Sponsor →
  <div>
  <h3 className="text-lg font-bold text-[#1E90FF] mb-3">Joined ({joinedParties.length})</h3>
  <div className="space-y-3">
- {joinedParties.map(party => (
+ {joinedParties.map(party => {
+ const homeLogo = getTeamLogoUrl(party.sport, party.homeTeam);
+ const awayLogo = getTeamLogoUrl(party.sport, party.awayTeam);
+ const gameDate = party.gameTime ? new Date(party.gameTime) : null;
+ const dateStr = gameDate ? gameDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : '';
+ const timeStr = gameDate ? gameDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : 'TBD';
+ return (
  <div
  key={party.id}
- className="bg-[#151A22] p-5 rounded-xl border border-[#222A36]"
+ className="bg-[#151A22] rounded-2xl border border-[#222A36] overflow-hidden"
  >
- <div className="flex items-center justify-between mb-1">
- <div className="text-white font-bold">
- {party.homeTeam} vs {party.awayTeam}
- </div>
- <button
- onClick={() => handleLeaveParty(party.id)}
- disabled={leavingPartyId === party.id}
- className="px-3 py-1.5 bg-red-500/20 text-red-300 text-xs font-bold rounded-lg border border-red-500/30 hover:bg-red-500/30 transition-all disabled:opacity-50"
- >
+ <div className="p-5">
+ <div className="flex items-center justify-between mb-4">
+ <span className="text-[#A0A4AB] text-xs">Hosted by <span className="text-white font-semibold">{party.hostName}</span></span>
+ <button onClick={() => handleLeaveParty(party.id)} disabled={leavingPartyId === party.id} className="px-4 py-2 bg-red-500/20 text-red-300 text-xs font-bold rounded-lg border border-red-500/30 hover:bg-red-500/30 transition-all disabled:opacity-50 active:scale-95">
  {leavingPartyId === party.id ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Leave'}
  </button>
  </div>
- <div className="text-sm text-[#A0A4AB] space-y-1">
- <div>Hosted by {party.hostName}</div>
- <div className="flex items-center gap-2">
- <MapPin className="w-3 h-3" />
- <AddressLink address={party.venueAddress || party.venueName || party.location} />
+ <div className="flex items-center justify-center gap-6 mb-4">
+ <div className="flex flex-col items-center gap-1.5 min-w-[80px]">
+ {homeLogo ? <img src={homeLogo} alt={party.homeTeam} className="w-14 h-14 object-contain" /> : <div className="w-14 h-14 bg-[#222A36] rounded-full flex items-center justify-center text-white/40 text-lg font-bold">{(party.homeTeam || '?')[0]}</div>}
+ <span className="text-white text-xs font-semibold text-center leading-tight max-w-[90px]">{party.homeTeam}</span>
  </div>
- <div className="flex items-center gap-2">
- <Calendar className="w-3 h-3" />
- <span>{party.gameTime || 'TBD'}</span>
+ <span className="text-white/30 text-lg font-black">VS</span>
+ <div className="flex flex-col items-center gap-1.5 min-w-[80px]">
+ {awayLogo ? <img src={awayLogo} alt={party.awayTeam} className="w-14 h-14 object-contain" /> : <div className="w-14 h-14 bg-[#222A36] rounded-full flex items-center justify-center text-white/40 text-lg font-bold">{(party.awayTeam || '?')[0]}</div>}
+ <span className="text-white text-xs font-semibold text-center leading-tight max-w-[90px]">{party.awayTeam}</span>
  </div>
- <div className="flex items-center gap-2">
- <Users className="w-3 h-3" />
- {party.attendees.length} people joined
  </div>
- <button onClick={() => openShareMenu(party)} className="flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 transition-colors mt-1">
- <Share2 className="w-3 h-3" /> Share Party
+ <div className="bg-[#0F1115] rounded-xl p-3 mb-3">
+ <div className="flex items-center gap-2 mb-1">
+ <MapPin className="w-4 h-4 text-[#1E90FF] flex-shrink-0" />
+ <span className="text-white font-bold text-base truncate">{party.venueName || party.venueAddress || party.location || 'Venue TBD'}</span>
+ </div>
+ {party.venueAddress && party.venueName && (
+ <div className="text-[#A0A4AB] text-xs ml-6"><AddressLink address={party.venueAddress} /></div>
+ )}
+ </div>
+ <div className="flex items-center justify-between text-sm">
+ <div className="flex items-center gap-4">
+ <div className="flex items-center gap-1.5 text-[#A0A4AB]">
+ <Calendar className="w-4 h-4" />
+ <span>{dateStr} {timeStr}</span>
+ </div>
+ <div className="flex items-center gap-1.5 text-[#A0A4AB]">
+ <Users className="w-4 h-4" />
+ <span className="font-semibold">{party.attendees.length}</span>
+ </div>
+ </div>
+ <button onClick={() => openShareMenu(party)} className="flex items-center gap-1.5 text-sm text-emerald-400 hover:text-emerald-300 transition-colors font-semibold active:scale-95">
+ <Share2 className="w-4 h-4" /> Share
  </button>
  </div>
  </div>
- ))}
+ </div>
+ );
+ })}
  </div>
  </div>
  )}
