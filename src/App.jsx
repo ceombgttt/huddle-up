@@ -14537,11 +14537,16 @@ Become a Sponsor →
  <button key={room.id} onClick={() => { setTeamChatSelectedRoom(room); loadTeamChatMessages(room.id); }} className="w-full flex items-center gap-3 p-4 bg-[#151A22] hover:bg-[#1A2030] rounded-xl border border-[#222A36] transition-colors text-left">
  {(() => { const logo = room.logoUrl || getTeamLogoUrl(room.sport, room.teamName); return logo ? <img src={logo} className="w-10 h-10 object-contain" alt="" /> : <div className="w-10 h-10 rounded-full bg-teal-500/30 flex items-center justify-center text-teal-300 text-sm font-bold">{room.teamAbbrev || room.teamName?.[0]}</div>; })()}
  <div className="flex-1 min-w-0">
+ <div className="flex items-center justify-between">
  <p className="text-white font-semibold truncate">{room.teamName}</p>
- <div className="flex items-center gap-2 mt-0.5">
- <span className="text-xs text-[#A0A4AB]">{room.messageCount || 0} messages</span>
- {room.lastMessageTime && <span className="text-xs text-[#A0A4AB]/50">{(() => { const d = new Date(room.lastMessageTime); const now = new Date(); const diff = now - d; if (diff < 60000) return 'just now'; if (diff < 3600000) return `${Math.floor(diff/60000)}m ago`; if (diff < 86400000) return `${Math.floor(diff/3600000)}h ago`; return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); })()}</span>}
+ {room.lastMessageTime && <span className="text-[10px] text-[#A0A4AB]/50 flex-shrink-0 ml-2">{(() => { const d = new Date(room.lastMessageTime); const now = new Date(); const diff = now - d; if (diff < 60000) return 'just now'; if (diff < 3600000) return `${Math.floor(diff/60000)}m ago`; if (diff < 86400000) return `${Math.floor(diff/3600000)}h ago`; return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); })()}</span>}
  </div>
+ {room.lastMessage ? (
+ <p className="text-xs text-[#A0A4AB] truncate mt-0.5"><span className="text-[#A0A4AB]/70">{room.lastMessageUser}: </span>{room.lastMessage}</p>
+ ) : (
+ <p className="text-xs text-[#A0A4AB]/50 mt-0.5 italic">No messages yet</p>
+ )}
+ <span className="text-[10px] text-[#A0A4AB]/40 mt-0.5">{room.messageCount || 0} messages</span>
  </div>
  <ChevronRight className="w-4 h-4 text-[#A0A4AB]/50" />
  </button>

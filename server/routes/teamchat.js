@@ -20,7 +20,9 @@ router.get('/rooms', requireAuth, async (req, res) => {
         tcr.logo_url,
         tcr.created_at,
         COUNT(tcm.id) as message_count,
-        MAX(tcm.created_at) as last_message_time
+        MAX(tcm.created_at) as last_message_time,
+        (SELECT tcm2.message FROM team_chat_messages tcm2 WHERE tcm2.room_id = tcr.id ORDER BY tcm2.created_at DESC LIMIT 1) as last_message,
+        (SELECT u2.name FROM team_chat_messages tcm3 JOIN users u2 ON tcm3.user_id = u2.id WHERE tcm3.room_id = tcr.id ORDER BY tcm3.created_at DESC LIMIT 1) as last_message_user
       FROM team_chat_rooms tcr
       LEFT JOIN team_chat_messages tcm ON tcr.id = tcm.room_id
       GROUP BY tcr.id, tcr.sport, tcr.team_name, tcr.team_abbrev, tcr.logo_url, tcr.created_at
@@ -35,6 +37,8 @@ router.get('/rooms', requireAuth, async (req, res) => {
       logoUrl: room.logo_url,
       messageCount: parseInt(room.message_count),
       lastMessageTime: room.last_message_time,
+      lastMessage: room.last_message || null,
+      lastMessageUser: room.last_message_user || null,
       createdAt: room.created_at
     }));
 
