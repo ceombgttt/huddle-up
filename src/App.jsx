@@ -407,11 +407,7 @@ const DEMO_MAIN_SPONSOR = {
 };
 
 const MAIN_BANNER_HEIGHT = 60;
-const SOFT_LAUNCH_START = new Date('2026-02-01');
-const MainBrandBanner = ({ userCount = 0, user: bannerUser, onProfileClick, onMenuClick, totalAlerts = 0 }) => {
- const daysSinceLaunch = Math.floor((Date.now() - SOFT_LAUNCH_START.getTime()) / (1000 * 60 * 60 * 24));
- const showBadge = daysSinceLaunch < 90;
- const isNew = userCount >= 100 || daysSinceLaunch >= 30;
+const MainBrandBanner = ({ user: bannerUser, onProfileClick, onMenuClick, totalAlerts = 0 }) => {
  return (
  <div
  className="compact-header w-full"
@@ -427,14 +423,6 @@ const MainBrandBanner = ({ userCount = 0, user: bannerUser, onProfileClick, onMe
  </div>
  </div>
  <div className="flex items-center gap-3 flex-shrink-0">
- {showBadge && (
- <span
- className="inline-flex items-center px-2 py-1 rounded-xl text-white font-bold whitespace-nowrap"
- style={{ fontSize: '9px', backgroundColor: isNew ? '#10B981' : '#F97316', boxShadow: isNew ? '0 4px 12px rgba(16,185,129,0.4)' : '0 4px 12px rgba(249,115,22,0.4)' }}
- >
- {isNew ? 'New!' : 'Soft Launch'}
- </span>
- )}
  <button onClick={onMenuClick} className="p-2 rounded-xl hover:bg-white/10 transition-colors active:scale-95">
  <Menu className="w-5 h-5 text-white/70" />
  </button>
@@ -16138,7 +16126,7 @@ const BORDER_MAP = {
  {user && !['welcome', 'login', 'signup', 'forgotPassword'].includes(currentScreen) && (
  <>
  <div className="fixed top-0 left-0 right-0 z-[60]" style={{ height: `${MAIN_BANNER_HEIGHT}px` }}>
- <MainBrandBanner userCount={softLaunchStats.users} user={user} onProfileClick={() => setCurrentScreen('profile')} onMenuClick={() => setHamburgerOpen(true)} totalAlerts={totalAlerts} />
+ <MainBrandBanner user={user} onProfileClick={() => setCurrentScreen('profile')} onMenuClick={() => setHamburgerOpen(true)} totalAlerts={totalAlerts} />
  </div>
  <div style={{ height: `${MAIN_BANNER_HEIGHT}px` }} />
  </>
