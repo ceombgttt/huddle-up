@@ -16063,18 +16063,18 @@ Become a Sponsor →
  <div style={{ height: `${MAIN_BANNER_HEIGHT}px` }} />
  {currentScreen === 'games' && (
  <>
- <div className="fixed left-0 right-0 z-[59] bg-[#151A22] border-b border-[#222A36]" style={{ top: `${MAIN_BANNER_HEIGHT}px` }}>
- <div className="flex items-center justify-around max-w-lg mx-auto">
+ <div className="fixed left-0 right-0 z-[59] bg-[#151A22] border-b border-[#222A36] overflow-visible" style={{ top: `${MAIN_BANNER_HEIGHT}px` }}>
+ <div className="flex items-center justify-around max-w-lg mx-auto overflow-visible">
  <button onClick={() => { setCurrentScreen('trending'); window.scrollTo(0,0); }} className="py-3 px-4 transition-colors text-white/60 hover:text-amber-400 active:scale-95">
  <span className="text-xs font-bold uppercase tracking-wider">Featured</span>
  </button>
  <button onClick={() => { setCurrentScreen('myParties'); window.scrollTo(0,0); }} className="py-3 px-4 transition-colors text-white/60 hover:text-[#1E90FF] active:scale-95 relative">
  <span className="text-xs font-bold uppercase tracking-wider">My Parties</span>
- {(() => { const joined = parties.filter(p => userParties.includes(p.id) && new Date(p.gameTime) >= new Date()).length; return joined > 0 ? <span className="absolute -top-0.5 -right-1 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1">{joined}</span> : null; })()}
+ {(() => { const joined = parties.filter(p => userParties.includes(p.id) && new Date(p.gameTime) >= new Date()).length; return joined > 0 ? <span className="absolute top-0.5 -right-2 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1">{joined}</span> : null; })()}
  </button>
  <button onClick={() => { setCurrentScreen('findVenues'); window.scrollTo(0,0); }} className="py-3 px-4 transition-colors text-white/60 hover:text-emerald-400 active:scale-95 relative">
  <span className="text-xs font-bold uppercase tracking-wider">Venues</span>
- {(() => { const vc = venues.filter(v => v.verified).length; return vc > 0 ? <span className="absolute -top-0.5 -right-1 bg-[#1E90FF] text-white text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1">{vc}</span> : null; })()}
+ {(() => { const vc = venues.filter(v => v.verified).length; return vc > 0 ? <span className="absolute top-0.5 -right-2 bg-[#1E90FF] text-white text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1">{vc}</span> : null; })()}
  </button>
  </div>
  </div>
