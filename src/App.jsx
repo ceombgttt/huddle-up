@@ -3371,6 +3371,9 @@ const qrScannerRef = useRef(null);
  
  return matchesSport && matchesSearch && matchesMyTeams && matchesDate;
  }).sort((a, b) => {
+   const aLive = a.gameStatus === 'live' ? 0 : 1;
+   const bLive = b.gameStatus === 'live' ? 0 : 1;
+   if (aLive !== bLive) return aLive - bLive;
    if (sortOption === 'Soonest') {
      return new Date(a.startTime) - new Date(b.startTime);
    }
@@ -6042,25 +6045,25 @@ const qrScannerRef = useRef(null);
 </div>
 
 <div className="grid grid-cols-2 gap-3 mb-3">
-<button type="button" onClick={scrollToFindYourSport} className="relative overflow-hidden rounded-2xl border border-emerald-500/40 bg-gradient-to-br from-emerald-900/40 to-[#151A22] p-4 text-center hover:border-emerald-500/60 transition-all active:scale-[0.97] cursor-pointer" style={{ minHeight: '80px' }}>
+<button type="button" onClick={scrollToFindYourSport} className="relative overflow-hidden rounded-2xl border border-[#1E90FF]/40 bg-gradient-to-br from-[#1E90FF]/20 to-[#151A22] p-4 text-center hover:border-[#1E90FF]/60 transition-all active:scale-[0.97] cursor-pointer" style={{ minHeight: '80px' }}>
 <div className="flex flex-col items-center gap-2">
-<div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
+<div className="w-10 h-10 bg-gradient-to-br from-[#1E90FF] to-[#1565C0] rounded-xl flex items-center justify-center shadow-lg shadow-[#1E90FF]/30">
 <Plus className="w-6 h-6 text-white" />
 </div>
 <div>
 <div className="text-white font-black text-lg" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>CREATE PARTY</div>
-<div className="text-emerald-300/70 text-sm font-semibold">Pick a game below</div>
+<div className="text-[#1E90FF]/70 text-sm font-semibold">Pick a game below</div>
 </div>
 </div>
 </button>
-<button onClick={() => { setCurrentScreen('findParties'); window.scrollTo(0,0); }} className="relative overflow-hidden rounded-2xl border border-orange-500/40 bg-gradient-to-br from-orange-900/40 to-[#151A22] p-4 text-center hover:border-orange-500/60 transition-all active:scale-[0.97]" style={{ minHeight: '80px' }}>
+<button onClick={() => { setCurrentScreen('findParties'); window.scrollTo(0,0); }} className="relative overflow-hidden rounded-2xl border border-[#FFD700]/40 bg-gradient-to-br from-[#FFD700]/15 to-[#151A22] p-4 text-center hover:border-[#FFD700]/60 transition-all active:scale-[0.97]" style={{ minHeight: '80px' }}>
 <div className="flex flex-col items-center gap-2">
-<div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30">
+<div className="w-10 h-10 bg-gradient-to-br from-[#FFD700] to-[#F5A623] rounded-xl flex items-center justify-center shadow-lg shadow-[#FFD700]/30">
 <Search className="w-6 h-6 text-white" />
 </div>
 <div>
 <div className="text-white font-black text-lg" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>FIND PARTIES</div>
-{(() => { const upcoming = parties.filter(p => new Date(p.gameTime) >= new Date()).length; return upcoming > 0 ? <div className="text-orange-300/70 text-xs font-semibold">{upcoming} near you</div> : <div className="text-white/50 text-xs">Join a watch party</div>; })()}
+{(() => { const upcoming = parties.filter(p => new Date(p.gameTime) >= new Date()).length; return upcoming > 0 ? <div className="text-[#FFD700]/70 text-xs font-semibold">{upcoming} near you</div> : <div className="text-white/50 text-xs">Join a watch party</div>; })()}
 </div>
 </div>
 </button>
