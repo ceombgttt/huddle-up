@@ -16150,7 +16150,7 @@ Become a Sponsor →
  </div>
  <div className="p-3 space-y-1">
 <div className="flex items-center gap-3 p-4 mb-2 bg-[#0F1115] rounded-xl border border-[#222A36]">
-{user?.profilePicture ? <img src={user.profilePicture} alt="" className="w-10 h-10 rounded-full object-cover" /> : <div className="w-10 h-10 rounded-full bg-[#1E90FF]/20 flex items-center justify-center"><User className="w-5 h-5 text-[#1E90FF]" /></div>}
+<ProfileAvatar src={user?.profilePicture} name={user?.name} size="sm" className="border-0" />
 <div>
 <div className="text-white font-bold text-sm">{user?.name}</div>
 <div className="text-white/50 text-xs">{user?.points || 0} pts</div>
