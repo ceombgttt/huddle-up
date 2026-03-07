@@ -8,6 +8,13 @@ const requireAuth = (req, res, next) => {
   next();
 };
 
+const requireAdmin = async (req, res, next) => {
+  if (!req.session?.userId) return res.status(401).json({ error: 'Not authenticated' });
+  const check = await pool.query('SELECT is_admin FROM users WHERE id = $1', [req.session.userId]);
+  if (!check.rows[0]?.is_admin) return res.status(403).json({ error: 'Admin only' });
+  next();
+};
+
 // GET /rooms - List all team chat rooms grouped by sport
 router.get('/rooms', requireAuth, async (req, res) => {
   try {
@@ -94,6 +101,11 @@ router.post('/rooms/:roomId/messages', requireAuth, async (req, res) => {
   try {
     const { roomId } = req.params;
     const { message } = req.body;
+
+    const banCheck = await pool.query('SELECT id, reason FROM team_chat_bans WHERE user_id = $1', [req.session.userId]);
+    if (banCheck.rows.length > 0) {
+      return res.status(403).json({ error: `You are banned from team chats${banCheck.rows[0].reason ? ': ' + banCheck.rows[0].reason : ''}` });
+    }
 
     if (!message || !message.trim()) {
       return res.status(400).json({ error: 'Message cannot be empty' });
@@ -201,6 +213,74 @@ router.get('/rooms/search', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Search rooms error:', error);
     res.status(500).json({ error: 'Failed to search rooms' });
+  }
+});
+
+// DELETE /rooms/:roomId - Admin: Close/delete a team chat room
+router.delete('/rooms/:roomId', requireAdmin, async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    await pool.query('DELETE FROM team_chat_rooms WHERE id = $1', [roomId]);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Delete room error:', error);
+    res.status(500).json({ error: 'Failed to delete room' });
+  }
+});
+
+// DELETE /messages/:messageId - Admin: Delete a specific message
+router.delete('/messages/:messageId', requireAdmin, async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    await pool.query('DELETE FROM team_chat_messages WHERE id = $1', [messageId]);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Delete message error:', error);
+    res.status(500).json({ error: 'Failed to delete message' });
+  }
+});
+
+// POST /bans - Admin: Ban a user from team chats
+router.post('/bans', requireAdmin, async (req, res) => {
+  try {
+    const { userId, reason } = req.body;
+    if (!userId) return res.status(400).json({ error: 'User ID is required' });
+    await pool.query(
+      'INSERT INTO team_chat_bans (user_id, banned_by, reason) VALUES ($1, $2, $3) ON CONFLICT (user_id) DO UPDATE SET reason = $3, banned_by = $2, created_at = NOW()',
+      [userId, req.session.userId, reason || null]
+    );
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Ban user error:', error);
+    res.status(500).json({ error: 'Failed to ban user' });
+  }
+});
+
+// DELETE /bans/:userId - Admin: Unban a user
+router.delete('/bans/:userId', requireAdmin, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    await pool.query('DELETE FROM team_chat_bans WHERE user_id = $1', [userId]);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Unban user error:', error);
+    res.status(500).json({ error: 'Failed to unban user' });
+  }
+});
+
+// GET /bans - Admin: List all banned users
+router.get('/bans', requireAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT tcb.id, tcb.user_id, tcb.reason, tcb.created_at, u.name, u.email
+      FROM team_chat_bans tcb
+      JOIN users u ON tcb.user_id = u.id
+      ORDER BY tcb.created_at DESC
+    `);
+    res.json({ bans: result.rows.map(b => ({ id: b.id, userId: b.user_id, userName: b.name, userEmail: b.email, reason: b.reason, createdAt: b.created_at })) });
+  } catch (error) {
+    console.error('List bans error:', error);
+    res.status(500).json({ error: 'Failed to list bans' });
   }
 });
 

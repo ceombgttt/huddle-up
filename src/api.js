@@ -238,6 +238,11 @@ export const api = {
     sendMessage: (roomId, message) => request(`/team-chats/rooms/${roomId}/messages`, { method: 'POST', body: JSON.stringify({ message }) }),
     createRoom: (data) => request('/team-chats/rooms', { method: 'POST', body: JSON.stringify(data) }),
     searchRooms: (q) => request(`/team-chats/rooms/search?q=${encodeURIComponent(q)}`),
+    deleteRoom: (roomId) => request(`/team-chats/rooms/${roomId}`, { method: 'DELETE' }),
+    deleteMessage: (messageId) => request(`/team-chats/messages/${messageId}`, { method: 'DELETE' }),
+    banUser: (userId, reason) => request('/team-chats/bans', { method: 'POST', body: JSON.stringify({ userId, reason }) }),
+    unbanUser: (userId) => request(`/team-chats/bans/${userId}`, { method: 'DELETE' }),
+    getBans: () => request('/team-chats/bans'),
   },
   trending: {
     feed: () => request('/trending/feed'),

@@ -14469,7 +14469,53 @@ Become a Sponsor →
  await api.teamChats.sendMessage(teamChatSelectedRoom.id, teamChatInput.trim());
  setTeamChatInput('');
  loadTeamChatMessages(teamChatSelectedRoom.id);
- } catch (e) { console.error('Send team chat message error:', e); }
+ } catch (e) {
+   console.error('Send team chat message error:', e);
+   alert(e.message || 'Failed to send message');
+ }
+ };
+
+ const deleteTeamChatRoom = async (roomId) => {
+ if (!confirm('Delete this chat room and all messages? This cannot be undone.')) return;
+ try {
+ await api.teamChats.deleteRoom(roomId);
+ setTeamChatSelectedRoom(null);
+ setTeamChatMessages([]);
+ loadTeamChatRooms();
+ } catch (e) { alert('Failed to delete room: ' + e.message); }
+ };
+
+ const deleteTeamChatMessage = async (messageId) => {
+ try {
+ await api.teamChats.deleteMessage(messageId);
+ if (teamChatSelectedRoom) loadTeamChatMessages(teamChatSelectedRoom.id);
+ } catch (e) { alert('Failed to delete message: ' + e.message); }
+ };
+
+ const banTeamChatUser = async (userId, userName) => {
+ const reason = prompt(`Ban "${userName}" from all team chats?\nEnter reason (optional):`);
+ if (reason === null) return;
+ try {
+ await api.teamChats.banUser(userId, reason || 'Inappropriate language');
+ alert(`${userName} has been banned from team chats.`);
+ if (teamChatSelectedRoom) loadTeamChatMessages(teamChatSelectedRoom.id);
+ } catch (e) { alert('Failed to ban user: ' + e.message); }
+ };
+
+ const unbanTeamChatUser = async (userId) => {
+ try {
+ await api.teamChats.unbanUser(userId);
+ loadTeamChatBans();
+ } catch (e) { alert('Failed to unban user: ' + e.message); }
+ };
+
+ const [teamChatBans, setTeamChatBans] = useState([]);
+ const [teamChatShowBans, setTeamChatShowBans] = useState(false);
+ const loadTeamChatBans = async () => {
+ try {
+ const data = await api.teamChats.getBans();
+ setTeamChatBans(data.bans || []);
+ } catch (e) { console.error('Load bans error:', e); }
  };
 
  const loadTrendingData = async () => {
@@ -14524,10 +14570,15 @@ Become a Sponsor →
  <div className="flex items-center gap-3">
  <button onClick={() => { setTeamChatSelectedRoom(null); setTeamChatMessages([]); loadTeamChatRooms(); }} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
  {(() => { const logo = teamChatSelectedRoom.logoUrl || getTeamLogoUrl(teamChatSelectedRoom.sport, teamChatSelectedRoom.teamName); return logo ? <img src={logo} className="w-8 h-8 object-contain" alt="" /> : <div className="w-8 h-8 rounded-full bg-teal-500/30 flex items-center justify-center text-teal-300 text-sm font-bold">{(teamChatSelectedRoom.teamName || '?')[0]}</div>; })()}
- <div>
+ <div className="flex-1 min-w-0">
  <h3 className="text-white font-bold">{teamChatSelectedRoom.teamName}</h3>
  <span className="text-xs text-[#A0A4AB]">{teamChatSelectedRoom.sport}</span>
  </div>
+ {user?.isAdmin && (
+ <button onClick={() => deleteTeamChatRoom(teamChatSelectedRoom.id)} className="px-3 py-1.5 bg-red-500/20 text-red-300 text-xs font-bold rounded-lg border border-red-500/30 hover:bg-red-500/30 transition-all active:scale-95" title="Close this chat room">
+ <Trash2 className="w-4 h-4" />
+ </button>
+ )}
  </div>
  </div>
  <div className="p-4 pb-24 space-y-3 max-w-2xl mx-auto">
@@ -14548,7 +14599,16 @@ Become a Sponsor →
  {msg.isFounder && <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded-md font-bold" style={{ fontSize: '8px', backgroundColor: '#F5B400', color: '#0F1115' }}>⭐ #{msg.founderNumber}</span>}
  </div>
  <p className="text-white text-sm leading-relaxed">{msg.message}</p>
- <p className="text-[10px] text-[#A0A4AB]/60 mt-1">{(() => { const d = new Date(msg.createdAt); const now = new Date(); const isToday = d.toDateString() === now.toDateString(); return isToday ? d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); })()}</p>
+ <div className="flex items-center justify-between mt-1">
+ <p className="text-[10px] text-[#A0A4AB]/60">{(() => { const d = new Date(msg.createdAt); const now = new Date(); const isToday = d.toDateString() === now.toDateString(); return isToday ? d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); })()}</p>
+ {user?.isAdmin && msg.userId !== user?.id && (
+ <div className="flex items-center gap-1">
+ <button onClick={() => deleteTeamChatMessage(msg.id)} className="text-[10px] text-red-400/60 hover:text-red-400 transition-colors" title="Delete message">Del</button>
+ <span className="text-[#A0A4AB]/20">|</span>
+ <button onClick={() => banTeamChatUser(msg.userId, msg.userName)} className="text-[10px] text-red-400/60 hover:text-red-400 transition-colors" title="Ban user">Ban</button>
+ </div>
+ )}
+ </div>
  </div>
  </div>
  ))}
@@ -14580,7 +14640,10 @@ Become a Sponsor →
  <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>TEAM CHAT ROOMS</h2>
  <p className="text-[10px] text-[#A0A4AB]/70">Open to all fans — tap any room to join the conversation</p>
  </div>
- <button onClick={() => setTeamChatShowCreate(!teamChatShowCreate)} className="ml-auto px-3 py-1.5 bg-teal-500 hover:bg-teal-600 rounded-lg text-white text-sm font-medium flex items-center gap-1"><Plus className="w-4 h-4" /> New</button>
+ <div className="ml-auto flex items-center gap-2">
+ {user?.isAdmin && <button onClick={() => { loadTeamChatBans(); setTeamChatShowBans(!teamChatShowBans); }} className="px-2 py-1.5 bg-red-500/20 text-red-300 text-xs font-bold rounded-lg border border-red-500/30 hover:bg-red-500/30 transition-all"><Shield className="w-4 h-4" /></button>}
+ <button onClick={() => setTeamChatShowCreate(!teamChatShowCreate)} className="px-3 py-1.5 bg-teal-500 hover:bg-teal-600 rounded-lg text-white text-sm font-medium flex items-center gap-1"><Plus className="w-4 h-4" /> New</button>
+ </div>
  </div>
  </div>
  <div className="p-4 max-w-2xl mx-auto space-y-6">
@@ -14597,6 +14660,31 @@ Become a Sponsor →
  <button onClick={createTeamChatRoom} className="px-4 py-2 bg-teal-500 hover:bg-teal-600 rounded-lg text-white text-sm font-medium">Create Room</button>
  <button onClick={() => setTeamChatShowCreate(false)} className="px-4 py-2 bg-[#151A22] hover:bg-[#222A36] rounded-lg text-[#A0A4AB] text-sm">Cancel</button>
  </div>
+ </div>
+ )}
+ {teamChatShowBans && user?.isAdmin && (
+ <div className="bg-[#151A22] border border-red-500/30 rounded-xl p-4 space-y-3">
+ <div className="flex items-center justify-between">
+ <h3 className="text-red-300 font-bold text-sm flex items-center gap-2"><Shield className="w-4 h-4" /> Banned Users</h3>
+ <button onClick={() => setTeamChatShowBans(false)} className="text-[#A0A4AB] hover:text-white"><X className="w-4 h-4" /></button>
+ </div>
+ {teamChatBans.length === 0 ? (
+ <p className="text-[#A0A4AB] text-xs">No banned users</p>
+ ) : (
+ <div className="space-y-2">
+ {teamChatBans.map(ban => (
+ <div key={ban.id} className="flex items-center justify-between bg-[#0F1115] rounded-lg p-3 border border-[#222A36]">
+ <div>
+ <p className="text-white text-sm font-semibold">{ban.userName}</p>
+ <p className="text-[#A0A4AB] text-[10px]">{ban.userEmail}</p>
+ {ban.reason && <p className="text-red-300/70 text-xs mt-0.5">Reason: {ban.reason}</p>}
+ <p className="text-[#A0A4AB]/50 text-[10px]">Banned {new Date(ban.createdAt).toLocaleDateString()}</p>
+ </div>
+ <button onClick={() => unbanTeamChatUser(ban.userId)} className="px-3 py-1.5 bg-emerald-500/20 text-emerald-300 text-xs font-bold rounded-lg border border-emerald-500/30 hover:bg-emerald-500/30 transition-all">Unban</button>
+ </div>
+ ))}
+ </div>
+ )}
  </div>
  )}
  {teamChatLoading && (
@@ -14629,6 +14717,7 @@ Become a Sponsor →
  )}
  <span className="text-[10px] text-[#A0A4AB]/40 mt-0.5">{room.messageCount || 0} messages</span>
  </div>
+ {user?.isAdmin && <button onClick={(e) => { e.stopPropagation(); deleteTeamChatRoom(room.id); }} className="p-1.5 bg-red-500/20 text-red-300 rounded-lg hover:bg-red-500/30 transition-all flex-shrink-0" title="Close room"><Trash2 className="w-3.5 h-3.5" /></button>}
  <ChevronRight className="w-4 h-4 text-[#A0A4AB]/50" />
  </button>
  ))}

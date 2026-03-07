@@ -372,6 +372,15 @@ export async function initDB() {
       );
       CREATE INDEX IF NOT EXISTS idx_team_chat_messages_room ON team_chat_messages(room_id, created_at DESC);
 
+      CREATE TABLE IF NOT EXISTS team_chat_bans (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        banned_by UUID REFERENCES users(id) ON DELETE SET NULL,
+        reason TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(user_id)
+      );
+
       CREATE TABLE IF NOT EXISTS party_highlights (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         party_id UUID REFERENCES parties(id) ON DELETE CASCADE,
