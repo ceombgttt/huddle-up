@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, ChevronUp, Megaphone, MessageCircle, Gift, Award, Clock, Zap, Crown, Copy, Shield, ChevronRight, Info, Flame, TrendingUp, Menu, ScanLine, Download, Smartphone, Target, Lock, Home, HelpCircle } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, ArrowLeft, ArrowDown, ArrowUp, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, ChevronUp, Megaphone, MessageCircle, Gift, Award, Clock, Zap, Crown, Copy, Shield, ChevronRight, Info, Flame, TrendingUp, Menu, ScanLine, Download, Smartphone, Target, Lock, Home, HelpCircle } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import confetti from 'canvas-confetti';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
@@ -1370,6 +1370,74 @@ const HuddleUpApp = () => {
 useEffect(() => { window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; requestAnimationFrame(() => { window.scrollTo(0, 0); }); }, [currentScreen]);
 useEffect(() => { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; }, []);
 useEffect(() => { if (user) { window.scrollTo(0, 0); } }, [user]);
+
+const [pullRefreshState, setPullRefreshState] = useState('idle');
+const pullStartY = useRef(0);
+const pullCurrentY = useRef(0);
+const pullIndicatorRef = useRef(null);
+const mainContainerRef = useRef(null);
+const PULL_THRESHOLD = 80;
+const refreshFnRef = useRef(null);
+
+useEffect(() => {
+  let touching = false;
+  const getScrollTop = () => {
+    const el = mainContainerRef.current;
+    return el ? el.scrollTop : window.scrollY;
+  };
+  const onTouchStart = (e) => {
+    if (getScrollTop() > 5) return;
+    if (pullRefreshState === 'refreshing') return;
+    const tag = e.target?.tagName?.toLowerCase();
+    if (['input', 'textarea', 'select'].includes(tag)) return;
+    if (e.target?.closest?.('.hamburger-menu, .modal, [role="dialog"]')) return;
+    touching = true;
+    pullStartY.current = e.touches[0].clientY;
+    pullCurrentY.current = e.touches[0].clientY;
+  };
+  const onTouchMove = (e) => {
+    if (!touching || pullRefreshState === 'refreshing') return;
+    if (getScrollTop() > 5) { touching = false; return; }
+    pullCurrentY.current = e.touches[0].clientY;
+    const dist = Math.max(0, pullCurrentY.current - pullStartY.current);
+    if (dist > 10 && pullIndicatorRef.current) {
+      const progress = Math.min(dist / PULL_THRESHOLD, 1);
+      const translateY = Math.min(dist * 0.5, 60);
+      pullIndicatorRef.current.style.transform = `translateX(-50%) translateY(${translateY - 50}px)`;
+      pullIndicatorRef.current.style.opacity = `${progress}`;
+      pullIndicatorRef.current.style.transition = 'none';
+      setPullRefreshState(progress >= 1 ? 'ready' : 'pulling');
+    }
+  };
+  const onTouchEnd = () => {
+    if (!touching) return;
+    touching = false;
+    if (pullRefreshState === 'ready') {
+      if (pullIndicatorRef.current) {
+        pullIndicatorRef.current.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
+        pullIndicatorRef.current.style.transform = 'translateX(-50%) translateY(10px)';
+        pullIndicatorRef.current.style.opacity = '1';
+      }
+      if (refreshFnRef.current) refreshFnRef.current();
+    } else {
+      setPullRefreshState('idle');
+      if (pullIndicatorRef.current) {
+        pullIndicatorRef.current.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+        pullIndicatorRef.current.style.transform = 'translateX(-50%) translateY(-100%)';
+        pullIndicatorRef.current.style.opacity = '0';
+      }
+    }
+  };
+  document.addEventListener('touchstart', onTouchStart, { passive: true });
+  document.addEventListener('touchmove', onTouchMove, { passive: true });
+  document.addEventListener('touchend', onTouchEnd, { passive: true });
+  return () => {
+    document.removeEventListener('touchstart', onTouchStart);
+    document.removeEventListener('touchmove', onTouchMove);
+    document.removeEventListener('touchend', onTouchEnd);
+  };
+}, [pullRefreshState]);
+
  const [softLaunchDismissed, setSoftLaunchDismissed] = useState(() => {
    const stored = localStorage.getItem('softlaunch_banner_dismissed');
    if (!stored) return false;
@@ -2324,6 +2392,19 @@ const qrScannerRef = useRef(null);
  console.log('Initializing venues');
  setVenues(SAMPLE_VENUES);
  }
+ };
+
+ refreshFnRef.current = async () => {
+   setPullRefreshState('refreshing');
+   try {
+     await Promise.all([loadGames(), loadParties(), loadVenues(), loadUserData()]);
+   } catch (e) { console.error('Pull refresh error:', e); }
+   setPullRefreshState('idle');
+   if (pullIndicatorRef.current) {
+     pullIndicatorRef.current.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+     pullIndicatorRef.current.style.transform = 'translateX(-50%) translateY(-100%)';
+     pullIndicatorRef.current.style.opacity = '0';
+   }
  };
 
  const loadVenueClaims = async () => {
@@ -15930,11 +16011,18 @@ Become a Sponsor →
 
  return (
  <div
+   ref={mainContainerRef}
    className="font-sans fixed inset-0 overflow-y-auto overflow-x-hidden dramatic-bg"
    style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'none' }}
    onTouchStart={handleTouchStart}
    onTouchEnd={handleTouchEnd}
  >
+ <div ref={pullIndicatorRef} className="fixed left-1/2 z-[200] pointer-events-none" style={{ top: '60px', transform: 'translateX(-50%) translateY(-100%)', opacity: 0 }}>
+ <div className={`flex items-center gap-2 px-4 py-2 rounded-full shadow-lg border ${pullRefreshState === 'refreshing' ? 'bg-[#1E90FF] border-[#1E90FF]/50' : pullRefreshState === 'ready' ? 'bg-emerald-500 border-emerald-500/50' : 'bg-[#151A22] border-[#222A36]'}`}>
+ {pullRefreshState === 'refreshing' ? <Loader2 className="w-4 h-4 text-white animate-spin" /> : pullRefreshState === 'ready' ? <ArrowUp className="w-4 h-4 text-white" /> : <ArrowDown className="w-4 h-4 text-white/60" />}
+ <span className={`text-xs font-bold ${pullRefreshState === 'refreshing' || pullRefreshState === 'ready' ? 'text-white' : 'text-white/60'}`}>{pullRefreshState === 'refreshing' ? 'Refreshing...' : pullRefreshState === 'ready' ? 'Release to refresh' : 'Pull to refresh'}</span>
+ </div>
+ </div>
  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
  <style>{`
  .scrollbar-hide::-webkit-scrollbar {
