@@ -6038,12 +6038,6 @@ const qrScannerRef = useRef(null);
 </div>
 )}
 
-<div className="flex items-center gap-2 mb-2">
-<MapPin className="w-4 h-4 text-[#1E90FF]" />
-<span className="text-white/70 text-sm font-semibold">{currentCity || 'Boca Raton'}</span>
-<button onClick={() => setLocationDropdownOpen(!locationDropdownOpen)} className="text-[#1E90FF] text-xs font-bold ml-1 hover:text-[#1E90FF]/80">Change</button>
-</div>
-
 <div className="grid grid-cols-2 gap-3 mb-3">
 <button type="button" onClick={scrollToFindYourSport} className="relative overflow-hidden rounded-2xl border border-[#1E90FF]/40 bg-gradient-to-br from-[#1E90FF]/20 to-[#151A22] p-4 text-center hover:border-[#1E90FF]/60 transition-all active:scale-[0.97] cursor-pointer" style={{ minHeight: '80px' }}>
 <div className="flex flex-col items-center gap-2">
@@ -6154,55 +6148,11 @@ const qrScannerRef = useRef(null);
  </div>
  )}
 
- {/* ROW 1: LOCATION DROPDOWN + MY TEAMS - SIDE BY SIDE */}
- <div className="grid grid-cols-2 gap-[10px] mt-5 mb-[10px]" data-tour-id="location-search">
- <div className="relative">
- <button
- onClick={() => setLocationDropdownOpen(!locationDropdownOpen)}
- className="w-full flex items-center gap-2 px-3 h-[45px] bg-[#151A22] border border-[#222A36] rounded-[10px] text-left hover:border-[#1E90FF]/40 transition-all active:scale-[0.98]"
- >
- <MapPin className="w-4 h-4 text-[#1E90FF] flex-shrink-0" />
- <span className="text-white text-sm font-semibold truncate flex-1">{currentCity || 'Set Location'}</span>
- <ChevronDown className={`w-4 h-4 text-[#A0A4AB] flex-shrink-0 transition-transform ${locationDropdownOpen ? 'rotate-180' : ''}`} />
- </button>
- {locationDropdownOpen && (
- <>
- <div className="fixed inset-0 z-[60]" onClick={() => setLocationDropdownOpen(false)} />
- <div className="absolute top-full left-0 right-0 mt-1 bg-[#1A1F28] border border-[#222A36] rounded-[10px] shadow-2xl z-[65] overflow-hidden">
- {currentCity && (
- <div className="px-4 py-3 border-b border-[#222A36] flex items-center gap-2">
- <Navigation className="w-4 h-4 text-[#1E90FF]" />
- <span className="text-white/70 text-xs truncate">Current: <span className="text-white font-semibold">{currentCity}</span></span>
- </div>
- )}
- <button
- onClick={() => { detectUserLocation(); setLocationDropdownOpen(false); }}
- disabled={locationLoading}
- className="w-full px-4 py-3 flex items-center gap-2 hover:bg-[#1E90FF]/10 transition-colors text-left"
- >
- {locationLoading ? <Loader2 className="w-4 h-4 text-emerald-400 animate-spin" /> : <MapPin className="w-4 h-4 text-emerald-400" />}
- <span className="text-emerald-300 text-sm font-semibold">Show parties near me</span>
- </button>
- <div className="px-4 py-2 border-t border-[#222A36]">
- <span className="text-white/50 text-[11px] font-semibold uppercase tracking-wider">Change location</span>
- <DebouncedInput
- type="text"
- value={currentCity}
- onChange={(val) => { setCurrentCity(val); setLocationDetected(false); }}
- delay={400}
- placeholder="Type a city name..."
- className="w-full px-3 py-2 mt-1.5 bg-[#0F1115] border border-[#222A36] rounded-lg text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
- />
- </div>
- </div>
- </>
- )}
- </div>
-
+ <div className="mt-5 mb-[10px]">
  {user?.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 ? (
  <button
  onClick={() => setMyTeamsOnly(!myTeamsOnly)}
- className={`h-[45px] rounded-[10px] font-semibold text-sm transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] ${
+ className={`w-full h-[45px] rounded-[10px] font-semibold text-sm transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] ${
  myTeamsOnly
  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-sm'
  : 'bg-[#151A22] text-[#A0A4AB] hover:bg-[#222A36] border border-[#222A36]'
@@ -6214,7 +6164,7 @@ const qrScannerRef = useRef(null);
  ) : (
  <button
  onClick={() => setCurrentScreen('profile')}
- className="h-[45px] rounded-[10px] font-semibold text-sm bg-[#151A22] text-[#A0A4AB] hover:bg-[#222A36] border border-[#222A36] flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]"
+ className="w-full h-[45px] rounded-[10px] font-semibold text-sm bg-[#151A22] text-[#A0A4AB] hover:bg-[#222A36] border border-[#222A36] flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]"
  >
  <Star className="w-4 h-4" />
  My Teams
