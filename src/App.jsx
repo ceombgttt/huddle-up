@@ -6102,27 +6102,6 @@ Become a Sponsor →
 );
 })()}
 
-<div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2 mb-2 -mx-1 px-1">
-<button onClick={() => { setCurrentScreen('trending'); window.scrollTo(0,0); }} className="relative flex items-center gap-1.5 px-4 py-2 bg-[#151A22] border border-amber-500/40 rounded-full whitespace-nowrap hover:bg-amber-500/10 transition-all active:scale-[0.97] flex-shrink-0">
-<Crown className="w-4 h-4 text-amber-400" />
-<span className="text-white text-sm font-bold">Featured</span>
-</button>
-<button onClick={() => { setCurrentScreen('profile'); window.scrollTo(0,0); setTimeout(() => { const el = document.querySelector('[data-section="favorite-teams"]'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 400); }} className="relative flex items-center gap-1.5 px-4 py-2 bg-[#151A22] border border-[#222A36] rounded-full whitespace-nowrap hover:bg-amber-500/10 transition-all active:scale-[0.97] flex-shrink-0">
-<Star className="w-4 h-4 text-amber-400" />
-<span className="text-white text-sm font-bold">My Teams</span>
-{user?.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 && <span className="ml-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{Object.keys(user.favoriteTeams).length}</span>}
-</button>
-<button onClick={() => { setCurrentScreen('myParties'); window.scrollTo(0,0); }} className="relative flex items-center gap-1.5 px-4 py-2 bg-[#151A22] border border-[#222A36] rounded-full whitespace-nowrap hover:bg-[#1E90FF]/10 transition-all active:scale-[0.97] flex-shrink-0">
-<Calendar className="w-4 h-4 text-[#1E90FF]" />
-<span className="text-white text-sm font-bold">My Parties</span>
-{(() => { const joined = parties.filter(p => userParties.includes(p.id) && new Date(p.gameTime) >= new Date()).length; return joined > 0 ? <span className="ml-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{joined}</span> : null; })()}
-</button>
-<button onClick={() => { setCurrentScreen('findVenues'); window.scrollTo(0,0); }} className="relative flex items-center gap-1.5 px-4 py-2 bg-[#151A22] border border-[#222A36] rounded-full whitespace-nowrap hover:bg-emerald-500/10 transition-all active:scale-[0.97] flex-shrink-0">
-<MapPin className="w-4 h-4 text-emerald-400" />
-<span className="text-white text-sm font-bold">Venues</span>
-{(() => { const vc = venues.filter(v => v.verified).length; return vc > 0 ? <span className="ml-1 bg-[#1E90FF] text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{vc}</span> : null; })()}
-</button>
-</div>
 
  {lastChanceParties.length > 0 && (
  <div className="mb-4 rounded-2xl overflow-hidden border border-red-500/30 bg-gradient-to-r from-red-900/30 via-[#151A22] to-pink-900/20">
@@ -16128,6 +16107,30 @@ const BORDER_MAP = {
  <MainBrandBanner user={user} onProfileClick={() => setCurrentScreen('profile')} onMenuClick={() => setHamburgerOpen(true)} totalAlerts={totalAlerts} />
  </div>
  <div style={{ height: `${MAIN_BANNER_HEIGHT}px` }} />
+ {currentScreen === 'games' && (
+ <>
+ <div className="fixed left-0 right-0 z-[59] bg-[#151A22] border-b border-[#222A36]" style={{ top: `${MAIN_BANNER_HEIGHT}px` }}>
+ <div className="grid grid-cols-4 max-w-lg mx-auto">
+ <button onClick={() => { setCurrentScreen('trending'); window.scrollTo(0,0); }} className="flex flex-col items-center gap-1 py-2 transition-colors text-white/50 hover:text-amber-400 active:scale-95">
+ <Crown className="w-5 h-5 text-amber-400" /><span className="text-[11px] font-bold">Featured</span>
+ </button>
+ <button onClick={() => { setCurrentScreen('profile'); window.scrollTo(0,0); setTimeout(() => { const el = document.querySelector('[data-section="favorite-teams"]'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 400); }} className="flex flex-col items-center gap-1 py-2 transition-colors text-white/50 hover:text-amber-400 active:scale-95 relative">
+ <Star className="w-5 h-5 text-amber-400" /><span className="text-[11px] font-bold">My Teams</span>
+ {user?.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 && <span className="absolute top-1 right-[15%] bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1">{Object.keys(user.favoriteTeams).length}</span>}
+ </button>
+ <button onClick={() => { setCurrentScreen('myParties'); window.scrollTo(0,0); }} className="flex flex-col items-center gap-1 py-2 transition-colors text-white/50 hover:text-[#1E90FF] active:scale-95 relative">
+ <Calendar className="w-5 h-5 text-[#1E90FF]" /><span className="text-[11px] font-bold">My Parties</span>
+ {(() => { const joined = parties.filter(p => userParties.includes(p.id) && new Date(p.gameTime) >= new Date()).length; return joined > 0 ? <span className="absolute top-1 right-[15%] bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1">{joined}</span> : null; })()}
+ </button>
+ <button onClick={() => { setCurrentScreen('findVenues'); window.scrollTo(0,0); }} className="flex flex-col items-center gap-1 py-2 transition-colors text-white/50 hover:text-emerald-400 active:scale-95 relative">
+ <MapPin className="w-5 h-5 text-emerald-400" /><span className="text-[11px] font-bold">Venues</span>
+ {(() => { const vc = venues.filter(v => v.verified).length; return vc > 0 ? <span className="absolute top-1 right-[15%] bg-[#1E90FF] text-white text-[10px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1">{vc}</span> : null; })()}
+ </button>
+ </div>
+ </div>
+ <div style={{ height: '48px' }} />
+ </>
+ )}
  </>
  )}
 
