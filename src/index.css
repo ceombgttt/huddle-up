@@ -5,17 +5,11 @@
 @tailwind components;
 @tailwind utilities;
 
-html {
-  scroll-behavior: smooth;
-}
-
 html, body {
   margin: 0;
-  overscroll-behavior: none;
-  overscroll-behavior-x: none;
   overscroll-behavior-y: none;
   -webkit-overflow-scrolling: touch;
-  touch-action: pan-y pinch-zoom;
+  touch-action: manipulation;
 }
 
 body {
@@ -39,6 +33,7 @@ input, textarea, select {
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 .overscroll-contain {
@@ -149,6 +144,11 @@ input, textarea, select {
 
 @keyframes slideInRight {
   0% { transform: translateX(100%); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes slideInLeft {
+  0% { transform: translateX(-100%); }
   100% { transform: translateX(0); }
 }
 

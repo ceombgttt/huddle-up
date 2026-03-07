@@ -16141,7 +16141,7 @@ Become a Sponsor →
  {hamburgerOpen && user && (
  <>
  <div className="fixed inset-0 bg-black/50 z-[70] transition-opacity" onClick={() => { setHamburgerOpen(false); setMoreOptionsOpen(false); }} />
- <div className="fixed top-0 right-0 bottom-0 w-72 bg-[#151A22] z-[80] shadow-2xl overflow-y-auto hamburger-menu" style={{ animation: 'slideInRight 300ms ease-in-out' }}>
+ <div className="fixed top-0 left-0 bottom-0 w-72 bg-[#151A22] z-[80] shadow-2xl overflow-y-auto hamburger-menu" style={{ animation: 'slideInLeft 300ms ease-in-out' }}>
  <div className="flex items-center justify-between p-4 border-b border-[#222A36]">
  <span className="text-white font-black text-lg" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>MENU</span>
  <button onClick={() => setHamburgerOpen(false)} className="p-2 rounded-xl hover:bg-[#222A36] transition-colors active:scale-95">
