@@ -4509,6 +4509,7 @@ const qrScannerRef = useRef(null);
  const [venueParties, setVenueParties] = useState([]);
  const [venueReviews, setVenueReviews] = useState({ reviews: [], summary: { total: 0, avgRating: null, breakdown: {} } });
  const [venuePhotos, setVenuePhotos] = useState([]);
+ const [venueDeals, setVenueDeals] = useState([]);
  const [venueLoading, setVenueLoading] = useState(true);
  const [reviewForm, setReviewForm] = useState({ rating: 5, atmosphere: 5, service: 5, value: 5, comment: '' });
  const [submittingReview, setSubmittingReview] = useState(false);
@@ -4528,8 +4529,15 @@ const qrScannerRef = useRef(null);
      api.venues.getReviews(selectedVenueId).then(setVenueReviews).catch(() => {});
    } else if (venueTab === 'photos') {
      api.venues.getPhotos(selectedVenueId).then(setVenuePhotos).catch(() => {});
+   } else if (venueTab === 'deals') {
+     api.venueHub.getVenueDeals(selectedVenueId).then(setVenueDeals).catch(() => setVenueDeals([]));
    }
  }, [selectedVenueId, venueTab]);
+
+ useEffect(() => {
+   if (!selectedVenueId) return;
+   api.venueHub.getVenueDeals(selectedVenueId).then(d => { if (d && d.length > 0) setVenueDeals(d); }).catch(() => {});
+ }, [selectedVenueId]);
 
  const toggleFollow = async () => {
    if (!venueData || followLoading) return;
@@ -4572,6 +4580,7 @@ const qrScannerRef = useRef(null);
  const tabs = [
    { key: 'upcoming', label: 'Upcoming' },
    { key: 'past', label: 'Past' },
+   ...(venueDeals.length > 0 ? [{ key: 'deals', label: `Deals (${venueDeals.length})` }] : []),
    { key: 'about', label: 'About' },
    { key: 'reviews', label: 'Reviews' },
    { key: 'photos', label: 'Photos' },
@@ -4662,6 +4671,19 @@ const qrScannerRef = useRef(null);
          </button>
        </div>
        <p className="text-[#A0A4AB] text-xs mb-4">{venueData.followerCount} followers</p>
+
+       {venueDeals.length > 0 && venueTab !== 'deals' && (
+         <div className="mb-4 p-3 bg-amber-500/10 rounded-xl border border-amber-500/20 cursor-pointer" onClick={() => setVenueTab('deals')}>
+           <p className="text-amber-300 text-xs font-bold mb-1 flex items-center gap-1.5">🏷️ {venueDeals.length} Active {venueDeals.length === 1 ? 'Deal' : 'Deals'}</p>
+           {venueDeals.slice(0, 2).map(d => (
+             <div key={d.id} className="text-xs text-white mb-0.5">
+               <span className="font-semibold">{d.title}</span>
+               <span className="text-[#A0A4AB] ml-1">- {d.description?.slice(0, 60)}{d.description?.length > 60 ? '...' : ''}</span>
+             </div>
+           ))}
+           {venueDeals.length > 2 && <p className="text-amber-400 text-[10px] mt-1 font-semibold">+{venueDeals.length - 2} more — Tap to view all</p>}
+         </div>
+       )}
      </div>
 
      <div className="flex gap-1 px-4 mb-4 overflow-x-auto scrollbar-hide">
@@ -4694,6 +4716,38 @@ const qrScannerRef = useRef(null);
                    <span>{p.attendeeCount} attending</span>
                  </div>
                  <span className="text-[#A0A4AB] text-xs">Hosted by {p.hostName}</span>
+               </div>
+             </div>
+           ))}
+         </div>
+       )}
+
+       {venueTab === 'deals' && (
+         <div className="space-y-3">
+           {venueDeals.length === 0 ? (
+             <div className="text-center py-12">
+               <Gift className="w-12 h-12 text-[#A0A4AB]/30 mx-auto mb-3" />
+               <p className="text-[#A0A4AB]">No active deals right now</p>
+             </div>
+           ) : venueDeals.map(deal => (
+             <div key={deal.id} className="bg-[#1A1D23] rounded-xl p-4 border border-amber-500/20">
+               <div className="flex items-start gap-3">
+                 <div className="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                   <span className="text-lg">{deal.deal_type === 'happy_hour' ? '🍺' : deal.deal_type === 'food' ? '🍔' : deal.deal_type === 'game_day' ? '🏈' : '🏷️'}</span>
+                 </div>
+                 <div className="flex-1 min-w-0">
+                   <h4 className="text-white font-bold text-sm">{deal.title}</h4>
+                   <p className="text-[#A0A4AB] text-xs mt-1">{deal.description}</p>
+                   {deal.terms && <p className="text-[#A0A4AB]/60 text-[10px] mt-1 italic">{deal.terms}</p>}
+                   <div className="flex items-center gap-3 mt-2">
+                     {deal.valid_until && (
+                       <span className="text-amber-400 text-[10px] font-semibold">Valid until {new Date(deal.valid_until).toLocaleDateString()}</span>
+                     )}
+                     {deal.recurring && deal.recurring_days && (
+                       <span className="text-[#1E90FF] text-[10px] font-semibold">Recurring: {deal.recurring_days}</span>
+                     )}
+                   </div>
+                 </div>
                </div>
              </div>
            ))}
