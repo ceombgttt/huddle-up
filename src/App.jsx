@@ -1385,6 +1385,12 @@ useEffect(() => {
     const el = mainContainerRef.current;
     return el ? el.scrollTop : window.scrollY;
   };
+  const setContentTranslate = (y, transition) => {
+    const el = mainContainerRef.current;
+    if (!el) return;
+    el.style.transition = transition || 'none';
+    el.style.transform = y > 0 ? `translateY(${y}px)` : '';
+  };
   const onTouchStart = (e) => {
     if (getScrollTop() > 5) return;
     if (pullRefreshState === 'refreshing') return;
@@ -1397,15 +1403,19 @@ useEffect(() => {
   };
   const onTouchMove = (e) => {
     if (!touching || pullRefreshState === 'refreshing') return;
-    if (getScrollTop() > 5) { touching = false; return; }
+    if (getScrollTop() > 5) { touching = false; setContentTranslate(0, 'transform 0.3s ease'); return; }
     pullCurrentY.current = e.touches[0].clientY;
     const dist = Math.max(0, pullCurrentY.current - pullStartY.current);
-    if (dist > 10 && pullIndicatorRef.current) {
+    if (dist > 10) {
       const progress = Math.min(dist / PULL_THRESHOLD, 1);
-      const translateY = Math.min(dist * 0.5, 60);
-      pullIndicatorRef.current.style.transform = `translateX(-50%) translateY(${translateY - 50}px)`;
-      pullIndicatorRef.current.style.opacity = `${progress}`;
-      pullIndicatorRef.current.style.transition = 'none';
+      const dampedDist = dist * 0.4;
+      const translateY = Math.min(dampedDist, 100);
+      setContentTranslate(translateY);
+      if (pullIndicatorRef.current) {
+        pullIndicatorRef.current.style.transform = `translateX(-50%) translateY(${Math.min(dampedDist - 50, 20)}px)`;
+        pullIndicatorRef.current.style.opacity = `${progress}`;
+        pullIndicatorRef.current.style.transition = 'none';
+      }
       setPullRefreshState(progress >= 1 ? 'ready' : 'pulling');
     }
   };
@@ -1413,6 +1423,7 @@ useEffect(() => {
     if (!touching) return;
     touching = false;
     if (pullRefreshState === 'ready') {
+      setContentTranslate(50, 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)');
       if (pullIndicatorRef.current) {
         pullIndicatorRef.current.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
         pullIndicatorRef.current.style.transform = 'translateX(-50%) translateY(10px)';
@@ -1421,6 +1432,7 @@ useEffect(() => {
       if (refreshFnRef.current) refreshFnRef.current();
     } else {
       setPullRefreshState('idle');
+      setContentTranslate(0, 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)');
       if (pullIndicatorRef.current) {
         pullIndicatorRef.current.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
         pullIndicatorRef.current.style.transform = 'translateX(-50%) translateY(-100%)';
@@ -2400,6 +2412,10 @@ const qrScannerRef = useRef(null);
      await Promise.all([loadGames(), loadParties(), loadVenues(), loadUserData()]);
    } catch (e) { console.error('Pull refresh error:', e); }
    setPullRefreshState('idle');
+   if (mainContainerRef.current) {
+     mainContainerRef.current.style.transition = 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)';
+     mainContainerRef.current.style.transform = '';
+   }
    if (pullIndicatorRef.current) {
      pullIndicatorRef.current.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
      pullIndicatorRef.current.style.transform = 'translateX(-50%) translateY(-100%)';
