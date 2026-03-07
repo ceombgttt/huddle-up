@@ -415,17 +415,17 @@ const MainBrandBanner = ({ user: bannerUser, onProfileClick, onMenuClick, totalA
  >
  <div className="header-gradient-overlay" />
  <div className="relative z-[2] flex items-center justify-between h-full px-4 max-w-4xl mx-auto">
- <div className="flex items-center gap-3 flex-1 min-w-0">
+ <div className="flex items-center gap-2 flex-1 min-w-0">
  <img src="/huddle-up-shield.png" alt="Huddle Up" className="h-10 w-10 flex-shrink-0" style={{ filter: 'drop-shadow(0 2px 8px rgba(30, 144, 255, 0.3))' }} />
  <div className="flex flex-col gap-0.5 min-w-0">
  <span className="text-lg font-black text-white tracking-wide whitespace-nowrap leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.1em' }}>HUDDLE UP</span>
  <span className="text-[11px] font-semibold whitespace-nowrap leading-tight" style={{ background: 'linear-gradient(90deg, #1E90FF 0%, #FFD700 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Find Your Crew. Watch The Game.</span>
  </div>
- </div>
- <div className="flex items-center gap-3 flex-shrink-0">
- <button onClick={onMenuClick} className="p-2 rounded-xl hover:bg-white/10 transition-colors active:scale-95">
+ <button onClick={onMenuClick} className="p-2 rounded-xl hover:bg-white/10 transition-colors active:scale-95 ml-1">
  <Menu className="w-5 h-5 text-white/70" />
  </button>
+ </div>
+ <div className="flex items-center gap-3 flex-shrink-0">
  <button onClick={onProfileClick} className="relative p-0.5 rounded-full active:scale-95 transition-transform" style={{ background: 'linear-gradient(135deg, #1E90FF, #FFD700)', padding: '2px' }}>
  <div className="rounded-full overflow-hidden bg-[#151A22]">
  {bannerUser?.profilePicture ? (
@@ -6102,26 +6102,25 @@ Become a Sponsor →
 );
 })()}
 
-<div className="grid grid-cols-2 gap-3 mb-3">
-<button onClick={() => { setCurrentScreen('trending'); window.scrollTo(0,0); }} className="relative bg-gradient-to-br from-amber-900/30 to-orange-900/20 border-2 border-amber-500/40 rounded-2xl p-4 text-center hover:border-amber-400/60 transition-all active:scale-[0.97]" style={{ minHeight: '100px' }}>
-<Crown className="w-9 h-9 text-amber-400 mb-1.5" />
-<div className="text-white text-base font-bold">Featured</div>
-<div className="text-amber-400/70 text-sm mt-0.5">Premium picks</div>
+<div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2 mb-2 -mx-1 px-1">
+<button onClick={() => { setCurrentScreen('trending'); window.scrollTo(0,0); }} className="relative flex items-center gap-1.5 px-4 py-2 bg-[#151A22] border border-amber-500/40 rounded-full whitespace-nowrap hover:bg-amber-500/10 transition-all active:scale-[0.97] flex-shrink-0">
+<Crown className="w-4 h-4 text-amber-400" />
+<span className="text-white text-sm font-bold">Featured</span>
 </button>
-<button onClick={() => { setCurrentScreen('profile'); window.scrollTo(0,0); setTimeout(() => { const el = document.querySelector('[data-section="favorite-teams"]'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 400); }} className="relative bg-[#151A22] border border-[#222A36] rounded-2xl p-4 text-center hover:border-amber-500/40 transition-all active:scale-[0.97]" style={{ minHeight: '100px' }}>
-<Star className="w-9 h-9 text-amber-400 mb-1.5" />
-<div className="text-white text-base font-bold">My Teams</div>
-{user?.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 && <span className="absolute top-2.5 right-2.5 bg-red-500 text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5">{Object.keys(user.favoriteTeams).length}</span>}
+<button onClick={() => { setCurrentScreen('profile'); window.scrollTo(0,0); setTimeout(() => { const el = document.querySelector('[data-section="favorite-teams"]'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 400); }} className="relative flex items-center gap-1.5 px-4 py-2 bg-[#151A22] border border-[#222A36] rounded-full whitespace-nowrap hover:bg-amber-500/10 transition-all active:scale-[0.97] flex-shrink-0">
+<Star className="w-4 h-4 text-amber-400" />
+<span className="text-white text-sm font-bold">My Teams</span>
+{user?.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 && <span className="ml-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{Object.keys(user.favoriteTeams).length}</span>}
 </button>
-<button onClick={() => { setCurrentScreen('myParties'); window.scrollTo(0,0); }} className="relative bg-[#151A22] border border-[#222A36] rounded-2xl p-4 text-center hover:border-[#1E90FF]/40 transition-all active:scale-[0.97]" style={{ minHeight: '100px' }}>
-<Calendar className="w-9 h-9 text-[#1E90FF] mb-1.5" />
-<div className="text-white text-base font-bold">My Parties</div>
-{(() => { const joined = parties.filter(p => userParties.includes(p.id) && new Date(p.gameTime) >= new Date()).length; return joined > 0 ? <span className="absolute top-2.5 right-2.5 bg-red-500 text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5">{joined}</span> : null; })()}
+<button onClick={() => { setCurrentScreen('myParties'); window.scrollTo(0,0); }} className="relative flex items-center gap-1.5 px-4 py-2 bg-[#151A22] border border-[#222A36] rounded-full whitespace-nowrap hover:bg-[#1E90FF]/10 transition-all active:scale-[0.97] flex-shrink-0">
+<Calendar className="w-4 h-4 text-[#1E90FF]" />
+<span className="text-white text-sm font-bold">My Parties</span>
+{(() => { const joined = parties.filter(p => userParties.includes(p.id) && new Date(p.gameTime) >= new Date()).length; return joined > 0 ? <span className="ml-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{joined}</span> : null; })()}
 </button>
-<button onClick={() => { setCurrentScreen('findVenues'); window.scrollTo(0,0); }} className="relative bg-[#151A22] border border-[#222A36] rounded-2xl p-4 text-center hover:border-emerald-500/40 transition-all active:scale-[0.97]" style={{ minHeight: '100px' }}>
-<MapPin className="w-9 h-9 text-emerald-400 mb-1.5" />
-<div className="text-white text-base font-bold">Venues</div>
-{(() => { const vc = venues.filter(v => v.verified).length; return vc > 0 ? <span className="absolute top-2.5 right-2.5 bg-[#1E90FF] text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5">{vc}</span> : null; })()}
+<button onClick={() => { setCurrentScreen('findVenues'); window.scrollTo(0,0); }} className="relative flex items-center gap-1.5 px-4 py-2 bg-[#151A22] border border-[#222A36] rounded-full whitespace-nowrap hover:bg-emerald-500/10 transition-all active:scale-[0.97] flex-shrink-0">
+<MapPin className="w-4 h-4 text-emerald-400" />
+<span className="text-white text-sm font-bold">Venues</span>
+{(() => { const vc = venues.filter(v => v.verified).length; return vc > 0 ? <span className="ml-1 bg-[#1E90FF] text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{vc}</span> : null; })()}
 </button>
 </div>
 
