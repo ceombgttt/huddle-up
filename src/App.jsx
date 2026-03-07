@@ -7602,13 +7602,13 @@ Become a Sponsor →
  <span className="text-4xl">🎁</span>
  <div>
  <div className="text-white font-black text-xl" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
- 14-Day FREE Trial
+ 3-Month FREE Trial
  </div>
- <div className="text-green-300 text-sm font-bold">No Credit Card Required!</div>
+ <div className="text-green-300 text-sm font-bold">Enter payment info, charged after 90 days</div>
  </div>
  </div>
  <p className="text-[#A0A4AB] text-sm leading-relaxed">
- Try <strong>Featured</strong> status absolutely FREE for 14 days. See the results for yourself - more visibility, more parties, more customers. After the trial, base venue is $29.99/month and Featured is $49.99/month. Cancel anytime, no questions asked.
+ Get <strong>3 months FREE</strong> to try Huddle Up for your venue. Enter your payment info to start — you won't be charged until your trial ends. Base venue is $29.99/month and Featured is $49.99/month after trial. Cancel anytime, no questions asked.
  </p>
  <div className="mt-3 flex items-center gap-2 text-xs text-green-400">
  <CheckCircle className="w-4 h-4" />
@@ -10540,9 +10540,10 @@ Become a Sponsor →
  <li>✓ Priority in search results</li>
  <li>✓ Advanced analytics & insights</li>
  </ul>
- <div className="text-2xl font-black text-white mb-4">
+ <div className="text-2xl font-black text-white mb-1">
  $49.99<span className="text-sm text-[#A0A4AB]">/month</span>
  </div>
+ <p className="text-emerald-400 text-xs font-bold mb-4">3 months FREE — enter payment info now, first charge after 90 days</p>
  </div>
  <button
  onClick={async () => {
@@ -11073,6 +11074,7 @@ Become a Sponsor →
  <span className="text-lg text-white">.99</span>
  <span className="text-[#A0A4AB] text-sm">/month</span>
  </div>
+ <p className="text-emerald-400 text-[11px] font-bold mt-1">3 months FREE trial</p>
  </div>
  <div className="w-14 h-14 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
  <Building2 className="w-7 h-7 text-white" />
@@ -11120,6 +11122,7 @@ Become a Sponsor →
  <span className="text-lg text-white">.99</span>
  <span className="text-[#A0A4AB] text-sm">/month</span>
  </div>
+ <p className="text-emerald-400 text-[11px] font-bold mt-1">3 months FREE trial</p>
  </div>
  <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/30">
  <Star className="w-7 h-7 text-white fill-white" />

@@ -164,6 +164,26 @@ router.post('/checkout', requireAuth, async (req, res) => {
     const protocol = req.protocol;
     const baseUrl = `${protocol}://${host}`;
 
+    const isVenueTier = ['venue', 'featured_venue'].includes(tier);
+
+    let hadPreviousVenueSub = false;
+    if (isVenueTier && user.stripe_customer_id) {
+      try {
+        const subs = await stripe.subscriptions.list({
+          customer: user.stripe_customer_id,
+          limit: 100,
+          status: 'all',
+        });
+        hadPreviousVenueSub = subs.data.some(s =>
+          ['venue', 'featured_venue'].includes(s.metadata?.tier)
+        );
+      } catch (e) {
+        console.error('Error checking previous subs:', e.message);
+      }
+    }
+
+    const shouldApplyTrial = isVenueTier && !hadPreviousVenueSub;
+
     const sessionParams = {
       customer: customerId,
       payment_method_types: ['card'],
@@ -179,17 +199,22 @@ router.post('/checkout', requireAuth, async (req, res) => {
       },
     };
 
+    sessionParams.subscription_data = {
+      metadata: {
+        userId: user.id,
+        tier,
+      },
+    };
+
+    if (shouldApplyTrial) {
+      sessionParams.subscription_data.trial_period_days = 90;
+    }
+
     if (validAffiliateCode) {
       sessionParams.discounts = [{
         coupon: await getOrCreateInfluencerCoupon(),
       }];
-      sessionParams.subscription_data = {
-        metadata: {
-          affiliateCode: validAffiliateCode.code,
-          userId: user.id,
-          tier,
-        },
-      };
+      sessionParams.subscription_data.metadata.affiliateCode = validAffiliateCode.code;
     }
 
     const session = await stripe.checkout.sessions.create(sessionParams);
