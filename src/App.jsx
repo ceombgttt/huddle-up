@@ -14637,7 +14637,7 @@ Become a Sponsor →
  <button onClick={() => setCurrentScreen('games')} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
  <MessageCircle className="w-6 h-6 text-teal-400" />
  <div>
- <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>TEAM CHAT ROOMS</h2>
+ <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>CHAT ROOMS</h2>
  <p className="text-[10px] text-[#A0A4AB]/70">Open to all fans — tap any room to join the conversation</p>
  </div>
  <div className="ml-auto flex items-center gap-2">
@@ -16346,7 +16346,7 @@ Become a Sponsor →
 </button>
 )}
 <button onClick={() => { setCurrentScreen('teamChats'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-teal-500/10 transition-colors text-left active:scale-[0.98]">
-<MessageCircle className="w-5 h-5 text-teal-400" /><span className="text-white text-base font-semibold">Team Chat</span>
+<MessageCircle className="w-5 h-5 text-teal-400" /><span className="text-white text-base font-semibold">Chat Rooms</span>
 </button>
 <button onClick={() => { setCurrentScreen('fanFinder'); if (currentCity && nearbyFans.length === 0) searchNearbyFans(currentCity); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1E90FF]/10 transition-colors text-left active:scale-[0.98]">
 <UserPlus className="w-5 h-5 text-[#1E90FF]" /><span className="text-white text-base font-semibold">Find Fans</span>
