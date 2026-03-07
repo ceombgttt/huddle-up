@@ -14373,7 +14373,8 @@ Become a Sponsor →
  const createTeamChatRoom = async () => {
  if (!teamChatNewTeam.trim()) return;
  try {
- await api.teamChats.createRoom({ sport: teamChatNewSport, teamName: teamChatNewTeam.trim() });
+ const logoUrl = getTeamLogoUrl(teamChatNewSport, teamChatNewTeam.trim()) || null;
+ await api.teamChats.createRoom({ sport: teamChatNewSport, teamName: teamChatNewTeam.trim(), logoUrl });
  setTeamChatNewTeam('');
  setTeamChatShowCreate(false);
  setTeamChatError(false);
@@ -14440,8 +14441,8 @@ Become a Sponsor →
  <div className="min-h-screen bg-[#0F1115] pt-[60px]">
  <div className="sticky top-[60px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
- <button onClick={() => { setTeamChatSelectedRoom(null); setTeamChatMessages([]); }} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
- {teamChatSelectedRoom.logoUrl && <img src={teamChatSelectedRoom.logoUrl} className="w-8 h-8 rounded-full" alt="" />}
+ <button onClick={() => { setTeamChatSelectedRoom(null); setTeamChatMessages([]); loadTeamChatRooms(); }} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
+ {(() => { const logo = teamChatSelectedRoom.logoUrl || getTeamLogoUrl(teamChatSelectedRoom.sport, teamChatSelectedRoom.teamName); return logo ? <img src={logo} className="w-8 h-8 object-contain" alt="" /> : <div className="w-8 h-8 rounded-full bg-teal-500/30 flex items-center justify-center text-teal-300 text-sm font-bold">{(teamChatSelectedRoom.teamName || '?')[0]}</div>; })()}
  <div>
  <h3 className="text-white font-bold">{teamChatSelectedRoom.teamName}</h3>
  <span className="text-xs text-[#A0A4AB]">{teamChatSelectedRoom.sport}</span>
@@ -14458,14 +14459,15 @@ Become a Sponsor →
  </div>
  )}
  {teamChatMessages.map(msg => (
- <div key={msg.id} className={`flex gap-3 ${msg.userId === user?.id ? 'flex-row-reverse' : ''}`}>
- <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
- {msg.userName?.[0] || '?'}
+ <div key={msg.id} className={`flex gap-2.5 ${msg.userId === user?.id ? 'flex-row-reverse' : ''}`}>
+ <ProfileAvatar src={msg.profilePicture} name={msg.userName} size="sm" className="w-8 h-8 flex-shrink-0" />
+ <div className={`max-w-[75%] ${msg.userId === user?.id ? 'bg-teal-600/30 border-teal-500/30' : 'bg-[#151A22] border-[#222A36]'} border rounded-2xl px-4 py-2.5`}>
+ <div className="flex items-center gap-1.5 mb-1">
+ <span className="text-xs text-teal-300 font-semibold">{msg.userName}</span>
+ {msg.isFounder && <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded-md font-bold" style={{ fontSize: '8px', backgroundColor: '#F5B400', color: '#0F1115' }}>⭐ #{msg.founderNumber}</span>}
  </div>
- <div className={`max-w-[70%] ${msg.userId === user?.id ? 'bg-teal-600/30 border-teal-500/30' : 'bg-[#151A22] border-[#222A36]'} border rounded-2xl px-4 py-2`}>
- <p className="text-xs text-teal-300 font-medium mb-1">{msg.userName} {msg.isFounder && <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded-md font-bold" style={{ fontSize: '8px', backgroundColor: '#F5B400', color: '#0F1115' }}>⭐</span>}</p>
- <p className="text-white text-sm">{msg.message}</p>
- <p className="text-xs text-[#A0A4AB]/70 mt-1">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+ <p className="text-white text-sm leading-relaxed">{msg.message}</p>
+ <p className="text-[10px] text-[#A0A4AB]/60 mt-1">{(() => { const d = new Date(msg.createdAt); const now = new Date(); const isToday = d.toDateString() === now.toDateString(); return isToday ? d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); })()}</p>
  </div>
  </div>
  ))}
@@ -14493,7 +14495,10 @@ Become a Sponsor →
  <div className="flex items-center gap-3">
  <button onClick={() => setCurrentScreen('games')} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
  <MessageCircle className="w-6 h-6 text-teal-400" />
+ <div>
  <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>TEAM CHAT ROOMS</h2>
+ <p className="text-[10px] text-[#A0A4AB]/70">Open to all fans — tap any room to join the conversation</p>
+ </div>
  <button onClick={() => setTeamChatShowCreate(!teamChatShowCreate)} className="ml-auto px-3 py-1.5 bg-teal-500 hover:bg-teal-600 rounded-lg text-white text-sm font-medium flex items-center gap-1"><Plus className="w-4 h-4" /> New</button>
  </div>
  </div>
@@ -14529,13 +14534,16 @@ Become a Sponsor →
  <h3 className="text-sm font-bold text-teal-400 uppercase tracking-wider mb-3">{sport}</h3>
  <div className="space-y-2">
  {rooms.map(room => (
- <button key={room.id} onClick={() => { setTeamChatSelectedRoom(room); loadTeamChatMessages(room.id); }} className="w-full flex items-center gap-3 p-3 bg-[#151A22] hover:bg-[#151A22] rounded-xl border border-[#222A36] transition-colors text-left">
- {room.logoUrl ? <img src={room.logoUrl} className="w-10 h-10 rounded-full" alt="" /> : <div className="w-10 h-10 rounded-full bg-teal-500/30 flex items-center justify-center text-teal-300 text-sm font-bold">{room.teamAbbrev || room.teamName?.[0]}</div>}
+ <button key={room.id} onClick={() => { setTeamChatSelectedRoom(room); loadTeamChatMessages(room.id); }} className="w-full flex items-center gap-3 p-4 bg-[#151A22] hover:bg-[#1A2030] rounded-xl border border-[#222A36] transition-colors text-left">
+ {(() => { const logo = room.logoUrl || getTeamLogoUrl(room.sport, room.teamName); return logo ? <img src={logo} className="w-10 h-10 object-contain" alt="" /> : <div className="w-10 h-10 rounded-full bg-teal-500/30 flex items-center justify-center text-teal-300 text-sm font-bold">{room.teamAbbrev || room.teamName?.[0]}</div>; })()}
  <div className="flex-1 min-w-0">
- <p className="text-white font-medium truncate">{room.teamName}</p>
- <p className="text-xs text-[#A0A4AB]">{room.messageCount || 0} messages</p>
+ <p className="text-white font-semibold truncate">{room.teamName}</p>
+ <div className="flex items-center gap-2 mt-0.5">
+ <span className="text-xs text-[#A0A4AB]">{room.messageCount || 0} messages</span>
+ {room.lastMessageTime && <span className="text-xs text-[#A0A4AB]/50">{(() => { const d = new Date(room.lastMessageTime); const now = new Date(); const diff = now - d; if (diff < 60000) return 'just now'; if (diff < 3600000) return `${Math.floor(diff/60000)}m ago`; if (diff < 86400000) return `${Math.floor(diff/3600000)}h ago`; return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); })()}</span>}
  </div>
- <ChevronRight className="w-4 h-4 text-[#A0A4AB]/70" />
+ </div>
+ <ChevronRight className="w-4 h-4 text-[#A0A4AB]/50" />
  </button>
  ))}
  </div>
