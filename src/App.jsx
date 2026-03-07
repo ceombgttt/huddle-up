@@ -12150,12 +12150,13 @@ Become a Sponsor →
  return (
  <div
  key={party.id}
- className="bg-[#151A22] rounded-2xl border border-[#222A36] overflow-hidden"
+ className="bg-[#151A22] rounded-2xl border border-[#222A36] overflow-hidden cursor-pointer hover:border-[#1E90FF]/40 transition-all"
+ onClick={() => { const g = games.find(g => g.id === party.gameId) || { id: party.gameId || party.id, sport: party.sport, homeTeam: party.homeTeam || '?', awayTeam: party.awayTeam || '?', startTime: party.gameTime, venue: party.venueName || '' }; setSelectedGame(g); setCurrentScreen('gameDetail'); }}
  >
  <div className="p-5">
  <div className="flex items-center justify-between mb-4">
  <span className="px-3 py-1 bg-yellow-500/20 text-yellow-300 text-xs font-black rounded-full border border-yellow-500/30 uppercase tracking-wider">Host</span>
- <div className="flex items-center gap-1.5">
+ <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
  <button onClick={() => openEditParty(party)} className="px-4 py-2 bg-[#1E90FF]/20 text-[#1E90FF] text-xs font-bold rounded-lg border border-[#1E90FF]/30 hover:bg-[#1E90FF]/30 transition-all active:scale-95">Edit</button>
  {confirmDeleteId === party.id ? (
  <div className="flex items-center gap-1">
@@ -12184,7 +12185,7 @@ Become a Sponsor →
  <span className="text-white font-bold text-base truncate">{party.venueName || party.venueAddress || party.location || 'Venue TBD'}</span>
  </div>
  {party.venueAddress && party.venueName && (
- <div className="text-[#A0A4AB] text-xs ml-6"><AddressLink address={party.venueAddress} /></div>
+ <div className="text-[#A0A4AB] text-xs ml-6" onClick={e => e.stopPropagation()}><AddressLink address={party.venueAddress} /></div>
  )}
  </div>
  <div className="flex items-center justify-between text-sm">
@@ -12198,11 +12199,17 @@ Become a Sponsor →
  <span className="font-semibold">{party.attendees.length}{party.maxSize ? `/${party.maxSize}` : ''}</span>
  </div>
  </div>
- <button onClick={() => openShareMenu(party)} className="flex items-center gap-1.5 text-sm text-emerald-400 hover:text-emerald-300 transition-colors font-semibold active:scale-95">
+ <button onClick={(e) => { e.stopPropagation(); openShareMenu(party); }} className="flex items-center gap-1.5 text-sm text-emerald-400 hover:text-emerald-300 transition-colors font-semibold active:scale-95">
  <Share2 className="w-4 h-4" /> Share
  </button>
  </div>
- {party.notes && <p className="text-[#A0A4AB]/70 text-xs mt-3 italic">{party.notes}</p>}
+ <div className="flex items-center justify-between mt-3">
+ {party.notes && <p className="text-[#A0A4AB]/70 text-xs italic flex-1">{party.notes}</p>}
+ <div className="flex items-center gap-1 text-[#1E90FF] text-xs font-semibold ml-auto">
+ <span>View Party</span>
+ <ChevronRight className="w-3.5 h-3.5" />
+ </div>
+ </div>
  </div>
  </div>
  );
@@ -12224,12 +12231,13 @@ Become a Sponsor →
  return (
  <div
  key={party.id}
- className="bg-[#151A22] rounded-2xl border border-[#222A36] overflow-hidden"
+ className="bg-[#151A22] rounded-2xl border border-[#222A36] overflow-hidden cursor-pointer hover:border-[#1E90FF]/40 transition-all"
+ onClick={() => { const g = games.find(g => g.id === party.gameId) || { id: party.gameId || party.id, sport: party.sport, homeTeam: party.homeTeam || '?', awayTeam: party.awayTeam || '?', startTime: party.gameTime, venue: party.venueName || '' }; setSelectedGame(g); setCurrentScreen('gameDetail'); }}
  >
  <div className="p-5">
  <div className="flex items-center justify-between mb-4">
  <span className="text-[#A0A4AB] text-xs">Hosted by <span className="text-white font-semibold">{party.hostName}</span></span>
- <button onClick={() => handleLeaveParty(party.id)} disabled={leavingPartyId === party.id} className="px-4 py-2 bg-red-500/20 text-red-300 text-xs font-bold rounded-lg border border-red-500/30 hover:bg-red-500/30 transition-all disabled:opacity-50 active:scale-95">
+ <button onClick={(e) => { e.stopPropagation(); handleLeaveParty(party.id); }} disabled={leavingPartyId === party.id} className="px-4 py-2 bg-red-500/20 text-red-300 text-xs font-bold rounded-lg border border-red-500/30 hover:bg-red-500/30 transition-all disabled:opacity-50 active:scale-95">
  {leavingPartyId === party.id ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Leave'}
  </button>
  </div>
@@ -12250,7 +12258,7 @@ Become a Sponsor →
  <span className="text-white font-bold text-base truncate">{party.venueName || party.venueAddress || party.location || 'Venue TBD'}</span>
  </div>
  {party.venueAddress && party.venueName && (
- <div className="text-[#A0A4AB] text-xs ml-6"><AddressLink address={party.venueAddress} /></div>
+ <div className="text-[#A0A4AB] text-xs ml-6" onClick={e => e.stopPropagation()}><AddressLink address={party.venueAddress} /></div>
  )}
  </div>
  <div className="flex items-center justify-between text-sm">
@@ -12264,9 +12272,15 @@ Become a Sponsor →
  <span className="font-semibold">{party.attendees.length}</span>
  </div>
  </div>
- <button onClick={() => openShareMenu(party)} className="flex items-center gap-1.5 text-sm text-emerald-400 hover:text-emerald-300 transition-colors font-semibold active:scale-95">
+ <button onClick={(e) => { e.stopPropagation(); openShareMenu(party); }} className="flex items-center gap-1.5 text-sm text-emerald-400 hover:text-emerald-300 transition-colors font-semibold active:scale-95">
  <Share2 className="w-4 h-4" /> Share
  </button>
+ </div>
+ <div className="flex items-center justify-end mt-3">
+ <div className="flex items-center gap-1 text-[#1E90FF] text-xs font-semibold">
+ <span>View Party</span>
+ <ChevronRight className="w-3.5 h-3.5" />
+ </div>
  </div>
  </div>
  </div>
