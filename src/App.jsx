@@ -1367,7 +1367,7 @@ const HuddleUpApp = () => {
  }, [user, showPrelaunchModal, showOnboarding]);
  const [wcTick, setWcTick] = useState(Date.now());
  useEffect(() => { if (currentScreen !== 'games') return; const id = setInterval(() => setWcTick(Date.now()), 1000); return () => clearInterval(id); }, [currentScreen]);
-useEffect(() => { window.scrollTo(0, 0); }, [currentScreen]);
+useEffect(() => { window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; requestAnimationFrame(() => { window.scrollTo(0, 0); }); }, [currentScreen]);
 useEffect(() => { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; }, []);
 useEffect(() => { if (user) { window.scrollTo(0, 0); } }, [user]);
  const [softLaunchDismissed, setSoftLaunchDismissed] = useState(() => {
