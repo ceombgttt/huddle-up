@@ -9804,7 +9804,10 @@ Become a Sponsor →
  let location = '';
  let venueId = null;
  
- if (cpUseVerifiedVenue) {
+ if (userVenue) {
+ location = `${userVenue.name} - ${userVenue.address}`;
+ venueId = userVenue.id;
+ } else if (cpUseVerifiedVenue) {
  if (!cpSelectedVenueId) {
  alert('Please select a venue');
  return;
@@ -9820,7 +9823,7 @@ Become a Sponsor →
  location = cpCustomLocation;
  }
 
- const venue = cpUseVerifiedVenue ? venues.find(v => v.id === cpSelectedVenueId) : null;
+ const venue = userVenue ? userVenue : (cpUseVerifiedVenue ? venues.find(v => v.id === cpSelectedVenueId) : null);
  const customFullAddress = [cpCustomAddress, cpCustomCity, cpCustomState].filter(Boolean).join(', ');
  handleCreateParty({
  gameId: selectedGame.id,
@@ -10016,6 +10019,19 @@ Become a Sponsor →
  )}
  </div>
 
+ {userVenue ? (
+ <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4">
+ <div className="flex items-center gap-2 mb-2">
+ <Building2 className="w-5 h-5 text-emerald-400" />
+ <span className="text-sm font-bold text-emerald-300">YOUR VENUE</span>
+ <Lock className="w-3.5 h-3.5 text-emerald-400/60" />
+ </div>
+ <p className="text-white font-bold">{userVenue.name}</p>
+ <p className="text-[#A0A4AB] text-sm">{userVenue.address}</p>
+ <p className="text-emerald-400/70 text-xs mt-2">Parties you create are automatically hosted at your venue</p>
+ </div>
+ ) : (
+ <>
  <div>
  <label className="block text-sm font-medium text-[#A0A4AB] mb-3">
  Choose Location Type
@@ -10134,6 +10150,8 @@ Become a Sponsor →
  )}
  </div>
  </div>
+ )}
+ </>
  )}
 
  <div>
@@ -12514,6 +12532,17 @@ Become a Sponsor →
  {user.subscriptionTier === 'sponsor' ? '📢 Sponsor' : '🏪 Venue Owner'}
  </span>
  )}
+ <div className="mt-1">
+ {user.userType === 'venue' || userVenue ? (
+ <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+ <Building2 className="w-3.5 h-3.5" /> Venue Owner
+ </span>
+ ) : (
+ <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#1E90FF]/20 text-[#1E90FF] border border-[#1E90FF]/30">
+ <Users className="w-3.5 h-3.5" /> Fan
+ </span>
+ )}
+ </div>
  {user.dateOfBirth && (
  <p className="text-sm text-[#A0A4AB] mt-1">
  Age: {(() => {
@@ -12626,6 +12655,23 @@ Become a Sponsor →
  })()}
  </div>
  </div>
+
+ {!userVenue && user.userType !== 'venue' && (
+ <div className="bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/30 rounded-2xl p-5">
+ <div className="flex items-start gap-4">
+ <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+ <Building2 className="w-6 h-6 text-emerald-400" />
+ </div>
+ <div className="flex-1 min-w-0">
+ <h3 className="text-white font-bold text-sm">Own a bar or restaurant?</h3>
+ <p className="text-[#A0A4AB] text-xs mt-1 leading-relaxed">Claim your venue to manage your listing, create watch parties, and attract more fans.</p>
+ <button onClick={() => setCurrentScreen('claimVenue')} className="mt-3 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg transition-all active:scale-95">
+ Claim Your Venue
+ </button>
+ </div>
+ </div>
+ </div>
+ )}
 
  <div className="bg-[#151A22] rounded-2xl border border-[#222A36] shadow-xl overflow-hidden">
  <button onClick={() => { setCurrentScreen('invitations'); }} className="w-full flex items-center gap-3 px-5 py-4 hover:bg-white/5 transition-colors text-left border-b border-[#222A36]">
@@ -16884,9 +16930,15 @@ Become a Sponsor →
 <Users className="w-6 h-6" /><span className="text-[11px] font-bold">Crew</span>
 {(friendRequests.length + dmUnreadCount) > 0 && <span className="absolute top-0 right-[20%] bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{friendRequests.length + dmUnreadCount}</span>}
 </button>
+{userVenue ? (
+<button onClick={() => { setCurrentScreen('venueDashboard'); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 py-1 transition-colors ${currentScreen === 'venueDashboard' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
+<Building2 className="w-6 h-6" /><span className="text-[11px] font-bold">My Venue</span>
+</button>
+) : (
 <button onClick={() => { setCurrentScreen('rewards'); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 py-1 transition-colors ${currentScreen === 'rewards' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
 <Gift className="w-6 h-6" /><span className="text-[11px] font-bold">Rewards</span>
 </button>
+)}
 <button onClick={() => { setCurrentScreen('profile'); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 py-1 transition-colors relative ${currentScreen === 'profile' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
 <User className="w-6 h-6" /><span className="text-[11px] font-bold">Me</span>
 {totalAlerts > 0 && <span className="absolute top-0 right-[20%] bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{totalAlerts}</span>}

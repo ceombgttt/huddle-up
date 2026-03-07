@@ -1,0 +1,772 @@
+# HUDDLE UP - USER ROLES SYSTEM
+
+**Separate regular users from venue owners/managers!** 🏢
+
+---
+
+## 🎯 THE PROBLEM:
+
+You have TWO different types of users:
+1. **Regular Users** - Fans who join parties
+2. **Venue Owners** - Bar/restaurant managers who create parties at their venue
+
+They need DIFFERENT experiences!
+
+---
+
+## 💡 THE SOLUTION:
+
+**User Role System with 3 account types:**
+
+1. **FAN** (default)
+   - Can join parties
+   - Can create parties at ANY venue
+   - See regular app interface
+
+2. **VENUE_OWNER** (claimed venue)
+   - Has access to Venue Hub
+   - Can ONLY create parties at THEIR venue
+   - Parties automatically linked to their venue
+   - See venue management tools
+
+3. **ADMIN** (optional - for you)
+   - Can do everything
+   - Manage all venues
+   - Handle disputes
+
+---
+
+## 🗄️ DATABASE STRUCTURE:
+
+```sql
+-- USERS TABLE
+CREATE TABLE users (
+  id UUID PRIMARY KEY,
+  email VARCHAR(255) UNIQUE,
+  name VARCHAR(255),
+  role VARCHAR(50) DEFAULT 'FAN',  -- 'FAN', 'VENUE_OWNER', 'ADMIN'
+  claimed_venue_id UUID,  -- Links to their venue (if venue owner)
+  created_at TIMESTAMP,
+  
+  -- Constraints
+  CONSTRAINT check_role CHECK (role IN ('FAN', 'VENUE_OWNER', 'ADMIN'))
+);
+
+-- VENUES TABLE
+CREATE TABLE venues (
+  id UUID PRIMARY KEY,
+  name VARCHAR(255),
+  address TEXT,
+  latitude DECIMAL,
+  longitude DECIMAL,
+  owner_user_id UUID,  -- User who claimed this venue
+  claimed BOOLEAN DEFAULT FALSE,
+  plan VARCHAR(50),  -- 'BASE', 'FEATURED', 'PRO'
+  created_at TIMESTAMP,
+  
+  FOREIGN KEY (owner_user_id) REFERENCES users(id)
+);
+
+-- PARTIES TABLE
+CREATE TABLE parties (
+  id UUID PRIMARY KEY,
+  game_title VARCHAR(255),
+  venue_id UUID,  -- Which venue is hosting
+  created_by_user_id UUID,  -- Who created the party
+  game_time TIMESTAMP,
+  created_at TIMESTAMP,
+  
+  FOREIGN KEY (venue_id) REFERENCES venues(id),
+  FOREIGN KEY (created_by_user_id) REFERENCES users(id)
+);
+
+-- VENUE ACCESS TABLE (for managers/employees)
+CREATE TABLE venue_access (
+  id UUID PRIMARY KEY,
+  venue_id UUID,
+  user_id UUID,
+  access_level VARCHAR(50),  -- 'OWNER', 'MANAGER', 'EMPLOYEE'
+  granted_at TIMESTAMP,
+  
+  FOREIGN KEY (venue_id) REFERENCES venues(id),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+```
+
+---
+
+## 🔐 USER FLOW - CLAIMING A VENUE:
+
+```
+STEP 1: Regular user signs up
+├─ Role: FAN
+├─ claimed_venue_id: NULL
+└─ Can join parties anywhere
+
+STEP 2: User clicks "Claim Your Venue"
+├─ Searches for their venue
+├─ Selects venue from list
+└─ Submits claim request
+
+STEP 3: Verification process
+├─ OPTION A: Auto-approve (risky)
+├─ OPTION B: Email verification
+├─ OPTION C: Manual approval (you review)
+└─ OPTION D: Document upload (business license)
+
+STEP 4: Claim approved
+├─ User role: FAN → VENUE_OWNER
+├─ claimed_venue_id: [venue_id]
+├─ venue.owner_user_id: [user_id]
+├─ venue.claimed: TRUE
+└─ User now has access to Venue Hub
+```
+
+---
+
+## 🎯 PASTE THIS INTO REPLIT:
+
+```
+CREATE USER ROLE SYSTEM
+
+Add user roles to separate fans from venue owners.
+
+═══════════════════════════════════════════════════
+
+STEP 1: UPDATE USER MODEL
+
+File: backend/models/User.js
+
+const userSchema = new Schema({
+  email: { type: String, required: true, unique: true },
+  name: { type: String, required: true },
+  password: { type: String, required: true },
+  
+  // USER ROLE SYSTEM
+  role: {
+    type: String,
+    enum: ['FAN', 'VENUE_OWNER', 'ADMIN'],
+    default: 'FAN'
+  },
+  
+  // If they own a venue
+  claimedVenueId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Venue',
+    default: null
+  },
+  
+  // Verification for venue owners
+  venueVerified: {
+    type: Boolean,
+    default: false
+  },
+  
+  createdAt: { type: Date, default: Date.now }
+});
+
+module.exports = mongoose.model('User', userSchema);
+
+═══════════════════════════════════════════════════
+
+STEP 2: UPDATE VENUE MODEL
+
+File: backend/models/Venue.js
+
+const venueSchema = new Schema({
+  name: { type: String, required: true },
+  address: { type: String, required: true },
+  latitude: { type: Number, required: true },
+  longitude: { type: Number, required: true },
+  
+  // VENUE OWNERSHIP
+  claimed: {
+    type: Boolean,
+    default: false
+  },
+  
+  ownerUserId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  
+  // Plan type
+  plan: {
+    type: String,
+    enum: ['FREE', 'BASE', 'FEATURED'],
+    default: 'FREE'
+  },
+  
+  // Claim verification
+  claimStatus: {
+    type: String,
+    enum: ['UNCLAIMED', 'PENDING', 'VERIFIED', 'REJECTED'],
+    default: 'UNCLAIMED'
+  },
+  
+  claimRequestDate: Date,
+  verificationDocuments: [String],  // URLs to uploaded docs
+  
+  createdAt: { type: Date, default: Date.now }
+});
+
+module.exports = mongoose.model('Venue', venueSchema);
+
+═══════════════════════════════════════════════════
+
+STEP 3: CLAIM VENUE ENDPOINT
+
+File: backend/routes/venues.js
+
+// User requests to claim a venue
+router.post('/venues/:venueId/claim', authMiddleware, async (req, res) => {
+  try {
+    const { venueId } = req.params;
+    const userId = req.user.id;  // From auth token
+    
+    // Check if user already owns a venue
+    const user = await User.findById(userId);
+    if (user.claimedVenueId) {
+      return res.status(400).json({ 
+        error: 'You already own a venue' 
+      });
+    }
+    
+    // Check if venue is already claimed
+    const venue = await Venue.findById(venueId);
+    if (venue.claimed) {
+      return res.status(400).json({ 
+        error: 'This venue is already claimed' 
+      });
+    }
+    
+    // Update venue claim status
+    venue.claimStatus = 'PENDING';
+    venue.claimRequestDate = new Date();
+    await venue.save();
+    
+    // Send verification email to venue
+    await sendVerificationEmail(user.email, venue);
+    
+    res.json({ 
+      message: 'Claim request submitted. Check your email to verify.',
+      status: 'PENDING'
+    });
+    
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Verify venue claim (via email link or admin approval)
+router.post('/venues/:venueId/verify-claim', async (req, res) => {
+  try {
+    const { venueId } = req.params;
+    const { verificationCode, userId } = req.body;
+    
+    // Verify the code (sent via email)
+    const isValid = await verifyCode(verificationCode);
+    if (!isValid) {
+      return res.status(400).json({ error: 'Invalid verification code' });
+    }
+    
+    // Update user role
+    const user = await User.findById(userId);
+    user.role = 'VENUE_OWNER';
+    user.claimedVenueId = venueId;
+    user.venueVerified = true;
+    await user.save();
+    
+    // Update venue
+    const venue = await Venue.findById(venueId);
+    venue.claimed = true;
+    venue.ownerUserId = userId;
+    venue.claimStatus = 'VERIFIED';
+    await venue.save();
+    
+    res.json({ 
+      message: 'Venue claimed successfully!',
+      user: user,
+      venue: venue
+    });
+    
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+═══════════════════════════════════════════════════
+
+STEP 4: CREATE PARTY WITH ROLE CHECK
+
+File: backend/routes/parties.js
+
+router.post('/parties', authMiddleware, async (req, res) => {
+  try {
+    const { gameTitle, venueId, gameTime } = req.body;
+    const userId = req.user.id;
+    
+    const user = await User.findById(userId);
+    
+    // IF USER IS VENUE OWNER:
+    if (user.role === 'VENUE_OWNER') {
+      // They can ONLY create parties at THEIR venue
+      if (venueId !== user.claimedVenueId.toString()) {
+        return res.status(403).json({ 
+          error: 'Venue owners can only create parties at their own venue' 
+        });
+      }
+      
+      // Auto-link to their venue
+      const party = await Party.create({
+        gameTitle,
+        venueId: user.claimedVenueId,  // Force their venue
+        createdByUserId: userId,
+        gameTime,
+        createdByVenueOwner: true  // Flag for analytics
+      });
+      
+      return res.json(party);
+    }
+    
+    // IF USER IS REGULAR FAN:
+    if (user.role === 'FAN') {
+      // They can create parties at ANY venue
+      const party = await Party.create({
+        gameTitle,
+        venueId,  // Any venue they choose
+        createdByUserId: userId,
+        gameTime,
+        createdByVenueOwner: false
+      });
+      
+      return res.json(party);
+    }
+    
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+═══════════════════════════════════════════════════
+
+STEP 5: FRONTEND - SHOW DIFFERENT UI BASED ON ROLE
+
+File: src/App.jsx
+
+import { useAuth } from './contexts/AuthContext';
+
+function App() {
+  const { user } = useAuth();  // Contains user.role
+  
+  return (
+    <Router>
+      <Routes>
+        {/* Routes for ALL users */}
+        <Route path="/" element={<Home />} />
+        <Route path="/parties" element={<Browse />} />
+        <Route path="/crew" element={<Crew />} />
+        
+        {/* VENUE OWNER ONLY routes */}
+        {user?.role === 'VENUE_OWNER' && (
+          <>
+            <Route path="/venue-hub" element={<VenueHub />} />
+            <Route path="/venue-dashboard" element={<VenueDashboard />} />
+            <Route path="/promote-games" element={<PromoteGames />} />
+            <Route path="/deals" element={<Deals />} />
+          </>
+        )}
+        
+        {/* Regular user routes */}
+        {user?.role === 'FAN' && (
+          <>
+            <Route path="/claim-venue" element={<ClaimVenue />} />
+          </>
+        )}
+      </Routes>
+    </Router>
+  );
+}
+
+═══════════════════════════════════════════════════
+
+STEP 6: SHOW VENUE HUB ONLY TO VENUE OWNERS
+
+File: src/components/BottomNav.jsx
+
+import { useAuth } from '../contexts/AuthContext';
+
+function BottomNav() {
+  const { user } = useAuth();
+  
+  // IF VENUE OWNER - Show Venue Hub
+  if (user?.role === 'VENUE_OWNER') {
+    return (
+      <nav className="bottom-nav">
+        <NavItem to="/" icon="🏠" label="Home" />
+        <NavItem to="/venue-hub" icon="🏢" label="My Venue" />
+        <NavItem to="/parties" icon="🎉" label="Parties" />
+        <NavItem to="/rewards" icon="🎁" label="Rewards" />
+        <NavItem to="/more" icon="⋯" label="More" />
+      </nav>
+    );
+  }
+  
+  // IF REGULAR FAN - Standard navigation
+  return (
+    <nav className="bottom-nav">
+      <NavItem to="/" icon="🏠" label="Home" />
+      <NavItem to="/browse" icon="🎉" label="Browse" />
+      <NavItem to="/crew" icon="👥" label="Crew" />
+      <NavItem to="/rewards" icon="🎁" label="Rewards" />
+      <NavItem to="/me" icon="👤" label="Me" />
+    </nav>
+  );
+}
+
+═══════════════════════════════════════════════════
+
+STEP 7: CREATE PARTY FLOW (Different for each role)
+
+File: src/pages/CreateParty.jsx
+
+function CreateParty() {
+  const { user } = useAuth();
+  const [selectedVenue, setSelectedVenue] = useState(null);
+  
+  useEffect(() => {
+    // IF VENUE OWNER - Auto-select their venue
+    if (user.role === 'VENUE_OWNER' && user.claimedVenueId) {
+      loadVenue(user.claimedVenueId).then(venue => {
+        setSelectedVenue(venue);
+      });
+    }
+  }, [user]);
+  
+  return (
+    <div className="create-party">
+      <h1>Create Watch Party</h1>
+      
+      {/* VENUE SELECTION */}
+      {user.role === 'FAN' ? (
+        // Regular users can choose ANY venue
+        <VenuePicker 
+          value={selectedVenue}
+          onChange={setSelectedVenue}
+        />
+      ) : (
+        // Venue owners see THEIR venue (locked)
+        <VenueDisplay 
+          venue={selectedVenue}
+          locked={true}
+          message="Parties will be created at your venue"
+        />
+      )}
+      
+      {/* REST OF FORM... */}
+    </div>
+  );
+}
+
+═══════════════════════════════════════════════════
+
+STEP 8: CLAIM VENUE PAGE
+
+File: src/pages/ClaimVenue.jsx
+
+function ClaimVenue() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [venues, setVenues] = useState([]);
+  const [selectedVenue, setSelectedVenue] = useState(null);
+  
+  const searchVenues = async () => {
+    const results = await fetch(`/api/venues/search?q=${searchQuery}`);
+    setVenues(await results.json());
+  };
+  
+  const claimVenue = async (venueId) => {
+    try {
+      const response = await fetch(`/api/venues/${venueId}/claim`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        alert('Claim request submitted! Check your email to verify.');
+      } else {
+        alert(data.error);
+      }
+    } catch (error) {
+      alert('Error claiming venue');
+    }
+  };
+  
+  return (
+    <div className="claim-venue-page">
+      <h1>Claim Your Venue</h1>
+      <p>Are you a bar or restaurant owner?</p>
+      
+      <input
+        type="text"
+        placeholder="Search for your venue..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+      />
+      <button onClick={searchVenues}>Search</button>
+      
+      <div className="venue-list">
+        {venues.map(venue => (
+          <div key={venue.id} className="venue-item">
+            <h3>{venue.name}</h3>
+            <p>{venue.address}</p>
+            
+            {venue.claimed ? (
+              <span className="claimed-badge">Already Claimed</span>
+            ) : (
+              <button onClick={() => claimVenue(venue.id)}>
+                Claim This Venue
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+═══════════════════════════════════════════════════
+
+STEP 9: MIDDLEWARE TO PROTECT VENUE ROUTES
+
+File: backend/middleware/roleCheck.js
+
+// Middleware to check if user is venue owner
+const requireVenueOwner = async (req, res, next) => {
+  try {
+    const userId = req.user.id;  // From auth middleware
+    const user = await User.findById(userId);
+    
+    if (user.role !== 'VENUE_OWNER') {
+      return res.status(403).json({ 
+        error: 'This feature is only for venue owners' 
+      });
+    }
+    
+    next();
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Middleware to check if user owns the specific venue
+const requireVenueAccess = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const venueId = req.params.venueId;
+    
+    const user = await User.findById(userId);
+    
+    if (user.claimedVenueId.toString() !== venueId) {
+      return res.status(403).json({ 
+        error: 'You do not have access to this venue' 
+      });
+    }
+    
+    next();
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports = { requireVenueOwner, requireVenueAccess };
+
+// Usage:
+router.get('/venue-hub/:venueId', 
+  authMiddleware, 
+  requireVenueAccess, 
+  async (req, res) => {
+    // Only venue owner can access
+  }
+);
+
+═══════════════════════════════════════════════════
+
+STEP 10: USER PROFILE INDICATOR
+
+Show user their role in the profile page:
+
+File: src/pages/Profile.jsx
+
+function Profile() {
+  const { user } = useAuth();
+  
+  return (
+    <div className="profile">
+      <h1>{user.name}</h1>
+      <p>{user.email}</p>
+      
+      {/* ROLE BADGE */}
+      <div className="role-badge">
+        {user.role === 'FAN' && (
+          <span className="badge fan">Fan</span>
+        )}
+        {user.role === 'VENUE_OWNER' && (
+          <span className="badge venue-owner">
+            Venue Owner
+            {user.venueVerified && ' ✓'}
+          </span>
+        )}
+      </div>
+      
+      {/* CLAIM VENUE CTA for fans */}
+      {user.role === 'FAN' && (
+        <div className="claim-cta">
+          <h3>Own a bar or restaurant?</h3>
+          <button onClick={() => navigate('/claim-venue')}>
+            Claim Your Venue
+          </button>
+        </div>
+      )}
+      
+      {/* VENUE DASHBOARD for owners */}
+      {user.role === 'VENUE_OWNER' && (
+        <div className="venue-info">
+          <h3>Your Venue</h3>
+          <p>{user.claimedVenue?.name}</p>
+          <button onClick={() => navigate('/venue-hub')}>
+            Manage Venue
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+═══════════════════════════════════════════════════
+
+VERIFICATION OPTIONS:
+
+OPTION 1: Email Verification (Easiest)
+- User claims venue
+- System sends email to venue's business email
+- They click link to verify
+- Account upgraded to VENUE_OWNER
+
+OPTION 2: Document Upload (More secure)
+- User uploads business license
+- You manually review
+- Approve or reject
+
+OPTION 3: Phone Verification
+- Call venue's listed phone number
+- Automated code
+- Enter code to verify
+
+OPTION 4: Payment Method (Most secure)
+- Require business credit card
+- Charge $1 (refunded)
+- Verifies they own the business
+
+Recommended: Start with Option 1 (email), add others later
+
+═══════════════════════════════════════════════════
+
+ADMIN DASHBOARD (for you to manage claims):
+
+File: src/pages/admin/VenueClaims.jsx
+
+function VenueClaims() {
+  const [pendingClaims, setPendingClaims] = useState([]);
+  
+  useEffect(() => {
+    loadPendingClaims();
+  }, []);
+  
+  const approveClaim = async (venueId, userId) => {
+    await fetch(`/api/admin/approve-claim`, {
+      method: 'POST',
+      body: JSON.stringify({ venueId, userId })
+    });
+    loadPendingClaims();
+  };
+  
+  return (
+    <div className="admin-claims">
+      <h1>Pending Venue Claims</h1>
+      
+      {pendingClaims.map(claim => (
+        <div key={claim.id} className="claim-item">
+          <h3>{claim.venue.name}</h3>
+          <p>Claimed by: {claim.user.email}</p>
+          <p>Date: {claim.claimRequestDate}</p>
+          
+          <button onClick={() => approveClaim(claim.venue.id, claim.user.id)}>
+            Approve
+          </button>
+          <button onClick={() => rejectClaim(claim.id)}>
+            Reject
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+═══════════════════════════════════════════════════
+
+RESULT:
+
+✅ Regular users (FANS):
+- Can join parties anywhere
+- Can create parties at ANY venue
+- See standard app interface
+- Can claim a venue if they own one
+
+✅ Venue owners (VENUE_OWNER):
+- Have access to Venue Hub
+- Can ONLY create parties at THEIR venue
+- Parties auto-link to their venue
+- See venue management tools
+- Can upgrade their plan
+
+✅ System automatically:
+- Shows correct UI based on role
+- Prevents venue owners from creating parties elsewhere
+- Prevents non-owners from accessing Venue Hub
+- Links all venue-created parties to correct venue
+
+Perfect separation! 🎯
+```
+
+---
+
+## 🎯 SUMMARY:
+
+**3 User Types:**
+1. **FAN** - Regular users
+2. **VENUE_OWNER** - Claimed a venue
+3. **ADMIN** - You (manage everything)
+
+**Key Rules:**
+- Fans can create parties ANYWHERE
+- Venue owners can ONLY create at THEIR venue
+- Venue Hub only visible to venue owners
+- Parties auto-link to owner's venue
+
+**Verification:**
+- Email verification (easiest)
+- Document upload (secure)
+- Manual approval (you review)
+
+---
+
+**PASTE INTO REPLIT NOW!**
+
+**This completely separates the two user types!** ✅
+
