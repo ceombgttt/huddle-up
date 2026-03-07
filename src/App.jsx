@@ -416,14 +416,15 @@ const MainBrandBanner = ({ user: bannerUser, onProfileClick, onMenuClick, totalA
  <div className="header-gradient-overlay" />
  <div className="relative z-[2] flex items-center justify-between h-full px-4 max-w-4xl mx-auto">
  <div className="flex items-center gap-2 flex-1 min-w-0">
+ <button onClick={onMenuClick} className="flex flex-col items-center gap-0.5 p-1.5 rounded-xl hover:bg-white/10 transition-colors active:scale-95 flex-shrink-0">
+ <Menu className="w-7 h-7 text-white" />
+ <span className="text-[9px] font-bold text-white/60 leading-none">MENU</span>
+ </button>
  <img src="/huddle-up-shield.png" alt="Huddle Up" className="h-10 w-10 flex-shrink-0" style={{ filter: 'drop-shadow(0 2px 8px rgba(30, 144, 255, 0.3))' }} />
  <div className="flex flex-col gap-0.5 min-w-0">
  <span className="text-lg font-black text-white tracking-wide whitespace-nowrap leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.1em' }}>HUDDLE UP</span>
  <span className="text-[11px] font-semibold whitespace-nowrap leading-tight" style={{ background: 'linear-gradient(90deg, #1E90FF 0%, #FFD700 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Find Your Crew. Watch The Game.</span>
  </div>
- <button onClick={onMenuClick} className="p-2 rounded-xl hover:bg-white/10 transition-colors active:scale-95 ml-1">
- <Menu className="w-5 h-5 text-white/70" />
- </button>
  </div>
  <div className="flex items-center gap-3 flex-shrink-0">
  <button onClick={onProfileClick} className="relative p-0.5 rounded-full active:scale-95 transition-transform" style={{ background: 'linear-gradient(135deg, #1E90FF, #FFD700)', padding: '2px' }}>
@@ -6065,43 +6066,6 @@ const qrScannerRef = useRef(null);
 </button>
 </div>
 
-{(() => {
-const adSlots = [
-{ id: 'slot1', title: 'NFL Watch Party Sponsor', sport: 'NFL', image: adNFL, available: true },
-{ id: 'slot2', title: 'NBA Game Night Sponsor', sport: 'NBA', image: adNBA, available: true },
-{ id: 'slot3', title: 'Official Game Night Sponsor', sport: 'MLB', image: adMLB, available: true },
-{ id: 'slot4', title: 'NHL Game Night Sponsor', sport: 'NHL', image: adNHL, available: true },
-{ id: 'main', title: 'Host Your Watch Party Here', sport: 'Main', image: adMain, available: true, featured: true }
-];
-return (
-<div className="ad-carousel-wrap">
-<div className="ad-carousel-track"
-onTouchStart={(e) => { adTouchStartRef.current = e.touches[0].clientX; }}
-onTouchEnd={(e) => { const diff = adTouchStartRef.current - e.changedTouches[0].clientX; if (Math.abs(diff) > 50) { setAdSlideIndex(prev => diff > 0 ? (prev + 1) % adSlots.length : (prev - 1 + adSlots.length) % adSlots.length); } }}
->
-<div className="ad-carousel-slides" style={{ transform: `translateX(-${adSlideIndex * 100}%)` }}>
-{adSlots.map((ad) => (
-<div key={ad.id} className="ad-slide" style={{ padding: 0, minHeight: 'auto', background: 'none' }}>
-<div className="relative w-full">
-<img src={ad.image} alt={ad.title} className="w-full h-auto rounded-2xl" style={{ display: 'block' }} />
-<div className="absolute top-3 left-3 bg-emerald-500 text-white px-2.5 py-1 rounded-full text-[10px] font-bold uppercase shadow-lg">Available</div>
-<button onClick={() => { if (window.confirm('Interested in sponsoring? Contact us at sponsors@huddleupusa.com')) { window.location.href = 'mailto:sponsors@huddleupusa.com?subject=Sponsor Inquiry - ' + ad.title; } }} className="absolute bottom-3 right-3 px-4 py-2 rounded-lg font-bold text-sm transition-all active:scale-95 bg-white/90 text-gray-900 backdrop-blur-sm shadow-lg hover:bg-white">
-Become a Sponsor →
-</button>
-</div>
-</div>
-))}
-</div>
-</div>
-<div className="ad-carousel-dots" role="tablist" aria-label="Ad carousel">
-{adSlots.map((slot, i) => (
-<button key={i} role="tab" aria-selected={i === adSlideIndex} aria-label={`Sponsor slot ${i + 1}: ${slot.title}`} className={`ad-dot ${i === adSlideIndex ? 'active' : ''}`} onClick={() => setAdSlideIndex(i)} />
-))}
-</div>
-</div>
-);
-})()}
-
 
  {lastChanceParties.length > 0 && (
  <div className="mb-4 rounded-2xl overflow-hidden border border-red-500/30 bg-gradient-to-r from-red-900/30 via-[#151A22] to-pink-900/20">
@@ -6366,7 +6330,7 @@ Become a Sponsor →
 
  <div className="glow-divider my-[15px]" />
 
- <h2 id="find-your-sport" className="text-white font-bold text-2xl mb-[15px] uppercase tracking-[1px] section-header-glow" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em', scrollMarginTop: '60px' }}>FIND YOUR SPORT</h2>
+ <h2 id="find-your-sport" className="text-white font-bold text-2xl mb-[15px] uppercase tracking-[1px] section-header-glow" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em', scrollMarginTop: '116px' }}>FIND YOUR SPORT</h2>
  <div className="relative" data-tour-id="sports-scroller">
  <div
  ref={sportsScrollRef}
@@ -6719,6 +6683,43 @@ const BORDER_MAP = {
    </div>
  );
  })()}
+
+{(() => {
+const adSlots = [
+{ id: 'slot1', title: 'NFL Watch Party Sponsor', sport: 'NFL', image: adNFL, available: true },
+{ id: 'slot2', title: 'NBA Game Night Sponsor', sport: 'NBA', image: adNBA, available: true },
+{ id: 'slot3', title: 'Official Game Night Sponsor', sport: 'MLB', image: adMLB, available: true },
+{ id: 'slot4', title: 'NHL Game Night Sponsor', sport: 'NHL', image: adNHL, available: true },
+{ id: 'main', title: 'Host Your Watch Party Here', sport: 'Main', image: adMain, available: true, featured: true }
+];
+return (
+<div className="ad-carousel-wrap">
+<div className="ad-carousel-track"
+onTouchStart={(e) => { adTouchStartRef.current = e.touches[0].clientX; }}
+onTouchEnd={(e) => { const diff = adTouchStartRef.current - e.changedTouches[0].clientX; if (Math.abs(diff) > 50) { setAdSlideIndex(prev => diff > 0 ? (prev + 1) % adSlots.length : (prev - 1 + adSlots.length) % adSlots.length); } }}
+>
+<div className="ad-carousel-slides" style={{ transform: `translateX(-${adSlideIndex * 100}%)` }}>
+{adSlots.map((ad) => (
+<div key={ad.id} className="ad-slide" style={{ padding: 0, minHeight: 'auto', background: 'none' }}>
+<div className="relative w-full">
+<img src={ad.image} alt={ad.title} className="w-full h-auto rounded-2xl" style={{ display: 'block' }} />
+<div className="absolute top-3 left-3 bg-emerald-500 text-white px-2.5 py-1 rounded-full text-[10px] font-bold uppercase shadow-lg">Available</div>
+<button onClick={() => { if (window.confirm('Interested in sponsoring? Contact us at sponsors@huddleupusa.com')) { window.location.href = 'mailto:sponsors@huddleupusa.com?subject=Sponsor Inquiry - ' + ad.title; } }} className="absolute bottom-3 right-3 px-4 py-2 rounded-lg font-bold text-sm transition-all active:scale-95 bg-white/90 text-gray-900 backdrop-blur-sm shadow-lg hover:bg-white">
+Become a Sponsor →
+</button>
+</div>
+</div>
+))}
+</div>
+</div>
+<div className="ad-carousel-dots" role="tablist" aria-label="Ad carousel">
+{adSlots.map((slot, i) => (
+<button key={i} role="tab" aria-selected={i === adSlideIndex} aria-label={`Sponsor slot ${i + 1}: ${slot.title}`} className={`ad-dot ${i === adSlideIndex ? 'active' : ''}`} onClick={() => setAdSlideIndex(i)} />
+))}
+</div>
+</div>
+);
+})()}
 
 {(() => {
  const wcStart = new Date('2026-06-11T19:00:00Z');
