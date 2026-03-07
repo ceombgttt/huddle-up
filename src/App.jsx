@@ -6038,7 +6038,7 @@ const qrScannerRef = useRef(null);
 </div>
 )}
 
-<div className="grid grid-cols-2 gap-3 mb-3">
+<div className="grid grid-cols-2 gap-3 mb-3 mt-4">
 <button type="button" onClick={scrollToFindYourSport} className="relative overflow-hidden rounded-2xl border border-[#1E90FF]/40 bg-gradient-to-br from-[#1E90FF]/20 to-[#151A22] p-4 text-center hover:border-[#1E90FF]/60 transition-all active:scale-[0.97] cursor-pointer" style={{ minHeight: '80px' }}>
 <div className="flex flex-col items-center gap-2">
 <div className="w-10 h-10 bg-gradient-to-br from-[#1E90FF] to-[#1565C0] rounded-xl flex items-center justify-center shadow-lg shadow-[#1E90FF]/30">
@@ -6159,7 +6159,7 @@ const qrScannerRef = useRef(null);
  }`}
  >
  <Star className={`w-4 h-4 ${myTeamsOnly ? 'fill-white' : ''}`} />
- My Teams ({Object.keys(user.favoriteTeams).length})
+ Favorite Teams ({Object.keys(user.favoriteTeams).length})
  </button>
  ) : (
  <button
@@ -6167,7 +6167,7 @@ const qrScannerRef = useRef(null);
  className="w-full h-[45px] rounded-[10px] font-semibold text-sm bg-[#151A22] text-[#A0A4AB] hover:bg-[#222A36] border border-[#222A36] flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]"
  >
  <Star className="w-4 h-4" />
- My Teams
+ Favorite Teams
  </button>
  )}
  </div>
@@ -16086,8 +16086,8 @@ Become a Sponsor →
 
  {hamburgerOpen && user && (
  <>
- <div className="fixed inset-0 bg-black/50 z-[70] transition-opacity" onClick={() => { setHamburgerOpen(false); setMoreOptionsOpen(false); }} />
- <div className="fixed top-0 left-0 bottom-0 w-72 bg-[#151A22] z-[80] shadow-2xl overflow-y-auto hamburger-menu" style={{ animation: 'slideInLeft 300ms ease-in-out' }}>
+ <div className="fixed inset-0 bg-black/50 z-[70] transition-opacity" style={{ touchAction: 'none' }} onClick={() => { setHamburgerOpen(false); setMoreOptionsOpen(false); }} />
+ <div className="fixed top-0 left-0 bottom-0 w-72 bg-[#151A22] z-[80] shadow-2xl hamburger-menu" style={{ animation: 'slideInLeft 300ms ease-in-out', overflowY: 'auto', WebkitOverflowScrolling: 'touch', overscrollBehaviorY: 'contain', touchAction: 'pan-y' }}>
  <div className="flex items-center justify-between p-4 border-b border-[#222A36]">
  <span className="text-white font-black text-lg" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>MENU</span>
  <button onClick={() => setHamburgerOpen(false)} className="p-2 rounded-xl hover:bg-[#222A36] transition-colors active:scale-95">

@@ -161,7 +161,11 @@ input, textarea, select {
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
+  touch-action: pan-y !important;
+}
+
+.hamburger-menu * {
+  touch-action: pan-y !important;
 }
 
 @media (hover: none) {
