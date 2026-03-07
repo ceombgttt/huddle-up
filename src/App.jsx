@@ -13896,12 +13896,14 @@ Become a Sponsor →
  };
 
  const RewardsScreen = () => {
+ const [selectedReward, setSelectedReward] = useState(null);
+ const [selectedPointAction, setSelectedPointAction] = useState(null);
  const pointActions = [
- { action: 'Create a Party', points: 50, icon: <Plus className="w-5 h-5" />, color: 'from-[#1E90FF] to-[#1E90FF]' },
- { action: 'Attend a Party', points: 25, icon: <Users className="w-5 h-5" />, color: 'from-green-500 to-emerald-500' },
- { action: 'Invite a Friend', points: 100, icon: <Send className="w-5 h-5" />, color: 'from-purple-500 to-pink-500' },
- { action: 'Check In at Venue', points: 75, icon: <MapPin className="w-5 h-5" />, color: 'from-orange-500 to-amber-500' },
- { action: 'Referral Bonus', points: 50, icon: <Gift className="w-5 h-5" />, color: 'from-yellow-500 to-amber-500' },
+ { action: 'Create a Party', points: 50, icon: <Plus className="w-5 h-5" />, color: 'from-[#1E90FF] to-[#1E90FF]', description: 'Host a watch party for any upcoming game. Pick a venue, set the details, and invite fans to join you. You earn 50 points every time you create a new party.' },
+ { action: 'Attend a Party', points: 25, icon: <Users className="w-5 h-5" />, color: 'from-green-500 to-emerald-500', description: 'Join another fan\'s watch party and show up for the game. You earn 25 points for each party you attend. The more you show up, the more you earn.' },
+ { action: 'Invite a Friend', points: 100, icon: <Send className="w-5 h-5" />, color: 'from-purple-500 to-pink-500', description: 'Share your referral link with friends. When they sign up and join the app, you earn 100 points. There\'s no limit — invite as many friends as you want.' },
+ { action: 'Check In at Venue', points: 75, icon: <MapPin className="w-5 h-5" />, color: 'from-orange-500 to-amber-500', description: 'When you arrive at a venue for a watch party, scan the QR code to check in. You earn 75 points for verifying your attendance at the location.' },
+ { action: 'Referral Bonus', points: 50, icon: <Gift className="w-5 h-5" />, color: 'from-yellow-500 to-amber-500', description: 'When a new user signs up using a referral code, both you and the new user get 50 bonus points. Share your code from the Fan Finder or Profile page.' },
  ];
 
  return (
@@ -13959,13 +13961,14 @@ Become a Sponsor →
  </h3>
  <div className="grid grid-cols-2 gap-3">
  {pointActions.map((item, i) => (
- <div key={i} className="bg-[#151A22]/80 rounded-2xl border border-[#222A36] p-4 text-center">
+ <div key={i} className="bg-[#151A22]/80 rounded-2xl border border-[#222A36] p-4 text-center cursor-pointer hover:border-[#1E90FF]/30 transition-all active:scale-[0.98]" onClick={() => setSelectedPointAction(item)}>
  <div className={`w-12 h-12 bg-gradient-to-br ${item.color} rounded-2xl flex items-center justify-center mx-auto mb-2 text-white shadow-sm`}>
  {item.icon}
  </div>
  <div className="text-white font-bold text-sm">{item.action}</div>
  <div className="text-yellow-400 font-black text-lg mt-1">+{item.points}</div>
  <div className="text-[#A0A4AB]/70 text-xs">points</div>
+ <div className="text-[#1E90FF] text-[10px] font-semibold mt-1.5">Tap for details</div>
  </div>
  ))}
  </div>
@@ -14022,11 +14025,11 @@ Become a Sponsor →
  return (
  <div key={raffle.id} className="bg-gradient-to-br from-[#151A22] to-[#1a1f2e] rounded-2xl border border-[#222A36] overflow-hidden">
  {raffle.image_url && (
- <div className="w-full h-40 overflow-hidden">
+ <div className="w-full h-40 overflow-hidden cursor-pointer" onClick={() => setSelectedReward(raffle)}>
  <img src={raffle.image_url.startsWith('/objects/') ? `/api/uploads/serve/${raffle.image_url.replace('/objects/', '')}` : raffle.image_url} alt={raffle.title} className="w-full h-full object-cover" />
  </div>
  )}
- <div className="bg-gradient-to-r from-yellow-500/20 via-amber-500/10 to-orange-500/20 p-4 border-b border-[#222A36]">
+ <div className="bg-gradient-to-r from-yellow-500/20 via-amber-500/10 to-orange-500/20 p-4 border-b border-[#222A36] cursor-pointer" onClick={() => setSelectedReward(raffle)}>
  <div className="flex items-start gap-3">
  <div className="w-14 h-14 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 shadow-lg shadow-orange-500/20">
  {raffle.prize_icon}
@@ -14034,6 +14037,7 @@ Become a Sponsor →
  <div className="flex-1 min-w-0">
  <div className="text-white font-black text-lg">{raffle.title}</div>
  <div className="text-yellow-300/80 text-xs font-medium mt-0.5">{raffle.prize_description}</div>
+ <div className="text-[#1E90FF] text-[10px] font-semibold mt-1 flex items-center gap-0.5">View Details <ChevronRight className="w-3 h-3" /></div>
  </div>
  </div>
  </div>
@@ -14100,7 +14104,7 @@ Become a Sponsor →
  <h4 className="text-sm font-bold text-[#A0A4AB] mb-3">PAST RAFFLES</h4>
  <div className="space-y-2">
  {raffles.filter(r => r.status === 'ended').map(raffle => (
- <div key={raffle.id} className="bg-[#151A22]/60 rounded-xl border border-white/5 p-3 flex items-center gap-3">
+ <div key={raffle.id} className="bg-[#151A22]/60 rounded-xl border border-white/5 p-3 flex items-center gap-3 cursor-pointer hover:border-white/10 transition-all" onClick={() => setSelectedReward(raffle)}>
  <span className="text-xl">{raffle.prize_icon}</span>
  <div className="flex-1 min-w-0">
  <div className="text-white text-sm font-medium">{raffle.title}</div>
@@ -14113,6 +14117,7 @@ Become a Sponsor →
  {raffle.my_entries} entries
  </span>
  )}
+ <ChevronRight className="w-4 h-4 text-[#A0A4AB] flex-shrink-0" />
  </div>
  ))}
  </div>
@@ -14191,6 +14196,94 @@ Become a Sponsor →
  </div>
  </div>
  </div>
+
+ {selectedPointAction && (
+ <div className="fixed inset-0 bg-black/80 z-[70] flex items-end sm:items-center justify-center" onClick={() => setSelectedPointAction(null)}>
+ <div className="bg-[#151A22] w-full max-w-md rounded-t-3xl sm:rounded-3xl border border-[#222A36]" onClick={e => e.stopPropagation()}>
+ <div className="p-6 space-y-4">
+ <div className="flex items-center gap-4">
+ <div className={`w-16 h-16 bg-gradient-to-br ${selectedPointAction.color} rounded-2xl flex items-center justify-center text-white shadow-lg`}>
+ {selectedPointAction.icon}
+ </div>
+ <div>
+ <h3 className="text-white font-black text-xl">{selectedPointAction.action}</h3>
+ <div className="text-yellow-400 font-black text-2xl mt-0.5">+{selectedPointAction.points} <span className="text-sm font-bold">points</span></div>
+ </div>
+ </div>
+ <div className="bg-[#0F1115] rounded-xl p-4">
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">{selectedPointAction.description}</p>
+ </div>
+ <button
+ onClick={() => setSelectedPointAction(null)}
+ className="w-full py-3 bg-[#222A36] text-white font-bold rounded-xl hover:bg-[#2A3040] transition-all"
+ >
+ Got It
+ </button>
+ </div>
+ </div>
+ </div>
+ )}
+
+ {selectedReward && (
+ <div className="fixed inset-0 bg-black/80 z-[70] flex items-end sm:items-center justify-center" onClick={() => setSelectedReward(null)}>
+ <div className="bg-[#151A22] w-full max-w-lg rounded-t-3xl sm:rounded-3xl border border-[#222A36] max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+ {selectedReward.image_url && (
+ <div className="w-full h-48 overflow-hidden rounded-t-3xl sm:rounded-t-3xl">
+ <img src={selectedReward.image_url.startsWith('/objects/') ? `/api/uploads/serve/${selectedReward.image_url.replace('/objects/', '')}` : selectedReward.image_url} alt={selectedReward.title} className="w-full h-full object-cover" />
+ </div>
+ )}
+ <div className="p-6 space-y-4">
+ <div className="flex items-start gap-4">
+ <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0 shadow-lg shadow-orange-500/20">
+ {selectedReward.prize_icon}
+ </div>
+ <div className="flex-1 min-w-0">
+ <h3 className="text-white font-black text-xl">{selectedReward.title}</h3>
+ <div className="text-yellow-300 text-sm font-medium mt-1">{selectedReward.prize_description}</div>
+ </div>
+ </div>
+
+ <div className="grid grid-cols-3 gap-3">
+ <div className="bg-[#0F1115] rounded-xl p-3 text-center">
+ <div className="text-yellow-400 font-black text-lg">{selectedReward.points_per_entry}</div>
+ <div className="text-[#A0A4AB] text-[10px] uppercase tracking-wider">pts/entry</div>
+ </div>
+ <div className="bg-[#0F1115] rounded-xl p-3 text-center">
+ <div className="text-white font-black text-lg">{parseInt(selectedReward.total_entries) || 0}</div>
+ <div className="text-[#A0A4AB] text-[10px] uppercase tracking-wider">total entries</div>
+ </div>
+ <div className="bg-[#0F1115] rounded-xl p-3 text-center">
+ <div className="text-white font-black text-lg">{Math.max(0, Math.ceil((new Date(selectedReward.end_date) - new Date()) / (1000 * 60 * 60 * 24)))}</div>
+ <div className="text-[#A0A4AB] text-[10px] uppercase tracking-wider">days left</div>
+ </div>
+ </div>
+
+ {(parseInt(selectedReward.my_entries) || 0) > 0 && (
+ <div className="bg-green-500/10 border border-green-500/20 rounded-xl px-4 py-3 flex items-center justify-between">
+ <span className="text-green-400 text-sm font-medium flex items-center gap-1.5">
+ <CheckCircle className="w-4 h-4" /> You have {selectedReward.my_entries} {parseInt(selectedReward.my_entries) === 1 ? 'entry' : 'entries'}
+ </span>
+ <span className="text-[#A0A4AB] text-xs">{selectedReward.my_entries}/{selectedReward.max_entries_per_user} max</span>
+ </div>
+ )}
+
+ {selectedReward.status === 'ended' && (
+ <div className="bg-[#0F1115] rounded-xl p-4 text-center">
+ <div className="text-[#A0A4AB] text-sm font-medium">This raffle has ended</div>
+ {selectedReward.winner_name && <div className="text-yellow-400 text-sm font-bold mt-1">Winner: {selectedReward.winner_name}</div>}
+ </div>
+ )}
+
+ <button
+ onClick={() => setSelectedReward(null)}
+ className="w-full py-3 bg-[#222A36] text-white font-bold rounded-xl hover:bg-[#2A3040] transition-all"
+ >
+ Close
+ </button>
+ </div>
+ </div>
+ </div>
+ )}
  </div>
  );
  };
