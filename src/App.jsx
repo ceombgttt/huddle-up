@@ -1937,15 +1937,9 @@ const qrScannerRef = useRef(null);
 
  useEffect(() => {
    if (isStandalone) { setIsAppInstalled(true); return; }
-   const dismissed = localStorage.getItem('pwa_install_dismissed');
-   if (dismissed) {
-     const dismissedAt = parseInt(dismissed);
-     if (Date.now() - dismissedAt < 7 * 24 * 60 * 60 * 1000) return;
-   }
    const handler = (e) => {
      e.preventDefault();
      setPwaInstallPrompt(e);
-     setShowInstallBanner(true);
    };
    window.addEventListener('beforeinstallprompt', handler);
    const installedHandler = () => {
@@ -1954,17 +1948,29 @@ const qrScannerRef = useRef(null);
      setPwaInstallPrompt(null);
    };
    window.addEventListener('appinstalled', installedHandler);
-   if (isIos) {
-     const iosDismissed = localStorage.getItem('pwa_install_dismissed');
-     if (!iosDismissed || (Date.now() - parseInt(iosDismissed)) >= 7 * 24 * 60 * 60 * 1000) {
-       setTimeout(() => setShowInstallBanner(true), 3000);
-     }
-   }
    return () => {
      window.removeEventListener('beforeinstallprompt', handler);
      window.removeEventListener('appinstalled', installedHandler);
    };
  }, []);
+
+ useEffect(() => {
+   if (!user || isStandalone || isAppInstalled) {
+     setShowInstallBanner(false);
+     return;
+   }
+   const dismissed = localStorage.getItem('pwa_install_dismissed');
+   if (dismissed) {
+     const dismissedAt = parseInt(dismissed);
+     if (Date.now() - dismissedAt < 7 * 24 * 60 * 60 * 1000) return;
+   }
+   if (pwaInstallPrompt) {
+     setShowInstallBanner(true);
+   } else if (isIos) {
+     const t = setTimeout(() => setShowInstallBanner(true), 3000);
+     return () => clearTimeout(t);
+   }
+ }, [user, pwaInstallPrompt]);
 
  const handlePwaInstall = async () => {
    if (isIos) {
