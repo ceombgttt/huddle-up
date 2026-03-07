@@ -6493,7 +6493,7 @@ Become a Sponsor →
  setCurrentScreen('gameDetail');
  window.scrollTo(0, 0);
  }}
- className={`flex-shrink-0 w-[280px] bg-[#151A22] p-5 rounded-[12px] border border-[#222A36] hover:border-[#1E90FF]/50 cursor-pointer active:scale-[0.98] transition-all duration-200 sport-card-glow ${game.gameStatus === 'live' ? 'sport-card-live' : ''}`}
+ className={`flex-shrink-0 w-[300px] bg-[#151A22] p-5 rounded-2xl border border-[#222A36] hover:border-[#1E90FF]/50 cursor-pointer active:scale-[0.98] transition-all duration-200 sport-card-glow ${game.gameStatus === 'live' ? 'sport-card-live' : ''}`}
  >
  <div className="flex items-center justify-between mb-2">
  <span className="px-2.5 py-1 bg-[#1E90FF]/20 text-[#1E90FF] text-xs font-bold rounded-full border border-[#1E90FF]/30">
@@ -6535,34 +6535,34 @@ Become a Sponsor →
  {game.gameStatus === 'live' || game.gameStatus === 'final' ? (
  <div>
  <div className="flex items-center justify-center gap-2 mb-2">
- <div className="flex-1 flex flex-col items-center gap-1">
- {game.homeLogo && <img src={game.homeLogo} alt="" className="w-12 h-12 object-contain" />}
- <span className="text-sm font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.homeTeam}</span>
+ <div className="flex-1 flex flex-col items-center gap-1.5">
+ {game.homeLogo && <img src={game.homeLogo} alt="" className="w-16 h-16 object-contain drop-shadow-lg" />}
+ <span className="text-base font-black text-white text-center leading-tight uppercase" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>{game.homeTeam}</span>
  </div>
- <div className={`text-2xl font-black flex-shrink-0 ${game.gameStatus === 'live' ? 'score-led' : ''}`} style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+ <div className={`text-3xl font-black flex-shrink-0 ${game.gameStatus === 'live' ? 'score-led' : ''}`} style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
  <span className={game.homeScore > game.awayScore ? 'text-emerald-400' : 'text-white'}>{game.homeScore}</span>
- <span className="text-[#A0A4AB]/70 mx-0.5">-</span>
+ <span className="text-[#A0A4AB]/70 mx-1">-</span>
  <span className={game.awayScore > game.homeScore ? 'text-emerald-400' : 'text-white'}>{game.awayScore}</span>
  </div>
- <div className="flex-1 flex flex-col items-center gap-1">
- {game.awayLogo && <img src={game.awayLogo} alt="" className="w-12 h-12 object-contain" />}
- <span className="text-sm font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.awayTeam}</span>
+ <div className="flex-1 flex flex-col items-center gap-1.5">
+ {game.awayLogo && <img src={game.awayLogo} alt="" className="w-16 h-16 object-contain drop-shadow-lg" />}
+ <span className="text-base font-black text-white text-center leading-tight uppercase" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>{game.awayTeam}</span>
  </div>
  </div>
- <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${game.gameStatus === 'live' ? 'bg-red-500/20 text-red-400 border border-red-500/30 live-badge-pulse' : 'bg-gray-500/20 text-[#A0A4AB] border border-gray-500/30'}`}>
+ <span className={`px-3 py-1 text-xs font-bold rounded-full ${game.gameStatus === 'live' ? 'bg-red-500/20 text-red-400 border border-red-500/30 live-badge-pulse' : 'bg-gray-500/20 text-[#A0A4AB] border border-gray-500/30'}`}>
  {game.statusDetail}
  </span>
  </div>
  ) : (
  <div className="flex items-center justify-center gap-3 mb-2">
- <div className="flex-1 flex flex-col items-center gap-1">
- {game.homeLogo && <img src={game.homeLogo} alt="" className="w-12 h-12 object-contain" />}
- <span className="text-sm font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.homeTeam}</span>
+ <div className="flex-1 flex flex-col items-center gap-1.5">
+ {game.homeLogo && <img src={game.homeLogo} alt="" className="w-16 h-16 object-contain drop-shadow-lg" />}
+ <span className="text-base font-black text-white text-center leading-tight uppercase" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>{game.homeTeam}</span>
  </div>
- <span className="text-lg font-black text-[#1E90FF] flex-shrink-0" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>VS</span>
- <div className="flex-1 flex flex-col items-center gap-1">
- {game.awayLogo && <img src={game.awayLogo} alt="" className="w-12 h-12 object-contain" />}
- <span className="text-sm font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{game.awayTeam}</span>
+ <span className="text-xl font-black text-[#1E90FF] flex-shrink-0" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>VS</span>
+ <div className="flex-1 flex flex-col items-center gap-1.5">
+ {game.awayLogo && <img src={game.awayLogo} alt="" className="w-16 h-16 object-contain drop-shadow-lg" />}
+ <span className="text-base font-black text-white text-center leading-tight uppercase" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>{game.awayTeam}</span>
  </div>
  </div>
  )}
@@ -6711,14 +6711,14 @@ const BORDER_MAP = {
    <div className="flex items-center gap-3 my-1.5">
    {(() => { const homeLogo = event.homeLogo || getTeamLogoUrl(event.sport, event.homeTeam); const awayLogo = event.awayLogo || getTeamLogoUrl(event.sport, event.awayTeam); return (
    <>
-   <div className="flex flex-col items-center gap-1 flex-1 min-w-0">
-   {homeLogo ? <img src={homeLogo} alt="" className="w-10 h-10 object-contain" onError={(e) => e.target.style.display='none'} /> : <span className="text-2xl">{SPORT_ICONS[event.sport] || '🏅'}</span>}
-   <span className="text-white font-bold text-[10px] leading-tight text-center truncate w-full">{event.homeTeam}</span>
+   <div className="flex flex-col items-center gap-1.5 flex-1 min-w-0">
+   {homeLogo ? <img src={homeLogo} alt="" className="w-14 h-14 object-contain drop-shadow-md" onError={(e) => e.target.style.display='none'} /> : <span className="text-3xl">{SPORT_ICONS[event.sport] || '🏅'}</span>}
+   <span className="text-white font-black text-xs leading-tight text-center truncate w-full uppercase" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{event.homeTeam}</span>
    </div>
-   <span className="text-white/40 font-black text-xs flex-shrink-0">VS</span>
-   <div className="flex flex-col items-center gap-1 flex-1 min-w-0">
-   {awayLogo ? <img src={awayLogo} alt="" className="w-10 h-10 object-contain" onError={(e) => e.target.style.display='none'} /> : <span className="text-2xl">{SPORT_ICONS[event.sport] || '🏅'}</span>}
-   <span className="text-white/70 font-bold text-[10px] leading-tight text-center truncate w-full">{event.awayTeam}</span>
+   <span className="text-white/40 font-black text-sm flex-shrink-0">VS</span>
+   <div className="flex flex-col items-center gap-1.5 flex-1 min-w-0">
+   {awayLogo ? <img src={awayLogo} alt="" className="w-14 h-14 object-contain drop-shadow-md" onError={(e) => e.target.style.display='none'} /> : <span className="text-3xl">{SPORT_ICONS[event.sport] || '🏅'}</span>}
+   <span className="text-white/70 font-black text-xs leading-tight text-center truncate w-full uppercase" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{event.awayTeam}</span>
    </div>
    </>
    ); })()}
@@ -6840,9 +6840,9 @@ const BORDER_MAP = {
  {selectedGame.gameStatus === 'live' || selectedGame.gameStatus === 'final' ? (
  <>
  <div className="flex items-center justify-center gap-4 mb-4">
- <div className="flex-1 flex flex-col items-center gap-1">
- {selectedGame.homeLogo && <img src={selectedGame.homeLogo} alt="" className="w-16 h-16 object-contain mx-auto" />}
- <div className="text-base font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{selectedGame.homeTeam}</div>
+ <div className="flex-1 flex flex-col items-center gap-2">
+ {selectedGame.homeLogo && <img src={selectedGame.homeLogo} alt="" className="w-20 h-20 object-contain mx-auto drop-shadow-lg" />}
+ <div className="text-lg font-black text-white text-center leading-tight uppercase" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>{selectedGame.homeTeam}</div>
  {selectedGame.homeRecord && <div className="text-xs text-[#A0A4AB]/70">{selectedGame.homeRecord}</div>}
  </div>
  <div className={`text-5xl font-black flex-shrink-0 ${selectedGame.gameStatus === 'live' ? 'score-led' : ''}`} style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
@@ -6850,9 +6850,9 @@ const BORDER_MAP = {
  <span className="text-[#A0A4AB]/70 mx-2">-</span>
  <span className={selectedGame.awayScore > selectedGame.homeScore ? 'text-emerald-400' : 'text-white'}>{selectedGame.awayScore}</span>
  </div>
- <div className="flex-1 flex flex-col items-center gap-1">
- {selectedGame.awayLogo && <img src={selectedGame.awayLogo} alt="" className="w-16 h-16 object-contain mx-auto" />}
- <div className="text-base font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{selectedGame.awayTeam}</div>
+ <div className="flex-1 flex flex-col items-center gap-2">
+ {selectedGame.awayLogo && <img src={selectedGame.awayLogo} alt="" className="w-20 h-20 object-contain mx-auto drop-shadow-lg" />}
+ <div className="text-lg font-black text-white text-center leading-tight uppercase" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>{selectedGame.awayTeam}</div>
  {selectedGame.awayRecord && <div className="text-xs text-[#A0A4AB]/70">{selectedGame.awayRecord}</div>}
  </div>
  </div>
@@ -6862,14 +6862,14 @@ const BORDER_MAP = {
  </>
  ) : (
  <div className="flex items-center justify-center gap-6 mb-4">
- <div className="flex-1 flex flex-col items-center gap-1">
- {selectedGame.homeLogo && <img src={selectedGame.homeLogo} alt="" className="w-16 h-16 object-contain mx-auto" />}
- <div className="text-base font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{selectedGame.homeTeam}</div>
+ <div className="flex-1 flex flex-col items-center gap-2">
+ {selectedGame.homeLogo && <img src={selectedGame.homeLogo} alt="" className="w-20 h-20 object-contain mx-auto drop-shadow-lg" />}
+ <div className="text-lg font-black text-white text-center leading-tight uppercase" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>{selectedGame.homeTeam}</div>
  </div>
- <span className="text-2xl font-black text-[#1E90FF] flex-shrink-0" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>VS</span>
- <div className="flex-1 flex flex-col items-center gap-1">
- {selectedGame.awayLogo && <img src={selectedGame.awayLogo} alt="" className="w-16 h-16 object-contain mx-auto" />}
- <div className="text-base font-black text-white text-center leading-tight" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{selectedGame.awayTeam}</div>
+ <span className="text-3xl font-black text-[#1E90FF] flex-shrink-0" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>VS</span>
+ <div className="flex-1 flex flex-col items-center gap-2">
+ {selectedGame.awayLogo && <img src={selectedGame.awayLogo} alt="" className="w-20 h-20 object-contain mx-auto drop-shadow-lg" />}
+ <div className="text-lg font-black text-white text-center leading-tight uppercase" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>{selectedGame.awayTeam}</div>
  </div>
  </div>
  )}
@@ -7072,8 +7072,8 @@ const BORDER_MAP = {
  <div className="space-y-2 text-sm text-[#A0A4AB]">
  {party.venueName && (
  <div className="flex items-center gap-2">
- <Building2 className="w-4 h-4 text-[#1E90FF]" />
- <button onClick={() => { const mv = venues.find(v => v.name?.toLowerCase() === party.venueName?.toLowerCase()); if (mv?.id) { setSelectedVenueId(mv.id); setCurrentScreen('venueDetail'); } }} className="text-white font-bold text-[15px] hover:text-[#1E90FF] transition-colors text-left">{party.venueName}</button>
+ <MapPin className="w-5 h-5 text-emerald-400" />
+ <button onClick={() => { const mv = venues.find(v => v.name?.toLowerCase() === party.venueName?.toLowerCase()); if (mv?.id) { setSelectedVenueId(mv.id); setCurrentScreen('venueDetail'); } }} className="text-white font-black text-lg hover:text-[#1E90FF] transition-colors text-left">{party.venueName}</button>
  </div>
  )}
  <div className="flex items-center gap-2">
@@ -11568,20 +11568,20 @@ const BORDER_MAP = {
        <div className="flex items-start justify-between mb-2">
          <div className="flex items-center gap-2 flex-1 min-w-0">
            {(() => { const hLogo = getTeamLogoUrl(party.sport, party.homeTeam); const aLogo = getTeamLogoUrl(party.sport, party.awayTeam); return (hLogo || aLogo) ? (
-           <div className="flex items-center gap-1 flex-shrink-0">
-             {hLogo && <img src={hLogo} alt="" className="w-6 h-6 object-contain" onError={(e) => { e.target.onerror=null; e.target.style.display='none'; }} />}
-             {aLogo && <img src={aLogo} alt="" className="w-6 h-6 object-contain" onError={(e) => { e.target.onerror=null; e.target.style.display='none'; }} />}
+           <div className="flex items-center gap-1.5 flex-shrink-0">
+             {hLogo && <img src={hLogo} alt="" className="w-10 h-10 object-contain drop-shadow-md" onError={(e) => { e.target.onerror=null; e.target.style.display='none'; }} />}
+             {aLogo && <img src={aLogo} alt="" className="w-10 h-10 object-contain drop-shadow-md" onError={(e) => { e.target.onerror=null; e.target.style.display='none'; }} />}
            </div>
-           ) : <span className="text-lg flex-shrink-0">{getSportIcon(party.sport)}</span>; })()}
+           ) : <span className="text-2xl flex-shrink-0">{getSportIcon(party.sport)}</span>; })()}
            <div className="min-w-0">
-             <span className="text-white font-bold text-sm">{String(party.homeTeam || '?')} vs {String(party.awayTeam || '?')}</span>
+             <span className="text-white font-bold text-base">{String(party.homeTeam || '?')} vs {String(party.awayTeam || '?')}</span>
              {isLive && <span className="ml-2 px-2 py-0.5 bg-red-500 text-white text-[10px] font-black rounded-full live-badge-pulse">LIVE</span>}
-             {isPopular && !isLive && <span className="ml-2 text-orange-400 text-[10px] font-bold">🔥 POPULAR</span>}
+             {isPopular && !isLive && <span className="ml-2 text-orange-400 text-[10px] font-bold">POPULAR</span>}
            </div>
          </div>
        </div>
        <div className="text-sm text-[#A0A4AB] space-y-1">
-         <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" /><span className="truncate text-white font-bold text-[14px]">{String(party.venueName || 'TBD')}</span></div>
+         <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-emerald-400 flex-shrink-0" /><span className="truncate text-white font-black text-base">{String(party.venueName || 'TBD')}</span></div>
          <div className="flex items-center gap-2"><Calendar className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" /><span>{gt ? gt.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : String(party.gameTime || 'TBD')}</span><span className="text-[#1E90FF] text-xs font-semibold ml-1">{getCountdown(party.gameTime)}</span></div>
          <div className="flex items-center gap-4">
            <div className="flex items-center gap-2"><Users className="w-3.5 h-3.5 text-[#1E90FF] flex-shrink-0" /><span>{atCount} going</span></div>
