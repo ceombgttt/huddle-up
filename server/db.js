@@ -578,10 +578,10 @@ export async function initDB() {
     }
 
     await client.query(`
-      UPDATE venues SET latitude = 26.12230000, longitude = -80.14360000 WHERE latitude IS NULL AND name ILIKE '%Buffalo Wild Wings%' AND address ILIKE '%Fort Lauderdale%';
-      UPDATE venues SET latitude = 26.11920000, longitude = -80.10540000 WHERE latitude IS NULL AND name ILIKE '%Pub Sports%' AND address ILIKE '%Fort Lauderdale%';
-      UPDATE venues SET latitude = 26.11890000, longitude = -80.13780000 WHERE latitude IS NULL AND name ILIKE '%Yard House%' AND address ILIKE '%Fort Lauderdale%';
-      UPDATE venues SET latitude = 26.18470000, longitude = -80.12450000 WHERE latitude IS NULL AND name ILIKE '%Bokampers%';
+      UPDATE venues SET latitude = 26.12230000, longitude = -80.14360000, city = COALESCE(NULLIF(city, ''), 'Fort Lauderdale') WHERE latitude IS NULL AND name ILIKE '%Buffalo Wild Wings%' AND address ILIKE '%Fort Lauderdale%';
+      UPDATE venues SET latitude = 26.11920000, longitude = -80.10540000, city = COALESCE(NULLIF(city, ''), 'Fort Lauderdale') WHERE latitude IS NULL AND name ILIKE '%Pub Sports%' AND address ILIKE '%Fort Lauderdale%';
+      UPDATE venues SET latitude = 26.11890000, longitude = -80.13780000, city = COALESCE(NULLIF(city, ''), 'Fort Lauderdale') WHERE latitude IS NULL AND name ILIKE '%Yard House%' AND address ILIKE '%Fort Lauderdale%';
+      UPDATE venues SET latitude = 26.18470000, longitude = -80.12450000, city = COALESCE(NULLIF(city, ''), 'Fort Lauderdale') WHERE latitude IS NULL AND name ILIKE '%Bokampers%';
 
       CREATE INDEX IF NOT EXISTS idx_parties_trending ON parties(is_trending, hot_score DESC);
       CREATE INDEX IF NOT EXISTS idx_venues_location ON venues(latitude, longitude);

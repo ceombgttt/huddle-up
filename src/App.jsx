@@ -1479,6 +1479,9 @@ const [findPartiesSearch, setFindPartiesSearch] = useState('');
 const [findPartiesCityInput, setFindPartiesCityInput] = useState('');
 const [findPartiesShowCity, setFindPartiesShowCity] = useState(false);
 const [findPartiesSport, setFindPartiesSport] = useState('All');
+const [findVenuesSearch, setFindVenuesSearch] = useState('');
+const [findVenuesShowCity, setFindVenuesShowCity] = useState(false);
+const [findVenuesCityInput, setFindVenuesCityInput] = useState('');
  const [venues, setVenues] = useState(SAMPLE_VENUES);
  const [venueClaims, setVenueClaims] = useState([]);
  const [selectedVenue, setSelectedVenue] = useState(null);
@@ -16996,7 +16999,12 @@ Become a Sponsor →
    };
    const fvSportIcons = { 'NFL': '🏈', 'NBA': '🏀', 'NHL': '🏒', 'MLB': '⚾', 'MLS': '⚽', 'College Football': '🏈', 'College Basketball': '🏀', 'Premier League': '⚽', 'La Liga': '⚽', 'Liga MX': '⚽', 'Champions League': '⚽', 'UFC/MMA': '🥊', 'Boxing': '🥊', 'NASCAR': '🏁', 'F1': '🏎️', 'Tennis': '🎾', 'Golf': '⛳' };
    const renderStars = (r) => Array.from({ length: 5 }, (_, i) => <span key={i} style={{ color: i < Math.round(r || 0) ? '#FFD700' : '#444', fontSize: '14px' }}>★</span>);
-   const vList = venues.filter(v => v.verified);
+   const fvSearch = (findVenuesSearch || '').toLowerCase();
+   const allVerified = venues.filter(v => v.verified);
+   const vList = allVerified.filter(v => {
+     if (fvSearch && !(v.name || '').toLowerCase().includes(fvSearch) && !(v.city || '').toLowerCase().includes(fvSearch) && !(v.type || '').toLowerCase().includes(fvSearch) && !(v.address || '').toLowerCase().includes(fvSearch)) return false;
+     return true;
+   });
    const now = new Date();
    const upcomingParties = parties.filter(p => new Date(p.gameTime) >= now);
    const venuePartyLookup = {};
@@ -17022,13 +17030,17 @@ Become a Sponsor →
            );})}
          </MapContainer>
        </div>
-       <div style={{ position: 'absolute', top: '8px', left: '12px', right: '12px', zIndex: 10, display: 'flex', gap: '8px' }}>
-         <button onClick={() => { if (navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { const lat = pos.coords.latitude; const lng = pos.coords.longitude; fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`).then(r => r.json()).then(d => { const city = d.address?.city || d.address?.town || d.address?.village || 'Your Location'; setCurrentCity(`${city}, ${d.address?.state || ''}`); }).catch(() => setCurrentCity('Your Location')); }, () => { alert('Please enable location access to use Near Me'); }); } else { alert('Location is not supported by your browser'); } }} className="flex items-center gap-1.5 px-3 py-2 rounded-full font-bold text-white text-xs shadow-lg" style={{ background: 'linear-gradient(135deg, #1E90FF, #1873cc)', boxShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>
-           <Navigation className="w-3.5 h-3.5" /> Near Me
-         </button>
-         <button onClick={() => setLocationDropdownOpen(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-full font-bold text-white text-xs shadow-lg" style={{ background: '#1a1d28', boxShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>
-           <MapPin className="w-3.5 h-3.5" /> {currentCity || 'Enter City'}
-         </button>
+       <div style={{ position: 'absolute', top: '8px', left: '12px', right: '12px', zIndex: 10 }}>
+         <div className="flex gap-2">
+           <div className="flex-1 relative">
+             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+             <input type="text" value={findVenuesSearch} onChange={e => setFindVenuesSearch(e.target.value)} placeholder="Search venues, cities..." className="w-full pl-8 pr-8 py-2 rounded-full text-white text-xs font-bold placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" style={{ background: '#1a1d28', boxShadow: '0 2px 12px rgba(0,0,0,0.5)' }} />
+             {findVenuesSearch && <button onClick={() => setFindVenuesSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"><X className="w-3.5 h-3.5" /></button>}
+           </div>
+           <button onClick={() => { if (navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { const lat = pos.coords.latitude; const lng = pos.coords.longitude; fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`).then(r => r.json()).then(d => { const city = d.address?.city || d.address?.town || d.address?.village || 'Your Location'; setCurrentCity(`${city}, ${d.address?.state || ''}`); }).catch(() => setCurrentCity('Your Location')); }, () => { alert('Please enable location access to use Near Me'); }); } else { alert('Location is not supported by your browser'); } }} className="flex items-center gap-1.5 px-3 py-2 rounded-full font-bold text-white text-xs shadow-lg flex-shrink-0" style={{ background: 'linear-gradient(135deg, #1E90FF, #1873cc)', boxShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>
+             <Navigation className="w-3.5 h-3.5" /> Near Me
+           </button>
+         </div>
        </div>
        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, maxHeight: '55%', zIndex: 5, display: 'flex', flexDirection: 'column', borderTopLeftRadius: '20px', borderTopRightRadius: '20px', background: '#0F1115', boxShadow: '0 -4px 20px rgba(0,0,0,0.5)' }}>
          <div style={{ padding: '8px 0 2px', display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
@@ -17039,17 +17051,17 @@ Become a Sponsor →
              <span className="text-xs font-black" style={{ color: '#FFD700', letterSpacing: '1px' }}>THE BEST PLACE TO WATCH THE GAME!</span>
            </div>
            <div className="flex items-center justify-between">
-             <span className="text-white font-black text-sm">{vList.length} Venues</span>
+             <span className="text-white font-black text-sm">{vList.length} {vList.length === 1 ? 'Venue' : 'Venues'}{fvSearch ? ` matching "${findVenuesSearch}"` : ''}</span>
              <span className="text-[#A0A4AB] text-[11px]">{currentCity || 'All Locations'}</span>
            </div>
          </div>
          <div style={{ flex: 1, overflowY: 'auto', paddingBottom: '8px' }}>
            {vList.length === 0 ? (
              <div className="text-center py-10 px-6">
-               <div className="text-5xl mb-3">🏟️</div>
-               <h3 className="text-white font-bold text-lg mb-2">No Venues Yet</h3>
-               <p className="text-[#A0A4AB] text-sm mb-4">Be the first venue to join Huddle Up in your area!</p>
-               <button onClick={() => setCurrentScreen('signup')} className="px-5 py-2.5 bg-[#1E90FF] text-white font-bold rounded-xl text-sm">Register Your Venue</button>
+               <div className="text-5xl mb-3">{fvSearch ? '🔍' : '🏟️'}</div>
+               <h3 className="text-white font-bold text-lg mb-2">{fvSearch ? 'No Matching Venues' : 'No Venues Yet'}</h3>
+               <p className="text-[#A0A4AB] text-sm mb-4">{fvSearch ? `No venues found for "${findVenuesSearch}". Try a different search.` : 'Be the first venue to join Huddle Up in your area!'}</p>
+               {fvSearch ? <button onClick={() => setFindVenuesSearch('')} className="px-5 py-2.5 bg-[#1E90FF] text-white font-bold rounded-xl text-sm">Clear Search</button> : <button onClick={() => setCurrentScreen('signup')} className="px-5 py-2.5 bg-[#1E90FF] text-white font-bold rounded-xl text-sm">Register Your Venue</button>}
              </div>
            ) : (
            <div className="space-y-1.5 px-3">
@@ -17067,7 +17079,7 @@ Become a Sponsor →
                        <h3 className="text-white font-bold text-[13px] truncate">{v.name}</h3>
                        {v.featured && <span className="text-amber-400 text-[11px]">⭐</span>}
                      </div>
-                     <p className="text-[#A0A4AB] text-[11px] truncate">{v.type || 'Sports Bar'} • {v.address}</p>
+                     <p className="text-[#A0A4AB] text-[11px] truncate">{v.type || 'Sports Bar'} • {v.city ? `${v.city} • ` : ''}{v.address}</p>
                      <div className="mt-0.5">{renderStars(v.avg_rating || v.rating || 0)}</div>
                    </div>
                    <div className="ml-2 flex-shrink-0">{getCatIcon(v.type)}</div>
