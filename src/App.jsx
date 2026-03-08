@@ -5545,7 +5545,7 @@ const qrScannerRef = useRef(null);
  </button>
 
  <button
- onClick={() => { setSignupUserType('venue'); setCurrentScreen('signup'); }}
+ onClick={() => { setSignupUserType('venue'); setCurrentScreen('signup'); api.venues.list().then(v => setSignupVenueList(v || [])).catch(() => {}); }}
  className="w-full p-6 rounded-2xl border-2 transition-all duration-200 hover:scale-[1.02] text-left"
  style={{ backgroundColor: 'rgba(34,197,94,0.08)', borderColor: 'rgba(34,197,94,0.3)' }}
  >
@@ -5817,6 +5817,9 @@ const qrScannerRef = useRef(null);
  const [signupUserType, setSignupUserType] = useState('');
  const [signupVenueName, setSignupVenueName] = useState('');
  const [signupVenueAddress, setSignupVenueAddress] = useState('');
+ const [signupVenueDropdownOpen, setSignupVenueDropdownOpen] = useState(false);
+ const [signupVenueSelected, setSignupVenueSelected] = useState(null);
+ const [signupVenueList, setSignupVenueList] = useState([]);
  const [signupEmail, setSignupEmail] = useState('');
  const [signupPassword, setSignupPassword] = useState('');
  const [signupShowPassword, setSignupShowPassword] = useState(false);
@@ -5890,15 +5893,66 @@ const qrScannerRef = useRef(null);
  <div className="p-8 space-y-6" style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)' }}>
  {signupUserType === 'venue' && (
  <>
- <div>
- <label className="block text-sm font-medium text-[#A0A4AB] mb-2">Venue Name</label>
+ <div className="relative">
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-2">Select Your Venue</label>
+ <div className="relative">
+ <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
  <input
  type="text"
  value={signupVenueName}
- onChange={(e) => setSignupVenueName(e.target.value)}
- className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
- placeholder="e.g., The Sports Bar & Grill"
+ onChange={(e) => { setSignupVenueName(e.target.value); setSignupVenueDropdownOpen(true); setSignupVenueSelected(null); setSignupVenueAddress(''); }}
+ onFocus={() => { if (signupVenueName) setSignupVenueDropdownOpen(true); }}
+ className="w-full pl-10 pr-10 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+ placeholder="Start typing your venue name..."
+ autoComplete="off"
  />
+ {signupVenueName && <button type="button" onClick={() => { setSignupVenueName(''); setSignupVenueAddress(''); setSignupVenueSelected(null); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"><X className="w-4 h-4" /></button>}
+ </div>
+ {signupVenueDropdownOpen && signupVenueName.length >= 1 && (() => {
+   const q = signupVenueName.toLowerCase();
+   const matches = signupVenueList.filter(v => !v.claimedBy && ((v.name || '').toLowerCase().includes(q) || (v.city || '').toLowerCase().includes(q) || (v.address || '').toLowerCase().includes(q))).slice(0, 8);
+   if (matches.length === 0 && signupVenueName.length >= 2) return (
+     <div className="absolute z-[90] left-0 right-0 mt-1 rounded-xl overflow-hidden border border-[#222A36] shadow-2xl" style={{ background: '#151A22' }}>
+       <div className="px-4 py-3 text-center">
+         <p className="text-[#A0A4AB] text-sm">No matching venues found</p>
+         <p className="text-green-400 text-xs mt-1 font-bold">We'll register "{signupVenueName}" as a new venue</p>
+       </div>
+       <button type="button" onClick={() => setSignupVenueDropdownOpen(false)} className="w-full px-4 py-2.5 text-left text-sm font-bold text-green-400 border-t border-[#222A36] hover:bg-green-500/10 flex items-center gap-2">
+         <Plus className="w-4 h-4" /> Continue with "{signupVenueName}"
+       </button>
+     </div>
+   );
+   if (matches.length === 0) return null;
+   return (
+     <div className="absolute z-[90] left-0 right-0 mt-1 rounded-xl overflow-hidden border border-[#222A36] shadow-2xl max-h-64 overflow-y-auto" style={{ background: '#151A22' }}>
+       {matches.map(v => (
+         <button type="button" key={v.id} onClick={() => { setSignupVenueName(v.name); setSignupVenueAddress(v.address || ''); setSignupVenueSelected(v); setSignupVenueDropdownOpen(false); }} className="w-full px-4 py-3 text-left hover:bg-[#1E90FF]/10 border-b border-[#222A36] last:border-b-0 transition-colors">
+           <div className="flex items-center gap-3">
+             <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center flex-shrink-0">
+               <Building2 className="w-4 h-4 text-green-400" />
+             </div>
+             <div className="flex-1 min-w-0">
+               <div className="text-white font-bold text-sm truncate">{v.name}</div>
+               <div className="text-[#A0A4AB] text-xs truncate">{v.city ? `${v.city} • ` : ''}{v.address}</div>
+             </div>
+             {v.featured && <span className="text-amber-400 text-xs">⭐</span>}
+           </div>
+         </button>
+       ))}
+       {signupVenueName.length >= 2 && (
+         <button type="button" onClick={() => { setSignupVenueSelected(null); setSignupVenueDropdownOpen(false); }} className="w-full px-4 py-2.5 text-left text-sm font-bold text-green-400 border-t border-[#222A36] hover:bg-green-500/10 flex items-center gap-2">
+           <Plus className="w-4 h-4" /> Register "{signupVenueName}" as new venue
+         </button>
+       )}
+     </div>
+   );
+ })()}
+ {signupVenueSelected && (
+   <div className="mt-2 flex items-center gap-2 px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/30">
+     <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
+     <span className="text-green-400 text-xs font-bold truncate">Selected: {signupVenueSelected.name} — {signupVenueSelected.city || ''}</span>
+   </div>
+ )}
  </div>
  <div>
  <label className="block text-sm font-medium text-[#A0A4AB] mb-2">Venue Address</label>
@@ -5908,7 +5962,10 @@ const qrScannerRef = useRef(null);
  onChange={(e) => setSignupVenueAddress(e.target.value)}
  className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
  placeholder="123 Main St, City, State"
+ readOnly={!!signupVenueSelected}
+ style={signupVenueSelected ? { opacity: 0.7 } : {}}
  />
+ {signupVenueSelected && <p className="text-[#A0A4AB] text-xs mt-1">Address auto-filled from selected venue</p>}
  </div>
  </>
  )}

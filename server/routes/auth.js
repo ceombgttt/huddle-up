@@ -87,10 +87,17 @@ router.post('/signup', async (req, res) => {
 
     if (validUserType === 'venue' && venueName) {
       try {
-        const existingVenue = await pool.query('SELECT id FROM venues WHERE LOWER(name) = LOWER($1)', [venueName.trim()]);
-        if (existingVenue.rows.length === 0) {
+        const existingVenue = await pool.query('SELECT id, claimed_by FROM venues WHERE LOWER(name) = LOWER($1)', [venueName.trim()]);
+        if (existingVenue.rows.length > 0) {
+          if (!existingVenue.rows[0].claimed_by) {
+            await pool.query(
+              'UPDATE venues SET claimed_by = $1, venue_trial_ends_at = NOW() + INTERVAL \'3 months\' WHERE id = $2',
+              [user.id, existingVenue.rows[0].id]
+            );
+          }
+        } else {
           await pool.query(
-            'INSERT INTO venues (name, address, claimed_by, venue_trial_ends_at) VALUES ($1, $2, $3, NOW() + INTERVAL \'3 months\')',
+            'INSERT INTO venues (name, address, claimed_by, verified, venue_trial_ends_at) VALUES ($1, $2, $3, TRUE, NOW() + INTERVAL \'3 months\')',
             [venueName.trim(), venueAddress?.trim() || '', user.id]
           );
         }
