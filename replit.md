@@ -42,6 +42,7 @@ The UI/UX prioritizes intuitive navigation and visual engagement, incorporating 
 -   **Intro Splash Screen**: Cinematic 5-second animated intro on login/signup. Shield logo rises with glow trail, "FIND YOUR CREW." and "WATCH THE GAME." appear letter-by-letter with gradient text, dramatic glow pulse, smooth fade-out. Skip button and "Don't show again" option (uses `skipIntros` localStorage key). z-index: 200.
 -   **Find Parties Page**: Party-focused map page (`findParties` screen) with Leaflet dark map showing party locations with sport-specific pins, "FIND YOUR CREW" banner, Near Me/Enter City buttons, live parties section (red borders, LIVE badge), and upcoming parties list. Map pins are red for live games, blue with sport emoji for upcoming. Accessible from home screen "Find Parties" button. Clicking a party navigates to `gameDetail`.
 -   **Find Venues Page**: Venue-focused discovery page (`findVenues` screen) with Leaflet dark map, venue pins (color-coded by party status), "THE BEST PLACE TO WATCH THE GAME" banner, Near Me/Enter City search buttons, and scrollable venue list with category icons, star ratings, party info, and stats. Accessible from hamburger menu and home screen "Venues" quick action.
+-   **Venue Database**: 207 total venues across Boca Raton (83), Delray Beach (68), Boynton Beach (52), Fort Lauderdale (4). Bulk venue SQL in `server/seed_venues.sql` (idempotent with WHERE NOT EXISTS). All venues have coordinates, city, phone, capacity, type, and verified=true.
 
 ## External Dependencies
 -   **PostgreSQL**: Database.
