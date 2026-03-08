@@ -32,7 +32,8 @@ function getDateRange(days = 7) {
 }
 
 let gamesCache = { data: null, timestamp: 0 };
-const CACHE_TTL = 60 * 1000;
+const CACHE_TTL = 120 * 1000;
+let gamesFetchPromise = null;
 
 function parseESPNEvent(event, sport) {
   const competition = event.competitions?.[0];
@@ -123,12 +124,7 @@ function parseESPNEvent(event, sport) {
   };
 }
 
-async function fetchAllGames() {
-  const now = Date.now();
-  if (gamesCache.data && (now - gamesCache.timestamp) < CACHE_TTL) {
-    return gamesCache.data;
-  }
-
+async function fetchAllGamesInternal() {
   const allGames = [];
   const weeklyRange = getDateRange(21);
   const dailyRange = getDateRange(7);
@@ -137,30 +133,20 @@ async function fetchAllGames() {
       if (WEEKLY_SPORTS.has(sport)) {
         const response = await fetch(`${url}?dates=${weeklyRange}`, {
           headers: { 'Accept': 'application/json' },
-          signal: AbortSignal.timeout(8000),
+          signal: AbortSignal.timeout(6000),
         });
         if (!response.ok) return [];
         const data = await response.json();
         return (data.events || []).map(e => parseESPNEvent(e, sport)).filter(Boolean);
       }
 
-      const [todayRes, upcomingRes] = await Promise.all([
-        fetch(url, { headers: { 'Accept': 'application/json' }, signal: AbortSignal.timeout(8000) }),
-        fetch(`${url}?dates=${dailyRange}`, { headers: { 'Accept': 'application/json' }, signal: AbortSignal.timeout(8000) }),
-      ]);
-
-      const todayGames = todayRes.ok ? (await todayRes.json()).events || [] : [];
-      const upcomingGames = upcomingRes.ok ? (await upcomingRes.json()).events || [] : [];
-
-      const seenIds = new Set();
-      const merged = [];
-      for (const e of [...todayGames, ...upcomingGames]) {
-        if (!seenIds.has(e.id)) {
-          seenIds.add(e.id);
-          merged.push(e);
-        }
-      }
-      return merged.map(e => parseESPNEvent(e, sport)).filter(Boolean);
+      const response = await fetch(`${url}?dates=${dailyRange}`, {
+        headers: { 'Accept': 'application/json' },
+        signal: AbortSignal.timeout(6000),
+      });
+      if (!response.ok) return [];
+      const data = await response.json();
+      return (data.events || []).map(e => parseESPNEvent(e, sport)).filter(Boolean);
     } catch (err) {
       console.error(`Failed to fetch ${sport} games:`, err.message);
       return [];
@@ -172,8 +158,22 @@ async function fetchAllGames() {
 
   allGames.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
 
-  gamesCache = { data: allGames, timestamp: now };
+  gamesCache = { data: allGames, timestamp: Date.now() };
   return allGames;
+}
+
+async function fetchAllGames() {
+  const now = Date.now();
+  if (gamesCache.data && (now - gamesCache.timestamp) < CACHE_TTL) {
+    return gamesCache.data;
+  }
+
+  if (gamesFetchPromise) {
+    return gamesFetchPromise;
+  }
+
+  gamesFetchPromise = fetchAllGamesInternal().finally(() => { gamesFetchPromise = null; });
+  return gamesFetchPromise;
 }
 
 router.get('/', async (req, res) => {
@@ -202,5 +202,9 @@ router.get('/', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch games' });
   }
 });
+
+setTimeout(() => {
+  fetchAllGames().then(() => console.log('Games cache warmed')).catch(() => {});
+}, 2000);
 
 export default router;

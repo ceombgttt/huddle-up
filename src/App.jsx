@@ -1343,12 +1343,12 @@ const HuddleUpApp = () => {
    if (localStorage.getItem('skipIntros') === 'true') return;
    setIntroStage(0);
    setShowIntroSplash(true);
-   setTimeout(() => setIntroStage(1), 1000);
-   setTimeout(() => setIntroStage(2), 2000);
-   setTimeout(() => setIntroStage(3), 3000);
-   setTimeout(() => setIntroStage(4), 4000);
-   setTimeout(() => setIntroStage(5), 4500);
-   setTimeout(() => setShowIntroSplash(false), 5000);
+   setTimeout(() => setIntroStage(1), 400);
+   setTimeout(() => setIntroStage(2), 800);
+   setTimeout(() => setIntroStage(3), 1200);
+   setTimeout(() => setIntroStage(4), 1800);
+   setTimeout(() => setIntroStage(5), 2200);
+   setTimeout(() => setShowIntroSplash(false), 2500);
  };
  const skipIntroSplash = () => { setShowIntroSplash(false); };
  const neverShowIntro = () => { localStorage.setItem('skipIntros', 'true'); setShowIntroSplash(false); };
@@ -2123,16 +2123,14 @@ const qrScannerRef = useRef(null);
  }, []);
 
  useEffect(() => {
- loadUserData();
- loadParties();
- loadVenues();
- loadGames();
- loadHotParties();
- loadLastChanceParties();
- detectUserLocation();
- api.sponsors.banners().then(b => setSponsorBanners(b || [])).catch(() => {});
- api.auth.userCount().then(d => setPrelaunchUserCount(170924 + (d?.count || 0))).catch(() => setPrelaunchUserCount(170924));
- fetch('/api/users/soft-launch-stats').then(r => r.json()).then(d => setSoftLaunchStats(d)).catch(() => {});
+ Promise.allSettled([loadGames(), loadParties(), loadVenues(), loadUserData()]).then(() => {
+   loadHotParties();
+   loadLastChanceParties();
+   detectUserLocation();
+   api.sponsors.banners().then(b => setSponsorBanners(b || [])).catch(() => {});
+   api.auth.userCount().then(d => setPrelaunchUserCount(170924 + (d?.count || 0))).catch(() => setPrelaunchUserCount(170924));
+   fetch('/api/users/soft-launch-stats').then(r => r.json()).then(d => setSoftLaunchStats(d)).catch(() => {});
+ });
  const hotInterval = setInterval(loadHotParties, 5 * 60 * 1000);
  const lcInterval = setInterval(loadLastChanceParties, 60 * 1000);
 
