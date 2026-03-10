@@ -2615,6 +2615,7 @@ const qrScannerRef = useRef(null);
  }
  };
 
+ const prevRequestCountRef = useRef(0);
  const loadFriends = async () => {
  if (!user) return;
  try {
@@ -2624,6 +2625,11 @@ const qrScannerRef = useRef(null);
  ]);
  setFriendsList(friends);
  setFriendRequests(requests);
+ if (requests.length > 0 && requests.length > prevRequestCountRef.current) {
+   const count = requests.length;
+   showToast(`You have ${count} pending friend ${count === 1 ? 'request' : 'requests'}! Tap Crew to accept.`, 'info');
+ }
+ prevRequestCountRef.current = requests.length;
  } catch (e) {
  console.log('Friends load error:', e);
  }
@@ -2943,6 +2949,7 @@ const qrScannerRef = useRef(null);
  try {
  await api.friends.accept(requestId);
  await loadFriends();
+ showToast('Friend request accepted!', 'success');
  } catch (e) {
  showToast('Failed to accept', 'error');
  }
@@ -16403,7 +16410,7 @@ Become a Sponsor →
  </div>
 
  <button
- onClick={() => { setCurrentScreen('myCrew'); loadFriends(); }}
+ onClick={() => { setCurrentScreen('myCrew'); if (friendRequests.length > 0) setCrewTab('requests'); loadFriends(); }}
  className="w-full py-3 bg-[#1E90FF] text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95"
  >
  <Users className="w-5 h-5" /> Go to My Crew
@@ -17262,7 +17269,7 @@ Become a Sponsor →
 <button onClick={() => { setCurrentScreen('browseParties'); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 py-1 transition-colors ${currentScreen === 'browseParties' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
 <Search className="w-6 h-6" /><span className="text-[11px] font-bold">Browse</span>
 </button>
-<button onClick={() => { setCurrentScreen('myCrew'); loadFriends(); loadDmUnread(); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 py-1 transition-colors relative ${currentScreen === 'myCrew' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
+<button onClick={() => { setCurrentScreen('myCrew'); if (friendRequests.length > 0) setCrewTab('requests'); loadFriends(); loadDmUnread(); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 py-1 transition-colors relative ${currentScreen === 'myCrew' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
 <Users className="w-6 h-6" /><span className="text-[11px] font-bold">Crew</span>
 {(friendRequests.length + dmUnreadCount) > 0 && <span className="absolute top-0 right-[20%] bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{friendRequests.length + dmUnreadCount}</span>}
 </button>
