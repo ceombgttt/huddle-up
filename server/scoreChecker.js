@@ -59,10 +59,10 @@ async function checkAndNotify() {
        JOIN push_subscriptions ps ON ps.user_id = sw.user_id`
     );
 
-    if (watches.rows.length === 0) return;
-
     const scores = await fetchAllScores();
     cachedScores = scores;
+
+    if (watches.rows.length === 0) return;
 
     for (const watch of watches.rows) {
       const game = scores[watch.game_id];
@@ -114,6 +114,119 @@ async function sendPartyReminders() {
     }
   } catch (err) {
     if (err.code !== '22007') console.error('Party reminder error:', err);
+  }
+}
+
+async function autoResolvePredictions() {
+  try {
+    const pending = await pool.query(
+      `SELECT DISTINCT game_id, sport, home_team, away_team
+       FROM predictions
+       WHERE status = 'pending'`
+    );
+    if (pending.rows.length === 0) return;
+
+    const scores = cachedScores;
+    for (const game of pending.rows) {
+      const scoreData = scores[game.game_id];
+      if (!scoreData || scoreData.status !== 'Final') continue;
+
+      const homeScore = parseInt(scoreData.homeScore) || 0;
+      const awayScore = parseInt(scoreData.awayScore) || 0;
+      if (homeScore === awayScore) continue;
+
+      const winner = homeScore > awayScore ? scoreData.homeTeam : scoreData.awayTeam;
+      console.log(`Auto-resolving predictions for game ${game.game_id}: ${winner} wins (${homeScore}-${awayScore})`);
+
+      const preds = await pool.query(
+        `SELECT * FROM predictions WHERE game_id = $1 AND status = 'pending'`,
+        [game.game_id]
+      );
+
+      for (const pred of preds.rows) {
+        const isCorrect = pred.picked_team === winner;
+        let pointsEarned = 0;
+
+        if (isCorrect) {
+          pointsEarned = 50 * pred.confidence;
+
+          const streakResult = await pool.query(
+            `INSERT INTO prediction_streaks (user_id, current_streak, best_streak, total_correct, total_predictions)
+             VALUES ($1, 1, 1, 1, 1)
+             ON CONFLICT (user_id) DO UPDATE SET
+               current_streak = prediction_streaks.current_streak + 1,
+               best_streak = GREATEST(prediction_streaks.best_streak, prediction_streaks.current_streak + 1),
+               total_correct = prediction_streaks.total_correct + 1,
+               total_predictions = prediction_streaks.total_predictions + 1,
+               updated_at = NOW()
+             RETURNING current_streak`,
+            [pred.user_id]
+          );
+
+          const newStreak = streakResult.rows[0].current_streak;
+          if (newStreak === 5) pointsEarned += 100;
+          if (newStreak === 10) pointsEarned += 250;
+
+          const userResult = await pool.query('SELECT subscription_tier FROM users WHERE id = $1', [pred.user_id]);
+          const isPro = userResult.rows[0]?.subscription_tier === 'pro';
+          const finalPoints = isPro ? pointsEarned * 3 : pointsEarned;
+
+          await pool.query(
+            `INSERT INTO user_points (user_id, total_points, lifetime_points, updated_at)
+             VALUES ($1, $2, $2, NOW())
+             ON CONFLICT (user_id)
+             DO UPDATE SET total_points = user_points.total_points + $2,
+                           lifetime_points = user_points.lifetime_points + $2,
+                           updated_at = NOW()`,
+            [pred.user_id, finalPoints]
+          );
+
+          await pool.query(
+            `INSERT INTO points_history (user_id, points, action, description, reference_id)
+             VALUES ($1, $2, 'prediction_correct', $3, $4)`,
+            [pred.user_id, finalPoints, `Correct prediction: ${pred.picked_team} (${pred.confidence}/10 confidence)${isPro ? ' (3x Pro)' : ''}`, pred.id]
+          );
+
+          pointsEarned = finalPoints;
+
+          try {
+            await sendPushToUser(pred.user_id, {
+              title: `You won! +${pointsEarned} points`,
+              body: `${pred.picked_team} won! Your prediction was correct.`,
+              icon: '/huddle-up-logo-2.png',
+              url: '/predictions'
+            }, { prefType: 'prediction_results' });
+          } catch (pushErr) {}
+        } else {
+          await pool.query(
+            `INSERT INTO prediction_streaks (user_id, current_streak, best_streak, total_correct, total_predictions)
+             VALUES ($1, 0, 0, 0, 1)
+             ON CONFLICT (user_id) DO UPDATE SET
+               current_streak = 0,
+               total_predictions = prediction_streaks.total_predictions + 1,
+               updated_at = NOW()`,
+            [pred.user_id]
+          );
+
+          try {
+            await sendPushToUser(pred.user_id, {
+              title: 'Better luck next time!',
+              body: `${winner} won. Your pick was ${pred.picked_team}.`,
+              icon: '/huddle-up-logo-2.png',
+              url: '/predictions'
+            }, { prefType: 'prediction_results' });
+          } catch (pushErr) {}
+        }
+
+        await pool.query(
+          `UPDATE predictions SET status = $1, winner = $2, points_earned = $3, resolved_at = NOW()
+           WHERE id = $4`,
+          [isCorrect ? 'correct' : 'incorrect', winner, pointsEarned, pred.id]
+        );
+      }
+    }
+  } catch (err) {
+    console.error('Auto-resolve predictions error:', err);
   }
 }
 
@@ -186,21 +299,23 @@ let intervalId = null;
 
 export function startScoreChecker() {
   if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
-    console.log('Push notifications not configured - starting score checker with hot parties only');
+    console.log('Push notifications not configured - starting score checker with auto-resolve and hot parties');
+    fetchAllScores().then(s => { cachedScores = s; autoResolvePredictions(); }).catch(() => {});
     updateHotParties();
     intervalId = setInterval(() => {
+      fetchAllScores().then(s => { cachedScores = s; autoResolvePredictions(); }).catch(() => {});
       hotPartiesCounter++;
       if (hotPartiesCounter % 5 === 0) updateHotParties();
     }, 60 * 1000);
     return;
   }
   console.log('Score checker started - checking every 60 seconds');
-  checkAndNotify();
+  checkAndNotify().then(() => autoResolvePredictions()).catch(() => {});
   sendPartyReminders();
   sendPredictionReminders();
   updateHotParties();
   intervalId = setInterval(() => {
-    checkAndNotify();
+    checkAndNotify().then(() => autoResolvePredictions()).catch(() => {});
     sendPartyReminders();
     sendPredictionReminders();
     hotPartiesCounter++;

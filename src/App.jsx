@@ -1298,7 +1298,7 @@ const HuddleUpApp = () => {
        if (!authScreens.includes(prev)) {
          screenHistoryRef.current = [...screenHistoryRef.current.slice(-19), prev];
        }
-       setTimeout(() => window.scrollTo(0, 0), 0);
+       setTimeout(() => { window.scrollTo(0, 0); if (mainContainerRef.current) mainContainerRef.current.scrollTop = 0; }, 0);
      }
      return next;
    });
@@ -1309,6 +1309,7 @@ const HuddleUpApp = () => {
      const prevScreen = history[history.length - 1];
      screenHistoryRef.current = history.slice(0, -1);
      setCurrentScreenRaw(prevScreen);
+     setTimeout(() => { window.scrollTo(0, 0); if (mainContainerRef.current) mainContainerRef.current.scrollTop = 0; }, 0);
    }
  }, []);
  const [user, setUser] = useState(null);
@@ -4938,7 +4939,7 @@ const qrScannerRef = useRef(null);
  <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115]">
  <div className="sticky top-[60px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
- <button onClick={() => setCurrentScreen('profile')} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
+ <button onClick={goBack} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
  <Send className="w-6 h-6 text-[#1E90FF]" />
  <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>CONTACT US</h2>
  </div>
@@ -5003,7 +5004,7 @@ const qrScannerRef = useRef(null);
  <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115]">
  <div className="sticky top-[60px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
- <button onClick={() => setCurrentScreen('profile')} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
+ <button onClick={goBack} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
  <Shield className="w-6 h-6 text-[#1E90FF]" />
  <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>TERMS OF SERVICE</h2>
  </div>
@@ -5198,7 +5199,7 @@ const qrScannerRef = useRef(null);
  <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115]">
  <div className="sticky top-[60px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
- <button onClick={() => setCurrentScreen('profile')} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
+ <button onClick={goBack} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
  <Lock className="w-6 h-6 text-[#1E90FF]" />
  <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>PRIVACY POLICY</h2>
  </div>
@@ -6951,7 +6952,7 @@ Become a Sponsor →
  <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-2 flex items-center justify-between">
  <button
- onClick={() => setCurrentScreen('games')}
+ onClick={goBack}
  className="flex items-center gap-1.5 text-[#A0A4AB] hover:text-white transition-colors"
  >
  <ArrowLeft className="w-5 h-5" />
@@ -7697,7 +7698,7 @@ Become a Sponsor →
      <div className="sticky top-[60px] left-0 right-0 z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
  <button
- onClick={() => setCurrentScreen('createParty')}
+ onClick={goBack}
  className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors"
  >
  <ArrowLeft className="w-5 h-5" />
@@ -9983,14 +9984,14 @@ Become a Sponsor →
  <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
  <button
- onClick={() => setCurrentScreen('games')}
+ onClick={goBack}
  className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors"
  >
  <ArrowLeft className="w-5 h-5" />
  Back
  </button>
  <button
- onClick={() => setCurrentScreen('games')}
+ onClick={goBack}
  className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1E90FF]/10 border border-[#1E90FF]/30 text-[#1E90FF] font-bold text-xs rounded-full hover:bg-[#1E90FF]/20 transition-all"
  >
  <Search className="w-3.5 h-3.5" />
@@ -10094,7 +10095,7 @@ Become a Sponsor →
  <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
  <button
- onClick={() => setCurrentScreen('gameDetail')}
+ onClick={goBack}
  className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors"
  >
  <ArrowLeft className="w-5 h-5" />
@@ -11006,7 +11007,7 @@ Become a Sponsor →
  <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-3">
  <div className="flex items-center justify-between mb-3">
- <button onClick={() => setCurrentScreen('profile')} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors">
+ <button onClick={goBack} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors">
  <ArrowLeft className="w-5 h-5" /> Back
  </button>
  <div className="flex items-center gap-2">
@@ -11790,7 +11791,7 @@ Become a Sponsor →
      <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
        <div className="max-w-4xl mx-auto px-4 py-3">
          <div className="flex items-center justify-between mb-3">
-           <button onClick={() => setCurrentScreen('games')} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors">
+           <button onClick={goBack} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors">
              <ArrowLeft className="w-5 h-5" /> Back
            </button>
            <h2 className="text-lg font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>BROWSE PARTIES</h2>
@@ -11953,7 +11954,7 @@ Become a Sponsor →
    <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115]">
      <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
        <div className="max-w-4xl mx-auto px-4 py-4">
-         <button onClick={() => setCurrentScreen('games')} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors">
+         <button onClick={goBack} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors">
            <ArrowLeft className="w-5 h-5" /> Back
          </button>
        </div>
@@ -12117,7 +12118,7 @@ Become a Sponsor →
    <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115]">
      <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
        <div className="max-w-4xl mx-auto px-4 py-4">
-         <button onClick={() => setCurrentScreen('games')} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors">
+         <button onClick={goBack} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors">
            <ArrowLeft className="w-5 h-5" /> Back
          </button>
        </div>
@@ -12228,7 +12229,7 @@ Become a Sponsor →
  <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
  <button
- onClick={() => setCurrentScreen('games')}
+ onClick={goBack}
  className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors"
  >
  <ArrowLeft className="w-5 h-5" />
@@ -12486,7 +12487,7 @@ Become a Sponsor →
  <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115]">
  <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
- <button onClick={() => setCurrentScreen('profile')} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors">
+ <button onClick={goBack} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors">
  <ArrowLeft className="w-5 h-5" /> Back to Profile
  </button>
  </div>
@@ -13264,7 +13265,7 @@ Become a Sponsor →
  <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
  <div className="flex items-center gap-3">
- <button type="button" onClick={() => setCurrentScreen('games')} className="p-2 bg-[#151A22] rounded-xl hover:bg-[#222A36] active:bg-[#222A36] cursor-pointer">
+ <button type="button" onClick={goBack} className="p-2 bg-[#151A22] rounded-xl hover:bg-[#222A36] active:bg-[#222A36] cursor-pointer">
  <ArrowLeft className="w-5 h-5 text-white" />
  </button>
  <h1 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
@@ -13758,7 +13759,7 @@ Become a Sponsor →
  <div className="min-h-screen bg-[#0F1115]" style={{ paddingTop: `${MAIN_BANNER_HEIGHT}px`, paddingBottom: '72px' }}>
  <div className="sticky bg-[#0F1115] border-b border-[#222A36] z-[61]" style={{ top: `${MAIN_BANNER_HEIGHT}px` }}>
  <div className="max-w-4xl mx-auto px-4 py-2 flex items-center gap-3">
- <button onClick={() => setCurrentScreen('games')} className="flex items-center gap-1.5 text-[#A0A4AB] hover:text-white transition-colors">
+ <button onClick={goBack} className="flex items-center gap-1.5 text-[#A0A4AB] hover:text-white transition-colors">
  <ArrowLeft className="w-5 h-5" /><span className="text-sm font-medium">Back</span>
  </button>
  <h1 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>GAME PREDICTIONS</h1>
@@ -14029,7 +14030,7 @@ Become a Sponsor →
  <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
  <div className="flex items-center gap-3">
- <button onClick={() => setCurrentScreen('games')} className="p-2 bg-[#151A22] rounded-xl hover:bg-[#222A36]">
+ <button onClick={goBack} className="p-2 bg-[#151A22] rounded-xl hover:bg-[#222A36]">
  <ArrowLeft className="w-5 h-5 text-white" />
  </button>
  <h1 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
@@ -14413,7 +14414,7 @@ Become a Sponsor →
  <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
  <div className="flex items-center gap-3">
- <button onClick={() => setCurrentScreen('games')} className="p-2 bg-[#151A22] rounded-xl hover:bg-[#222A36]">
+ <button onClick={goBack} className="p-2 bg-[#151A22] rounded-xl hover:bg-[#222A36]">
  <ArrowLeft className="w-5 h-5 text-white" />
  </button>
  <h1 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
@@ -14924,7 +14925,7 @@ Become a Sponsor →
  <div className="min-h-screen bg-[#0F1115] pt-[60px]">
  <div className="sticky top-[60px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
- <button onClick={() => setCurrentScreen('games')} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
+ <button onClick={goBack} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
  <MessageCircle className="w-6 h-6 text-teal-400" />
  <div>
  <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>CHAT ROOMS</h2>
@@ -15030,7 +15031,7 @@ Become a Sponsor →
  <div className="min-h-screen bg-[#0F1115] pt-[60px]">
  <div className="sticky top-[60px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
- <button onClick={() => setCurrentScreen('games')} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
+ <button onClick={goBack} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
  <Crown className="w-6 h-6 text-amber-400" />
  <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>FEATURED</h2>
  </div>
@@ -15175,7 +15176,7 @@ Become a Sponsor →
  <div className="min-h-screen bg-[#0F1115] pt-[60px]">
  <div className="sticky top-[60px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
- <button onClick={() => { setCurrentScreen('games'); setViewingUserId(null); setViewingUserProfile(null); }} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
+ <button onClick={() => { goBack(); setViewingUserId(null); setViewingUserProfile(null); }} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
  <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>FAN PROFILE</h2>
  </div>
  </div>
@@ -15188,7 +15189,7 @@ Become a Sponsor →
  <div className="min-h-screen bg-[#0F1115] pt-[60px]">
  <div className="sticky top-[60px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
- <button onClick={() => { setCurrentScreen('games'); setViewingUserId(null); setViewingUserProfile(null); }} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
+ <button onClick={() => { goBack(); setViewingUserId(null); setViewingUserProfile(null); }} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
  <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>FAN PROFILE</h2>
  </div>
  </div>
@@ -15267,7 +15268,7 @@ Become a Sponsor →
  <div className="min-h-screen bg-[#0F1115] pt-[60px]">
  <div className="sticky top-[60px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
- <button onClick={() => setCurrentScreen('games')} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
+ <button onClick={goBack} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
  <Bell className="w-6 h-6 text-amber-400" />
  <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>GAME ALERTS</h2>
  </div>
@@ -15349,7 +15350,7 @@ Become a Sponsor →
  <div className="min-h-screen bg-[#0F1115] pt-[60px]">
  <div className="sticky top-[60px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
  <div className="flex items-center gap-3">
- <button onClick={() => setCurrentScreen('games')} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
+ <button onClick={goBack} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
  <Award className="w-6 h-6 text-purple-400" />
  <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>MY TICKETS</h2>
  </div>
@@ -15598,7 +15599,7 @@ Become a Sponsor →
  <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
  <div className="flex items-center gap-3">
- <button onClick={() => setCurrentScreen('games')} className="p-2 bg-[#151A22] rounded-xl hover:bg-[#222A36] active:bg-[#222A36] cursor-pointer" type="button">
+ <button onClick={goBack} className="p-2 bg-[#151A22] rounded-xl hover:bg-[#222A36] active:bg-[#222A36] cursor-pointer" type="button">
  <ArrowLeft className="w-5 h-5 text-white" />
  </button>
  <h1 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
@@ -15847,7 +15848,7 @@ Become a Sponsor →
      <div className="min-h-screen pt-[60px] bg-[#0F1115] flex flex-col">
        <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
          <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
-           <button onClick={() => setCurrentScreen('myCrew')} className="p-2 bg-[#151A22] rounded-xl hover:bg-[#222A36]">
+           <button onClick={goBack} className="p-2 bg-[#151A22] rounded-xl hover:bg-[#222A36]">
              <ArrowLeft className="w-5 h-5 text-white" />
            </button>
            <ProfileAvatar src={dmChatUser.profilePicture} name={dmChatUser.name} size="sm" />
@@ -15924,7 +15925,7 @@ Become a Sponsor →
  <div className="sticky top-[60px] z-30 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
  <div className="flex items-center gap-3">
- <button onClick={() => setCurrentScreen('games')} className="p-2 bg-[#151A22] rounded-xl hover:bg-[#222A36] active:bg-[#222A36] cursor-pointer" type="button">
+ <button onClick={goBack} className="p-2 bg-[#151A22] rounded-xl hover:bg-[#222A36] active:bg-[#222A36] cursor-pointer" type="button">
  <ArrowLeft className="w-5 h-5 text-white" />
  </button>
  <h1 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
@@ -16289,7 +16290,7 @@ Become a Sponsor →
  <div className="min-h-screen pt-[60px] bg-[#0F1115] relative z-0">
  <div className="max-w-4xl mx-auto px-4 py-6">
  <div className="flex items-center gap-3 mb-6">
- <button onClick={() => setCurrentScreen('games')} className="p-2 bg-[#151A22] rounded-xl hover:bg-[#222A36] active:bg-[#222A36] cursor-pointer" type="button">
+ <button onClick={goBack} className="p-2 bg-[#151A22] rounded-xl hover:bg-[#222A36] active:bg-[#222A36] cursor-pointer" type="button">
  <ArrowLeft className="w-5 h-5 text-white" />
  </button>
  <h1 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
