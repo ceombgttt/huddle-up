@@ -7,18 +7,34 @@ import { awardPoints } from './rewards.js';
 
 const router = Router();
 
+async function verifyVenueOwnership(userId, venueId = null) {
+  if (venueId) {
+    const result = await pool.query(
+      'SELECT id, name FROM venues WHERE id = $1 AND claimed_by = $2',
+      [venueId, userId]
+    );
+    if (result.rows.length === 0) {
+      return null;
+    }
+    return result.rows[0];
+  }
+  const result = await pool.query(
+    'SELECT id, name FROM venues WHERE claimed_by = $1 LIMIT 1',
+    [userId]
+  );
+  return result.rows.length > 0 ? result.rows[0] : null;
+}
+
 router.post('/venue/generate', requireAuth, async (req, res) => {
   try {
-    const venue = await pool.query(
-      'SELECT id, name, claimed_by FROM venues WHERE claimed_by = $1',
-      [req.session.userId]
-    );
-    if (venue.rows.length === 0) {
+    const requestedVenueId = req.body.venueId || null;
+    const venue = await verifyVenueOwnership(req.session.userId, requestedVenueId);
+    if (!venue) {
       return res.status(403).json({ error: 'You must own a venue to generate a QR code' });
     }
 
-    const venueId = venue.rows[0].id;
-    const venueName = venue.rows[0].name;
+    const venueId = venue.id;
+    const venueName = venue.name;
 
     await pool.query(
       'UPDATE venue_qr_codes SET active = FALSE WHERE venue_id = $1',
@@ -58,22 +74,20 @@ router.post('/venue/generate', requireAuth, async (req, res) => {
 
 router.get('/venue/qr', requireAuth, async (req, res) => {
   try {
-    const venue = await pool.query(
-      'SELECT id, name FROM venues WHERE claimed_by = $1',
-      [req.session.userId]
-    );
-    if (venue.rows.length === 0) {
-      return res.status(404).json({ error: 'No venue found' });
+    const requestedVenueId = req.query.venueId || null;
+    const venue = await verifyVenueOwnership(req.session.userId, requestedVenueId);
+    if (!venue) {
+      return res.status(403).json({ error: 'You do not own this venue' });
     }
 
-    const venueId = venue.rows[0].id;
+    const venueId = venue.id;
     const qr = await pool.query(
       'SELECT token, created_at, last_rotated_at FROM venue_qr_codes WHERE venue_id = $1 AND active = TRUE ORDER BY created_at DESC LIMIT 1',
       [venueId]
     );
 
     if (qr.rows.length === 0) {
-      return res.json({ hasQr: false, venueName: venue.rows[0].name, venueId });
+      return res.json({ hasQr: false, venueName: venue.name, venueId });
     }
 
     const host = req.get('host');
@@ -91,7 +105,7 @@ router.get('/venue/qr', requireAuth, async (req, res) => {
       hasQr: true,
       qrDataUrl,
       checkinUrl,
-      venueName: venue.rows[0].name,
+      venueName: venue.name,
       venueId,
       createdAt: qr.rows[0].created_at,
       lastRotatedAt: qr.rows[0].last_rotated_at
@@ -104,15 +118,13 @@ router.get('/venue/qr', requireAuth, async (req, res) => {
 
 router.get('/venue/stats', requireAuth, async (req, res) => {
   try {
-    const venue = await pool.query(
-      'SELECT id, name FROM venues WHERE claimed_by = $1',
-      [req.session.userId]
-    );
-    if (venue.rows.length === 0) {
-      return res.status(404).json({ error: 'No venue found' });
+    const requestedVenueId = req.query.venueId || null;
+    const venue = await verifyVenueOwnership(req.session.userId, requestedVenueId);
+    if (!venue) {
+      return res.status(403).json({ error: 'You do not own this venue' });
     }
 
-    const venueName = venue.rows[0].name;
+    const venueName = venue.name;
 
     const totalCheckins = await pool.query(
       'SELECT COUNT(*) as count FROM venue_checkins WHERE venue_name = $1',

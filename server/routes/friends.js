@@ -49,7 +49,7 @@ router.post('/request', requireAuth, async (req, res) => {
         body: `${sName} wants to add you to their crew!`,
         data: { type: 'friend_request' }
       }, { prefType: 'friend_activity' });
-    } catch (e) {}
+    } catch (e) { console.error('Push notification error (friend request):', e); }
 
     res.json({ ok: true });
   } catch (error) {
@@ -99,7 +99,7 @@ router.post('/resend', requireAuth, async (req, res) => {
         body: `${sName} sent you a friend request again!`,
         data: { type: 'friend_request' }
       }, { prefType: 'friend_activity' });
-    } catch (e) {}
+    } catch (e) { console.error('Push notification error (resend friend request):', e); }
 
     res.json({ ok: true });
   } catch (error) {
@@ -131,7 +131,7 @@ router.post('/accept/:id', requireAuth, async (req, res) => {
         body: `${aName} accepted your friend request! You're now crew.`,
         data: { type: 'friend_accepted' }
       }, { prefType: 'friend_activity' });
-    } catch (e) {}
+    } catch (e) { console.error('Push notification error (accept friend):', e); }
 
     res.json({ ok: true });
   } catch (error) {

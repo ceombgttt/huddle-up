@@ -358,10 +358,10 @@ export async function seedDemoData() {
 
     return await insertSeedData(client);
   } catch (err) {
-    try { await client.query('ROLLBACK'); } catch(e) {}
+    try { await client.query('ROLLBACK'); } catch(e) { console.error('Rollback error:', e); }
     throw err;
   } finally {
-    try { client.release(); } catch(e) {}
+    try { client.release(); } catch(e) { console.error('Client release error:', e); }
   }
 }
 
@@ -516,7 +516,7 @@ async function insertSeedData(client) {
             [userId, party.gameId, party.time, predictedTeam, confidence, isCorrect, resolved, points, predTime.toISOString()]
           );
           predictionCount++;
-        } catch(e) {}
+        } catch(e) { console.error('Seed prediction insert error:', e); }
       }
     }
 
@@ -531,7 +531,7 @@ async function insertSeedData(client) {
             [friendUserPool[i], friendUserPool[i+1]]
           );
           friendPairs.push([friendUserPool[i], friendUserPool[i+1]]);
-        } catch(e) {}
+        } catch(e) { console.error('Seed friendship insert error:', e); }
       }
     }
 
@@ -544,7 +544,7 @@ async function insertSeedData(client) {
             `INSERT INTO venue_follows (user_id, venue_id, created_at) VALUES ($1, $2, NOW()) ON CONFLICT DO NOTHING`,
             [uid, venueIds[i]]
           );
-        } catch(e) {}
+        } catch(e) { console.error('Seed venue follow insert error:', e); }
       }
 
       if (Math.random() > 0.4) {
@@ -570,7 +570,7 @@ async function insertSeedData(client) {
                VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) ON CONFLICT DO NOTHING`,
               [uid, venueIds[i], overall, atmosphere, service, value, comments[Math.floor(Math.random() * comments.length)]]
             );
-          } catch(e) {}
+          } catch(e) { console.error('Seed venue review insert error:', e); }
         }
       }
     }

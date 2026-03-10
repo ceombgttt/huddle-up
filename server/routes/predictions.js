@@ -235,7 +235,7 @@ router.post('/admin/resolve', requireAdmin, async (req, res) => {
             icon: '/huddle-up-logo-2.png',
             url: '/predictions'
           }, { prefType: 'prediction_results' });
-        } catch (pushErr) {}
+        } catch (pushErr) { console.error('Push notification error (prediction win):', pushErr); }
 
         if (newStreak === 5) {
           try {
@@ -245,7 +245,7 @@ router.post('/admin/resolve', requireAdmin, async (req, res) => {
               icon: '/huddle-up-logo-2.png',
               url: '/predictions'
             }, { prefType: 'achievement_unlocks' });
-          } catch (pushErr) {}
+          } catch (pushErr) { console.error('Push notification error (5 streak):', pushErr); }
         }
         if (newStreak === 10) {
           try {
@@ -255,7 +255,7 @@ router.post('/admin/resolve', requireAdmin, async (req, res) => {
               icon: '/huddle-up-logo-2.png',
               url: '/predictions'
             }, { prefType: 'achievement_unlocks' });
-          } catch (pushErr) {}
+          } catch (pushErr) { console.error('Push notification error (10 streak):', pushErr); }
         }
       } else {
         await pool.query(

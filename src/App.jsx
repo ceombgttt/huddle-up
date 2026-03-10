@@ -81,7 +81,7 @@ function QrScannerInit({ isOpen, onResult, scannerRef, onError }) {
  mounted = false;
  const cleanup = async () => {
  if (scanner) {
- try { await scanner.stop(); } catch(e) {}
+ try { await scanner.stop(); } catch(e) { console.error('Scanner stop error:', e); }
  }
  scannerRef.current = null;
  };
@@ -751,7 +751,7 @@ const EditProfileModal = ({ user, onClose, onSave }) => {
  );
 };
 
-const VenueQrSection = ({ userVenue }) => {
+const VenueQrSection = ({ userVenue, showToast }) => {
  const [qrData, setQrData] = useState(null);
  const [venueStats, setVenueStats] = useState(null);
  const [loading, setLoading] = useState(true);
@@ -782,7 +782,7 @@ const VenueQrSection = ({ userVenue }) => {
  const result = await api.qr.generateQr();
  setQrData({ hasQr: true, ...result });
  } catch (e) {
- alert(e.message || 'Failed to generate QR code');
+ showToast(e.message || 'Failed to generate QR code', 'error');
  }
  setGenerating(false);
  };
@@ -791,8 +791,8 @@ const VenueQrSection = ({ userVenue }) => {
  if (qrData?.checkinUrl) {
  try {
  await navigator.clipboard.writeText(qrData.checkinUrl);
- alert('Check-in link copied!');
- } catch (e) {}
+ showToast('Check-in link copied!', 'success');
+ } catch (e) { console.error('Copy checkin link error:', e); }
  }
  };
 
@@ -938,7 +938,7 @@ const VenueQrSection = ({ userVenue }) => {
  );
 };
 
-const SubscriptionSection = ({ userType }) => {
+const SubscriptionSection = ({ userType, showToast }) => {
  const [products, setProducts] = useState([]);
  const [subInfo, setSubInfo] = useState(null);
  const [loading, setLoading] = useState(true);
@@ -968,7 +968,7 @@ const SubscriptionSection = ({ userType }) => {
  const { url } = await api.stripe.checkout(priceId);
  if (url) window.location.href = url;
  } catch (err) {
- alert('Could not start checkout: ' + err.message);
+ showToast('Could not start checkout: ' + err.message, 'error');
  } finally {
  setCheckoutLoading(null);
  }
@@ -979,7 +979,7 @@ const SubscriptionSection = ({ userType }) => {
  const { url } = await api.stripe.portal();
  if (url) window.location.href = url;
  } catch (err) {
- alert('Could not open billing: ' + err.message);
+ showToast('Could not open billing: ' + err.message, 'error');
  }
  };
 
@@ -1215,7 +1215,7 @@ const ReferralSection = ({ user }) => {
  );
 };
 
-const SmsFieldsSection = ({ user, setUser }) => {
+const SmsFieldsSection = ({ user, setUser, showToast }) => {
  const [phone, setPhone] = useState(user.phoneNumber || '');
  const [city, setCity] = useState(user.userCity || '');
  const [phoneFocused, setPhoneFocused] = useState(false);
@@ -1239,7 +1239,7 @@ const SmsFieldsSection = ({ user, setUser }) => {
  smsNotifications: user.smsNotifications
  });
  setUser(prev => ({ ...prev, phoneNumber: val || null }));
- } catch (err) { alert(err.message); }
+ } catch (err) { showToast(err.message, 'error'); }
  }
  };
 
@@ -1253,7 +1253,7 @@ const SmsFieldsSection = ({ user, setUser }) => {
  smsNotifications: user.smsNotifications
  });
  setUser(prev => ({ ...prev, userCity: val || null }));
- } catch (err) { alert(err.message); }
+ } catch (err) { showToast(err.message, 'error'); }
  }
  };
 
@@ -1340,6 +1340,12 @@ const HuddleUpApp = () => {
  const [featuredTab, setFeaturedTab] = useState('parties');
  const [showIntroSplash, setShowIntroSplash] = useState(false);
  const [introStage, setIntroStage] = useState(0);
+ const [toasts, setToasts] = useState([]);
+ const showToast = useCallback((message, type = 'info') => {
+   const id = Date.now() + Math.random();
+   setToasts(prev => [...prev.slice(-4), { id, message, type }]);
+   setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3500);
+ }, []);
  const launchIntroSplash = () => {
    if (localStorage.getItem('skipIntros') === 'true') return;
    setIntroStage(0);
@@ -1369,6 +1375,7 @@ const HuddleUpApp = () => {
  const [wcTick, setWcTick] = useState(Date.now());
  useEffect(() => { if (currentScreen !== 'games') return; const id = setInterval(() => setWcTick(Date.now()), 1000); return () => clearInterval(id); }, [currentScreen]);
 useEffect(() => { window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; if (mainContainerRef.current) mainContainerRef.current.scrollTop = 0; requestAnimationFrame(() => { window.scrollTo(0, 0); if (mainContainerRef.current) mainContainerRef.current.scrollTop = 0; }); }, [currentScreen]);
+useEffect(() => { if (currentScreen === 'nearbyParties') setCurrentScreen('browseParties'); }, [currentScreen]);
 useEffect(() => { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; }, []);
 useEffect(() => { if (user) { window.scrollTo(0, 0); } }, [user]);
 
@@ -1487,6 +1494,7 @@ const [findVenuesCityInput, setFindVenuesCityInput] = useState('');
  const [venueClaims, setVenueClaims] = useState([]);
  const [selectedVenue, setSelectedVenue] = useState(null);
  const [selectedVenueId, setSelectedVenueId] = useState(null);
+ const [initialDataLoaded, setInitialDataLoaded] = useState(false);
  const [games, setGames] = useState(SAMPLE_GAMES);
  const [loadingGames, setLoadingGames] = useState(false);
  const prevScoresRef = useRef({});
@@ -1686,7 +1694,7 @@ const qrScannerRef = useRef(null);
  switch (platform) {
  case 'native':
  if (navigator.share) {
- navigator.share({ title: `${party.hostName}'s Watch Party`, text: text, url: url }).catch(() => {});
+ navigator.share({ title: `${party.hostName}'s Watch Party`, text: text, url: url }).catch(e => console.error('Native share error:', e));
  }
  break;
  case 'twitter':
@@ -1726,7 +1734,7 @@ const qrScannerRef = useRef(null);
  }
  setLinkCopied(true);
  setTimeout(() => setLinkCopied(false), 2000);
- } catch (e) {}
+ } catch (e) { console.error('Copy link error:', e); }
  };
 
  const openShareMenu = (party) => {
@@ -1762,13 +1770,13 @@ const qrScannerRef = useRef(null);
  const shareUrl = window.location.origin;
  const shareData = { title: 'Huddle Up', text: 'Find your crew. Watch the game. Join me on Huddle Up!', url: shareUrl };
  if (navigator.share) {
- try { await navigator.share(shareData); } catch (e) {}
+ try { await navigator.share(shareData); } catch (e) { console.error('Share app error:', e); }
  } else {
  try {
  await navigator.clipboard.writeText(`${shareData.text} ${shareUrl}`);
  setShowShareToast(true);
  setTimeout(() => setShowShareToast(false), 2000);
- } catch (e) {}
+ } catch (e) { console.error('Copy share link error:', e); }
  }
  };
 
@@ -1920,9 +1928,9 @@ const qrScannerRef = useRef(null);
  if (currentScreen === 'admin' && user?.isAdmin) {
  loadSponsors();
  loadAnalytics();
- api.users.stats().then(s => setTotalUsersCount(s.totalUsers)).catch(() => {});
- api.raffles.adminAll().then(d => setAdminRaffles(d)).catch(() => {});
- api.affiliates.adminAll().then(d => setAdminAffiliates(d)).catch(() => {});
+ api.users.stats().then(s => setTotalUsersCount(s.totalUsers)).catch(e => console.error('Load user stats error:', e));
+ api.raffles.adminAll().then(d => setAdminRaffles(d)).catch(e => console.error('Load admin raffles error:', e));
+ api.affiliates.adminAll().then(d => setAdminAffiliates(d)).catch(e => console.error('Load admin affiliates error:', e));
  }
  if (currentScreen === 'rewards' && user) {
  loadRewards();
@@ -2029,8 +2037,8 @@ const qrScannerRef = useRef(null);
  input.accept = 'image/*';
  input.onchange = async (e) => {
  const file = e.target.files?.[0];
- if (!file || !file.type.startsWith('image/')) { alert('Please select an image file'); return; }
- if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB'); return; }
+ if (!file || !file.type.startsWith('image/')) { showToast('Please select an image file', 'error'); return; }
+ if (file.size > 5 * 1024 * 1024) { showToast('Image must be under 5MB', 'error'); return; }
  setUploadingSponsorLogo(true);
  try {
  const fileBuffer = await file.arrayBuffer();
@@ -2046,14 +2054,14 @@ const qrScannerRef = useRef(null);
  }
  const { objectPath } = await uploadRes.json();
  setSponsorLogo(objectPath);
- } catch (err) { alert('Failed to upload logo: ' + err.message); }
+ } catch (err) { showToast('Failed to upload logo: ' + err.message, 'error'); }
  setUploadingSponsorLogo(false);
  };
  input.click();
  };
 
  const saveSponsor = async () => {
- if (!sponsorName) { alert('Sponsor name is required'); return; }
+ if (!sponsorName) { showToast('Sponsor name is required', 'error'); return; }
  setSavingSponsor(true);
  try {
  const data = {
@@ -2069,14 +2077,14 @@ const qrScannerRef = useRef(null);
  if (editingSponsor) { await api.sponsors.update(editingSponsor, data); }
  else { await api.sponsors.create(data); }
  await loadSponsors(); resetSponsorForm();
- } catch (err) { alert('Failed to save sponsor: ' + err.message); }
+ } catch (err) { showToast('Failed to save sponsor: ' + err.message, 'error'); }
  setSavingSponsor(false);
  };
 
  const deleteSponsor = async (id) => {
  if (!confirm('Are you sure you want to remove this sponsor?')) return;
  try { await api.sponsors.delete(id); await loadSponsors(); }
- catch (err) { alert('Failed to delete sponsor: ' + err.message); }
+ catch (err) { showToast('Failed to delete sponsor: ' + err.message, 'error'); }
  };
 
  const totalSponsorRevenue = adminSponsors.reduce((sum, s) => sum + (s.amountPaid || 0), 0);
@@ -2127,13 +2135,19 @@ const qrScannerRef = useRef(null);
  }, []);
 
  useEffect(() => {
- Promise.allSettled([loadGames(), loadParties(), loadVenues(), loadUserData()]).then(() => {
-   loadHotParties();
-   loadLastChanceParties();
+ Promise.allSettled([
+   loadGames(),
+   loadParties(),
+   loadVenues(),
+   loadUserData(),
+   loadHotParties(),
+   loadLastChanceParties(),
+   api.sponsors.banners().then(b => setSponsorBanners(b || [])).catch(e => console.error('Load sponsor banners error:', e)),
+   api.auth.userCount().then(d => setPrelaunchUserCount(170924 + (d?.count || 0))).catch(e => { console.error('Load user count error:', e); setPrelaunchUserCount(170924); }),
+   fetch('/api/users/soft-launch-stats').then(r => r.json()).then(d => setSoftLaunchStats(d)).catch(e => console.error('Load soft launch stats error:', e))
+ ]).then(() => {
+   setInitialDataLoaded(true);
    detectUserLocation();
-   api.sponsors.banners().then(b => setSponsorBanners(b || [])).catch(() => {});
-   api.auth.userCount().then(d => setPrelaunchUserCount(170924 + (d?.count || 0))).catch(() => setPrelaunchUserCount(170924));
-   fetch('/api/users/soft-launch-stats').then(r => r.json()).then(d => setSoftLaunchStats(d)).catch(() => {});
  });
  const hotInterval = setInterval(loadHotParties, 5 * 60 * 1000);
  const lcInterval = setInterval(loadLastChanceParties, 60 * 1000);
@@ -2365,8 +2379,8 @@ const qrScannerRef = useRef(null);
  loadNotifications();
  loadBadgeStats();
  setupPushNotifications();
- api.push.watchedGames().then(ids => setWatchedGames(ids || [])).catch(() => {});
- api.push.getPreferences().then(prefs => setNotifPrefs(prefs)).catch(() => {});
+ api.push.watchedGames().then(ids => setWatchedGames(ids || [])).catch(e => console.error('Load watched games error:', e));
+ api.push.getPreferences().then(prefs => setNotifPrefs(prefs)).catch(e => console.error('Load notification prefs error:', e));
  const visits = parseInt(localStorage.getItem('hu_visit_count') || '0') + 1;
  localStorage.setItem('hu_visit_count', String(visits));
  if (visits >= 3 && typeof Notification !== 'undefined' && Notification.permission === 'default') {
@@ -2474,7 +2488,7 @@ const qrScannerRef = useRef(null);
  loadFriends();
  launchIntroSplash();
  } catch (error) {
- alert(error.message);
+ showToast(error.message, 'error');
  }
  };
 
@@ -2497,7 +2511,7 @@ const qrScannerRef = useRef(null);
  }
  launchIntroSplash();
  } catch (error) {
- alert(error.message);
+ showToast(error.message, 'error');
  }
  };
 
@@ -2547,7 +2561,7 @@ const qrScannerRef = useRef(null);
  playTone(880, now, 0.15);
  playTone(1320, now + 0.12, 0.15);
  playTone(1760, now + 0.24, 0.2);
- } catch (e) {}
+ } catch (e) { console.error('Notification sound error:', e); }
  }, []);
 
  const loadNotifications = async () => {
@@ -2641,7 +2655,7 @@ const qrScannerRef = useRef(null);
      setDmNewMsg('');
      setTimeout(() => dmEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
    } catch (e) {
-     alert(e.message || 'Failed to send message');
+     showToast(e.message || 'Failed to send message', 'error');
    }
    setDmSending(false);
  };
@@ -2662,7 +2676,7 @@ const qrScannerRef = useRef(null);
        setDmUnreadCount(count);
      }
      dmPrevUnreadRef.current = count;
-   } catch (e) {}
+   } catch (e) { console.error('DM unread count error:', e); }
  };
 
  const loadRewards = async () => {
@@ -2705,7 +2719,7 @@ const qrScannerRef = useRef(null);
  };
 
  const submitPrediction = async (game, pickedTeam, confidence) => {
- if (!user) { alert('Please log in to make predictions'); return; }
+ if (!user) { showToast('Please log in to make predictions', 'error'); return; }
  try {
  setPredictionLoading(true);
  await api.predictions.submit({
@@ -2720,7 +2734,7 @@ const qrScannerRef = useRef(null);
  setGamePredictionCache(prev => ({ ...prev, [game.id]: { picked_team: pickedTeam, confidence, status: 'pending' } }));
  await loadPredictions();
  setExpandedPrediction(null);
- } catch (e) { alert(e.message); }
+ } catch (e) { showToast(e.message, 'error'); }
  finally { setPredictionLoading(false); }
  };
 
@@ -2732,7 +2746,7 @@ const qrScannerRef = useRef(null);
 
  const closeQrScanner = () => {
  if (qrScannerRef.current) {
- try { qrScannerRef.current.stop(); } catch(e) {}
+ try { qrScannerRef.current.stop(); } catch(e) { console.error('QR scanner stop error:', e); }
  qrScannerRef.current = null;
  }
  setQrScannerOpen(false);
@@ -2742,14 +2756,14 @@ const qrScannerRef = useRef(null);
 
  const handleQrScanResult = async (decodedText) => {
  if (qrScannerRef.current) {
- try { qrScannerRef.current.pause(true); } catch(e) {}
+ try { qrScannerRef.current.pause(true); } catch(e) { console.error('QR scanner pause error:', e); }
  }
  setQrScanStatus({ type: 'loading', message: 'Verifying...' });
  try {
  const urlParts = decodedText.split('/checkin/');
  if (urlParts.length < 2) {
  setQrScanStatus({ type: 'error', message: 'Invalid QR code. Please scan the venue check-in QR code.' });
- setTimeout(() => { try { qrScannerRef.current?.resume(); } catch(e) {} }, 2000);
+ setTimeout(() => { try { qrScannerRef.current?.resume(); } catch(e) { console.error('QR scanner resume error:', e); } }, 2000);
  return;
  }
  const token = urlParts[1];
@@ -2776,7 +2790,7 @@ const qrScannerRef = useRef(null);
  } else {
  setTimeout(() => {
  setQrScanStatus(null);
- try { qrScannerRef.current?.resume(); } catch(e) {}
+ try { qrScannerRef.current?.resume(); } catch(e) { console.error('QR scanner resume error:', e); }
  }, 2500);
  }
  }
@@ -2786,10 +2800,10 @@ const qrScannerRef = useRef(null);
  setRedeemingReward(rewardId);
  try {
  const result = await api.rewards.redeem(rewardId);
- alert(`Redeemed: ${result.reward.name}! You now have ${result.totalPoints} points.`);
+ showToast(`Redeemed: ${result.reward.name}! You now have ${result.totalPoints} points.`, 'success');
  loadRewards();
  } catch (e) {
- alert(e.message || 'Redemption failed');
+ showToast(e.message || 'Redemption failed', 'error');
  } finally {
  setRedeemingReward(null);
  }
@@ -2800,11 +2814,11 @@ const qrScannerRef = useRef(null);
  setEnteringRaffle(raffleId);
  try {
  const result = await api.raffles.enter(raffleId, entries);
- alert(`Entered! You now have ${result.totalEntries} entries. ${result.pointsSpent} points spent.`);
+ showToast(`Entered! You now have ${result.totalEntries} entries. ${result.pointsSpent} points spent.`, 'success');
  setRaffleEntryCount(prev => ({ ...prev, [raffleId]: 1 }));
  loadRewards();
  } catch (e) {
- alert(e.message || 'Entry failed');
+ showToast(e.message || 'Entry failed', 'error');
  } finally {
  setEnteringRaffle(null);
  }
@@ -2826,7 +2840,7 @@ const qrScannerRef = useRef(null);
  const league = await api.fantasy.getLeague(id);
  setFantasySelectedLeague(league);
  } catch (e) {
- alert(e.message || 'Failed to load league');
+ showToast(e.message || 'Failed to load league', 'error');
  } finally {
  setFantasyLoading(false);
  }
@@ -2834,7 +2848,7 @@ const qrScannerRef = useRef(null);
 
  const handleCreateFantasyLeague = async () => {
  if (!fantasyNewLeague.name || !fantasyNewLeague.teamName) {
- alert('Please enter a league name and your team name');
+ showToast('Please enter a league name and your team name', 'error');
  return;
  }
  try {
@@ -2844,7 +2858,7 @@ const qrScannerRef = useRef(null);
  setFantasyNewLeague({ name: '', platform: 'espn', sport: 'NFL', season: '2025-26', teamName: '' });
  await loadFantasyLeagues();
  } catch (e) {
- alert(e.message || 'Failed to create league');
+ showToast(e.message || 'Failed to create league', 'error');
  } finally {
  setFantasyLoading(false);
  }
@@ -2852,7 +2866,7 @@ const qrScannerRef = useRef(null);
 
  const handleJoinFantasyByCode = async () => {
  if (!fantasyJoinCode || !fantasyJoinTeamName) {
- alert('Please enter an invite code and your team name');
+ showToast('Please enter an invite code and your team name', 'error');
  return;
  }
  try {
@@ -2863,7 +2877,7 @@ const qrScannerRef = useRef(null);
  setFantasyJoinTeamName('');
  await loadFantasyLeagues();
  } catch (e) {
- alert(e.message || 'Failed to join league');
+ showToast(e.message || 'Failed to join league', 'error');
  } finally {
  setFantasyLoading(false);
  }
@@ -2871,7 +2885,7 @@ const qrScannerRef = useRef(null);
 
  const handleAddFantasyPlayer = async (teamId) => {
  if (!fantasyAddPlayerForm.playerName) {
- alert('Player name is required');
+ showToast('Player name is required', 'error');
  return;
  }
  try {
@@ -2880,7 +2894,7 @@ const qrScannerRef = useRef(null);
  setShowAddPlayer(false);
  if (fantasySelectedLeague) await loadFantasyLeague(fantasySelectedLeague.id);
  } catch (e) {
- alert(e.message || 'Failed to add player');
+ showToast(e.message || 'Failed to add player', 'error');
  }
  };
 
@@ -2889,7 +2903,7 @@ const qrScannerRef = useRef(null);
  await api.fantasy.removePlayer(playerId);
  if (fantasySelectedLeague) await loadFantasyLeague(fantasySelectedLeague.id);
  } catch (e) {
- alert(e.message || 'Failed to remove player');
+ showToast(e.message || 'Failed to remove player', 'error');
  }
  };
 
@@ -2900,7 +2914,7 @@ const qrScannerRef = useRef(null);
  setFantasySelectedLeague(null);
  await loadFantasyLeagues();
  } catch (e) {
- alert(e.message || 'Failed to delete league');
+ showToast(e.message || 'Failed to delete league', 'error');
  }
  };
 
@@ -2908,9 +2922,9 @@ const qrScannerRef = useRef(null);
  try {
  await api.friends.sendRequest(userId);
  setFriendStatuses(prev => ({ ...prev, [userId]: 'sent' }));
- alert('Friend request sent!');
+ showToast('Friend request sent!', 'success');
  } catch (e) {
- alert(e.message || 'Failed to send request');
+ showToast(e.message || 'Failed to send request', 'error');
  }
  };
 
@@ -2918,10 +2932,10 @@ const qrScannerRef = useRef(null);
  try {
  await api.friends.resend(userId);
  setFriendStatuses(prev => ({ ...prev, [userId]: 'resent' }));
- alert('Friend request resent!');
+ showToast('Friend request resent!', 'success');
  setTimeout(() => setFriendStatuses(prev => ({ ...prev, [userId]: 'sent' })), 3000);
  } catch (e) {
- alert(e.message || 'Failed to resend request');
+ showToast(e.message || 'Failed to resend request', 'error');
  }
  };
 
@@ -2930,7 +2944,7 @@ const qrScannerRef = useRef(null);
  await api.friends.accept(requestId);
  await loadFriends();
  } catch (e) {
- alert('Failed to accept');
+ showToast('Failed to accept', 'error');
  }
  };
 
@@ -2939,7 +2953,7 @@ const qrScannerRef = useRef(null);
  await api.friends.decline(requestId);
  setFriendRequests(prev => prev.filter(r => r.id !== requestId));
  } catch (e) {
- alert('Failed to decline');
+ showToast('Failed to decline', 'error');
  }
  };
 
@@ -2949,7 +2963,7 @@ const qrScannerRef = useRef(null);
  await api.friends.remove(friendId);
  setFriendsList(prev => prev.filter(f => f.id !== friendId));
  } catch (e) {
- alert('Failed to remove');
+ showToast('Failed to remove', 'error');
  }
  };
 
@@ -3001,7 +3015,7 @@ const qrScannerRef = useRef(null);
  setShowShareToast(true);
  setTimeout(() => setShowShareToast(false), 2000);
  } catch (e) {
- alert('Failed to copy link');
+ showToast('Failed to copy link', 'error');
  }
  };
 
@@ -3057,7 +3071,7 @@ const qrScannerRef = useRef(null);
  await api.fans.invite(partyId, toUserId);
  setInviteSending(prev => ({ ...prev, [`${toUserId}-${partyId}`]: 'sent' }));
  } catch (error) {
- alert(error.message);
+ showToast(error.message, 'error');
  setInviteSending(prev => ({ ...prev, [`${toUserId}-${partyId}`]: false }));
  }
  };
@@ -3069,7 +3083,7 @@ const qrScannerRef = useRef(null);
  await loadParties();
  await loadUserParties();
  } catch (error) {
- alert(error.message);
+ showToast(error.message, 'error');
  }
  };
 
@@ -3078,7 +3092,7 @@ const qrScannerRef = useRef(null);
  await api.fans.declineInvitation(invitationId);
  await loadInvitations();
  } catch (error) {
- alert(error.message);
+ showToast(error.message, 'error');
  }
  };
 
@@ -3114,7 +3128,7 @@ const qrScannerRef = useRef(null);
  setTimeout(() => openShareMenu(shareData), 500);
  }
  } catch (error) {
- alert(error.message);
+ showToast(error.message, 'error');
  }
  };
 
@@ -3199,7 +3213,7 @@ const qrScannerRef = useRef(null);
  loadBadgeStats();
  } catch (error) {
  setJoiningPartyId(null);
- alert(error.message);
+ showToast(error.message, 'error');
  }
  };
 
@@ -3210,7 +3224,7 @@ const qrScannerRef = useRef(null);
  await loadUserParties();
  loadBadgeStats();
  } catch (error) {
- alert(error.message);
+ showToast(error.message, 'error');
  }
  };
 
@@ -3285,7 +3299,7 @@ const qrScannerRef = useRef(null);
  await loadParties();
  setEditPartyModal(null);
  } catch (error) {
- alert(error.message);
+ showToast(error.message, 'error');
  } finally {
  setEditPartySaving(false);
  }
@@ -3314,7 +3328,7 @@ const qrScannerRef = useRef(null);
  try {
  const msgs = await api.chat.getMessages(partyId);
  setChatMessages(msgs);
- } catch (e) {}
+ } catch (e) { console.error('Chat poll error:', e); }
  }, 5000);
  };
 
@@ -3330,7 +3344,7 @@ const qrScannerRef = useRef(null);
  setChatTrashTalk(false);
  setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
  } catch (e) {
- alert(e.message);
+ showToast(e.message, 'error');
  } finally {
  setChatSending(false);
  }
@@ -3362,7 +3376,7 @@ const qrScannerRef = useRef(null);
  const handlePhotoUpload = async (partyId, file) => {
  if (!file || photoUploading) return;
  if (file.size > 10 * 1024 * 1024) {
- alert('Photo must be under 10MB');
+ showToast('Photo must be under 10MB', 'error');
  return;
  }
  setPhotoUploading(true);
@@ -3372,7 +3386,7 @@ const qrScannerRef = useRef(null);
  setPhotoCaption('');
  if (photoInputRef.current) photoInputRef.current.value = '';
  } catch (e) {
- alert('Upload failed: ' + e.message);
+ showToast('Upload failed: ' + e.message, 'error');
  } finally {
  setPhotoUploading(false);
  }
@@ -3385,7 +3399,7 @@ const qrScannerRef = useRef(null);
  setPartyPhotos(prev => prev.filter(p => p.id !== photoId));
  if (selectedPhoto?.id === photoId) setSelectedPhoto(null);
  } catch (e) {
- alert(e.message);
+ showToast(e.message, 'error');
  }
  };
 
@@ -3396,7 +3410,7 @@ const qrScannerRef = useRef(null);
  if (selectedPhoto?.id === photoId) setSelectedPhoto(prev => ({ ...prev, tags }));
  setTagMenuPhotoId(null);
  } catch (e) {
- alert(e.message);
+ showToast(e.message, 'error');
  }
  };
 
@@ -3406,7 +3420,7 @@ const qrScannerRef = useRef(null);
  setPartyPhotos(prev => prev.map(p => p.id === photoId ? { ...p, tags: p.tags.filter(t => t.userId !== taggedUserId) } : p));
  if (selectedPhoto?.id === photoId) setSelectedPhoto(prev => ({ ...prev, tags: prev.tags.filter(t => t.userId !== taggedUserId) }));
  } catch (e) {
- alert(e.message);
+ showToast(e.message, 'error');
  }
  };
 
@@ -3416,13 +3430,13 @@ const qrScannerRef = useRef(null);
  if (navigator.share) {
  try {
  await navigator.share({ title: 'Huddle Up Party Photo', text: shareText, url: shareUrl });
- } catch (e) {}
+ } catch (e) { console.error('Share photo error:', e); }
  } else {
  try {
  await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
- alert('Share text copied to clipboard!');
+ showToast('Share text copied to clipboard!', 'info');
  } catch (e) {
- alert('Could not share');
+ showToast('Could not share', 'error');
  }
  }
  };
@@ -3431,10 +3445,10 @@ const qrScannerRef = useRef(null);
  try {
  await api.venues.submitClaim(claimData);
  await loadVenueClaims();
- alert('Venue claim submitted! We\'ll review it within 24-48 hours.');
+ showToast('Venue claim submitted! We\'ll review it within 24-48 hours.', 'success');
  setCurrentScreen('games');
  } catch (error) {
- alert(error.message);
+ showToast(error.message, 'error');
  }
  };
 
@@ -3444,7 +3458,7 @@ const qrScannerRef = useRef(null);
  await loadVenues();
  await loadVenueClaims();
  } catch (error) {
- alert(error.message);
+ showToast(error.message, 'error');
  }
  };
 
@@ -3453,7 +3467,7 @@ const qrScannerRef = useRef(null);
  await api.venues.rejectClaim(claimId);
  await loadVenueClaims();
  } catch (error) {
- alert(error.message);
+ showToast(error.message, 'error');
  }
  };
 
@@ -4023,9 +4037,9 @@ const qrScannerRef = useRef(null);
  await navigator.share(shareData);
  } else {
  await navigator.clipboard.writeText('Join me on Huddle Up! Find watch parties for every sport near you. https://huddleupusa.com');
- alert('Link copied to clipboard!');
+ showToast('Link copied to clipboard!', 'info');
  }
- } catch (err) {}
+ } catch (err) { console.error('Share error:', err); }
  };
  const isVenue = user?.subscriptionTier === 'venue';
  return (
@@ -4299,9 +4313,9 @@ const qrScannerRef = useRef(null);
  const result = await api.stripe.checkout(targetPrice.id, proAffValid ? proAffCode : '');
  if (result?.url) window.location.href = result.url;
  } else {
- alert('Plans are loading. Please wait a moment and try again.');
+ showToast('Plans are loading. Please wait a moment and try again.', 'error');
  }
- } catch(e) { console.error(e); alert('Something went wrong. Please try again.'); }
+ } catch(e) { console.error(e); showToast('Something went wrong. Please try again.', 'error'); }
  setUpgrading(false);
  };
  return (
@@ -4466,7 +4480,7 @@ const qrScannerRef = useRef(null);
  <div className="mb-6 text-center">
  <p className="text-[#A0A4AB] text-sm">Your feedback matters! Message us anytime with suggestions.</p>
  </div>
- <button onClick={() => { setShowWelcomePopup(false); setShowOnboarding(true); setOnboardingStep(0); setUser(prev => prev ? ({ ...prev, onboardingCompleted: true }) : prev); fetch('/api/users/onboarding-complete', { method: 'POST', credentials: 'include' }).catch(() => {}); }} className="w-full py-3.5 text-white font-black transition-all text-lg hover:opacity-90 active:scale-[0.98]" style={{ backgroundColor: '#1E90FF', borderRadius: '14px' }}>
+ <button onClick={() => { setShowWelcomePopup(false); setShowOnboarding(true); setOnboardingStep(0); setUser(prev => prev ? ({ ...prev, onboardingCompleted: true }) : prev); fetch('/api/users/onboarding-complete', { method: 'POST', credentials: 'include' }).catch(e => console.error('Onboarding complete error:', e)); }} className="w-full py-3.5 text-white font-black transition-all text-lg hover:opacity-90 active:scale-[0.98]" style={{ backgroundColor: '#1E90FF', borderRadius: '14px' }}>
  Let's Go!
  </button>
  </div>
@@ -4543,19 +4557,19 @@ const qrScannerRef = useRef(null);
  useEffect(() => {
    if (!selectedVenueId) return;
    if (venueTab === 'upcoming' || venueTab === 'past') {
-     api.venues.parties(selectedVenueId, venueTab === 'past' ? 'past' : 'upcoming').then(setVenueParties).catch(() => {});
+     api.venues.parties(selectedVenueId, venueTab === 'past' ? 'past' : 'upcoming').then(setVenueParties).catch(e => console.error('Load venue parties error:', e));
    } else if (venueTab === 'reviews') {
-     api.venues.getReviews(selectedVenueId).then(setVenueReviews).catch(() => {});
+     api.venues.getReviews(selectedVenueId).then(setVenueReviews).catch(e => console.error('Load venue reviews error:', e));
    } else if (venueTab === 'photos') {
-     api.venues.getPhotos(selectedVenueId).then(setVenuePhotos).catch(() => {});
+     api.venues.getPhotos(selectedVenueId).then(setVenuePhotos).catch(e => console.error('Load venue photos error:', e));
    } else if (venueTab === 'deals') {
-     api.venueHub.getVenueDeals(selectedVenueId).then(setVenueDeals).catch(() => setVenueDeals([]));
+     api.venueHub.getVenueDeals(selectedVenueId).then(setVenueDeals).catch(e => { console.error('Load venue deals error:', e); setVenueDeals([]); });
    }
  }, [selectedVenueId, venueTab]);
 
  useEffect(() => {
    if (!selectedVenueId) return;
-   api.venueHub.getVenueDeals(selectedVenueId).then(d => { if (d && d.length > 0) setVenueDeals(d); }).catch(() => {});
+   api.venueHub.getVenueDeals(selectedVenueId).then(d => { if (d && d.length > 0) setVenueDeals(d); }).catch(e => console.error('Load venue deals error:', e));
  }, [selectedVenueId]);
 
  const toggleFollow = async () => {
@@ -4564,7 +4578,7 @@ const qrScannerRef = useRef(null);
    try {
      const res = venueData.isFollowing ? await api.venues.unfollow(selectedVenueId) : await api.venues.follow(selectedVenueId);
      setVenueData(prev => ({ ...prev, isFollowing: res.following, followerCount: res.followerCount }));
-   } catch(e) {}
+   } catch(e) { console.error('Toggle follow error:', e); }
    setFollowLoading(false);
  };
 
@@ -4577,7 +4591,7 @@ const qrScannerRef = useRef(null);
      setReviewForm({ rating: 5, atmosphere: 5, service: 5, value: 5, comment: '' });
      const detail = await api.venues.detail(selectedVenueId);
      setVenueData(detail);
-   } catch(e) { alert(e.message); }
+   } catch(e) { showToast(e.message, 'error'); }
    setSubmittingReview(false);
  };
 
@@ -5563,7 +5577,7 @@ const qrScannerRef = useRef(null);
  </button>
 
  <button
- onClick={() => { setSignupUserType('venue'); setCurrentScreen('signup'); api.venues.list().then(v => setSignupVenueList(v || [])).catch(() => {}); }}
+ onClick={() => { setSignupUserType('venue'); setCurrentScreen('signup'); api.venues.list().then(v => setSignupVenueList(v || [])).catch(e => console.error('Load venue list error:', e)); }}
  className="w-full p-6 rounded-2xl border-2 transition-all duration-200 hover:scale-[1.02] text-left"
  style={{ backgroundColor: 'rgba(34,197,94,0.08)', borderColor: 'rgba(34,197,94,0.3)' }}
  >
@@ -5854,25 +5868,25 @@ const qrScannerRef = useRef(null);
 
  const handleSignupSubmit = () => {
  if (!signupUserType || !['fan', 'venue'].includes(signupUserType)) {
- alert('Please select an account type first.');
+ showToast('Please select an account type first.', 'error');
  setCurrentScreen('signupType');
  return;
  }
  if (!signupAcceptedTerms) {
- alert('You must accept the Terms of Service and Privacy Policy to sign up.');
+ showToast('You must accept the Terms of Service and Privacy Policy to sign up.', 'error');
  return;
  }
  if (!signupEmail || !signupPassword || !signupName) {
- alert('Please fill in all fields.');
+ showToast('Please fill in all fields.', 'error');
  return;
  }
  if (signupUserType === 'fan') {
  if (!signupAgeConfirmed) {
- alert('You must confirm you are 21 years of age or older.');
+ showToast('You must confirm you are 21 years of age or older.', 'error');
  return;
  }
  if (!signupGender || !signupDateOfBirth) {
- alert('Please fill in all fields.');
+ showToast('Please fill in all fields.', 'error');
  return;
  }
  const dob = new Date(signupDateOfBirth);
@@ -5881,12 +5895,12 @@ const qrScannerRef = useRef(null);
  const m = today.getMonth() - dob.getMonth();
  if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
  if (age < 21) {
- alert('You must be 21 or older to join Huddle Up.');
+ showToast('You must be 21 or older to join Huddle Up.', 'error');
  return;
  }
  }
  if (signupUserType === 'venue' && !signupVenueName) {
- alert('Please enter your venue name.');
+ showToast('Please enter your venue name.', 'error');
  return;
  }
  handleSignUp(signupEmail, signupPassword, signupName, signupGender, signupDateOfBirth, signupRememberMe, signupReferralCode, signupUserType, signupVenueName, signupVenueAddress, signupInfluencerCode);
@@ -6182,6 +6196,24 @@ const qrScannerRef = useRef(null);
 
  const gamesScreenJSX = () => (
  <div className="min-h-screen pt-2 pb-[72px] brand-gradient-bg">
+
+ {!initialDataLoaded && (
+   <div className="px-4 pt-4 space-y-3">
+     {[1,2,3,4].map(i => (
+       <div key={i} className="bg-[#151A22] rounded-xl border border-[#222A36] p-4 animate-pulse">
+         <div className="flex items-center gap-3">
+           <div className="w-10 h-10 bg-[#222A36] rounded-full" />
+           <div className="flex-1 space-y-2">
+             <div className="h-3 bg-[#222A36] rounded w-3/4" />
+             <div className="h-2 bg-[#222A36] rounded w-1/2" />
+           </div>
+           <div className="w-10 h-10 bg-[#222A36] rounded-full" />
+         </div>
+         <div className="mt-3 h-2 bg-[#222A36] rounded w-1/3 mx-auto" />
+       </div>
+     ))}
+   </div>
+ )}
 
  {showInstallBanner && !isAppInstalled && !isStandalone && (
  <div className="sticky top-[60px] left-0 right-0 z-[60]" style={{ animation: 'slideDown 300ms ease-out' }}>
@@ -7662,8 +7694,8 @@ Become a Sponsor →
     try {
       const audio = new Audio('/crowd-cheer.mp3?v=2');
       audio.volume = 0.7;
-      audio.play().catch(() => {});
-    } catch (e) {}
+      audio.play().catch((e) => { console.error('Audio play error:', e); });
+    } catch (e) { console.error('Celebrate audio error:', e); }
     setTimeout(() => setCelebrateActive(false), 15000);
   }}
   disabled={celebrateActive}
@@ -7694,11 +7726,11 @@ Become a Sponsor →
 
  const handleClaimSubmit = () => {
  if (!claimVenueName || !claimAddress || !claimVenueType) {
- alert('Please fill in all required fields');
+ showToast('Please fill in all required fields', 'error');
  return;
  }
  if (!claimAcceptedTerms) {
- alert('You must accept the Venue Terms and Conditions to claim a venue.');
+ showToast('You must accept the Venue Terms and Conditions to claim a venue.', 'error');
  return;
  }
  handleVenueClaim({
@@ -7911,7 +7943,7 @@ Become a Sponsor →
 
  const handleAdminSaveVenue = async () => {
  if (!adminEditForm.name || !adminEditForm.address) {
- alert('Name and address are required.');
+ showToast('Name and address are required.', 'error');
  return;
  }
  setAdminSavingVenue(true);
@@ -7920,7 +7952,7 @@ Become a Sponsor →
  await loadVenues();
  setAdminEditVenue(null);
  } catch (error) {
- alert(error.message);
+ showToast(error.message, 'error');
  } finally {
  setAdminSavingVenue(false);
  }
@@ -8739,7 +8771,7 @@ Become a Sponsor →
  setAdminQrModal({ venue, qrDataUrl: result.qrDataUrl, checkinUrl: result.checkinUrl });
  }
  }
- } catch (e) { alert(e.message); }
+ } catch (e) { showToast(e.message, 'error'); }
  }}
  className="px-2.5 py-1.5 bg-amber-500/20 text-amber-300 rounded-lg text-[10px] font-bold hover:bg-amber-500/30 border border-amber-500/30 transition-all"
  >
@@ -8908,7 +8940,7 @@ Become a Sponsor →
  setSponsorTargetSports(sponsorTargetSports.filter(s => s !== sport));
  } else {
  if (sponsorTierField === 'standard' && sponsorTargetSports.length >= 1) {
- alert('Standard tier allows only 1 sport. Switch to Premium for multi-sport.');
+ showToast('Standard tier allows only 1 sport. Switch to Premium for multi-sport.', 'info');
  return;
  }
  setSponsorTargetSports([...sponsorTargetSports, sport]);
@@ -9096,8 +9128,8 @@ Become a Sponsor →
  onClick={async () => {
  try {
  await navigator.clipboard.writeText(adminQrModal.checkinUrl);
- alert('Check-in link copied!');
- } catch (e) {}
+ showToast('Check-in link copied!', 'success');
+ } catch (e) { console.error('Copy admin QR link error:', e); }
  }}
  className="flex-1 py-2 bg-[#151A22] text-white font-bold rounded-xl text-sm hover:bg-[#222A36] border border-[#222A36]"
  >
@@ -9109,7 +9141,7 @@ Become a Sponsor →
  try {
  const result = await api.qr.adminGenerateQr(adminQrModal.venue.id);
  setAdminQrModal({ venue: adminQrModal.venue, qrDataUrl: result.qrDataUrl, checkinUrl: result.checkinUrl });
- } catch (e) { alert(e.message); }
+ } catch (e) { showToast(e.message, 'error'); }
  }
  }}
  className="flex-1 py-2 bg-[#151A22] text-[#A0A4AB] font-bold rounded-xl text-sm hover:bg-[#222A36] border border-[#222A36]"
@@ -9301,8 +9333,8 @@ Become a Sponsor →
  input.onchange = async (ev) => {
  const file = ev.target.files?.[0];
  if (!file) return;
- if (!file.type.startsWith('image/')) { alert('Please select an image file'); return; }
- if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB'); return; }
+ if (!file.type.startsWith('image/')) { showToast('Please select an image file', 'error'); return; }
+ if (file.size > 5 * 1024 * 1024) { showToast('Image must be under 5MB', 'error'); return; }
  setAdminRaffleImageUploading(true);
  try {
  const buf = await file.arrayBuffer();
@@ -9310,7 +9342,7 @@ Become a Sponsor →
  if (!uploadRes.ok) throw new Error((await uploadRes.json().catch(() => ({}))).error || 'Upload failed');
  const { objectPath } = await uploadRes.json();
  setAdminRaffleForm(f => ({ ...f, imageUrl: objectPath }));
- } catch (err) { alert('Upload failed: ' + err.message); }
+ } catch (err) { showToast('Upload failed: ' + err.message, 'error'); }
  setAdminRaffleImageUploading(false);
  };
  input.click();
@@ -9360,7 +9392,7 @@ Become a Sponsor →
  setAdminRaffleForm(null);
  const data = await api.raffles.adminAll();
  setAdminRaffles(data);
- } catch (e) { alert(e.message || 'Save failed'); }
+ } catch (e) { showToast(e.message || 'Save failed', 'error'); }
  finally { setAdminRaffleSaving(false); }
  }}
  className={`flex-1 py-2.5 font-bold rounded-xl text-sm transition-all ${
@@ -9434,10 +9466,10 @@ Become a Sponsor →
  if (!confirm(`Draw a random winner for "${raffle.title}"? This cannot be undone.`)) return;
  try {
  const result = await api.raffles.adminDrawWinner(raffle.id);
- alert(`Winner: ${result.winner.name} (${result.winner.email}) out of ${result.totalEntries} entries!`);
+ showToast(`Winner: ${result.winner.name} (${result.winner.email}) out of ${result.totalEntries} entries!`, 'info');
  const data = await api.raffles.adminAll();
  setAdminRaffles(data);
- } catch (e) { alert(e.message || 'Draw failed'); }
+ } catch (e) { showToast(e.message || 'Draw failed', 'error'); }
  }} className="p-2 bg-yellow-500/10 rounded-lg hover:bg-yellow-500/20 text-yellow-400 hover:text-yellow-300" title="Draw Winner">
  <Trophy className="w-4 h-4" />
  </button>
@@ -9448,7 +9480,7 @@ Become a Sponsor →
  await api.raffles.adminDelete(raffle.id);
  const data = await api.raffles.adminAll();
  setAdminRaffles(data);
- } catch (e) { alert(e.message || 'Delete failed'); }
+ } catch (e) { showToast(e.message || 'Delete failed', 'error'); }
  }} className="p-2 bg-red-500/10 rounded-lg hover:bg-red-500/20 text-red-400 hover:text-red-300" title="Delete">
  <Trash2 className="w-4 h-4" />
  </button>
@@ -9569,7 +9601,7 @@ Become a Sponsor →
  setAdminAffiliateForm(null);
  const data = await api.affiliates.adminAll();
  setAdminAffiliates(data);
- } catch (e) { alert(e.message || 'Save failed'); }
+ } catch (e) { showToast(e.message || 'Save failed', 'error'); }
  finally { setAdminAffiliateSaving(false); }
  }}
  className={`flex-1 py-2.5 font-bold rounded-xl text-sm transition-all ${
@@ -9657,8 +9689,8 @@ Become a Sponsor →
  setAdminAffiliates(data);
  const updated = data.find(a => a.id === adminAffiliateDetail.id);
  if (updated) setAdminAffiliateDetail(updated);
- alert('Payout recorded successfully!');
- } catch (e) { alert(e.message || 'Payout failed'); }
+ showToast('Payout recorded successfully!', 'success');
+ } catch (e) { showToast(e.message || 'Payout failed', 'error'); }
  }} className="flex-1 py-2 bg-green-500 text-white font-bold rounded-lg text-sm hover:bg-green-600">Confirm Payout</button>
  <button onClick={() => setAdminPayoutForm(null)} className="px-4 py-2 bg-[#0F1115] text-[#A0A4AB] rounded-lg text-sm hover:bg-[#222A36]">Cancel</button>
  </div>
@@ -9689,14 +9721,14 @@ Become a Sponsor →
  const refs = await api.affiliates.adminReferrals(adminAffiliateDetail.id); setAdminAffiliateReferrals(refs);
  const data = await api.affiliates.adminAll(); setAdminAffiliates(data);
  const updated = data.find(a => a.id === adminAffiliateDetail.id); if (updated) setAdminAffiliateDetail(updated);
- } catch (e) { alert(e.message); }
+ } catch (e) { showToast(e.message, 'error'); }
  }} className="p-1 bg-green-500/10 rounded hover:bg-green-500/20 text-green-400" title="Approve">
  <Check className="w-3.5 h-3.5" />
  </button>
  <button onClick={async () => {
  try { await api.affiliates.adminRejectReferral(ref.id);
  const refs = await api.affiliates.adminReferrals(adminAffiliateDetail.id); setAdminAffiliateReferrals(refs);
- } catch (e) { alert(e.message); }
+ } catch (e) { showToast(e.message, 'error'); }
  }} className="p-1 bg-red-500/10 rounded hover:bg-red-500/20 text-red-400" title="Reject">
  <X className="w-3.5 h-3.5" />
  </button>
@@ -9749,7 +9781,7 @@ Become a Sponsor →
  </div>
  {aff.dashboard_token && (
  <div className="mt-1">
- <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/influencer/${aff.dashboard_token}`); alert('Dashboard link copied!'); }}
+ <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/influencer/${aff.dashboard_token}`); showToast('Dashboard link copied!', 'success'); }}
  className="text-xs text-amber-400 hover:text-amber-300 underline">Copy Dashboard Link</button>
  </div>
  )}
@@ -9776,7 +9808,7 @@ Become a Sponsor →
  if (!confirm(`Delete affiliate "${aff.name}"? This will also remove their referral tracking history.`)) return;
  try { await api.affiliates.adminDelete(aff.id);
  const data = await api.affiliates.adminAll(); setAdminAffiliates(data);
- } catch (e) { alert(e.message || 'Delete failed'); }
+ } catch (e) { showToast(e.message || 'Delete failed', 'error'); }
  }} className="p-2 bg-red-500/10 rounded-lg hover:bg-red-500/20 text-red-400 hover:text-red-300" title="Delete">
  <Trash2 className="w-4 h-4" />
  </button>
@@ -9821,7 +9853,7 @@ Become a Sponsor →
    try {
      const data = await api.predictions.adminPendingGames();
      setAdminPendingGames(data);
-   } catch(e) { alert(e.message); }
+   } catch(e) { showToast(e.message, 'error'); }
  }} className="px-4 py-2 bg-[#1E90FF] text-white font-bold rounded-xl text-sm hover:opacity-90">
    Refresh Pending Games
  </button>
@@ -9845,11 +9877,11 @@ Become a Sponsor →
              if (!confirm(`Set ${game.home_team} as winner? This will award points to all correct predictions.`)) return;
              try {
                const result = await api.predictions.adminResolve(game.game_id, game.home_team);
-               alert(`Resolved! ${result.resolved} predictions processed. Winner: ${game.home_team}`);
+               showToast(`Resolved! ${result.resolved} predictions processed. Winner: ${game.home_team}`, 'info');
                setAdminResolveGame(null);
                const data = await api.predictions.adminPendingGames();
                setAdminPendingGames(data);
-             } catch(e) { alert(e.message); }
+             } catch(e) { showToast(e.message, 'error'); }
            }} className="flex-1 py-2 bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 rounded-xl font-bold text-sm hover:bg-emerald-500/30">
              {game.home_team} Wins
            </button>
@@ -9857,11 +9889,11 @@ Become a Sponsor →
              if (!confirm(`Set ${game.away_team} as winner? This will award points to all correct predictions.`)) return;
              try {
                const result = await api.predictions.adminResolve(game.game_id, game.away_team);
-               alert(`Resolved! ${result.resolved} predictions processed. Winner: ${game.away_team}`);
+               showToast(`Resolved! ${result.resolved} predictions processed. Winner: ${game.away_team}`, 'info');
                setAdminResolveGame(null);
                const data = await api.predictions.adminPendingGames();
                setAdminPendingGames(data);
-             } catch(e) { alert(e.message); }
+             } catch(e) { showToast(e.message, 'error'); }
            }} className="flex-1 py-2 bg-[#1E90FF]/20 border border-[#1E90FF]/40 text-[#1E90FF] rounded-xl font-bold text-sm hover:bg-[#1E90FF]/30">
              {game.away_team} Wins
            </button>
@@ -9893,9 +9925,9 @@ Become a Sponsor →
    try {
      const res = await fetch('/api/seed/create', { method: 'POST', credentials: 'include' });
      const data = await res.json();
-     if (data.success) alert(`Seed data created! ${data.users} users, ${data.parties} parties, ${data.venues} venues`);
-     else alert('Error: ' + (data.error || 'Unknown'));
-   } catch (e) { alert('Error: ' + e.message); }
+     if (data.success) showToast(`Seed data created! ${data.users} users, ${data.parties} parties, ${data.venues} venues`, 'success');
+     else showToast('Error: ' + (data.error || 'Unknown'), 'error');
+   } catch (e) { showToast('Error: ' + e.message, 'error'); }
  }}
  className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl text-sm transition-all active:scale-95"
  >Seed Demo Data</button>
@@ -9905,9 +9937,9 @@ Become a Sponsor →
    try {
      const res = await fetch('/api/seed/clear', { method: 'POST', credentials: 'include' });
      const data = await res.json();
-     if (data.success) alert(`Cleared ${data.cleared} seed users and all their data.`);
-     else alert('Error: ' + (data.error || 'Unknown'));
-   } catch (e) { alert('Error: ' + e.message); }
+     if (data.success) showToast(`Cleared ${data.cleared} seed users and all their data.`, 'success');
+     else showToast('Error: ' + (data.error || 'Unknown'), 'error');
+   } catch (e) { showToast('Error: ' + e.message, 'error'); }
  }}
  className="px-6 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 font-bold rounded-xl text-sm border border-red-500/30 transition-all active:scale-95"
  >Clear Demo Data</button>
@@ -9962,7 +9994,7 @@ Become a Sponsor →
  venueId = userVenue.id;
  } else if (cpUseVerifiedVenue) {
  if (!cpSelectedVenueId) {
- alert('Please select a venue');
+ showToast('Please select a venue', 'error');
  return;
  }
  const venue = venues.find(v => v.id === cpSelectedVenueId);
@@ -9970,7 +10002,7 @@ Become a Sponsor →
  venueId = cpSelectedVenueId;
  } else {
  if (!cpCustomLocation) {
- alert('Please enter a location');
+ showToast('Please enter a location', 'error');
  return;
  }
  location = cpCustomLocation;
@@ -10380,11 +10412,11 @@ Become a Sponsor →
  if (!file) return;
  const fileType = file.type || 'image/jpeg';
  if (!fileType.startsWith('image/')) {
- alert('Please select an image file');
+ showToast('Please select an image file', 'error');
  return;
  }
  if (file.size > 5 * 1024 * 1024) {
- alert('Image must be under 5MB');
+ showToast('Image must be under 5MB', 'error');
  return;
  }
  const setter = imageType === 'logo' ? setUploadingLogo : setUploadingPicture;
@@ -10405,7 +10437,7 @@ Become a Sponsor →
  await api.venues.updateMine({ [imageType]: objectPath });
  await loadVenues();
  } catch (err) {
- alert('Failed to upload image: ' + err.message);
+ showToast('Failed to upload image: ' + err.message, 'error');
  }
  setter(false);
  };
@@ -10428,7 +10460,7 @@ Become a Sponsor →
  await loadVenues();
  setEditingVenue(false);
  } catch (error) {
- alert(error.message);
+ showToast(error.message, 'error');
  }
  setSavingVenue(false);
  };
@@ -10695,8 +10727,8 @@ Become a Sponsor →
  if (featuredProduct && featuredProduct.prices.length > 0) {
  const result = await api.stripe.checkout(featuredProduct.prices[0].id);
  if (result?.url) window.location.href = result.url;
- } else { alert('Plans are loading. Please wait a moment and try again.'); }
- } catch(e) { console.error(e); alert('Something went wrong. Please try again.'); }
+ } else { showToast('Plans are loading. Please wait a moment and try again.', 'error'); }
+ } catch(e) { console.error(e); showToast('Something went wrong. Please try again.', 'error'); }
  }}
  className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-xl hover:shadow-purple-500/50 transition-all"
  >
@@ -10856,13 +10888,13 @@ Become a Sponsor →
  const shareUrl = window.location.origin;
  const text = `Watch the game at ${userVenue.name}! Find watch parties and join the crew on Huddle Up.`;
  if (navigator.share) {
- try { await navigator.share({ title: userVenue.name + ' on Huddle Up', text, url: shareUrl }); } catch (e) {}
+ try { await navigator.share({ title: userVenue.name + ' on Huddle Up', text, url: shareUrl }); } catch (e) { console.error('Share venue error:', e); }
  } else {
  try {
  await navigator.clipboard.writeText(`${text} ${shareUrl}`);
  setShowShareToast(true);
  setTimeout(() => setShowShareToast(false), 2000);
- } catch (e) {}
+ } catch (e) { console.error('Copy venue share link error:', e); }
  }
  }}
  className="flex items-center justify-center gap-3 py-4 bg-gradient-to-r from-emerald-500 to-green-500 text-white font-bold rounded-xl hover:shadow-emerald-500/50 transition-all text-sm"
@@ -10887,7 +10919,7 @@ Become a Sponsor →
  await navigator.clipboard.writeText(`${text} ${shareUrl}`);
  setShowShareToast(true);
  setTimeout(() => setShowShareToast(false), 2000);
- } catch (e) {}
+ } catch (e) { console.error('Copy venue promo link error:', e); }
  }}
  className="flex items-center justify-center gap-3 py-4 bg-[#151A22] text-white font-bold rounded-xl hover:bg-[#222A36] transition-all border border-[#222A36] text-sm"
  >
@@ -10915,7 +10947,7 @@ Become a Sponsor →
  </div>
  </div>
 
- <VenueQrSection userVenue={userVenue} />
+ <VenueQrSection userVenue={userVenue} showToast={showToast} />
 
  {/* Tips for Venues */}
  <div className="bg-gradient-to-br from-cyan-500/10 to-[#1E90FF]/10 border border-[#1E90FF]/30 p-6 rounded-2xl">
@@ -10967,44 +10999,44 @@ Become a Sponsor →
  }
 
  const savePromotion = async () => {
- if (!promoForm.title) return alert('Title is required');
+ if (!promoForm.title) return showToast('Title is required', 'error');
  setSaving(true);
  try {
  const newPromo = await api.venueHub.createPromotion(promoForm);
  setPromotions([newPromo, ...promotions]);
  setShowNewPromo(false);
  setPromoForm({ title: '', description: '', sport: '', homeTeam: '', awayTeam: '', specials: '', gameDate: '', expiresAt: '' });
- } catch (err) { alert(err.message); }
+ } catch (err) { showToast(err.message, 'error'); }
  setSaving(false);
  };
 
  const saveDeal = async () => {
- if (!dealForm.title || !dealForm.description) return alert('Title and description are required');
+ if (!dealForm.title || !dealForm.description) return showToast('Title and description are required', 'error');
  setSaving(true);
  try {
  const newDeal = await api.venueHub.createDeal(dealForm);
  setDeals([newDeal, ...deals]);
  setShowNewDeal(false);
  setDealForm({ title: '', description: '', dealType: 'special', validUntil: '', terms: '', recurring: false, recurringDays: '' });
- } catch (err) { alert(err.message); }
+ } catch (err) { showToast(err.message, 'error'); }
  setSaving(false);
  };
 
  const deletePromotion = async (id) => {
  if (!confirm('Delete this promotion?')) return;
- try { await api.venueHub.deletePromotion(id); setPromotions(promotions.filter(p => p.id !== id)); } catch (err) { alert(err.message); }
+ try { await api.venueHub.deletePromotion(id); setPromotions(promotions.filter(p => p.id !== id)); } catch (err) { showToast(err.message, 'error'); }
  };
 
  const deleteDeal = async (id) => {
  if (!confirm('Delete this deal?')) return;
- try { await api.venueHub.deleteDeal(id); setDeals(deals.filter(d => d.id !== id)); } catch (err) { alert(err.message); }
+ try { await api.venueHub.deleteDeal(id); setDeals(deals.filter(d => d.id !== id)); } catch (err) { showToast(err.message, 'error'); }
  };
 
  const toggleDealActive = async (deal) => {
  try {
  const updated = await api.venueHub.updateDeal(deal.id, { active: !deal.active });
  setDeals(deals.map(d => d.id === deal.id ? updated : d));
- } catch (err) { alert(err.message); }
+ } catch (err) { showToast(err.message, 'error'); }
  };
 
  const SPORTS_LIST = ['NFL', 'NBA', 'MLB', 'NHL', 'MLS', 'Premier League', 'La Liga', 'Champions League', 'College Football', 'College Basketball', 'UFC/MMA', 'Boxing', 'NASCAR', 'F1', 'Tennis', 'Golf'];
@@ -11184,8 +11216,8 @@ Become a Sponsor →
  if (featuredProduct && featuredProduct.prices.length > 0) {
  const result = await api.stripe.checkout(featuredProduct.prices[0].id);
  if (result?.url) window.location.href = result.url;
- } else { alert('Plans are loading. Please wait a moment and try again.'); }
- } catch(e) { console.error(e); alert('Something went wrong. Please try again.'); }
+ } else { showToast('Plans are loading. Please wait a moment and try again.', 'error'); }
+ } catch(e) { console.error(e); showToast('Something went wrong. Please try again.', 'error'); }
  }}
  className="flex-1 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black rounded-xl text-sm transition-all"
  style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}
@@ -11236,8 +11268,8 @@ Become a Sponsor →
  if (baseProduct && baseProduct.prices.length > 0) {
  const result = await api.stripe.checkout(baseProduct.prices[0].id);
  if (result?.url) window.location.href = result.url;
- } else { alert('Plans are loading. Please wait a moment and try again.'); }
- } catch(e) { console.error(e); alert('Something went wrong. Please try again.'); }
+ } else { showToast('Plans are loading. Please wait a moment and try again.', 'error'); }
+ } catch(e) { console.error(e); showToast('Something went wrong. Please try again.', 'error'); }
  }}
  className="w-full py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white font-black rounded-xl text-sm transition-all shadow-lg shadow-blue-500/20"
  style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}
@@ -11283,8 +11315,8 @@ Become a Sponsor →
  if (featuredProduct && featuredProduct.prices.length > 0) {
  const result = await api.stripe.checkout(featuredProduct.prices[0].id);
  if (result?.url) window.location.href = result.url;
- } else { alert('Plans are loading. Please wait a moment and try again.'); }
- } catch(e) { console.error(e); alert('Something went wrong. Please try again.'); }
+ } else { showToast('Plans are loading. Please wait a moment and try again.', 'error'); }
+ } catch(e) { console.error(e); showToast('Something went wrong. Please try again.', 'error'); }
  }}
  className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black rounded-xl text-sm transition-all shadow-lg shadow-amber-500/20"
  style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}
@@ -11594,7 +11626,7 @@ Become a Sponsor →
      fetch(`/api/parties/nearby?lat=${lat}&lng=${lng}&radius=25`)
        .then(r => r.ok ? r.json() : [])
        .then(d => setNearbyParties(d))
-       .catch(() => {});
+       .catch(e => console.error('Fetch nearby parties error:', e));
    };
    if (userCoords) {
      fetchNearby(userCoords.lat, userCoords.lng);
@@ -12224,7 +12256,7 @@ Become a Sponsor →
  await loadParties();
  setConfirmDeleteId(null);
  } catch (err) {
- alert('Could not delete party: ' + err.message);
+ showToast('Could not delete party: ' + err.message, 'error');
  } finally {
  setDeletingPartyId(null);
  }
@@ -12236,7 +12268,7 @@ Become a Sponsor →
  await api.parties.leave(partyId);
  await loadParties();
  } catch (err) {
- alert('Could not leave party: ' + err.message);
+ showToast('Could not leave party: ' + err.message, 'error');
  } finally {
  setLeavingPartyId(null);
  }
@@ -12457,8 +12489,8 @@ Become a Sponsor →
  setSaving(true);
  try {
  await api.sponsors.updateMe(form);
- alert('Sponsor profile saved!');
- } catch (err) { alert('Error: ' + err.message); }
+ showToast('Sponsor profile saved!', 'success');
+ } catch (err) { showToast('Error: ' + err.message, 'error'); }
  finally { setSaving(false); }
  };
 
@@ -12468,7 +12500,7 @@ Become a Sponsor →
  input.accept = 'image/*';
  input.onchange = async (ev) => {
  const file = ev.target.files?.[0];
- if (!file || file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB'); return; }
+ if (!file || file.size > 5 * 1024 * 1024) { showToast('Image must be under 5MB', 'error'); return; }
  try {
  const fileBuffer = await file.arrayBuffer();
  const uploadRes = await fetch('/api/uploads/venue-image/upload', {
@@ -12481,7 +12513,7 @@ Become a Sponsor →
  if (uploadData.objectPath) {
  setForm(f => ({ ...f, logo: uploadData.objectPath }));
  }
- } catch (err) { alert('Upload failed: ' + err.message); }
+ } catch (err) { showToast('Upload failed: ' + err.message, 'error'); }
  };
  input.click();
  };
@@ -12644,11 +12676,11 @@ Become a Sponsor →
  const file = ev.target.files?.[0];
  if (!file) return;
  if (file.size > 5 * 1024 * 1024) {
- alert('Image must be under 5MB');
+ showToast('Image must be under 5MB', 'error');
  return;
  }
  if (!file.type.startsWith('image/')) {
- alert('Please select an image file');
+ showToast('Please select an image file', 'error');
  return;
  }
  try {
@@ -12666,7 +12698,7 @@ Become a Sponsor →
  const { objectPath } = await uploadRes.json();
  setUser({ ...user, profilePicture: objectPath });
  } catch (err) {
- alert('Failed to upload photo: ' + err.message);
+ showToast('Failed to upload photo: ' + err.message, 'error');
  }
  };
  input.click();
@@ -12773,7 +12805,7 @@ Become a Sponsor →
  await api.users.removeProfilePicture();
  setUser({ ...user, profilePicture: null });
  } catch (err) {
- alert(err.message);
+ showToast(err.message, 'error');
  }
  }
  }}
@@ -13123,7 +13155,7 @@ Become a Sponsor →
  </div>
  )}
 
- <SubscriptionSection userType={user?.userType} />
+ <SubscriptionSection userType={user?.userType} showToast={showToast} />
 
  <ReferralSection user={user} />
 
@@ -13178,11 +13210,11 @@ Become a Sponsor →
  onClick={async () => {
  const newVal = !user.smsNotifications;
  if (newVal && !user.phoneNumber) {
- alert('Please add your phone number below first');
+ showToast('Please add your phone number below first', 'error');
  return;
  }
  if (newVal && !user.userCity) {
- alert('Please add your city below first');
+ showToast('Please add your city below first', 'error');
  return;
  }
  try {
@@ -13192,7 +13224,7 @@ Become a Sponsor →
  smsNotifications: newVal
  });
  setUser(prev => ({ ...prev, smsNotifications: newVal }));
- } catch (err) { alert(err.message); }
+ } catch (err) { showToast(err.message, 'error'); }
  }}
  className={`relative w-14 h-7 rounded-full transition-colors ${
  user.smsNotifications ? 'bg-green-500' : 'bg-gray-600'
@@ -13204,7 +13236,7 @@ Become a Sponsor →
  </button>
  </div>
 
- <SmsFieldsSection user={user} setUser={setUser} />
+ <SmsFieldsSection user={user} setUser={setUser} showToast={showToast} />
  {!user.smsNotifications && (
  <p className="text-xs text-[#A0A4AB]/70 italic">Add your phone number and city, then enable the toggle to receive text alerts when parties match your teams.</p>
  )}
@@ -13227,7 +13259,7 @@ Become a Sponsor →
  await api.users.updateCountry(country);
  setUser({ ...user, country: country || null });
  } catch (err) {
- alert(err.message);
+ showToast(err.message, 'error');
  }
  }}
  className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
@@ -13250,7 +13282,7 @@ Become a Sponsor →
  await api.users.updateCountry('');
  setUser({ ...user, country: null });
  } catch (err) {
- alert(err.message);
+ showToast(err.message, 'error');
  }
  }}
  className="ml-auto text-xs text-red-400 hover:text-red-300"
@@ -14780,7 +14812,7 @@ Become a Sponsor →
  loadTeamChatMessages(teamChatSelectedRoom.id);
  } catch (e) {
    console.error('Send team chat message error:', e);
-   alert(e.message || 'Failed to send message');
+   showToast(e.message || 'Failed to send message', 'error');
  }
  };
 
@@ -14791,14 +14823,14 @@ Become a Sponsor →
  setTeamChatSelectedRoom(null);
  setTeamChatMessages([]);
  loadTeamChatRooms();
- } catch (e) { alert('Failed to delete room: ' + e.message); }
+ } catch (e) { showToast('Failed to delete room: ' + e.message, 'error'); }
  };
 
  const deleteTeamChatMessage = async (messageId) => {
  try {
  await api.teamChats.deleteMessage(messageId);
  if (teamChatSelectedRoom) loadTeamChatMessages(teamChatSelectedRoom.id);
- } catch (e) { alert('Failed to delete message: ' + e.message); }
+ } catch (e) { showToast('Failed to delete message: ' + e.message, 'error'); }
  };
 
  const banTeamChatUser = async (userId, userName) => {
@@ -14806,16 +14838,16 @@ Become a Sponsor →
  if (reason === null) return;
  try {
  await api.teamChats.banUser(userId, reason || 'Inappropriate language');
- alert(`${userName} has been banned from team chats.`);
+ showToast(`${userName} has been banned from team chats.`, 'info');
  if (teamChatSelectedRoom) loadTeamChatMessages(teamChatSelectedRoom.id);
- } catch (e) { alert('Failed to ban user: ' + e.message); }
+ } catch (e) { showToast('Failed to ban user: ' + e.message, 'error'); }
  };
 
  const unbanTeamChatUser = async (userId) => {
  try {
  await api.teamChats.unbanUser(userId);
  loadTeamChatBans();
- } catch (e) { alert('Failed to unban user: ' + e.message); }
+ } catch (e) { showToast('Failed to unban user: ' + e.message, 'error'); }
  };
 
  const [teamChatBans, setTeamChatBans] = useState([]);
@@ -15442,7 +15474,7 @@ Become a Sponsor →
  <span className="font-mono text-[#1E90FF] font-bold">{fantasySelectedLeague.invite_code}</span>
  </div>
  <button
- onClick={() => { navigator.clipboard.writeText(fantasySelectedLeague.invite_code); alert('Invite code copied!'); }}
+ onClick={() => { navigator.clipboard.writeText(fantasySelectedLeague.invite_code); showToast('Invite code copied!', 'success'); }}
  className="p-2 bg-[#151A22] rounded-lg hover:bg-[#222A36] cursor-pointer"
  type="button"
  >
@@ -15970,7 +16002,7 @@ Become a Sponsor →
  My Crew ({friendsList.length})
  </button>
  <button
- onClick={() => { setCrewTab('messages'); api.dm.conversations().then(c => setDmConversations(c)).catch(() => {}); }}
+ onClick={() => { setCrewTab('messages'); api.dm.conversations().then(c => setDmConversations(c)).catch(e => console.error('Load DM conversations error:', e)); }}
  type="button"
  className={`flex-1 py-2 rounded-xl font-bold text-sm transition-all active:scale-95 cursor-pointer relative ${crewTab === 'messages' ? 'bg-[#1E90FF] text-white' : 'bg-[#151A22] text-[#A0A4AB]'}`}
  >
@@ -16143,9 +16175,9 @@ Become a Sponsor →
  e.stopPropagation();
  try {
  await api.fans.invite(crewInvitePartyId, friend.id);
- alert(`Invited ${friend.name}!`);
+ showToast(`Invited ${friend.name}!`, 'info');
  } catch (e) {
- alert(e.message || 'Failed to invite');
+ showToast(e.message || 'Failed to invite', 'error');
  }
  }}
  className="px-3 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded-xl active:scale-95 transition-all"
@@ -16472,6 +16504,16 @@ Become a Sponsor →
    </div>
  )}
 
+ {toasts.length > 0 && (
+   <div style={{ position: 'fixed', top: 70, left: '50%', transform: 'translateX(-50%)', zIndex: 150, display: 'flex', flexDirection: 'column', gap: 8, width: '90%', maxWidth: 400, pointerEvents: 'none' }}>
+     {toasts.map(t => (
+       <div key={t.id} style={{ padding: '12px 16px', borderRadius: 12, color: '#fff', fontSize: 14, fontWeight: 600, pointerEvents: 'auto', animation: 'toastIn 0.3s ease', backdropFilter: 'blur(12px)', border: '1px solid', background: t.type === 'error' ? 'rgba(239,68,68,0.9)' : t.type === 'success' ? 'rgba(16,185,129,0.9)' : 'rgba(30,144,255,0.9)', borderColor: t.type === 'error' ? 'rgba(239,68,68,0.4)' : t.type === 'success' ? 'rgba(16,185,129,0.4)' : 'rgba(30,144,255,0.4)' }} onClick={() => setToasts(prev => prev.filter(x => x.id !== t.id))}>
+         {t.message}
+       </div>
+     ))}
+   </div>
+ )}
+
  {showIntroSplash && (
    <div className="cinematic-intro" onClick={skipIntroSplash}>
      <div className="cinematic-bg" />
@@ -16732,7 +16774,6 @@ Become a Sponsor →
  {currentScreen === 'myParties' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><MyPartiesScreen /></ScreenErrorBoundary>}
  {currentScreen === 'notificationSettings' && <ScreenErrorBoundary onReset={() => setCurrentScreen('profile')}><NotificationSettingsScreen /></ScreenErrorBoundary>}
  {currentScreen === 'browseParties' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><BrowsePartiesScreen /></ScreenErrorBoundary>}
- {currentScreen === 'nearbyParties' && (() => { setCurrentScreen('browseParties'); return null; })()}
  {currentScreen === 'profile' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><ProfileScreen /></ScreenErrorBoundary>}
  {currentScreen === 'proUpgrade' && <ScreenErrorBoundary onReset={() => setCurrentScreen('profile')}><ProUpgradeScreen /></ScreenErrorBoundary>}
  {currentScreen === 'influencerDashboard' && <ScreenErrorBoundary onReset={() => setCurrentScreen('profile')}><InfluencerDashboard /></ScreenErrorBoundary>}
@@ -16949,7 +16990,7 @@ Become a Sponsor →
          </MapContainer>
        </div>
        <div style={{ position: 'absolute', top: '8px', left: '12px', right: '12px', zIndex: 10, display: 'flex', gap: '8px' }}>
-         <button onClick={() => { if (navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { const lat = pos.coords.latitude; const lng = pos.coords.longitude; fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`).then(r => r.json()).then(d => { const city = d.address?.city || d.address?.town || d.address?.village || 'Your Location'; setCurrentCity(`${city}, ${d.address?.state || ''}`); setFindPartiesShowCity(false); }).catch(() => setCurrentCity('Your Location')); }, () => { alert('Please enable location access to use Near Me'); }); } else { alert('Location is not supported by your browser'); } }} className="flex items-center gap-1.5 px-3 py-2 rounded-full font-bold text-white text-xs shadow-lg" style={{ background: 'linear-gradient(135deg, #1E90FF, #1873cc)', boxShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>
+         <button onClick={() => { if (navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { const lat = pos.coords.latitude; const lng = pos.coords.longitude; fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`).then(r => r.json()).then(d => { const city = d.address?.city || d.address?.town || d.address?.village || 'Your Location'; setCurrentCity(`${city}, ${d.address?.state || ''}`); setFindPartiesShowCity(false); }).catch(() => setCurrentCity('Your Location')); }, () => { showToast('Please enable location access to use Near Me', 'error'); }); } else { showToast('Location is not supported by your browser', 'error'); } }} className="flex items-center gap-1.5 px-3 py-2 rounded-full font-bold text-white text-xs shadow-lg" style={{ background: 'linear-gradient(135deg, #1E90FF, #1873cc)', boxShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>
            <Navigation className="w-3.5 h-3.5" /> Near Me
          </button>
          <button onClick={() => setFindPartiesShowCity(!fpShowCityInput)} className="flex items-center gap-1.5 px-3 py-2 rounded-full font-bold text-white text-xs shadow-lg" style={{ background: currentCity ? 'linear-gradient(135deg, #1E90FF, #1873cc)' : '#1a1d28', boxShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>
@@ -17136,7 +17177,7 @@ Become a Sponsor →
              <input type="text" value={findVenuesSearch} onChange={e => setFindVenuesSearch(e.target.value)} placeholder="Search venues, cities..." className="w-full pl-8 pr-8 py-2 rounded-full text-white text-xs font-bold placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" style={{ background: '#1a1d28', boxShadow: '0 2px 12px rgba(0,0,0,0.5)' }} />
              {findVenuesSearch && <button onClick={() => setFindVenuesSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"><X className="w-3.5 h-3.5" /></button>}
            </div>
-           <button onClick={() => { if (navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { const lat = pos.coords.latitude; const lng = pos.coords.longitude; fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`).then(r => r.json()).then(d => { const city = d.address?.city || d.address?.town || d.address?.village || 'Your Location'; setCurrentCity(`${city}, ${d.address?.state || ''}`); }).catch(() => setCurrentCity('Your Location')); }, () => { alert('Please enable location access to use Near Me'); }); } else { alert('Location is not supported by your browser'); } }} className="flex items-center gap-1.5 px-3 py-2 rounded-full font-bold text-white text-xs shadow-lg flex-shrink-0" style={{ background: 'linear-gradient(135deg, #1E90FF, #1873cc)', boxShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>
+           <button onClick={() => { if (navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { const lat = pos.coords.latitude; const lng = pos.coords.longitude; fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`).then(r => r.json()).then(d => { const city = d.address?.city || d.address?.town || d.address?.village || 'Your Location'; setCurrentCity(`${city}, ${d.address?.state || ''}`); }).catch(() => setCurrentCity('Your Location')); }, () => { showToast('Please enable location access to use Near Me', 'error'); }); } else { showToast('Location is not supported by your browser', 'error'); } }} className="flex items-center gap-1.5 px-3 py-2 rounded-full font-bold text-white text-xs shadow-lg flex-shrink-0" style={{ background: 'linear-gradient(135deg, #1E90FF, #1873cc)', boxShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>
              <Navigation className="w-3.5 h-3.5" /> Near Me
            </button>
          </div>

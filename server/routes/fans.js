@@ -218,7 +218,7 @@ router.post('/invite', requireAuth, async (req, res) => {
     );
 
     if (invResult.rows.length > 0) {
-      awardPoints(req.session.userId, 'invite_friend', 'Invited a friend to a party', partyId).catch(() => {});
+      awardPoints(req.session.userId, 'invite_friend', 'Invited a friend to a party', partyId).catch(e => console.error('Award points error:', e));
     }
 
     res.json({ ok: true });

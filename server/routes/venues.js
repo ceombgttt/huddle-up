@@ -4,25 +4,43 @@ import { requireAuth, requireAdmin } from '../middleware/auth.js';
 
 const router = Router();
 
-async function geocodeVenuesMissingCoords(venueRows) {
-  const toGeocode = venueRows.filter(v => !v.latitude && !v.longitude && v.address);
-  for (const v of toGeocode) {
-    try {
-      const cleanAddr = v.address.replace(/,?\s*(suite|ste|unit|apt|#)\s*[#]?\s*\w+/gi, '').trim();
-      const addr = encodeURIComponent(`${cleanAddr}${v.city ? ', ' + v.city : ''}`);
-      const resp = await fetch(`https://nominatim.openstreetmap.org/search?q=${addr}&format=json&limit=1`, {
-        headers: { 'User-Agent': 'HuddleUp/1.0' }
-      });
-      const data = await resp.json();
-      if (data && data[0]) {
-        await pool.query('UPDATE venues SET latitude = $1, longitude = $2 WHERE id = $3', [data[0].lat, data[0].lon, v.id]);
-        console.log(`Geocoded venue "${v.name}" → ${data[0].lat}, ${data[0].lon}`);
+let geocodingInProgress = false;
+
+async function geocodeVenuesMissingCoords() {
+  if (geocodingInProgress) return;
+  geocodingInProgress = true;
+  try {
+    const result = await pool.query('SELECT id, name, address, city FROM venues WHERE (latitude IS NULL OR longitude IS NULL) AND address IS NOT NULL');
+    const toGeocode = result.rows;
+    if (toGeocode.length === 0) return;
+    console.log(`Background geocoding: ${toGeocode.length} venues to process`);
+    for (const v of toGeocode) {
+      try {
+        const cleanAddr = v.address.replace(/,?\s*(suite|ste|unit|apt|#)\s*[#]?\s*\w+/gi, '').trim();
+        const addr = encodeURIComponent(`${cleanAddr}${v.city ? ', ' + v.city : ''}`);
+        const resp = await fetch(`https://nominatim.openstreetmap.org/search?q=${addr}&format=json&limit=1`, {
+          headers: { 'User-Agent': 'HuddleUp/1.0' }
+        });
+        const data = await resp.json();
+        if (data && data[0]) {
+          await pool.query('UPDATE venues SET latitude = $1, longitude = $2 WHERE id = $3', [data[0].lat, data[0].lon, v.id]);
+          console.log(`Geocoded venue "${v.name}" → ${data[0].lat}, ${data[0].lon}`);
+        }
+        await new Promise(r => setTimeout(r, 1100));
+      } catch (e) {
+        console.error(`Geocode failed for "${v.name}":`, e.message);
       }
-      await new Promise(r => setTimeout(r, 1100));
-    } catch (e) {
-      console.error(`Geocode failed for "${v.name}":`, e.message);
     }
+  } catch (e) {
+    console.error('Background geocoding error:', e.message);
+  } finally {
+    geocodingInProgress = false;
   }
+}
+
+export function startBackgroundGeocoding() {
+  setTimeout(() => geocodeVenuesMissingCoords(), 5000);
+  setInterval(() => geocodeVenuesMissingCoords(), 10 * 60 * 1000);
 }
 
 router.get('/', async (req, res) => {
@@ -63,8 +81,6 @@ router.get('/', async (req, res) => {
       venueTrialEndsAt: v.venue_trial_ends_at,
       onTrial: v.venue_trial_ends_at && new Date(v.venue_trial_ends_at) > new Date() && !['venue', 'featured_venue', 'sponsor'].includes(v.owner_tier)
     }));
-
-    geocodeVenuesMissingCoords(result.rows);
 
     res.json(venues);
   } catch (error) {

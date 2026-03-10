@@ -47,8 +47,15 @@ The UI/UX prioritizes intuitive navigation and visual engagement, incorporating 
 ## Performance
 -   **Gzip compression**: `compression` middleware compresses all responses (~70-88% size reduction for API/JS/CSS).
 -   **Bundle splitting**: Vite splits vendor chunks (react, leaflet, html5-qrcode, canvas-confetti) for better caching.
--   **Static asset caching**: Production serves `/assets` with 1-year immutable cache headers (hashed filenames).
+-   **Static asset caching**: Production serves `/assets` with 1-year immutable cache headers (hashed filenames). `index.html`, `sw.js`, `manifest.json` use `no-cache`.
 -   **Loading spinner**: Inline HTML spinner in index.html shows instantly while JS bundle loads.
+-   **Loading skeletons**: Home screen shows animated skeleton cards while initial data loads (`initialDataLoaded` state).
+-   **Parallel initial load**: All startup API calls (games, parties, venues, user data, hot parties, banners, etc.) fire in parallel via single `Promise.allSettled`.
+-   **N+1 query fix**: Party attendees fetched in one batched query (`ANY($1::uuid[])`) instead of per-party loop.
+-   **Background geocoding**: Venue geocoding runs on startup + every 10 minutes via `startBackgroundGeocoding()`, not in request path.
+-   **Toast notifications**: In-app toast system (`showToast(message, type)`) replaced all 150 browser `alert()` calls. Types: `'success'` (green), `'error'` (red), `'info'` (blue). Auto-dismiss after 3.5s. Passed as prop to `VenueQrSection`, `SubscriptionSection`, `SmsFieldsSection`.
+-   **QR security**: Venue QR routes (`/venue/generate`, `/venue/qr`, `/venue/stats`) verify venue ownership via `verifyVenueOwnership()`.
+-   **Calendar auth**: `GET /parties/:id/calendar` requires authentication.
 
 ## External Dependencies
 -   **PostgreSQL**: Database.

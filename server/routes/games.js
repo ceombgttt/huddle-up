@@ -204,7 +204,7 @@ router.get('/', async (req, res) => {
 });
 
 setTimeout(() => {
-  fetchAllGames().then(() => console.log('Games cache warmed')).catch(() => {});
+  fetchAllGames().then(() => console.log('Games cache warmed')).catch(e => console.error('Games cache warm error:', e));
 }, 2000);
 
 export default router;

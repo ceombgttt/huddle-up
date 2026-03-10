@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url';
 import pool, { initDB } from './db.js';
 import authRoutes from './routes/auth.js';
 import partyRoutes from './routes/parties.js';
-import venueRoutes from './routes/venues.js';
+import venueRoutes, { startBackgroundGeocoding } from './routes/venues.js';
 import userRoutes from './routes/users.js';
 import fanRoutes from './routes/fans.js';
 import friendRoutes from './routes/friends.js';
@@ -213,6 +213,7 @@ async function start() {
     }
 
     startScoreChecker();
+    startBackgroundGeocoding();
   });
 }
 

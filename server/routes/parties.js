@@ -38,15 +38,26 @@ router.get('/', async (req, res) => {
     }
     query += ` ORDER BY (CASE WHEN u.subscription_tier = 'pro' THEN 0 ELSE 1 END), p.created_at DESC`;
 
-    const result = await pool.query(query, params);
+    const partyResult = await pool.query(query, params);
+    const partyIds = partyResult.rows.map(r => r.id);
 
-    const parties = await Promise.all(result.rows.map(async (party) => {
-      const attendees = await pool.query(
-        `SELECT u.id, u.email, u.name, u.gender, u.profile_picture, u.is_founder, u.founder_number,
+    let attendeeMap = {};
+    if (partyIds.length > 0) {
+      const attendeeResult = await pool.query(
+        `SELECT pa.party_id, u.id, u.email, u.name, u.gender, u.profile_picture, u.is_founder, u.founder_number,
          (SELECT json_object_agg(ft.sport, ft.team) FROM user_favorite_teams ft WHERE ft.user_id = u.id) as favorite_teams
-         FROM party_attendees pa JOIN users u ON pa.user_id = u.id WHERE pa.party_id = $1`,
-        [party.id]
+         FROM party_attendees pa JOIN users u ON pa.user_id = u.id
+         WHERE pa.party_id = ANY($1::uuid[])`,
+        [partyIds]
       );
+      for (const row of attendeeResult.rows) {
+        if (!attendeeMap[row.party_id]) attendeeMap[row.party_id] = [];
+        attendeeMap[row.party_id].push(row);
+      }
+    }
+
+    const parties = partyResult.rows.map(party => {
+      const attendees = attendeeMap[party.id] || [];
       return {
         id: party.id,
         gameId: party.game_id,
@@ -63,14 +74,14 @@ router.get('/', async (req, res) => {
         hostEmail: party.host_email,
         hostName: party.host_name,
         hostId: party.host_id,
-        attendees: attendees.rows.map(a => a.email),
-        attendeeDetails: attendees.rows.map(a => ({ userId: a.id, email: a.email, name: a.name, gender: a.gender, profilePicture: a.profile_picture, favoriteTeams: a.favorite_teams || {}, isFounder: a.is_founder || false, founderNumber: a.founder_number || null })),
+        attendees: attendees.map(a => a.email),
+        attendeeDetails: attendees.map(a => ({ userId: a.id, email: a.email, name: a.name, gender: a.gender, profilePicture: a.profile_picture, favoriteTeams: a.favorite_teams || {}, isFounder: a.is_founder || false, founderNumber: a.founder_number || null })),
         supportedTeam: party.supported_team,
         createdAt: party.created_at,
         venuePicture: party.venue_picture || null,
         venueLogo: party.venue_logo || null
       };
-    }));
+    });
 
     res.json(parties);
   } catch (error) {
@@ -300,7 +311,7 @@ router.post('/', requireAuth, async (req, res) => {
             icon: '/huddle-up-logo-2.png',
             tag: `party-${partyId}`,
             data: { url: '/' }
-          }).catch(() => {});
+          }).catch(e => console.error('Fan push notification error:', e));
         }
       }
 
@@ -321,13 +332,13 @@ router.post('/', requireAuth, async (req, res) => {
           const partyLabel = title || `${homeTeam} vs ${awayTeam}`;
           const smsMessage = `HUDDLE UP! 🏟️ A ${sport} watch party for "${partyLabel}" was just created in ${city}! Open Huddle Up to join your fellow fans.`;
           for (const fan of smsFans.rows) {
-            sendSMS(fan.phone_number, smsMessage).catch(() => {});
+            sendSMS(fan.phone_number, smsMessage).catch(e => console.error('SMS send error:', e));
           }
         }
       }
     }
 
-    awardPoints(req.session.userId, 'create_party', `Created party: ${title || `${homeTeam} vs ${awayTeam}`}`, partyId).catch(() => {});
+    awardPoints(req.session.userId, 'create_party', `Created party: ${title || `${homeTeam} vs ${awayTeam}`}`, partyId).catch(e => console.error('Award points error:', e));
 
     res.json({ id: partyId });
   } catch (error) {
@@ -369,7 +380,7 @@ router.post('/:id/join', requireAuth, async (req, res) => {
       [req.params.id, req.session.userId]
     );
     if (result.rows.length > 0) {
-      awardPoints(req.session.userId, 'attend_party', 'Joined a watch party', req.params.id).catch(() => {});
+      awardPoints(req.session.userId, 'attend_party', 'Joined a watch party', req.params.id).catch(e => console.error('Award points error:', e));
 
       const partyInfo = await pool.query('SELECT host_id, home_team, away_team, venue_name FROM parties WHERE id = $1', [req.params.id]);
       const joinerInfo = await pool.query('SELECT name FROM users WHERE id = $1', [req.session.userId]);
@@ -384,7 +395,7 @@ router.post('/:id/join', requireAuth, async (req, res) => {
             icon: '/huddle-up-logo-2.png',
             url: '/'
           }, { prefType: 'friend_activity' });
-        } catch (pushErr) {}
+        } catch (pushErr) { console.error('Push notification error (party join host):', pushErr); }
       }
 
       if (p) {
@@ -408,9 +419,9 @@ router.post('/:id/join', requireAuth, async (req, res) => {
                 icon: '/huddle-up-logo-2.png',
                 url: '/'
               }, { prefType: 'friend_activity' });
-            } catch (pushErr) {}
+            } catch (pushErr) { console.error('Push notification error (party join friend):', pushErr); }
           }
-        } catch (friendErr) {}
+        } catch (friendErr) { console.error('Friend party notification error:', friendErr); }
       }
     }
     res.json({ ok: true });
@@ -435,7 +446,7 @@ router.delete('/:id', requireAuth, async (req, res) => {
   }
 });
 
-router.get('/:id/calendar', async (req, res) => {
+router.get('/:id/calendar', requireAuth, async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT p.*, u.name as host_name FROM parties p JOIN users u ON p.host_id = u.id WHERE p.id = $1',

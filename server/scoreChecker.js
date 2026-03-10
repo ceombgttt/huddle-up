@@ -110,7 +110,7 @@ async function sendPartyReminders() {
         icon: '/huddle-up-logo-2.png',
         tag: `party-reminder-${row.id}`,
         data: { url: '/' }
-      }, { prefType: 'party_reminders' }).catch(() => {});
+      }, { prefType: 'party_reminders' }).catch(e => console.error('Party reminder push error:', e));
     }
   } catch (err) {
     if (err.code !== '22007') console.error('Party reminder error:', err);
@@ -196,7 +196,7 @@ async function autoResolvePredictions() {
               icon: '/huddle-up-logo-2.png',
               url: '/predictions'
             }, { prefType: 'prediction_results' });
-          } catch (pushErr) {}
+          } catch (pushErr) { console.error('Push notification error (win):', pushErr); }
         } else {
           await pool.query(
             `INSERT INTO prediction_streaks (user_id, current_streak, best_streak, total_correct, total_predictions)
@@ -215,7 +215,7 @@ async function autoResolvePredictions() {
               icon: '/huddle-up-logo-2.png',
               url: '/predictions'
             }, { prefType: 'prediction_results' });
-          } catch (pushErr) {}
+          } catch (pushErr) { console.error('Push notification error (loss):', pushErr); }
         }
 
         await pool.query(
@@ -254,7 +254,7 @@ async function sendPredictionReminders() {
             icon: '/huddle-up-logo-2.png',
             tag: `predict-reminder-${game.game_id}`,
             data: { url: '/predictions' }
-          }, { prefType: 'prediction_reminders' }).catch(() => {});
+          }, { prefType: 'prediction_reminders' }).catch(e => console.error('Prediction reminder push error:', e));
         }
       }
     }
@@ -300,22 +300,22 @@ let intervalId = null;
 export function startScoreChecker() {
   if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
     console.log('Push notifications not configured - starting score checker with auto-resolve and hot parties');
-    fetchAllScores().then(s => { cachedScores = s; autoResolvePredictions(); }).catch(() => {});
+    fetchAllScores().then(s => { cachedScores = s; autoResolvePredictions(); }).catch(e => console.error('Score fetch error:', e));
     updateHotParties();
     intervalId = setInterval(() => {
-      fetchAllScores().then(s => { cachedScores = s; autoResolvePredictions(); }).catch(() => {});
+      fetchAllScores().then(s => { cachedScores = s; autoResolvePredictions(); }).catch(e => console.error('Score fetch error:', e));
       hotPartiesCounter++;
       if (hotPartiesCounter % 5 === 0) updateHotParties();
     }, 60 * 1000);
     return;
   }
   console.log('Score checker started - checking every 60 seconds');
-  checkAndNotify().then(() => autoResolvePredictions()).catch(() => {});
+  checkAndNotify().then(() => autoResolvePredictions()).catch(e => console.error('Check and notify error:', e));
   sendPartyReminders();
   sendPredictionReminders();
   updateHotParties();
   intervalId = setInterval(() => {
-    checkAndNotify().then(() => autoResolvePredictions()).catch(() => {});
+    checkAndNotify().then(() => autoResolvePredictions()).catch(e => console.error('Check and notify error:', e));
     sendPartyReminders();
     sendPredictionReminders();
     hotPartiesCounter++;

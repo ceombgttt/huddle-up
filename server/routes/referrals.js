@@ -68,7 +68,7 @@ router.post('/apply', requireAuth, async (req, res) => {
 
     res.json({ success: true, message: 'Referral code applied! You earned 50 welcome bonus points!' });
   } catch (error) {
-    await client.query('ROLLBACK').catch(() => {});
+    await client.query('ROLLBACK').catch(e => console.error('Rollback error:', e));
     client.release();
     console.error('Apply referral error:', error);
     res.status(500).json({ error: 'Server error' });
