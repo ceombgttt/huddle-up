@@ -140,6 +140,7 @@ router.put('/me/profile', requireAuth, async (req, res) => {
       [req.session.userId]
     );
     const u = result.rows[0];
+    if (!u) return res.status(404).json({ error: 'User not found' });
     res.json({
       id: u.id, email: u.email, name: u.name, gender: u.gender,
       isAdmin: u.is_admin, country: u.country, profilePicture: u.profile_picture,

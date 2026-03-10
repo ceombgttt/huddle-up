@@ -904,11 +904,11 @@ const VenueQrSection = ({ userVenue }) => {
  </div>
  </div>
 
- {venueStats.recentCheckins.length > 0 && (
+ {(venueStats.recentCheckins || []).length > 0 && (
  <div>
  <h3 className="text-white font-bold mb-3">Recent Check-ins</h3>
  <div className="space-y-2 max-h-64 overflow-y-auto">
- {venueStats.recentCheckins.map((ci, i) => (
+ {(venueStats.recentCheckins || []).map((ci, i) => (
  <div key={i} className="bg-[#151A22] p-3 rounded-xl border border-[#222A36] flex items-center justify-between">
  <div className="flex items-center gap-3">
  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${ci.qrVerified ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-[#A0A4AB]'}`}>
@@ -2237,11 +2237,7 @@ const qrScannerRef = useRef(null);
  return () => clearInterval(gamesInterval);
  }, [isPauseScreen]);
 
- useEffect(() => {
-   if (!user) return;
-   const dmInterval = setInterval(loadDmUnread, 15000);
-   return () => clearInterval(dmInterval);
- }, [user?.id]);
+ 
 
  const getSponsorsForSport = useCallback((sport) => {
  const standardForSport = sponsorBanners.filter(s =>
@@ -3083,6 +3079,14 @@ const qrScannerRef = useRef(null);
  }
  setUser(null);
  setUserParties([]);
+ setFriendsList([]);
+ setFriendRequests([]);
+ setMyPredictions([]);
+ setPredictionStats(null);
+ setNotifications([]);
+ setDmConversations([]);
+ setDmMessages([]);
+ screenHistoryRef.current = [];
  setCurrentScreen('welcome');
  };
 
@@ -3142,7 +3146,7 @@ const qrScannerRef = useRef(null);
 
  const checkScoreChanges = (newGames) => {
    if (!user?.favoriteTeams || !scoreCelebrationsEnabled) return;
-   const myTeamNames = Object.values(user.favoriteTeams).map(t => t.toLowerCase());
+   const myTeamNames = Object.values(user.favoriteTeams || {}).map(t => t.toLowerCase());
    if (!myTeamNames.length) return;
    const liveIds = new Set();
    for (const game of newGames) {
@@ -3452,7 +3456,7 @@ const qrScannerRef = useRef(null);
  (game.venue && game.venue.toLowerCase().includes(term));
  
  const matchesMyTeams = !myTeamsOnly || !user?.favoriteTeams || 
- Object.values(user.favoriteTeams).some(team => 
+ Object.values(user.favoriteTeams || {}).some(team => 
  game.homeTeam.toLowerCase().includes(team.toLowerCase()) || 
  game.awayTeam.toLowerCase().includes(team.toLowerCase())
  );
@@ -6943,6 +6947,7 @@ Become a Sponsor →
  );
 
  const GameDetailScreen = () => {
+ if (!selectedGame) return <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115] flex items-center justify-center"><p className="text-[#A0A4AB]">Game not found</p><button onClick={goBack} className="text-[#1E90FF] ml-3">Go Back</button></div>;
  const gameParties = getPartiesForGame(selectedGame.id);
 
  useEffect(() => {
@@ -7313,7 +7318,7 @@ Become a Sponsor →
  {user?.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 && (
  (() => {
  // Check if this game involves any of user's favorite teams
- const myTeams = Object.values(user.favoriteTeams);
+ const myTeams = Object.values(user.favoriteTeams || {});
  const isMyTeamPlaying = myTeams.some(team => 
  selectedGame.homeTeam.includes(team) || selectedGame.awayTeam.includes(team)
  );
@@ -8056,11 +8061,11 @@ Become a Sponsor →
  <h3 className="text-lg font-black text-white mb-4" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
  USER GROWTH (Last 90 Days)
  </h3>
- {a.userGrowth.length > 0 ? (
+ {(a.userGrowth || []).length > 0 ? (
  <div>
  <div className="flex items-end gap-[2px] h-32 mb-2">
- {a.userGrowth.map((d, i) => {
- const max = Math.max(...a.userGrowth.map(x => parseInt(x.signups)), 1);
+ {(a.userGrowth || []).map((d, i) => {
+ const max = Math.max(...(a.userGrowth || []).map(x => parseInt(x.signups)), 1);
  const h = (parseInt(d.signups) / max) * 100;
  return (
  <div key={i} className="flex-1 group relative">
@@ -8073,8 +8078,8 @@ Become a Sponsor →
  })}
  </div>
  <div className="flex justify-between text-xs text-[#A0A4AB]/70">
- <span>{a.userGrowth.length > 0 ? new Date(a.userGrowth[0].date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}</span>
- <span>{a.userGrowth.length > 0 ? new Date(a.userGrowth[a.userGrowth.length - 1].date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}</span>
+ <span>{(a.userGrowth || []).length > 0 ? new Date((a.userGrowth || [])[0]?.date || 0).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}</span>
+ <span>{(a.userGrowth || []).length > 0 ? new Date((a.userGrowth || [])[(a.userGrowth || []).length - 1]?.date || 0).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}</span>
  </div>
  </div>
  ) : (
@@ -16707,19 +16712,19 @@ Become a Sponsor →
  {currentScreen === 'signup' && signUpScreenJSX}
  {currentScreen === 'forgotPassword' && forgotPasswordScreenJSX}
  {currentScreen === 'games' && gamesScreenJSX()}
- {currentScreen === 'gameDetail' && <GameDetailScreen />}
+ {currentScreen === 'gameDetail' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><GameDetailScreen /></ScreenErrorBoundary>}
  {currentScreen === 'createParty' && createPartyScreenJSX()}
  {currentScreen === 'claimVenue' && claimVenueScreenJSX()}
- {currentScreen === 'admin' && AdminPanelScreen()}
- {currentScreen === 'venueDashboard' && <VenueHubScreen />}
- {currentScreen === 'sponsorDashboard' && <SponsorDashboard />}
- {currentScreen === 'myParties' && <MyPartiesScreen />}
- {currentScreen === 'notificationSettings' && <NotificationSettingsScreen />}
+ {currentScreen === 'admin' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}>{AdminPanelScreen()}</ScreenErrorBoundary>}
+ {currentScreen === 'venueDashboard' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><VenueHubScreen /></ScreenErrorBoundary>}
+ {currentScreen === 'sponsorDashboard' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><SponsorDashboard /></ScreenErrorBoundary>}
+ {currentScreen === 'myParties' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><MyPartiesScreen /></ScreenErrorBoundary>}
+ {currentScreen === 'notificationSettings' && <ScreenErrorBoundary onReset={() => setCurrentScreen('profile')}><NotificationSettingsScreen /></ScreenErrorBoundary>}
  {currentScreen === 'browseParties' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><BrowsePartiesScreen /></ScreenErrorBoundary>}
  {currentScreen === 'nearbyParties' && (() => { setCurrentScreen('browseParties'); return null; })()}
- {currentScreen === 'profile' && <ProfileScreen />}
- {currentScreen === 'proUpgrade' && <ProUpgradeScreen />}
- {currentScreen === 'influencerDashboard' && <InfluencerDashboard />}
+ {currentScreen === 'profile' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><ProfileScreen /></ScreenErrorBoundary>}
+ {currentScreen === 'proUpgrade' && <ScreenErrorBoundary onReset={() => setCurrentScreen('profile')}><ProUpgradeScreen /></ScreenErrorBoundary>}
+ {currentScreen === 'influencerDashboard' && <ScreenErrorBoundary onReset={() => setCurrentScreen('profile')}><InfluencerDashboard /></ScreenErrorBoundary>}
  {currentScreen === 'fanFinder' && renderFanFinderScreen()}
  {currentScreen === 'myCrew' && renderMyCrewScreen()}
  {currentScreen === 'dmChat' && renderDmChatScreen()}
@@ -16852,7 +16857,7 @@ Become a Sponsor →
  {currentScreen === 'contactUs' && <ContactUsScreen />}
  {currentScreen === 'termsOfService' && <TermsOfServiceScreen />}
  {currentScreen === 'privacyPolicy' && <PrivacyPolicyScreen />}
- {currentScreen === 'venueDetail' && <VenueDetailScreen />}
+ {currentScreen === 'venueDetail' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><VenueDetailScreen /></ScreenErrorBoundary>}
  {currentScreen === 'findParties' && (() => {
    const fpSportIcons = { 'NFL': '🏈', 'NBA': '🏀', 'NHL': '🏒', 'MLB': '⚾', 'MLS': '⚽', 'College Football': '🏈', 'College Basketball': '🏀', 'Premier League': '⚽', 'La Liga': '⚽', 'Liga MX': '⚽', 'Champions League': '⚽', 'UFC/MMA': '🥊', 'Boxing': '🥊', 'NASCAR': '🏁', 'F1': '🏎️', 'Tennis': '🎾', 'Golf': '⛳' };
    const fpSportList = ['All', 'NFL', 'NBA', 'NHL', 'MLB', 'MLS', 'College Football', 'College Basketball', 'Premier League', 'UFC/MMA', 'Boxing'];
