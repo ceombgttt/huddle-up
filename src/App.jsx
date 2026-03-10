@@ -3899,7 +3899,10 @@ const qrScannerRef = useRef(null);
      const r = target.getBoundingClientRect();
      const viewH = window.innerHeight;
      const isVisible = r.top >= 0 && r.bottom <= viewH;
-     if (!isVisible) {
+     if (!isVisible && mainContainerRef.current) {
+       const scrollTop = mainContainerRef.current.scrollTop + r.top - (viewH / 3);
+       mainContainerRef.current.scrollTo({ top: Math.max(0, scrollTop), behavior: 'smooth' });
+     } else if (!isVisible) {
        const scrollY = window.scrollY + r.top - (viewH / 3);
        window.scrollTo({ top: Math.max(0, scrollY), behavior: 'smooth' });
      }
@@ -3907,15 +3910,19 @@ const qrScannerRef = useRef(null);
      setTimeout(updateRect, 350);
      setTimeout(updateRect, 600);
    } else {
-     window.scrollTo({ top: 0, behavior: 'smooth' });
+     if (mainContainerRef.current) mainContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+     else window.scrollTo({ top: 0, behavior: 'smooth' });
      setTimeout(updateRect, 400);
    }
 
    window.addEventListener('resize', updateRect);
+   const handleScroll = () => updateRect();
+   if (mainContainerRef.current) mainContainerRef.current.addEventListener('scroll', handleScroll);
    window.addEventListener('scroll', updateRect, true);
    const scrollInterval = setInterval(updateRect, 500);
    return () => {
      window.removeEventListener('resize', updateRect);
+     if (mainContainerRef.current) mainContainerRef.current.removeEventListener('scroll', handleScroll);
      window.removeEventListener('scroll', updateRect, true);
      clearInterval(scrollInterval);
    };
@@ -13023,7 +13030,7 @@ Become a Sponsor →
 
  <div className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36] shadow-xl space-y-3">
  <h3 className="text-lg font-bold text-white mb-1">Help & Info</h3>
- <button onClick={() => { setCurrentScreen('games'); window.scrollTo({ top: 0 }); setTimeout(() => startSpotlightTour(), 1200); }} className="w-full flex items-center gap-3 p-3 bg-[#1E90FF]/10 hover:bg-[#1E90FF]/20 border border-[#1E90FF]/20 rounded-xl transition-colors text-left">
+ <button onClick={() => { setCurrentScreen('games'); if (mainContainerRef.current) mainContainerRef.current.scrollTop = 0; setTimeout(() => startSpotlightTour(), 800); }} className="w-full flex items-center gap-3 p-3 bg-[#1E90FF]/10 hover:bg-[#1E90FF]/20 border border-[#1E90FF]/20 rounded-xl transition-colors text-left">
  <Map className="w-5 h-5 text-[#1E90FF]" />
  <span className="text-white font-medium text-sm">Learn How To Use The App</span>
  <span className="text-[#A0A4AB]/70 text-xs ml-1">Interactive app walkthrough</span>
@@ -16980,8 +16987,8 @@ Become a Sponsor →
    const totalResults = searchFiltered.length + searchFilteredGames.length;
    return (
      <div style={{ position: 'fixed', top: '60px', left: 0, right: 0, bottom: '72px', display: 'flex', flexDirection: 'column', zIndex: 0 }}>
-       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0 }}>
-         <MapContainer center={defaultCenter} zoom={userCenter ? 13 : 12} style={{ height: '100%', width: '100%' }} scrollWheelZoom={true} dragging={true} zoomControl={false} doubleClickZoom={true} touchZoom={true} keyboard={true} attributionControl={false}>
+       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, touchAction: 'none' }}>
+         <MapContainer center={defaultCenter} zoom={userCenter ? 13 : 12} style={{ height: '100%', width: '100%', touchAction: 'none' }} scrollWheelZoom={true} dragging={true} zoomControl={false} doubleClickZoom={true} touchZoom={true} keyboard={true} attributionControl={false}>
            <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
            <FpMapRecenter />
            {venueMarkers.map(({ venue: vm, parties: vps }) => {
@@ -17162,8 +17169,8 @@ Become a Sponsor →
    const FvMapRecenter = () => { const map = useMap(); React.useEffect(() => { if (fvUserCenter) map.setView(fvUserCenter, 13); }, []); return null; };
    return (
      <div style={{ position: 'fixed', top: '60px', left: 0, right: 0, bottom: '72px', display: 'flex', flexDirection: 'column', zIndex: 0 }}>
-       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0 }}>
-         <MapContainer center={defaultCenter} zoom={fvUserCenter ? 13 : 12} style={{ height: '100%', width: '100%' }} scrollWheelZoom={true} dragging={true} zoomControl={false} doubleClickZoom={true} touchZoom={true} keyboard={true} attributionControl={false}>
+       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, touchAction: 'none' }}>
+         <MapContainer center={defaultCenter} zoom={fvUserCenter ? 13 : 12} style={{ height: '100%', width: '100%', touchAction: 'none' }} scrollWheelZoom={true} dragging={true} zoomControl={false} doubleClickZoom={true} touchZoom={true} keyboard={true} attributionControl={false}>
            <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
            <FvMapRecenter />
            {mapVenues.map(v => {
