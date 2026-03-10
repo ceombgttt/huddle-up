@@ -5701,7 +5701,7 @@ const qrScannerRef = useRef(null);
  };
 
  const forgotPasswordScreenJSX = (
- <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'radial-gradient(ellipse at center, #161A22 0%, #0F1115 70%)' }}>
+ <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'radial-gradient(ellipse at center, #161A22 0%, #0F1115 70%)', minHeight: '100dvh' }}>
  <div className="max-w-md w-full space-y-8">
  <div className="text-center">
  <h2 className="text-4xl font-extrabold text-white mb-2" style={{ fontFamily: "'Inter', 'Montserrat', sans-serif" }}>

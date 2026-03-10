@@ -1,4 +1,4 @@
-const CACHE_NAME = 'huddle-up-v2';
+const CACHE_NAME = 'huddle-up-v3';
 const STATIC_ASSETS = [
   '/huddle-up-logo.png',
   '/pwa-icon-192.png',
@@ -45,6 +45,18 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       caches.match(event.request).then((cached) => {
         return cached || fetch(event.request);
+      })
+    );
+    return;
+  }
+
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        return new Response(
+          '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Huddle Up</title><style>body{background:#0F1115;color:white;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;text-align:center}a{color:#1E90FF}</style></head><body><div><h2>You\'re Offline</h2><p>Please check your connection and try again.</p><button onclick="location.reload()" style="background:#1E90FF;color:white;border:none;padding:12px 24px;border-radius:12px;font-weight:bold;cursor:pointer;margin-top:16px">Retry</button></div></body></html>',
+          { status: 503, headers: { 'Content-Type': 'text/html' } }
+        );
       })
     );
     return;
