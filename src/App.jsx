@@ -2914,6 +2914,17 @@ const qrScannerRef = useRef(null);
  }
  };
 
+ const resendFriendRequest = async (userId) => {
+ try {
+ await api.friends.resend(userId);
+ setFriendStatuses(prev => ({ ...prev, [userId]: 'resent' }));
+ alert('Friend request resent!');
+ setTimeout(() => setFriendStatuses(prev => ({ ...prev, [userId]: 'sent' })), 3000);
+ } catch (e) {
+ alert(e.message || 'Failed to resend request');
+ }
+ };
+
  const acceptFriendRequest = async (requestId) => {
  try {
  await api.friends.accept(requestId);
@@ -13384,7 +13395,7 @@ Become a Sponsor →
  <div className="space-y-3">
  {nearbyFans.map(fan => {
  const isFriend = friendsList.some(f => f.id === fan.id);
- const requestSent = friendStatuses[fan.id] === 'sent';
+ const requestSent = friendStatuses[fan.id] === 'sent' || friendStatuses[fan.id] === 'resent';
  return (
  <div key={fan.id} className="bg-[#151A22] border border-[#222A36] rounded-xl p-4">
  <div className="flex items-center gap-3">
@@ -13415,7 +13426,7 @@ Become a Sponsor →
  <Heart className="w-3 h-3" /> Add
  </button>
  )}
- {requestSent && <span className="px-3 py-1.5 bg-[#222A36] text-[#A0A4AB] text-xs rounded-lg">Sent</span>}
+ {requestSent && <button onClick={() => resendFriendRequest(fan.id)} className="px-3 py-1.5 bg-orange-500/20 text-orange-300 text-xs font-bold rounded-lg hover:bg-orange-500/30 active:scale-95 transition-all">{friendStatuses[fan.id] === "resent" ? "Resent!" : "Resend"}</button>}
  <button onClick={() => { setDmRecipient(fan); setCurrentScreen('dmChat'); }} className="px-3 py-1.5 bg-[#1E90FF]/20 text-[#1E90FF] text-xs font-bold rounded-lg transition-all flex items-center gap-1">
  <Send className="w-3 h-3" /> Chat
  </button>
@@ -13547,7 +13558,7 @@ Become a Sponsor →
 
  {fanResults.map(fan => {
  const isFriend = friendsList.some(f => f.id === fan.id);
- const requestSent = friendStatuses[fan.id] === 'sent';
+ const requestSent = friendStatuses[fan.id] === 'sent' || friendStatuses[fan.id] === 'resent';
  return (
  <div key={fan.id} className="bg-[#151A22] border border-[#222A36] rounded-xl p-4">
  <div className="flex items-center gap-3">
@@ -13589,7 +13600,7 @@ Become a Sponsor →
  </button>
  )}
  {requestSent && (
- <span className="px-3 py-2 bg-[#151A22] text-[#A0A4AB] text-xs font-bold rounded-xl">Sent</span>
+ <button onClick={() => resendFriendRequest(fan.id)} className="px-3 py-2 bg-orange-500/20 text-orange-300 text-xs font-bold rounded-xl hover:bg-orange-500/30 active:scale-95 transition-all">{friendStatuses[fan.id] === 'resent' ? 'Resent!' : 'Resend'}</button>
  )}
  </div>
  </div>
@@ -13675,7 +13686,7 @@ Become a Sponsor →
 
  {fanNameResults.map(fan => {
  const isFriend = friendsList.some(f => f.id === fan.id);
- const requestSent = friendStatuses[fan.id] === 'sent';
+ const requestSent = friendStatuses[fan.id] === 'sent' || friendStatuses[fan.id] === 'resent';
  return (
  <div key={fan.id} className="bg-[#151A22] border border-[#222A36] rounded-xl p-4">
  <div className="flex items-center gap-3">
@@ -13708,7 +13719,7 @@ Become a Sponsor →
  </button>
  )}
  {requestSent && (
- <span className="px-3 py-2 bg-[#151A22] text-[#A0A4AB] text-xs font-bold rounded-xl">Sent</span>
+ <button onClick={() => resendFriendRequest(fan.id)} className="px-3 py-2 bg-orange-500/20 text-orange-300 text-xs font-bold rounded-xl hover:bg-orange-500/30 active:scale-95 transition-all">{friendStatuses[fan.id] === 'resent' ? 'Resent!' : 'Resend'}</button>
  )}
  </div>
  </div>
@@ -16018,7 +16029,7 @@ Become a Sponsor →
  ) : (
  crewSearchResults.map(u => {
  const isFriend = friendsList.some(f => f.id === u.id);
- const isPending = friendStatuses[u.id] === 'sent';
+ const isPending = friendStatuses[u.id] === 'sent' || friendStatuses[u.id] === 'resent';
  return (
  <div key={u.id} className="bg-[#151A22] rounded-xl border border-[#222A36] p-4 flex items-center gap-3">
  <ProfileAvatar src={u.profilePicture} name={u.name} size="md" />
@@ -16032,7 +16043,7 @@ Become a Sponsor →
  {isFriend ? (
  <span className="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-xl">Friends</span>
  ) : isPending ? (
- <span className="px-3 py-1.5 bg-yellow-500/20 text-yellow-400 text-xs font-bold rounded-xl">Pending</span>
+ <button onClick={() => resendFriendRequest(u.id)} className="px-3 py-1.5 bg-orange-500/20 text-orange-300 text-xs font-bold rounded-xl hover:bg-orange-500/30 active:scale-95 transition-all">{friendStatuses[u.id] === 'resent' ? 'Resent!' : 'Resend'}</button>
  ) : (
  <button onClick={() => sendFriendRequest(u.id)} className="px-3 py-1.5 bg-[#1E90FF] text-white text-xs font-bold rounded-xl active:scale-95 transition-all">
  <UserPlus className="w-3 h-3 inline mr-1" /> Add

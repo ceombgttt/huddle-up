@@ -58,6 +58,56 @@ router.post('/request', requireAuth, async (req, res) => {
   }
 });
 
+router.post('/resend', requireAuth, async (req, res) => {
+  try {
+    const { friendId } = req.body;
+    if (!friendId) return res.status(400).json({ error: 'Friend ID is required' });
+    if (parseInt(friendId) === req.session.userId) return res.status(400).json({ error: 'Cannot send request to yourself' });
+
+    const existing = await pool.query(
+      `SELECT id, status, user_id, friend_id FROM friendships
+       WHERE (user_id = $1 AND friend_id = $2) OR (user_id = $2 AND friend_id = $1)`,
+      [req.session.userId, friendId]
+    );
+
+    if (existing.rows.length === 0) {
+      return res.status(404).json({ error: 'No existing request found. Send a new one instead.' });
+    }
+
+    const f = existing.rows[0];
+    if (f.status === 'accepted') return res.status(400).json({ error: 'Already friends' });
+    if (f.status === 'pending' && f.user_id !== req.session.userId) {
+      return res.status(400).json({ error: 'This user already sent you a request. Check your pending requests.' });
+    }
+
+    await pool.query(
+      `UPDATE friendships SET status = 'pending', created_at = NOW(), responded_at = NULL WHERE id = $1`,
+      [f.id]
+    );
+
+    const senderName = await pool.query('SELECT name FROM users WHERE id = $1', [req.session.userId]);
+    const sName = senderName.rows[0]?.name || 'Someone';
+    await pool.query(
+      `INSERT INTO notifications (user_id, type, title, message)
+       VALUES ($1, 'friend_request', 'New Friend Request', $2)`,
+      [friendId, `${sName} wants to add you to their crew!`]
+    );
+
+    try {
+      await sendPushToUser(friendId, {
+        title: 'Friend Request 👋',
+        body: `${sName} sent you a friend request again!`,
+        data: { type: 'friend_request' }
+      }, { prefType: 'friend_activity' });
+    } catch (e) {}
+
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Resend friend request error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 router.post('/accept/:id', requireAuth, async (req, res) => {
   try {
     const result = await pool.query(

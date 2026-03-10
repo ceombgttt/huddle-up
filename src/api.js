@@ -130,6 +130,7 @@ export const api = {
     list: () => request('/friends/list'),
     requests: () => request('/friends/requests'),
     sendRequest: (friendId) => request('/friends/request', { method: 'POST', body: JSON.stringify({ friendId }) }),
+    resend: (friendId) => request('/friends/resend', { method: 'POST', body: JSON.stringify({ friendId }) }),
     accept: (id) => request(`/friends/accept/${id}`, { method: 'POST' }),
     decline: (id) => request(`/friends/decline/${id}`, { method: 'POST' }),
     remove: (friendId) => request(`/friends/${friendId}`, { method: 'DELETE' }),
