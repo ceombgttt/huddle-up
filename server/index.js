@@ -1,4 +1,5 @@
 import express from 'express';
+import compression from 'compression';
 import session from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
 import { createServer as createViteServer } from 'vite';
@@ -47,6 +48,8 @@ if (isProduction) {
   app.set('trust proxy', 1);
 }
 const PgSession = connectPgSimple(session);
+
+app.use(compression());
 
 app.post(
   '/api/stripe/webhook',
@@ -169,7 +172,18 @@ app.get('/api/seed/stats', async (req, res) => {
 async function start() {
   if (isProduction) {
     const distPath = path.resolve(__dirname, '..', 'dist');
-    app.use(express.static(distPath));
+    app.use('/assets', express.static(path.join(distPath, 'assets'), {
+      maxAge: '1y',
+      immutable: true
+    }));
+    app.use(express.static(distPath, {
+      maxAge: '1h',
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.html') || filePath.endsWith('sw.js') || filePath.endsWith('manifest.json')) {
+          res.setHeader('Cache-Control', 'no-cache');
+        }
+      }
+    }));
     app.get('*', (req, res) => {
       if (req.path.startsWith('/api')) {
         return res.status(404).json({ error: 'Not found' });

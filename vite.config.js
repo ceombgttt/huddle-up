@@ -13,6 +13,16 @@ export default defineConfig({
     allowedHosts: true,
   },
   build: {
-    outDir: 'dist'
+    outDir: 'dist',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-leaflet': ['leaflet', 'react-leaflet'],
+          'vendor-qr': ['html5-qrcode'],
+          'vendor-confetti': ['canvas-confetti'],
+        }
+      }
+    }
   }
 })

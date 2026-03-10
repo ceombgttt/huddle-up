@@ -44,9 +44,16 @@ The UI/UX prioritizes intuitive navigation and visual engagement, incorporating 
 -   **Find Venues Page**: Venue-focused discovery page (`findVenues` screen) with Leaflet dark map, venue pins (color-coded by party status), "THE BEST PLACE TO WATCH THE GAME" banner, Near Me/Enter City search buttons, and scrollable venue list with category icons, star ratings, party info, and stats. Accessible from hamburger menu and home screen "Venues" quick action.
 -   **Venue Database**: 207 total venues across Boca Raton (83), Delray Beach (68), Boynton Beach (52), Fort Lauderdale (4). Bulk venue SQL in `server/seed_venues.sql` (idempotent with WHERE NOT EXISTS). All venues have coordinates, city, phone, capacity, type, and verified=true.
 
+## Performance
+-   **Gzip compression**: `compression` middleware compresses all responses (~70-88% size reduction for API/JS/CSS).
+-   **Bundle splitting**: Vite splits vendor chunks (react, leaflet, html5-qrcode, canvas-confetti) for better caching.
+-   **Static asset caching**: Production serves `/assets` with 1-year immutable cache headers (hashed filenames).
+-   **Loading spinner**: Inline HTML spinner in index.html shows instantly while JS bundle loads.
+
 ## External Dependencies
 -   **PostgreSQL**: Database.
 -   **Express**: Backend web framework.
+-   **compression**: Gzip/deflate compression middleware.
 -   **React**: Frontend library.
 -   **Vite**: Frontend build tool.
 -   **Tailwind CSS**: Styling framework.
