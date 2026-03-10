@@ -2200,6 +2200,8 @@ const qrScannerRef = useRef(null);
  if (user) {
  loadFriends();
  loadDmUnread();
+ const friendPoll = setInterval(() => { loadFriends(); loadDmUnread(); }, 30000);
+ return () => clearInterval(friendPoll);
  }
  }, [user?.id]);
 
@@ -15962,7 +15964,7 @@ Become a Sponsor →
  )}
  </button>
  <button
- onClick={() => setCrewTab('requests')}
+ onClick={() => { setCrewTab('requests'); loadFriends(); }}
  type="button"
  className={`flex-1 py-2 rounded-xl font-bold text-sm transition-all active:scale-95 cursor-pointer relative ${crewTab === 'requests' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'bg-[#151A22] text-[#A0A4AB]'}`}
  >
@@ -17203,7 +17205,7 @@ Become a Sponsor →
 <button onClick={() => { setCurrentScreen('browseParties'); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 py-1 transition-colors ${currentScreen === 'browseParties' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
 <Search className="w-6 h-6" /><span className="text-[11px] font-bold">Browse</span>
 </button>
-<button onClick={() => { setCurrentScreen('myCrew'); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 py-1 transition-colors relative ${currentScreen === 'myCrew' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
+<button onClick={() => { setCurrentScreen('myCrew'); loadFriends(); loadDmUnread(); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 py-1 transition-colors relative ${currentScreen === 'myCrew' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
 <Users className="w-6 h-6" /><span className="text-[11px] font-bold">Crew</span>
 {(friendRequests.length + dmUnreadCount) > 0 && <span className="absolute top-0 right-[20%] bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{friendRequests.length + dmUnreadCount}</span>}
 </button>
