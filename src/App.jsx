@@ -16861,12 +16861,25 @@ Become a Sponsor →
    const fpSearch = findPartiesSearch || '';
    const fpSearchLower = fpSearch.toLowerCase();
    const fpSport = findPartiesSport || 'All';
+   const fpCityLower = (currentCity || '').toLowerCase().replace(/,?\s*(fl|florida)$/i, '').trim();
+   const cityFilterParties = (list) => {
+     if (!fpCityLower) return list;
+     return list.filter(p => {
+       const venueObj = venues.find(v => v.name && v.name.toLowerCase() === (p.venueName || '').toLowerCase());
+       if (!venueObj) return false;
+       const venueCity = (venueObj.city || '').toLowerCase();
+       const venueAddr = (venueObj.address || '').toLowerCase();
+       if (!venueCity && !venueAddr) return false;
+       return (venueCity && venueCity.includes(fpCityLower)) || (venueAddr && venueAddr.includes(fpCityLower)) || (venueCity && fpCityLower.includes(venueCity));
+     });
+   };
    const sportFiltered = fpSport === 'All' ? allParties : allParties.filter(p => p.sport === fpSport);
    const sportFilteredGames = fpSport === 'All' ? allGames : allGames.filter(g => g.sport === fpSport);
-   const searchFiltered = fpSearch ? sportFiltered.filter(p => {
+   const cityFiltered = cityFilterParties(sportFiltered);
+   const searchFiltered = fpSearch ? cityFiltered.filter(p => {
      const title = (p.homeTeam && p.awayTeam ? `${p.awayTeam} vs ${p.homeTeam}` : p.title || '').toLowerCase();
      return title.includes(fpSearchLower) || (p.venueName || '').toLowerCase().includes(fpSearchLower) || (p.hostName || '').toLowerCase().includes(fpSearchLower) || (p.sport || '').toLowerCase().includes(fpSearchLower);
-   }) : sportFiltered;
+   }) : cityFiltered;
    const searchFilteredGames = fpSearch ? sportFilteredGames.filter(g => {
      return `${g.awayTeam || ''} vs ${g.homeTeam || ''}`.toLowerCase().includes(fpSearchLower) || (g.sport || '').toLowerCase().includes(fpSearchLower);
    }) : sportFilteredGames;
@@ -16887,9 +16900,14 @@ Become a Sponsor →
    });
    const venueMarkers = Object.values(venuePartyMap);
    const userCenter = userCoords ? [userCoords.lat, userCoords.lng] : null;
+   const fpCityCenter = (() => {
+     if (!fpCityLower) return null;
+     const cityVenue = venues.find(v => (v.city || '').toLowerCase().includes(fpCityLower) && v.latitude && v.longitude);
+     return cityVenue ? [parseFloat(cityVenue.latitude), parseFloat(cityVenue.longitude)] : null;
+   })();
    const firstVenueCoords = venueMarkers.length > 0 ? [parseFloat(venueMarkers[0].venue.latitude), parseFloat(venueMarkers[0].venue.longitude)] : null;
-   const defaultCenter = userCenter || firstVenueCoords || [26.1224, -80.1373];
-   const FpMapRecenter = () => { const map = useMap(); React.useEffect(() => { if (userCenter) map.setView(userCenter, 13); }, []); return null; };
+   const defaultCenter = fpCityCenter || userCenter || firstVenueCoords || [26.1224, -80.1373];
+   const FpMapRecenter = () => { const map = useMap(); React.useEffect(() => { const c = fpCityCenter || userCenter; if (c) map.setView(c, 13); }, [fpCityCenter?.[0], fpCityCenter?.[1]]); return null; };
    const fpCityInput = findPartiesCityInput || '';
    const fpShowCityInput = findPartiesShowCity || false;
    const totalResults = searchFiltered.length + searchFilteredGames.length;
@@ -16915,14 +16933,19 @@ Become a Sponsor →
          <button onClick={() => { if (navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { const lat = pos.coords.latitude; const lng = pos.coords.longitude; fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`).then(r => r.json()).then(d => { const city = d.address?.city || d.address?.town || d.address?.village || 'Your Location'; setCurrentCity(`${city}, ${d.address?.state || ''}`); setFindPartiesShowCity(false); }).catch(() => setCurrentCity('Your Location')); }, () => { alert('Please enable location access to use Near Me'); }); } else { alert('Location is not supported by your browser'); } }} className="flex items-center gap-1.5 px-3 py-2 rounded-full font-bold text-white text-xs shadow-lg" style={{ background: 'linear-gradient(135deg, #1E90FF, #1873cc)', boxShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>
            <Navigation className="w-3.5 h-3.5" /> Near Me
          </button>
-         <button onClick={() => setFindPartiesShowCity(!fpShowCityInput)} className="flex items-center gap-1.5 px-3 py-2 rounded-full font-bold text-white text-xs shadow-lg" style={{ background: '#1a1d28', boxShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>
+         <button onClick={() => setFindPartiesShowCity(!fpShowCityInput)} className="flex items-center gap-1.5 px-3 py-2 rounded-full font-bold text-white text-xs shadow-lg" style={{ background: currentCity ? 'linear-gradient(135deg, #1E90FF, #1873cc)' : '#1a1d28', boxShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>
            <MapPin className="w-3.5 h-3.5" /> {currentCity || 'Enter City'}
          </button>
+         {currentCity && (
+           <button onClick={() => setCurrentCity('')} className="flex items-center gap-1 px-2.5 py-2 rounded-full font-bold text-white text-xs shadow-lg" style={{ background: '#E53935', boxShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>
+             <X className="w-3.5 h-3.5" />
+           </button>
+         )}
        </div>
        {fpShowCityInput && (
          <div style={{ position: 'absolute', top: '48px', left: '12px', right: '12px', zIndex: 10 }}>
            <div className="flex gap-2 p-2 rounded-xl shadow-xl" style={{ background: '#151A22', border: '1px solid #222A36' }}>
-             <input type="text" value={fpCityInput} onChange={(e) => setFindPartiesCityInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && fpCityInput.trim()) { setCurrentCity(fpCityInput.trim()); setFindPartiesShowCity(false); setFindPartiesCityInput(''); } }} placeholder="Type a city name..." className="flex-1 px-3 py-2 bg-[#0F1115] border border-[#222A36] rounded-lg text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" autoFocus />
+             <input type="text" value={fpCityInput} onChange={(e) => setFindPartiesCityInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && fpCityInput.trim()) { setCurrentCity(fpCityInput.trim()); setFindPartiesShowCity(false); setFindPartiesCityInput(''); } }} placeholder="e.g. Boca Raton, Delray Beach..." className="flex-1 px-3 py-2 bg-[#0F1115] border border-[#222A36] rounded-lg text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" autoFocus />
              <button onClick={() => { if (fpCityInput.trim()) { setCurrentCity(fpCityInput.trim()); setFindPartiesShowCity(false); setFindPartiesCityInput(''); } }} className="px-4 py-2 bg-[#1E90FF] text-white font-bold text-sm rounded-lg">Go</button>
            </div>
          </div>
