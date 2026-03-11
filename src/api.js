@@ -1,11 +1,19 @@
 const API_BASE = '/api';
 
 async function request(path, options = {}) {
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
-    credentials: 'include',
-    ...options,
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
+  let res;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      headers: { 'Content-Type': 'application/json', ...options.headers },
+      credentials: 'include',
+      signal: controller.signal,
+      ...options,
+    });
+  } finally {
+    clearTimeout(timer);
+  }
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
     throw new Error(data.error || `Request failed: ${res.status}`);

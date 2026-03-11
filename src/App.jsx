@@ -3363,6 +3363,7 @@ const qrScannerRef = useRef(null);
  }, []);
 
  useEffect(() => {
+ const safetyTimer = setTimeout(() => setInitialDataLoaded(true), 3000);
  Promise.allSettled([
    loadGames(),
    loadParties(),
@@ -3374,6 +3375,7 @@ const qrScannerRef = useRef(null);
    api.auth.userCount().then(d => setPrelaunchUserCount(170924 + (d?.count || 0))).catch(e => { console.error('Load user count error:', e); setPrelaunchUserCount(170924); }),
    fetch('/api/users/soft-launch-stats').then(r => r.json()).then(d => setSoftLaunchStats(d)).catch(e => console.error('Load soft launch stats error:', e))
  ]).then(() => {
+   clearTimeout(safetyTimer);
    setInitialDataLoaded(true);
    detectUserLocation();
  });
