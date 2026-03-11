@@ -16048,7 +16048,7 @@ Become a Sponsor →
  };
 
  const renderMyCrewScreen = () => (
- <div className="min-h-screen pt-[60px] bg-[#0F1115] relative z-0">
+ <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115] relative z-0">
  <div className="sticky top-[60px] z-30 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-4">
  <div className="flex items-center gap-3">
