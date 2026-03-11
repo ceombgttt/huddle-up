@@ -572,8 +572,10 @@ const DebouncedInput = React.memo(({ value, onChange, delay = 300, ...props }) =
  const localRef = useRef(value);
 
  useEffect(() => {
+ if (!timerRef.current) {
  setLocalValue(value);
  localRef.current = value;
+ }
  }, [value]);
 
  const handleChange = useCallback((e) => {
@@ -582,7 +584,8 @@ const DebouncedInput = React.memo(({ value, onChange, delay = 300, ...props }) =
  localRef.current = newVal;
  if (timerRef.current) clearTimeout(timerRef.current);
  timerRef.current = setTimeout(() => {
- onChangeRef.current(newVal);
+ timerRef.current = null;
+ onChangeRef.current(localRef.current);
  }, delay);
  }, [delay]);
 
@@ -606,8 +609,10 @@ const DebouncedTextarea = React.memo(({ value, onChange, delay = 300, ...props }
  const localRef = useRef(value);
 
  useEffect(() => {
+ if (!timerRef.current) {
  setLocalValue(value);
  localRef.current = value;
+ }
  }, [value]);
 
  const handleChange = useCallback((e) => {
@@ -616,7 +621,8 @@ const DebouncedTextarea = React.memo(({ value, onChange, delay = 300, ...props }
  localRef.current = newVal;
  if (timerRef.current) clearTimeout(timerRef.current);
  timerRef.current = setTimeout(() => {
- onChangeRef.current(newVal);
+ timerRef.current = null;
+ onChangeRef.current(localRef.current);
  }, delay);
  }, [delay]);
 
@@ -16816,7 +16822,7 @@ Become a Sponsor →
  {currentScreen === 'createParty' && createPartyScreenJSX()}
  {currentScreen === 'claimVenue' && claimVenueScreenJSX()}
  {currentScreen === 'admin' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}>{AdminPanelScreen()}</ScreenErrorBoundary>}
- {currentScreen === 'venueDashboard' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><VenueHubScreen /></ScreenErrorBoundary>}
+ {currentScreen === 'venueDashboard' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}>{VenueHubScreen()}</ScreenErrorBoundary>}
  {currentScreen === 'sponsorDashboard' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><SponsorDashboard /></ScreenErrorBoundary>}
  {currentScreen === 'myParties' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><MyPartiesScreen /></ScreenErrorBoundary>}
  {currentScreen === 'notificationSettings' && <ScreenErrorBoundary onReset={() => setCurrentScreen('profile')}><NotificationSettingsScreen /></ScreenErrorBoundary>}
