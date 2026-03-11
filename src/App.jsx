@@ -497,14 +497,24 @@ const ProfileAvatar = ({ src, name, size = 'md', className = '' }) => {
  );
 };
 
+const FAN_RANKS = [
+ { min: 0,   tier: 'New Fan',       emoji: '👋', color: 'from-gray-400 to-gray-500',        textColor: 'text-[#A0A4AB]',    bg: 'bg-gray-500/20' },
+ { min: 1,   tier: 'Rookie',        emoji: '🎽', color: 'from-green-400 to-emerald-500',    textColor: 'text-green-300',     bg: 'bg-green-500/20' },
+ { min: 5,   tier: 'Starter',       emoji: '🔥', color: 'from-orange-400 to-red-500',       textColor: 'text-orange-300',    bg: 'bg-orange-500/20' },
+ { min: 10,  tier: 'Regular',       emoji: '🎯', color: 'from-teal-400 to-cyan-500',        textColor: 'text-teal-300',      bg: 'bg-teal-500/20' },
+ { min: 20,  tier: 'All-Star',      emoji: '⭐', color: 'from-[#1E90FF] to-[#1E90FF]',      textColor: 'text-[#1E90FF]',     bg: 'bg-[#1E90FF]/20' },
+ { min: 35,  tier: 'MVP',           emoji: '🥇', color: 'from-purple-400 to-pink-500',      textColor: 'text-purple-300',    bg: 'bg-purple-500/20' },
+ { min: 50,  tier: 'Captain',       emoji: '🫡', color: 'from-indigo-400 to-violet-500',    textColor: 'text-indigo-300',    bg: 'bg-indigo-500/20' },
+ { min: 75,  tier: 'Legend',        emoji: '🏆', color: 'from-yellow-400 to-amber-500',     textColor: 'text-yellow-300',    bg: 'bg-yellow-500/20' },
+ { min: 100, tier: 'Hall of Fame',  emoji: '🏅', color: 'from-amber-300 to-yellow-500',     textColor: 'text-amber-200',     bg: 'bg-amber-500/20' },
+ { min: 150, tier: 'G.O.A.T.',      emoji: '🐐', color: 'from-red-500 to-rose-600',         textColor: 'text-red-300',       bg: 'bg-red-500/20' },
+];
 const getFanBadge = (attended, hosted) => {
  const total = attended + hosted;
- if (total >= 50) return { tier: 'Legend', emoji: '🏆', color: 'from-yellow-400 to-amber-500', textColor: 'text-yellow-300', bg: 'bg-yellow-500/20' };
- if (total >= 25) return { tier: 'MVP', emoji: '🥇', color: 'from-purple-400 to-pink-500', textColor: 'text-purple-300', bg: 'bg-purple-500/20' };
- if (total >= 10) return { tier: 'All-Star', emoji: '⭐', color: 'from-[#1E90FF] to-[#1E90FF]', textColor: 'text-[#1E90FF]', bg: 'bg-[#1E90FF]/20' };
- if (total >= 5) return { tier: 'Starter', emoji: '🔥', color: 'from-orange-400 to-red-500', textColor: 'text-orange-300', bg: 'bg-orange-500/20' };
- if (total >= 1) return { tier: 'Rookie', emoji: '🎽', color: 'from-green-400 to-emerald-500', textColor: 'text-green-300', bg: 'bg-green-500/20' };
- return { tier: 'New Fan', emoji: '👋', color: 'from-gray-400 to-gray-500', textColor: 'text-[#A0A4AB]', bg: 'bg-gray-500/20' };
+ for (let i = FAN_RANKS.length - 1; i >= 0; i--) {
+   if (total >= FAN_RANKS[i].min) return FAN_RANKS[i];
+ }
+ return FAN_RANKS[0];
 };
 
 const getVenueBadge = (totalParties, totalFans) => {
@@ -12761,14 +12771,26 @@ Become a Sponsor →
  {(() => {
  const badge = getFanBadge(badgeStats.partiesAttended, badgeStats.partiesHosted);
  const total = badgeStats.partiesAttended + badgeStats.partiesHosted;
- const nextTier = total < 1 ? 1 : total < 5 ? 5 : total < 10 ? 10 : total < 25 ? 25 : total < 50 ? 50 : null;
- if (!nextTier) return null;
- const progress = Math.round((total / nextTier) * 100);
+ const currentIdx = FAN_RANKS.findIndex(r => r.tier === badge.tier);
+ const nextRank = FAN_RANKS[currentIdx + 1];
+ if (!nextRank) return (
+ <div className="w-full mt-2">
+ <div className="flex justify-between text-xs text-[#A0A4AB] mb-1">
+ <span>{badge.emoji} {badge.tier}</span>
+ <span>MAX RANK</span>
+ </div>
+ <div className="w-full h-2 bg-[#151A22] rounded-full overflow-hidden">
+ <div className={`h-full bg-gradient-to-r ${badge.color} rounded-full`} style={{ width: '100%' }} />
+ </div>
+ </div>
+ );
+ const prevMin = FAN_RANKS[currentIdx].min;
+ const progress = Math.round(((total - prevMin) / (nextRank.min - prevMin)) * 100);
  return (
  <div className="w-full mt-2">
  <div className="flex justify-between text-xs text-[#A0A4AB] mb-1">
- <span>{badge.tier}</span>
- <span>{total}/{nextTier} to next rank</span>
+ <span>{badge.emoji} {badge.tier}</span>
+ <span>{total - FAN_RANKS[currentIdx].min}/{nextRank.min - FAN_RANKS[currentIdx].min} to {nextRank.tier}</span>
  </div>
  <div className="w-full h-2 bg-[#151A22] rounded-full overflow-hidden">
  <div className={`h-full bg-gradient-to-r ${badge.color} rounded-full transition-all`} style={{ width: `${progress}%` }} />
@@ -14085,6 +14107,34 @@ Become a Sponsor →
  Join other fans' parties to earn 25 points per party
  </li>
  </ul>
+ </div>
+
+ <div className="bg-[#151A22]/80 rounded-2xl border border-[#222A36] p-4 mt-4">
+ <h4 className="text-white font-bold text-sm mb-3 flex items-center gap-2">
+ <Crown className="w-4 h-4 text-yellow-400" /> Fan Ranks — 10 Levels
+ </h4>
+ <div className="space-y-2">
+ {FAN_RANKS.map((rank, i) => {
+   const total = (badgeStats?.partiesAttended || 0) + (badgeStats?.partiesHosted || 0);
+   const isCurrentRank = getFanBadge(badgeStats?.partiesAttended || 0, badgeStats?.partiesHosted || 0).tier === rank.tier;
+   const isUnlocked = total >= rank.min;
+   return (
+   <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl border transition-all ${isCurrentRank ? 'border-[#1E90FF]/50 bg-[#1E90FF]/10' : isUnlocked ? 'border-[#222A36] bg-[#151A22]' : 'border-[#222A36]/50 bg-[#0F1115] opacity-50'}`}>
+     <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${rank.color} flex items-center justify-center text-lg flex-shrink-0 ${!isUnlocked ? 'grayscale' : ''}`}>{rank.emoji}</div>
+     <div className="flex-1 min-w-0">
+       <div className="flex items-center gap-2">
+         <span className={`font-bold text-sm ${isCurrentRank ? 'text-[#1E90FF]' : isUnlocked ? 'text-white' : 'text-[#A0A4AB]'}`}>{rank.tier}</span>
+         {isCurrentRank && <span className="text-[9px] font-black bg-[#1E90FF] text-white px-1.5 py-0.5 rounded-full">YOU</span>}
+       </div>
+       <div className="text-[#A0A4AB] text-[11px]">{rank.min === 0 ? 'Starting rank' : `${rank.min} parties`}</div>
+     </div>
+     <div className="text-right flex-shrink-0">
+       {isUnlocked ? <CheckCircle className="w-4 h-4 text-green-400" /> : <Lock className="w-4 h-4 text-[#A0A4AB]/40" />}
+     </div>
+   </div>
+   );
+ })}
+ </div>
  </div>
  </div>
  )}
@@ -17621,7 +17671,7 @@ Become a Sponsor →
  <div className="text-xs text-[#A0A4AB] mt-1">Invite friends</div>
  </div>
  </div>
- <p className="text-[#1E90FF] text-xs">New Fan → Rookie → Starter → All-Star → MVP → Legend</p>
+ <p className="text-[#1E90FF] text-xs">{FAN_RANKS.map(r => r.tier).join(' → ')}</p>
  </div>
  <button
  onClick={() => { shareApp(); setShowSignupShare(false); }}
