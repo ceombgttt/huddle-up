@@ -7393,7 +7393,6 @@ Become a Sponsor →
  const now = new Date();
  const openAt = hasTime ? new Date(partyStart.getTime() - 2 * 60 * 60 * 1000) : null;
  const closeAt = hasTime ? new Date(partyStart.getTime() + 4 * 60 * 60 * 1000) : null;
- const checkinOpen = !hasTime || (now >= openAt && now <= closeAt);
  const checkinEnded = hasTime && now > closeAt;
  const checkinNotYet = hasTime && now < openAt;
  const openAtStr = openAt ? openAt.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
@@ -7406,7 +7405,7 @@ Become a Sponsor →
  Check-in Period Ended
  </div>
  ) : checkinNotYet ? (
- <div className="w-full py-2.5 rounded-xl flex flex-col items-center justify-center gap-0.5 bg-[#151A22] border-2 border-[#222A36] cursor-not-allowed opacity-70">
+ <div className="w-full py-2.5 rounded-xl flex flex-col items-center justify-center gap-1 bg-[#151A22] border-2 border-[#222A36] opacity-70 py-3">
  <div className="flex items-center gap-2 font-bold text-[#A0A4AB]">
  <Lock className="w-4 h-4" />
  Check-in Locked
@@ -7428,10 +7427,6 @@ Become a Sponsor →
  Checked In!
  </div>
  )}
- </>
- );
- })()}
-
  <button
  onClick={() => openPartyPhotos(party.id)}
  className={`w-full mt-2 py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
@@ -7444,7 +7439,8 @@ Become a Sponsor →
  Party Photos
  </button>
  </>
- )}
+ );
+ })()}
 
  <button
  onClick={(e) => { e.stopPropagation(); openShareMenu(party); }}
