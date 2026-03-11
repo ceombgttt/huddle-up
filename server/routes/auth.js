@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import pool from '../db.js';
+import { sendPasswordResetEmail, sendWelcomeEmail } from '../email.js';
 
 const router = Router();
 
@@ -105,6 +106,8 @@ router.post('/signup', async (req, res) => {
         console.error('Auto venue creation error (non-fatal):', venueErr);
       }
     }
+
+    sendWelcomeEmail(user.email, user.name).catch(err => console.error('Welcome email error (non-fatal):', err));
 
     res.json({
       id: user.id,
@@ -221,7 +224,10 @@ router.post('/verify-email', async (req, res) => {
     const expiresAt = Date.now() + 10 * 60 * 1000;
     resetAttempts.set(`code:${email}`, { code, expiresAt });
 
-    console.log(`[Password Reset] Code for ${email}: ${code}`);
+    const sent = await sendPasswordResetEmail(email, code);
+    if (!sent) {
+      console.log(`[Password Reset] Fallback - Code for ${email}: ${code}`);
+    }
     res.json({ ok: true });
   } catch (error) {
     console.error('Verify email error:', error);
