@@ -1489,18 +1489,7 @@ const [findVenuesCityInput, setFindVenuesCityInput] = useState('');
  const [sponsorBanners, setSponsorBanners] = useState([]);
  const [adminSponsors, setAdminSponsors] = useState([]);
  const [showSponsorForm, setShowSponsorForm] = useState(false);
- const [editingVenue, setEditingVenue] = useState(false);
- const [venueEditName, setVenueEditName] = useState('');
- const [venueEditAddress, setVenueEditAddress] = useState('');
- const [venueEditCity, setVenueEditCity] = useState('');
- const [venueEditType, setVenueEditType] = useState('');
- const [venueEditPhone, setVenueEditPhone] = useState('');
- const [venueEditWebsite, setVenueEditWebsite] = useState('');
- const [venueEditCapacity, setVenueEditCapacity] = useState('');
- const [venueEditDescription, setVenueEditDescription] = useState('');
- const [savingVenue, setSavingVenue] = useState(false);
- const [uploadingLogo, setUploadingLogo] = useState(false);
- const [uploadingPicture, setUploadingPicture] = useState(false);
+
  const [editingSponsor, setEditingSponsor] = useState(null);
  const [sponsorName, setSponsorName] = useState('');
  const [sponsorContactName, setSponsorContactName] = useState('');
@@ -10393,6 +10382,31 @@ Become a Sponsor →
  </div>
  );
 
+ const VenueHubScreen = () => {
+ const [hubTab, setHubTab] = useState('dashboard');
+ const [promotions, setPromotions] = useState([]);
+ const [deals, setDeals] = useState([]);
+ const [loadingHub, setLoadingHub] = useState(true);
+ const [showNewPromo, setShowNewPromo] = useState(false);
+ const [showNewDeal, setShowNewDeal] = useState(false);
+ const [promoForm, setPromoForm] = useState({ title: '', description: '', sport: '', homeTeam: '', awayTeam: '', specials: '', gameDate: '', expiresAt: '' });
+ const [dealForm, setDealForm] = useState({ title: '', description: '', dealType: 'special', validUntil: '', terms: '', recurring: false, recurringDays: '' });
+ const [saving, setSaving] = useState(false);
+ const [editingVenue, setEditingVenue] = useState(false);
+ const [venueEditName, setVenueEditName] = useState('');
+ const [venueEditAddress, setVenueEditAddress] = useState('');
+ const [venueEditCity, setVenueEditCity] = useState('');
+ const [venueEditType, setVenueEditType] = useState('');
+ const [venueEditPhone, setVenueEditPhone] = useState('');
+ const [venueEditWebsite, setVenueEditWebsite] = useState('');
+ const [venueEditCapacity, setVenueEditCapacity] = useState('');
+ const [venueEditDescription, setVenueEditDescription] = useState('');
+ const [savingVenue, setSavingVenue] = useState(false);
+ const [uploadingLogo, setUploadingLogo] = useState(false);
+ const [uploadingPicture, setUploadingPicture] = useState(false);
+ const venueFileInputRef = useRef(null);
+ const venueUploadTypeRef = useRef('logo');
+
  const VenueAnalyticsDashboard = () => {
  const startEditing = () => {
  setVenueEditName(userVenue.name || '');
@@ -10406,14 +10420,15 @@ Become a Sponsor →
  setEditingVenue(true);
  };
 
- const venueFileInputRef = useRef(null);
- const venueUploadTypeRef = useRef('logo');
  const handleVenueImageUpload = (imageType) => {
  venueUploadTypeRef.current = imageType;
  if (!venueFileInputRef.current) {
- venueFileInputRef.current = document.createElement('input');
- venueFileInputRef.current.type = 'file';
- venueFileInputRef.current.accept = 'image/*';
+ const inp = document.createElement('input');
+ inp.type = 'file';
+ inp.accept = 'image/*';
+ inp.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;pointer-events:none;';
+ document.body.appendChild(inp);
+ venueFileInputRef.current = inp;
  venueFileInputRef.current.addEventListener('change', async (e) => {
  const file = e.target.files?.[0];
  if (!file) return;
@@ -10980,16 +10995,6 @@ Become a Sponsor →
 
 
 
- const VenueHubScreen = () => {
- const [hubTab, setHubTab] = useState('dashboard');
- const [promotions, setPromotions] = useState([]);
- const [deals, setDeals] = useState([]);
- const [loadingHub, setLoadingHub] = useState(true);
- const [showNewPromo, setShowNewPromo] = useState(false);
- const [showNewDeal, setShowNewDeal] = useState(false);
- const [promoForm, setPromoForm] = useState({ title: '', description: '', sport: '', homeTeam: '', awayTeam: '', specials: '', gameDate: '', expiresAt: '' });
- const [dealForm, setDealForm] = useState({ title: '', description: '', dealType: 'special', validUntil: '', terms: '', recurring: false, recurringDays: '' });
- const [saving, setSaving] = useState(false);
 
  useEffect(() => {
  if (userVenue) {
@@ -16822,7 +16827,7 @@ Become a Sponsor →
  {currentScreen === 'createParty' && createPartyScreenJSX()}
  {currentScreen === 'claimVenue' && claimVenueScreenJSX()}
  {currentScreen === 'admin' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}>{AdminPanelScreen()}</ScreenErrorBoundary>}
- {currentScreen === 'venueDashboard' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}>{VenueHubScreen()}</ScreenErrorBoundary>}
+ {currentScreen === 'venueDashboard' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><VenueHubScreen /></ScreenErrorBoundary>}
  {currentScreen === 'sponsorDashboard' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><SponsorDashboard /></ScreenErrorBoundary>}
  {currentScreen === 'myParties' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><MyPartiesScreen /></ScreenErrorBoundary>}
  {currentScreen === 'notificationSettings' && <ScreenErrorBoundary onReset={() => setCurrentScreen('profile')}><NotificationSettingsScreen /></ScreenErrorBoundary>}
