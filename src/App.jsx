@@ -569,25 +569,67 @@ const DebouncedInput = React.memo(({ value, onChange, delay = 300, ...props }) =
  const timerRef = useRef(null);
  const onChangeRef = useRef(onChange);
  onChangeRef.current = onChange;
+ const localRef = useRef(value);
 
  useEffect(() => {
  setLocalValue(value);
+ localRef.current = value;
  }, [value]);
 
  const handleChange = useCallback((e) => {
  const newVal = e.target.value;
  setLocalValue(newVal);
+ localRef.current = newVal;
  if (timerRef.current) clearTimeout(timerRef.current);
  timerRef.current = setTimeout(() => {
  onChangeRef.current(newVal);
  }, delay);
  }, [delay]);
 
+ const handleBlur = useCallback(() => {
+ if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
+ onChangeRef.current(localRef.current);
+ }, []);
+
  useEffect(() => {
  return () => { if (timerRef.current) clearTimeout(timerRef.current); };
  }, []);
 
- return <input {...props} value={localValue} onChange={handleChange} />;
+ return <input {...props} value={localValue} onChange={handleChange} onBlur={handleBlur} />;
+});
+
+const DebouncedTextarea = React.memo(({ value, onChange, delay = 300, ...props }) => {
+ const [localValue, setLocalValue] = useState(value);
+ const timerRef = useRef(null);
+ const onChangeRef = useRef(onChange);
+ onChangeRef.current = onChange;
+ const localRef = useRef(value);
+
+ useEffect(() => {
+ setLocalValue(value);
+ localRef.current = value;
+ }, [value]);
+
+ const handleChange = useCallback((e) => {
+ const newVal = e.target.value;
+ setLocalValue(newVal);
+ localRef.current = newVal;
+ if (timerRef.current) clearTimeout(timerRef.current);
+ timerRef.current = setTimeout(() => {
+ onChangeRef.current(newVal);
+ }, delay);
+ }, [delay]);
+
+ const handleBlur = useCallback(() => {
+ if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
+ onChangeRef.current(localRef.current);
+ }, []);
+
+ useEffect(() => {
+ return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+ }, []);
+
+ return <textarea {...props} value={localValue} onChange={handleChange} onBlur={handleBlur} />;
 });
 
 const EditProfileModal = ({ user, onClose, onSave }) => {
@@ -10501,7 +10543,7 @@ Become a Sponsor →
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
  <div>
  <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Business Name *</label>
- <input type="text" value={venueEditName} onChange={(e) => setVenueEditName(e.target.value)}
+ <DebouncedInput type="text" value={venueEditName} onChange={setVenueEditName} delay={150}
  className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
  />
  </div>
@@ -10519,35 +10561,35 @@ Become a Sponsor →
  </div>
  <div>
  <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Full Address *</label>
- <input type="text" value={venueEditAddress} onChange={(e) => setVenueEditAddress(e.target.value)}
+ <DebouncedInput type="text" value={venueEditAddress} onChange={setVenueEditAddress} delay={150}
  placeholder="123 Main St, Suite #110"
  className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
  />
  </div>
  <div>
  <label className="block text-sm font-medium text-[#A0A4AB] mb-1">City, State</label>
- <input type="text" value={venueEditCity} onChange={(e) => setVenueEditCity(e.target.value)}
+ <DebouncedInput type="text" value={venueEditCity} onChange={setVenueEditCity} delay={150}
  placeholder="e.g., Fort Lauderdale, FL"
  className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
  />
  </div>
  <div>
  <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Phone Number</label>
- <input type="tel" value={venueEditPhone} onChange={(e) => setVenueEditPhone(e.target.value)}
+ <DebouncedInput type="tel" value={venueEditPhone} onChange={setVenueEditPhone} delay={150}
  placeholder="(555) 123-4567"
  className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
  />
  </div>
  <div>
  <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Website</label>
- <input type="text" value={venueEditWebsite} onChange={(e) => setVenueEditWebsite(e.target.value)}
+ <DebouncedInput type="text" value={venueEditWebsite} onChange={setVenueEditWebsite} delay={150}
  placeholder="yourwebsite.com"
  className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
  />
  </div>
  <div>
  <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Seating Capacity</label>
- <input type="number" value={venueEditCapacity} onChange={(e) => setVenueEditCapacity(e.target.value)}
+ <DebouncedInput type="number" value={venueEditCapacity} onChange={setVenueEditCapacity} delay={150}
  placeholder="e.g., 150"
  className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
  />
@@ -10556,8 +10598,9 @@ Become a Sponsor →
 
  <div>
  <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Venue Description & Special Features</label>
- <textarea value={venueEditDescription} onChange={(e) => setVenueEditDescription(e.target.value)}
+ <DebouncedTextarea value={venueEditDescription} onChange={setVenueEditDescription}
  rows={3}
+ delay={150}
  placeholder="Tell fans what makes your venue great! e.g., 20 big screens, outdoor patio, game day drink specials, private party rooms..."
  className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
  />
