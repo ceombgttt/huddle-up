@@ -16387,6 +16387,10 @@ Become a Sponsor →
  const swipeRef = useRef({ startX: 0, startY: 0, valid: false });
  const handleTouchStart = useCallback((e) => {
    const authScreens = ['welcome', 'login', 'signup', 'signupType', 'forgotPassword'];
+   if (e.target?.closest?.('input, textarea, select, [contenteditable="true"]')) {
+     swipeRef.current = { startX: 0, startY: 0, valid: false };
+     return;
+   }
    const startX = e.touches[0].clientX;
    let el = e.target;
    let inScrollable = false;
