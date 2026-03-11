@@ -249,7 +249,14 @@ router.post('/scan', requireAuth, async (req, res) => {
       );
       if (partyCheck.rows.length > 0 && partyCheck.rows[0].game_time) {
         const gameTime = new Date(partyCheck.rows[0].game_time);
-        const hoursAfterGame = (Date.now() - gameTime.getTime()) / (1000 * 60 * 60);
+        const nowMs = Date.now();
+        const hoursBeforeGame = (gameTime.getTime() - nowMs) / (1000 * 60 * 60);
+        const hoursAfterGame = (nowMs - gameTime.getTime()) / (1000 * 60 * 60);
+        if (hoursBeforeGame > 2) {
+          const opensAt = new Date(gameTime.getTime() - 2 * 60 * 60 * 1000);
+          const opensAtStr = opensAt.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+          return res.status(400).json({ error: `Check-in is not open yet. It opens at ${opensAtStr} (2 hours before the party).` });
+        }
         if (hoursAfterGame > 4) {
           return res.status(400).json({ error: 'This party has ended. Check-ins are no longer available.' });
         }

@@ -7387,9 +7387,33 @@ Become a Sponsor →
  )}
 
 
- {(isAttending || party.hostEmail === user.email) && (
+ {(isAttending || party.hostEmail === user.email) && (() => {
+ const partyStart = new Date(party.gameTime || party.customTime || game?.startTime);
+ const hasTime = !isNaN(partyStart.getTime());
+ const now = new Date();
+ const openAt = hasTime ? new Date(partyStart.getTime() - 2 * 60 * 60 * 1000) : null;
+ const closeAt = hasTime ? new Date(partyStart.getTime() + 4 * 60 * 60 * 1000) : null;
+ const checkinOpen = !hasTime || (now >= openAt && now <= closeAt);
+ const checkinEnded = hasTime && now > closeAt;
+ const checkinNotYet = hasTime && now < openAt;
+ const openAtStr = openAt ? openAt.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
+ return (
  <>
  {!checkedInParties[party.id] ? (
+ checkinEnded ? (
+ <div className="w-full py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 bg-gray-500/10 text-gray-500 border-2 border-gray-600/30">
+ <Lock className="w-4 h-4" />
+ Check-in Period Ended
+ </div>
+ ) : checkinNotYet ? (
+ <div className="w-full py-2.5 rounded-xl flex flex-col items-center justify-center gap-0.5 bg-[#151A22] border-2 border-[#222A36] cursor-not-allowed opacity-70">
+ <div className="flex items-center gap-2 font-bold text-[#A0A4AB]">
+ <Lock className="w-4 h-4" />
+ Check-in Locked
+ </div>
+ <div className="text-xs text-[#A0A4AB]/70">Opens {openAtStr}</div>
+ </div>
+ ) : (
  <button
  onClick={() => openQrScanner(party.id)}
  className="w-full py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 text-yellow-300 border-2 border-yellow-500/30 hover:bg-yellow-500/30 active:scale-[0.98]"
@@ -7397,12 +7421,16 @@ Become a Sponsor →
  <ScanLine className="w-5 h-5" />
  Scan QR to Check In (+75 pts)
  </button>
+ )
  ) : (
  <div className="w-full py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 bg-green-500/20 text-green-300 border-2 border-green-500/30">
  <CheckCircle className="w-4 h-4" />
  Checked In!
  </div>
  )}
+ </>
+ );
+ })()}
 
  <button
  onClick={() => openPartyPhotos(party.id)}
