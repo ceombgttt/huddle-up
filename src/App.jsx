@@ -1345,6 +1345,17 @@ const SmsFieldsSection = ({ user, setUser, showToast }) => {
  );
 };
 
+const getMapsUrl = (address) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+const AddressLink = ({ address, className = '' }) => (
+  <a
+    href={getMapsUrl(address)}
+    target="_blank"
+    rel="noopener noreferrer"
+    className={`hover:text-[#1E90FF]/80 hover:underline transition-colors inline-block select-all cursor-pointer ${className}`}
+    onClick={e => e.stopPropagation()}
+  >{address}</a>
+);
+
 function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast, loadVenues }) {
  const [hubTab, setHubTab] = useState('dashboard');
  const [promotions, setPromotions] = useState([]);
@@ -1856,7 +1867,7 @@ function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast
  <div className="text-sm text-[#A0A4AB]/70">
  {new Date(party.createdAt).toLocaleDateString()}
  </div>
- <button onClick={(e) => { e.stopPropagation(); openShareMenu(party); }} className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 transition-colors">
+ <button onClick={async (e) => { e.stopPropagation(); const url = `${window.location.origin}?party=${party.id}`; if (navigator.share) { try { await navigator.share({ title: party.title || 'Watch Party', text: `Join me at ${party.venueName || 'this watch party'}!`, url }); } catch (err) { console.error(err); } } else { try { await navigator.clipboard.writeText(url); showToast('Link copied!', 'success'); } catch (err) { console.error(err); } } }} className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 transition-colors">
  <Share2 className="w-3 h-3" /> Share
  </button>
  </div>
@@ -1885,8 +1896,7 @@ function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast
  } else {
  try {
  await navigator.clipboard.writeText(`${text} ${shareUrl}`);
- setShowShareToast(true);
- setTimeout(() => setShowShareToast(false), 2000);
+ showToast('Link copied!', 'success');
  } catch (e) { console.error('Copy venue share link error:', e); }
  }
  }}
@@ -1897,7 +1907,7 @@ function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast
  </button>
 
  <button
- onClick={shareApp}
+ onClick={async () => { const shareUrl = window.location.origin; const shareData = { title: 'Huddle Up', text: 'Find your crew. Watch the game. Join me on Huddle Up!', url: shareUrl }; if (navigator.share) { try { await navigator.share(shareData); } catch (e) { console.error('Share app error:', e); } } else { try { await navigator.clipboard.writeText(`${shareData.text} ${shareUrl}`); showToast('Link copied! Share Huddle Up with your friends.', 'success'); } catch (e) { console.error('Copy share link error:', e); } } }}
  className="flex items-center justify-center gap-3 py-4 bg-[#1E90FF] text-white font-bold rounded-xl hover:opacity-90 transition-all text-sm"
  >
  <Users className="w-5 h-5" />
@@ -1910,8 +1920,7 @@ function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast
  const text = `🏈 Watch parties happening at ${userVenue.name}! Download Huddle Up to find your crew and join the fun.`;
  try {
  await navigator.clipboard.writeText(`${text} ${shareUrl}`);
- setShowShareToast(true);
- setTimeout(() => setShowShareToast(false), 2000);
+ showToast('Post copied! Paste it on social media.', 'success');
  } catch (e) { console.error('Copy venue promo link error:', e); }
  }}
  className="flex items-center justify-center gap-3 py-4 bg-[#151A22] text-white font-bold rounded-xl hover:bg-[#222A36] transition-all border border-[#222A36] text-sm"

@@ -137,7 +137,7 @@ router.get('/venue/stats', requireAuth, async (req, res) => {
     );
 
     const recentCheckins = await pool.query(
-      `SELECT vc.created_at, vc.qr_verified, u.name as user_name, p.game_title
+      `SELECT vc.created_at, vc.qr_verified, u.name as user_name, p.title as game_title
        FROM venue_checkins vc
        JOIN users u ON vc.user_id = u.id
        LEFT JOIN parties p ON vc.party_id = p.id
