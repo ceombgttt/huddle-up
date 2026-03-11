@@ -10376,29 +10376,36 @@ Become a Sponsor →
  setEditingVenue(true);
  };
 
- const handleVenueImageUpload = async (imageType) => {
- const input = document.createElement('input');
- input.type = 'file';
- input.accept = 'image/*';
- input.onchange = async (e) => {
+ const venueFileInputRef = useRef(null);
+ const venueUploadTypeRef = useRef('logo');
+ const handleVenueImageUpload = (imageType) => {
+ venueUploadTypeRef.current = imageType;
+ if (!venueFileInputRef.current) {
+ venueFileInputRef.current = document.createElement('input');
+ venueFileInputRef.current.type = 'file';
+ venueFileInputRef.current.accept = 'image/*';
+ venueFileInputRef.current.addEventListener('change', async (e) => {
  const file = e.target.files?.[0];
  if (!file) return;
+ const currentType = venueUploadTypeRef.current;
  const fileType = file.type || 'image/jpeg';
  if (!fileType.startsWith('image/')) {
  showToast('Please select an image file', 'error');
+ venueFileInputRef.current.value = '';
  return;
  }
  if (file.size > 5 * 1024 * 1024) {
  showToast('Image must be under 5MB', 'error');
+ venueFileInputRef.current.value = '';
  return;
  }
- const setter = imageType === 'logo' ? setUploadingLogo : setUploadingPicture;
+ const setter = currentType === 'logo' ? setUploadingLogo : setUploadingPicture;
  setter(true);
  try {
  const fileBuffer = await file.arrayBuffer();
  const uploadRes = await fetch('/api/uploads/venue-image/upload', {
  method: 'POST',
- headers: { 'Content-Type': fileType, 'x-file-content-type': fileType, 'x-image-type': imageType },
+ headers: { 'Content-Type': fileType, 'x-file-content-type': fileType, 'x-image-type': currentType },
  credentials: 'include',
  body: fileBuffer,
  });
@@ -10407,14 +10414,18 @@ Become a Sponsor →
  throw new Error(errData.error || 'Upload failed');
  }
  const { objectPath } = await uploadRes.json();
- await api.venues.updateMine({ [imageType]: objectPath });
+ await api.venues.updateMine({ [currentType]: objectPath });
  await loadVenues();
+ showToast('Image uploaded successfully!', 'success');
  } catch (err) {
  showToast('Failed to upload image: ' + err.message, 'error');
  }
  setter(false);
- };
- input.click();
+ venueFileInputRef.current.value = '';
+ });
+ }
+ venueFileInputRef.current.value = '';
+ venueFileInputRef.current.click();
  };
 
  const saveVenueDetails = async () => {
@@ -10618,7 +10629,7 @@ Become a Sponsor →
  </div>
  )}
  <button type="button" disabled={uploadingLogo}
- onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleVenueImageUpload('logo'); }}
+ onClick={() => handleVenueImageUpload('logo')}
  className={`px-4 py-2 rounded-xl text-sm font-bold cursor-pointer transition-all ${uploadingLogo ? 'bg-gray-500 text-[#A0A4AB]' : 'bg-[#1E90FF]/20 text-[#1E90FF] hover:bg-[#1E90FF]/30 border border-[#1E90FF]/30'}`}>
  {uploadingLogo ? 'Uploading...' : 'Upload Logo'}
  </button>
@@ -10636,7 +10647,7 @@ Become a Sponsor →
  </div>
  )}
  <button type="button" disabled={uploadingPicture}
- onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleVenueImageUpload('picture'); }}
+ onClick={() => handleVenueImageUpload('picture')}
  className={`px-4 py-2 rounded-xl text-sm font-bold cursor-pointer transition-all ${uploadingPicture ? 'bg-gray-500 text-[#A0A4AB]' : 'bg-[#1E90FF]/20 text-[#1E90FF] hover:bg-[#1E90FF]/30 border border-[#1E90FF]/30'}`}>
  {uploadingPicture ? 'Uploading...' : 'Upload Photo'}
  </button>
