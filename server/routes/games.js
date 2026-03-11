@@ -124,6 +124,37 @@ function parseESPNEvent(event, sport) {
   };
 }
 
+const CUSTOM_EVENTS = [
+  {
+    id: 'ufc_custom_rousey_carano_20260516',
+    sport: 'UFC',
+    homeTeam: 'Ronda Rousey',
+    awayTeam: 'Gina Carano',
+    homeScore: 0,
+    awayScore: 0,
+    homeLogo: null,
+    awayLogo: null,
+    homeRecord: 'MMA Return',
+    awayRecord: 'MMA Return',
+    startTime: '2026-05-16T22:00:00Z',
+    venue: 'T-Mobile Arena, Las Vegas',
+    gameStatus: 'scheduled',
+    statusDetail: 'Sat, May 16 · 10:00 PM ET',
+    broadcast: 'ESPN+ PPV',
+    eventTitle: 'UFC Special Event: Rousey vs Carano',
+  },
+];
+
+function getCustomEvents() {
+  const now = new Date();
+  const sixHoursAgo = new Date(now.getTime() - 6 * 60 * 60 * 1000);
+  return CUSTOM_EVENTS.filter(event => {
+    const eventTime = new Date(event.startTime);
+    const estimatedEnd = new Date(eventTime.getTime() + 4 * 60 * 60 * 1000);
+    return estimatedEnd >= sixHoursAgo;
+  });
+}
+
 async function fetchAllGamesInternal() {
   const allGames = [];
   const weeklyRange = getDateRange(21);
@@ -155,6 +186,9 @@ async function fetchAllGamesInternal() {
 
   const results = await Promise.all(fetchPromises);
   results.forEach(games => allGames.push(...games));
+
+  const customEvents = getCustomEvents();
+  allGames.push(...customEvents);
 
   allGames.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
 
