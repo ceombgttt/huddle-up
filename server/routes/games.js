@@ -136,7 +136,7 @@ const CUSTOM_EVENTS = [
     awayLogo: null,
     homeRecord: 'MMA Return',
     awayRecord: 'MMA Return',
-    startTime: '2026-05-16T22:00:00Z',
+    startTime: '2026-05-17T02:00:00Z',
     venue: 'T-Mobile Arena, Las Vegas',
     gameStatus: 'scheduled',
     statusDetail: 'Sat, May 16 · 10:00 PM ET',
