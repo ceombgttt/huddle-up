@@ -1356,7 +1356,7 @@ const AddressLink = ({ address, className = '' }) => (
   >{address}</a>
 );
 
-function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast, loadVenues, goBack }) {
+function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast, loadVenues, goBack, user }) {
  const [hubTab, setHubTab] = useState('dashboard');
  const [promotions, setPromotions] = useState([]);
  const [deals, setDeals] = useState([]);
@@ -16839,7 +16839,7 @@ Become a Sponsor →
  {currentScreen === 'createParty' && createPartyScreenJSX()}
  {currentScreen === 'claimVenue' && claimVenueScreenJSX()}
  {currentScreen === 'admin' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}>{AdminPanelScreen()}</ScreenErrorBoundary>}
- {currentScreen === 'venueDashboard' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><VenueHubScreen userVenue={userVenue} parties={parties} games={games} setCurrentScreen={setCurrentScreen} showToast={showToast} loadVenues={loadVenues} goBack={goBack} /></ScreenErrorBoundary>}
+ {currentScreen === 'venueDashboard' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><VenueHubScreen userVenue={userVenue} parties={parties} games={games} setCurrentScreen={setCurrentScreen} showToast={showToast} loadVenues={loadVenues} goBack={goBack} user={user} /></ScreenErrorBoundary>}
  {currentScreen === 'sponsorDashboard' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><SponsorDashboard /></ScreenErrorBoundary>}
  {currentScreen === 'myParties' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><MyPartiesScreen /></ScreenErrorBoundary>}
  {currentScreen === 'notificationSettings' && <ScreenErrorBoundary onReset={() => setCurrentScreen('profile')}><NotificationSettingsScreen /></ScreenErrorBoundary>}
