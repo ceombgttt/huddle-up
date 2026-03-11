@@ -1345,6 +1345,1254 @@ const SmsFieldsSection = ({ user, setUser, showToast }) => {
  );
 };
 
+function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast, loadVenues }) {
+ const [hubTab, setHubTab] = useState('dashboard');
+ const [promotions, setPromotions] = useState([]);
+ const [deals, setDeals] = useState([]);
+ const [loadingHub, setLoadingHub] = useState(true);
+ const [showNewPromo, setShowNewPromo] = useState(false);
+ const [showNewDeal, setShowNewDeal] = useState(false);
+ const [promoForm, setPromoForm] = useState({ title: '', description: '', sport: '', homeTeam: '', awayTeam: '', specials: '', gameDate: '', expiresAt: '' });
+ const [dealForm, setDealForm] = useState({ title: '', description: '', dealType: 'special', validUntil: '', terms: '', recurring: false, recurringDays: '' });
+ const [saving, setSaving] = useState(false);
+ const [editingVenue, setEditingVenue] = useState(false);
+ const [venueEditName, setVenueEditName] = useState('');
+ const [venueEditAddress, setVenueEditAddress] = useState('');
+ const [venueEditCity, setVenueEditCity] = useState('');
+ const [venueEditType, setVenueEditType] = useState('');
+ const [venueEditPhone, setVenueEditPhone] = useState('');
+ const [venueEditWebsite, setVenueEditWebsite] = useState('');
+ const [venueEditCapacity, setVenueEditCapacity] = useState('');
+ const [venueEditDescription, setVenueEditDescription] = useState('');
+ const [savingVenue, setSavingVenue] = useState(false);
+ const [uploadingLogo, setUploadingLogo] = useState(false);
+ const [uploadingPicture, setUploadingPicture] = useState(false);
+ const venueFileInputRef = useRef(null);
+ const venueUploadTypeRef = useRef('logo');
+
+ const VenueAnalyticsDashboard = () => {
+ const startEditing = () => {
+ setVenueEditName(userVenue.name || '');
+ setVenueEditAddress(userVenue.address || '');
+ setVenueEditCity(userVenue.city || '');
+ setVenueEditType(userVenue.type || '');
+ setVenueEditPhone(userVenue.phone || '');
+ setVenueEditWebsite(userVenue.website || '');
+ setVenueEditCapacity(userVenue.capacity ? String(userVenue.capacity) : '');
+ setVenueEditDescription(userVenue.description || '');
+ setEditingVenue(true);
+ };
+
+ const handleVenueImageUpload = (imageType) => {
+ venueUploadTypeRef.current = imageType;
+ if (!venueFileInputRef.current) {
+ const inp = document.createElement('input');
+ inp.type = 'file';
+ inp.accept = 'image/*';
+ inp.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;pointer-events:none;';
+ document.body.appendChild(inp);
+ venueFileInputRef.current = inp;
+ venueFileInputRef.current.addEventListener('change', async (e) => {
+ const file = e.target.files?.[0];
+ if (!file) return;
+ const currentType = venueUploadTypeRef.current;
+ const fileType = file.type || 'image/jpeg';
+ if (!fileType.startsWith('image/')) {
+ showToast('Please select an image file', 'error');
+ venueFileInputRef.current.value = '';
+ return;
+ }
+ if (file.size > 5 * 1024 * 1024) {
+ showToast('Image must be under 5MB', 'error');
+ venueFileInputRef.current.value = '';
+ return;
+ }
+ const setter = currentType === 'logo' ? setUploadingLogo : setUploadingPicture;
+ setter(true);
+ try {
+ const fileBuffer = await file.arrayBuffer();
+ const uploadRes = await fetch('/api/uploads/venue-image/upload', {
+ method: 'POST',
+ headers: { 'Content-Type': fileType, 'x-file-content-type': fileType, 'x-image-type': currentType },
+ credentials: 'include',
+ body: fileBuffer,
+ });
+ if (!uploadRes.ok) {
+ const errData = await uploadRes.json().catch(() => ({}));
+ throw new Error(errData.error || 'Upload failed');
+ }
+ const { objectPath } = await uploadRes.json();
+ await api.venues.updateMine({ [currentType]: objectPath });
+ await loadVenues();
+ showToast('Image uploaded successfully!', 'success');
+ } catch (err) {
+ showToast('Failed to upload image: ' + err.message, 'error');
+ }
+ setter(false);
+ venueFileInputRef.current.value = '';
+ });
+ }
+ venueFileInputRef.current.value = '';
+ venueFileInputRef.current.click();
+ };
+
+ const saveVenueDetails = async () => {
+ setSavingVenue(true);
+ try {
+ await api.venues.updateMine({
+ name: venueEditName,
+ address: venueEditAddress,
+ city: venueEditCity,
+ type: venueEditType,
+ phone: venueEditPhone,
+ website: venueEditWebsite,
+ capacity: venueEditCapacity ? parseInt(venueEditCapacity) : null,
+ description: venueEditDescription
+ });
+ await loadVenues();
+ setEditingVenue(false);
+ } catch (error) {
+ showToast(error.message, 'error');
+ }
+ setSavingVenue(false);
+ };
+
+ if (!userVenue) {
+ return (
+ <div className="min-h-screen pt-[60px] bg-[#0F1115] flex items-center justify-center p-4">
+ <div className="text-center">
+ <Building2 className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+ <h2 className="text-2xl font-bold text-white mb-2">No Venue Found</h2>
+ <p className="text-[#A0A4AB] mb-6">You don't have a claimed venue yet.</p>
+ <button
+ onClick={() => setCurrentScreen('claimVenue')}
+ className="px-6 py-3 bg-[#1E90FF] text-white font-bold rounded-xl"
+ >
+ Claim Your Venue
+ </button>
+ </div>
+ </div>
+ );
+ }
+
+ // Calculate analytics
+ const venueParties = parties.filter(p => p.venueId === userVenue.id);
+ const totalAttendees = venueParties.reduce((sum, party) => sum + party.attendees.length, 0);
+ const upcomingParties = venueParties.filter(party => {
+ const game = games.find(g => g.id === party.gameId);
+ return game && new Date(game.startTime) > new Date();
+ });
+ 
+ // Sport breakdown
+ const sportBreakdown = {};
+ venueParties.forEach(party => {
+ const game = games.find(g => g.id === party.gameId);
+ if (game) {
+ sportBreakdown[game.sport] = (sportBreakdown[game.sport] || 0) + 1;
+ }
+ });
+
+ // Recent parties
+ const recentParties = venueParties
+ .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+ .slice(0, 5);
+
+ return (
+ <div className="space-y-6">
+ {/* Venue Header */}
+ <div className="bg-[#151A22] p-8 rounded-2xl border border-[#222A36] shadow-xl">
+ {!editingVenue ? (
+ <>
+ {userVenue.picture && (
+ <div className="mb-6 -mt-2 -mx-2 rounded-xl overflow-hidden">
+ <img src={`/api/uploads/serve/${userVenue.picture.replace('/objects/', '')}`} alt={userVenue.name} className="w-full h-48 object-cover" />
+ </div>
+ )}
+ <div className="flex items-start gap-3 mb-3">
+ {userVenue.logo && (
+ <img src={`/api/uploads/serve/${userVenue.logo.replace('/objects/', '')}`} alt="Logo" className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover border border-[#222A36] flex-shrink-0" />
+ )}
+ <div className="flex-1 min-w-0">
+ <h1 className="text-2xl sm:text-4xl font-black text-white mb-1 break-words" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+ {userVenue.name}
+ </h1>
+ </div>
+ </div>
+ <div className="flex flex-wrap items-center gap-2 mb-3">
+ <div className="px-3 py-1 bg-[#1E90FF]/20 border border-[#1E90FF]/30 rounded-lg">
+ <span className="text-xs text-[#A0A4AB]">Plan: </span>
+ <span className="text-sm font-black text-[#1E90FF]">{userVenue.featured ? 'FEATURED' : 'FREE'}</span>
+ </div>
+ <button
+ onClick={startEditing}
+ className="flex items-center gap-2 px-3 py-1.5 bg-[#151A22] text-white rounded-lg hover:bg-[#222A36] transition-all text-sm font-bold border border-[#222A36]"
+ >
+ <Settings className="w-4 h-4" />
+ Edit Details
+ </button>
+ </div>
+ <div className="space-y-1">
+ <p className="text-[#A0A4AB] text-sm"><AddressLink address={userVenue.address} /></p>
+ {userVenue.city && <p className="text-[#A0A4AB] text-sm">{userVenue.city}</p>}
+ <p className="text-sm text-[#A0A4AB]/70">{userVenue.type}</p>
+ <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm text-[#A0A4AB]">
+ {userVenue.phone && <span>Phone: {userVenue.phone}</span>}
+ {userVenue.website && <span className="break-all">Web: {userVenue.website}</span>}
+ {userVenue.capacity && <span>Seats: {userVenue.capacity}</span>}
+ </div>
+ {userVenue.description && (
+ <p className="text-[#A0A4AB] text-sm mt-2 italic">"{userVenue.description}"</p>
+ )}
+ </div>
+ </>
+ ) : (
+ <div className="space-y-4">
+ <div className="flex items-center justify-between mb-2">
+ <h2 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+ EDIT VENUE DETAILS
+ </h2>
+ <button
+ onClick={() => setEditingVenue(false)}
+ className="text-[#A0A4AB] hover:text-white transition-colors text-sm"
+ >
+ Cancel
+ </button>
+ </div>
+
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Business Name *</label>
+ <DebouncedInput type="text" value={venueEditName} onChange={setVenueEditName} delay={150}
+ className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
+ />
+ </div>
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Business Type</label>
+ <select value={venueEditType} onChange={(e) => setVenueEditType(e.target.value)}
+ className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
+ >
+ <option value="Sports Bar" className="bg-[#151A22] text-white">Sports Bar</option>
+ <option value="Restaurant & Bar" className="bg-[#151A22] text-white">Restaurant & Bar</option>
+ <option value="Brewery/Taproom" className="bg-[#151A22] text-white">Brewery/Taproom</option>
+ <option value="Entertainment Venue" className="bg-[#151A22] text-white">Entertainment Venue</option>
+ <option value="Other" className="bg-[#151A22] text-white">Other</option>
+ </select>
+ </div>
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Full Address *</label>
+ <DebouncedInput type="text" value={venueEditAddress} onChange={setVenueEditAddress} delay={150}
+ placeholder="123 Main St, Suite #110"
+ className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
+ />
+ </div>
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">City, State</label>
+ <DebouncedInput type="text" value={venueEditCity} onChange={setVenueEditCity} delay={150}
+ placeholder="e.g., Fort Lauderdale, FL"
+ className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
+ />
+ </div>
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Phone Number</label>
+ <DebouncedInput type="tel" value={venueEditPhone} onChange={setVenueEditPhone} delay={150}
+ placeholder="(555) 123-4567"
+ className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
+ />
+ </div>
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Website</label>
+ <DebouncedInput type="text" value={venueEditWebsite} onChange={setVenueEditWebsite} delay={150}
+ placeholder="yourwebsite.com"
+ className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
+ />
+ </div>
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Seating Capacity</label>
+ <DebouncedInput type="number" value={venueEditCapacity} onChange={setVenueEditCapacity} delay={150}
+ placeholder="e.g., 150"
+ className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
+ />
+ </div>
+ </div>
+
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Venue Description & Special Features</label>
+ <DebouncedTextarea value={venueEditDescription} onChange={setVenueEditDescription}
+ rows={3}
+ delay={150}
+ placeholder="Tell fans what makes your venue great! e.g., 20 big screens, outdoor patio, game day drink specials, private party rooms..."
+ className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
+ />
+ </div>
+
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-2">Venue Logo</label>
+ <div className="flex items-center gap-4">
+ {userVenue.logo ? (
+ <img src={`/api/uploads/serve/${userVenue.logo.replace('/objects/', '')}`} alt="Logo" className="w-16 h-16 rounded-xl object-cover border border-[#222A36]" />
+ ) : (
+ <div className="w-16 h-16 rounded-xl bg-[#151A22] border border-[#222A36] flex items-center justify-center text-[#A0A4AB]/70">
+ <Building2 className="w-6 h-6" />
+ </div>
+ )}
+ <button type="button" disabled={uploadingLogo}
+ onClick={() => handleVenueImageUpload('logo')}
+ className={`px-4 py-2 rounded-xl text-sm font-bold cursor-pointer transition-all ${uploadingLogo ? 'bg-gray-500 text-[#A0A4AB]' : 'bg-[#1E90FF]/20 text-[#1E90FF] hover:bg-[#1E90FF]/30 border border-[#1E90FF]/30'}`}>
+ {uploadingLogo ? 'Uploading...' : 'Upload Logo'}
+ </button>
+ </div>
+ <p className="text-xs text-[#A0A4AB]/70 mt-1">Square image works best (e.g., 200x200)</p>
+ </div>
+ <div>
+ <label className="block text-sm font-medium text-[#A0A4AB] mb-2">Venue Photo</label>
+ <div className="flex items-center gap-4">
+ {userVenue.picture ? (
+ <img src={`/api/uploads/serve/${userVenue.picture.replace('/objects/', '')}`} alt="Venue" className="w-24 h-16 rounded-xl object-cover border border-[#222A36]" />
+ ) : (
+ <div className="w-24 h-16 rounded-xl bg-[#151A22] border border-[#222A36] flex items-center justify-center text-[#A0A4AB]/70">
+ <Camera className="w-6 h-6" />
+ </div>
+ )}
+ <button type="button" disabled={uploadingPicture}
+ onClick={() => handleVenueImageUpload('picture')}
+ className={`px-4 py-2 rounded-xl text-sm font-bold cursor-pointer transition-all ${uploadingPicture ? 'bg-gray-500 text-[#A0A4AB]' : 'bg-[#1E90FF]/20 text-[#1E90FF] hover:bg-[#1E90FF]/30 border border-[#1E90FF]/30'}`}>
+ {uploadingPicture ? 'Uploading...' : 'Upload Photo'}
+ </button>
+ </div>
+ <p className="text-xs text-[#A0A4AB]/70 mt-1">Show fans what your venue looks like</p>
+ </div>
+ </div>
+
+ <div className="flex gap-3 pt-2">
+ <button
+ onClick={saveVenueDetails}
+ disabled={savingVenue || !venueEditName || !venueEditAddress}
+ className={`flex-1 py-3 font-bold rounded-xl transition-all ${
+ savingVenue || !venueEditName || !venueEditAddress
+ ? 'bg-gray-500 text-[#A0A4AB] cursor-not-allowed'
+ : 'bg-[#1E90FF] text-white hover:opacity-90'
+ }`}
+ >
+ {savingVenue ? 'Saving...' : 'Save Changes'}
+ </button>
+ <button
+ onClick={() => setEditingVenue(false)}
+ className="px-6 py-3 bg-[#151A22] text-[#A0A4AB] font-bold rounded-xl hover:bg-[#222A36] transition-all"
+ >
+ Cancel
+ </button>
+ </div>
+ </div>
+ )}
+ </div>
+
+ {/* Upgrade CTA - only show if not featured */}
+ {!userVenue.featured && (
+ <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 p-6 rounded-2xl">
+ <div className="flex items-start justify-between">
+ <div className="flex-1">
+ <h3 className="text-xl font-black text-white mb-2">Upgrade to Featured</h3>
+ <p className="text-[#A0A4AB] text-sm mb-4">
+ Get 3x more visibility! Featured venues appear first in party creation and get priority placement in search results.
+ </p>
+ <ul className="space-y-2 text-sm text-[#A0A4AB] mb-4">
+ <li>✓ ⭐ Featured badge on all your parties</li>
+ <li>✓ Top of venue selection dropdown</li>
+ <li>✓ Priority in search results</li>
+ <li>✓ Advanced analytics & insights</li>
+ </ul>
+ <div className="text-2xl font-black text-white mb-1">
+ $49.99<span className="text-sm text-[#A0A4AB]">/month</span>
+ </div>
+ <p className="text-emerald-400 text-xs font-bold mb-4">3 months FREE — enter payment info now, first charge after 90 days</p>
+ </div>
+ <button
+ onClick={async () => {
+ try {
+ let products = await api.stripe.products();
+ let featuredProduct = products.find(p => p.metadata?.tier === 'featured_venue');
+ if (!featuredProduct || featuredProduct.prices.length === 0) {
+ await new Promise(r => setTimeout(r, 2000));
+ products = await api.stripe.products();
+ featuredProduct = products.find(p => p.metadata?.tier === 'featured_venue');
+ }
+ if (featuredProduct && featuredProduct.prices.length > 0) {
+ const result = await api.stripe.checkout(featuredProduct.prices[0].id);
+ if (result?.url) window.location.href = result.url;
+ } else { showToast('Plans are loading. Please wait a moment and try again.', 'error'); }
+ } catch(e) { console.error(e); showToast('Something went wrong. Please try again.', 'error'); }
+ }}
+ className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-xl hover:shadow-purple-500/50 transition-all"
+ >
+ UPGRADE NOW
+ </button>
+ </div>
+ </div>
+ )}
+
+ {/* Key Metrics */}
+ <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+ <div className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36]">
+ <div className="flex items-center gap-3 mb-2">
+ <div className="p-2 bg-[#1E90FF]/20 rounded-lg">
+ <Users className="w-5 h-5 text-[#1E90FF]" />
+ </div>
+ <div className="text-sm text-[#A0A4AB]">Total Reach</div>
+ </div>
+ <div className="text-3xl font-black text-white">{totalAttendees}</div>
+ <div className="text-xs text-[#A0A4AB]/70 mt-1">People found you</div>
+ </div>
+
+ <div className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36]">
+ <div className="flex items-center gap-3 mb-2">
+ <div className="p-2 bg-purple-500/20 rounded-lg">
+ <Calendar className="w-5 h-5 text-purple-400" />
+ </div>
+ <div className="text-sm text-[#A0A4AB]">Total Parties</div>
+ </div>
+ <div className="text-3xl font-black text-white">{venueParties.length}</div>
+ <div className="text-xs text-[#A0A4AB]/70 mt-1">All time</div>
+ </div>
+
+ <div className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36]">
+ <div className="flex items-center gap-3 mb-2">
+ <div className="p-2 bg-green-500/20 rounded-lg">
+ <Trophy className="w-5 h-5 text-green-400" />
+ </div>
+ <div className="text-sm text-[#A0A4AB]">Upcoming</div>
+ </div>
+ <div className="text-3xl font-black text-white">{upcomingParties.length}</div>
+ <div className="text-xs text-[#A0A4AB]/70 mt-1">Next 7 days</div>
+ </div>
+
+ <div className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36]">
+ <div className="flex items-center gap-3 mb-2">
+ <div className="p-2 bg-yellow-500/20 rounded-lg">
+ <BarChart3 className="w-5 h-5 text-yellow-400" />
+ </div>
+ <div className="text-sm text-[#A0A4AB]">Avg Party Size</div>
+ </div>
+ <div className="text-3xl font-black text-white">
+ {venueParties.length > 0 ? Math.round(totalAttendees / venueParties.length) : 0}
+ </div>
+ <div className="text-xs text-[#A0A4AB]/70 mt-1">People per party</div>
+ </div>
+ </div>
+
+ {/* Sport Breakdown */}
+ <div className="bg-[#151A22] p-8 rounded-2xl border border-[#222A36]">
+ <h2 className="text-2xl font-black text-white mb-6" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+ <BarChart3 className="inline w-6 h-6 mr-2 text-[#1E90FF]" />
+ Sport Breakdown
+ </h2>
+ 
+ {Object.keys(sportBreakdown).length === 0 ? (
+ <div className="text-center py-8">
+ <p className="text-white font-bold text-sm mb-1">No watch parties yet</p>
+ <p className="text-[#A0A4AB] text-xs">We're in soft launch — parties will show up as fans start hosting at your venue.</p>
+ </div>
+ ) : (
+ <div className="space-y-4">
+ {Object.entries(sportBreakdown)
+ .sort((a, b) => b[1] - a[1])
+ .map(([sport, count]) => {
+ const percentage = Math.round((count / venueParties.length) * 100);
+ return (
+ <div key={sport}>
+ <div className="flex items-center justify-between mb-2">
+ <span className="text-white font-bold">{sport}</span>
+ <span className="text-[#A0A4AB] text-sm">{count} parties ({percentage}%)</span>
+ </div>
+ <div className="h-3 bg-[#151A22] rounded-full overflow-hidden">
+ <div 
+ className="h-full bg-[#1E90FF] rounded-full transition-all duration-500"
+ style={{ width: `${percentage}%` }}
+ />
+ </div>
+ </div>
+ );
+ })}
+ </div>
+ )}
+ </div>
+
+ {/* Recent Parties */}
+ <div className="bg-[#151A22] p-8 rounded-2xl border border-[#222A36]">
+ <h2 className="text-2xl font-black text-white mb-6" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+ Recent Watch Parties
+ </h2>
+ 
+ {recentParties.length === 0 ? (
+ <div className="text-center py-8">
+ <p className="text-white font-bold text-sm mb-1">No watch parties yet</p>
+ <p className="text-[#A0A4AB] text-xs">We're in soft launch — people will start hosting at your venue soon!</p>
+ </div>
+ ) : (
+ <div className="space-y-3">
+ {recentParties.map(party => {
+ const game = games.find(g => g.id === party.gameId);
+ if (!game) return null;
+ 
+ return (
+ <div
+ key={party.id}
+ className="bg-[#151A22] p-5 rounded-xl border border-[#222A36] flex items-center justify-between"
+ >
+ <div className="flex-1">
+ <div className="flex items-center gap-2 mb-1">
+ <span className="px-2 py-1 bg-[#1E90FF]/20 text-[#1E90FF] text-xs font-bold rounded-full">
+ {game.sport}
+ </span>
+ <span className="text-white font-bold">
+ {game.homeTeam} vs {game.awayTeam}
+ </span>
+ </div>
+ <div className="text-sm text-[#A0A4AB]">
+ Hosted by {party.hostName} • {party.attendees.length} attendees
+ </div>
+ </div>
+ <div className="flex flex-col items-end gap-1">
+ <div className="text-sm text-[#A0A4AB]/70">
+ {new Date(party.createdAt).toLocaleDateString()}
+ </div>
+ <button onClick={(e) => { e.stopPropagation(); openShareMenu(party); }} className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 transition-colors">
+ <Share2 className="w-3 h-3" /> Share
+ </button>
+ </div>
+ </div>
+ );
+ })}
+ </div>
+ )}
+ </div>
+
+ {/* Promote & Share Section */}
+ <div className="bg-gradient-to-br from-emerald-500/10 to-cyan-500/10 border-2 border-emerald-500/30 p-6 rounded-2xl space-y-5">
+ <h2 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+ <Share2 className="inline w-6 h-6 mr-2 text-emerald-400" />
+ PROMOTE YOUR VENUE
+ </h2>
+ <p className="text-[#A0A4AB] text-sm">Share your venue with fans and drive more watch parties to your business.</p>
+
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+ <button
+ onClick={async () => {
+ const shareUrl = window.location.origin;
+ const text = `Watch the game at ${userVenue.name}! Find watch parties and join the crew on Huddle Up.`;
+ if (navigator.share) {
+ try { await navigator.share({ title: userVenue.name + ' on Huddle Up', text, url: shareUrl }); } catch (e) { console.error('Share venue error:', e); }
+ } else {
+ try {
+ await navigator.clipboard.writeText(`${text} ${shareUrl}`);
+ setShowShareToast(true);
+ setTimeout(() => setShowShareToast(false), 2000);
+ } catch (e) { console.error('Copy venue share link error:', e); }
+ }
+ }}
+ className="flex items-center justify-center gap-3 py-4 bg-gradient-to-r from-emerald-500 to-green-500 text-white font-bold rounded-xl hover:shadow-emerald-500/50 transition-all text-sm"
+ >
+ <Share2 className="w-5 h-5" />
+ Share Your Venue
+ </button>
+
+ <button
+ onClick={shareApp}
+ className="flex items-center justify-center gap-3 py-4 bg-[#1E90FF] text-white font-bold rounded-xl hover:opacity-90 transition-all text-sm"
+ >
+ <Users className="w-5 h-5" />
+ Invite Fans to Huddle Up
+ </button>
+
+ <button
+ onClick={async () => {
+ const shareUrl = window.location.origin;
+ const text = `🏈 Watch parties happening at ${userVenue.name}! Download Huddle Up to find your crew and join the fun.`;
+ try {
+ await navigator.clipboard.writeText(`${text} ${shareUrl}`);
+ setShowShareToast(true);
+ setTimeout(() => setShowShareToast(false), 2000);
+ } catch (e) { console.error('Copy venue promo link error:', e); }
+ }}
+ className="flex items-center justify-center gap-3 py-4 bg-[#151A22] text-white font-bold rounded-xl hover:bg-[#222A36] transition-all border border-[#222A36] text-sm"
+ >
+ <span className="text-lg">📋</span>
+ Copy Social Media Post
+ </button>
+
+ <button
+ onClick={() => setCurrentScreen('games')}
+ className="flex items-center justify-center gap-3 py-4 bg-[#151A22] text-white font-bold rounded-xl hover:bg-[#222A36] transition-all border border-[#222A36] text-sm"
+ >
+ <Calendar className="w-5 h-5" />
+ Create a Watch Party
+ </button>
+ </div>
+
+ <div className="bg-[#151A22] border border-[#222A36] rounded-xl p-4 space-y-2">
+ <p className="text-white font-bold text-sm">Quick promo ideas:</p>
+ <ul className="space-y-1.5 text-xs text-[#A0A4AB]">
+ <li>• Post your Huddle Up link on Instagram, Facebook, and X</li>
+ <li>• Add a QR code or table tent: "Find tonight's watch party on Huddle Up!"</li>
+ <li>• Text your regulars the link before big game days</li>
+ <li>• Offer a game day special and mention it in your party description</li>
+ </ul>
+ </div>
+ </div>
+
+ <VenueQrSection userVenue={userVenue} showToast={showToast} />
+
+ {/* Tips for Venues */}
+ <div className="bg-gradient-to-br from-cyan-500/10 to-[#1E90FF]/10 border border-[#1E90FF]/30 p-6 rounded-2xl">
+ <h3 className="text-lg font-black text-white mb-4">Tips to Get More Watch Parties</h3>
+ <ul className="space-y-2 text-sm text-[#A0A4AB]">
+ <li>• Promote your Huddle Up presence on social media and in-store</li>
+ <li>• Offer specials during big games to attract more groups</li>
+ <li>• Encourage hosts to leave notes about your venue's amenities</li>
+ <li>• Consider upgrading to Featured to appear first in searches</li>
+ </ul>
+ </div>
+ </div>
+ );
+ };
+
+
+
+
+ useEffect(() => {
+ if (userVenue) {
+ Promise.all([
+ api.venueHub.getPromotions().catch(() => []),
+ api.venueHub.getDeals().catch(() => [])
+ ]).then(([p, d]) => { setPromotions(p); setDeals(d); setLoadingHub(false); });
+ } else { setLoadingHub(false); }
+ }, [userVenue]);
+
+ if (!userVenue) {
+ return (
+ <div className="min-h-screen pt-[60px] bg-[#0F1115] flex items-center justify-center p-4">
+ <div className="text-center">
+ <Building2 className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+ <h2 className="text-2xl font-bold text-white mb-2">No Venue Found</h2>
+ <p className="text-[#A0A4AB] mb-6">You don't have a claimed venue yet.</p>
+ <button onClick={() => setCurrentScreen('claimVenue')} className="px-6 py-3 bg-[#1E90FF] text-white font-bold rounded-xl">Claim Your Venue</button>
+ </div>
+ </div>
+ );
+ }
+
+ const savePromotion = async () => {
+ if (!promoForm.title) return showToast('Title is required', 'error');
+ setSaving(true);
+ try {
+ const newPromo = await api.venueHub.createPromotion(promoForm);
+ setPromotions([newPromo, ...promotions]);
+ setShowNewPromo(false);
+ setPromoForm({ title: '', description: '', sport: '', homeTeam: '', awayTeam: '', specials: '', gameDate: '', expiresAt: '' });
+ } catch (err) { showToast(err.message, 'error'); }
+ setSaving(false);
+ };
+
+ const saveDeal = async () => {
+ if (!dealForm.title || !dealForm.description) return showToast('Title and description are required', 'error');
+ setSaving(true);
+ try {
+ const newDeal = await api.venueHub.createDeal(dealForm);
+ setDeals([newDeal, ...deals]);
+ setShowNewDeal(false);
+ setDealForm({ title: '', description: '', dealType: 'special', validUntil: '', terms: '', recurring: false, recurringDays: '' });
+ } catch (err) { showToast(err.message, 'error'); }
+ setSaving(false);
+ };
+
+ const deletePromotion = async (id) => {
+ if (!confirm('Delete this promotion?')) return;
+ try { await api.venueHub.deletePromotion(id); setPromotions(promotions.filter(p => p.id !== id)); } catch (err) { showToast(err.message, 'error'); }
+ };
+
+ const deleteDeal = async (id) => {
+ if (!confirm('Delete this deal?')) return;
+ try { await api.venueHub.deleteDeal(id); setDeals(deals.filter(d => d.id !== id)); } catch (err) { showToast(err.message, 'error'); }
+ };
+
+ const toggleDealActive = async (deal) => {
+ try {
+ const updated = await api.venueHub.updateDeal(deal.id, { active: !deal.active });
+ setDeals(deals.map(d => d.id === deal.id ? updated : d));
+ } catch (err) { showToast(err.message, 'error'); }
+ };
+
+ const SPORTS_LIST = ['NFL', 'NBA', 'MLB', 'NHL', 'MLS', 'Premier League', 'La Liga', 'Champions League', 'College Football', 'College Basketball', 'UFC/MMA', 'Boxing', 'NASCAR', 'F1', 'Tennis', 'Golf'];
+
+ const trialActive = userVenue.onTrial;
+ const trialEndsAt = userVenue.venueTrialEndsAt ? new Date(userVenue.venueTrialEndsAt) : null;
+ const trialDaysLeft = trialEndsAt ? Math.max(0, Math.ceil((trialEndsAt - new Date()) / (1000 * 60 * 60 * 24))) : 0;
+
+ const tabs = [
+ { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+ { id: 'featured', label: 'Plans & Pricing', icon: '⭐' },
+ { id: 'promotions', label: 'Promote Games', icon: '📢' },
+ { id: 'deals', label: 'Deals & Specials', icon: '🏷️' },
+ ];
+
+ return (
+ <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115]">
+ <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
+ <div className="max-w-4xl mx-auto px-4 py-3">
+ <div className="flex items-center justify-between mb-3">
+ <button onClick={goBack} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors">
+ <ArrowLeft className="w-5 h-5" /> Back
+ </button>
+ <div className="flex items-center gap-2">
+ {userVenue.featured && <span className="px-2 py-1 bg-amber-500/20 text-amber-300 text-xs font-bold rounded-full border border-amber-500/30 flex items-center gap-1"><Star className="w-3 h-3 fill-amber-300" /> Featured</span>}
+ {userVenue.verified && <span className="px-2 py-1 bg-green-500/20 text-green-300 text-xs font-bold rounded-full border border-green-500/30 flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Verified</span>}
+ </div>
+ </div>
+ <div className="flex items-center gap-3 mb-3">
+ {userVenue.logo && <img src={`/api/uploads/serve/${userVenue.logo.replace('/objects/', '')}`} alt="Logo" className="w-10 h-10 rounded-xl object-cover border border-[#222A36]" />}
+ <div>
+ <h1 className="text-xl font-black text-white">{userVenue.name}</h1>
+ <p className="text-xs text-[#A0A4AB]">Venue Hub</p>
+ </div>
+ </div>
+ <div className="flex gap-1 overflow-x-auto scrollbar-hide">
+ {tabs.map(tab => (
+ <button key={tab.id} onClick={() => setHubTab(tab.id)} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${hubTab === tab.id ? 'bg-green-500/20 text-green-300 border border-green-500/30' : 'text-[#A0A4AB] hover:bg-[#222A36]'}`}>
+ <span>{tab.icon}</span> {tab.label}
+ </button>
+ ))}
+ </div>
+ </div>
+ </div>
+
+ <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
+ {hubTab === 'dashboard' && trialActive && (
+ <div className="relative overflow-hidden rounded-2xl border border-blue-500/40 bg-gradient-to-r from-blue-900/60 via-indigo-900/50 to-blue-900/40 mb-2">
+ <div className="p-4">
+ <div className="flex items-center gap-2 mb-2">
+ <div className="w-8 h-8 bg-blue-500/30 rounded-lg flex items-center justify-center"><Gift className="w-4 h-4 text-blue-300" /></div>
+ <div>
+ <h3 className="text-white font-black text-sm">FREE TRIAL ACTIVE</h3>
+ <p className="text-blue-200 text-[10px]">{trialDaysLeft} days remaining</p>
+ </div>
+ </div>
+ <p className="text-white/60 text-xs mb-2">You're on a free 3-month trial. All Base tier features are available. Choose a plan before your trial ends to keep your venue listed.</p>
+ <button onClick={() => setHubTab('featured')} className="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 font-bold rounded-xl text-xs border border-blue-500/30 transition-all">
+ View Plans & Pricing
+ </button>
+ </div>
+ </div>
+ )}
+ {hubTab === 'dashboard' && (
+ <div className="relative overflow-hidden rounded-2xl border border-green-500/40 bg-gradient-to-r from-green-900/60 via-emerald-900/50 to-teal-900/40 mb-2">
+ <div className="p-4">
+ <h3 className="text-white font-black text-base leading-tight mb-1" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>
+ SHARE YOUR VENUE WITH FANS
+ </h3>
+ <p className="text-white/60 text-xs mb-3">Get your venue set up so fans can find watch parties at your location!</p>
+ <div className="grid grid-cols-3 gap-2 text-center">
+ <div className="bg-black/20 rounded-xl p-2">
+ <Camera className="w-4 h-4 text-green-300 mx-auto mb-1" />
+ <p className="text-white text-[10px] font-bold">Add Photos</p>
+ </div>
+ <div className="bg-black/20 rounded-xl p-2">
+ <Megaphone className="w-4 h-4 text-green-300 mx-auto mb-1" />
+ <p className="text-white text-[10px] font-bold">Create Promos</p>
+ </div>
+ <div className="bg-black/20 rounded-xl p-2">
+ <DollarSign className="w-4 h-4 text-green-300 mx-auto mb-1" />
+ <p className="text-white text-[10px] font-bold">Set Up Deals</p>
+ </div>
+ </div>
+ </div>
+ </div>
+ )}
+ {hubTab === 'dashboard' && VenueAnalyticsDashboard()}
+
+ {hubTab === 'featured' && (
+ <div className="space-y-4">
+ {trialActive && (
+ <div className="relative overflow-hidden rounded-2xl border border-blue-500/40 bg-gradient-to-r from-blue-900/40 via-indigo-900/30 to-blue-900/40">
+ <div className="p-4">
+ <div className="flex items-center gap-2 mb-2">
+ <Gift className="w-5 h-5 text-blue-300" />
+ <h3 className="text-white font-black text-sm">FREE TRIAL - {trialDaysLeft} DAYS LEFT</h3>
+ </div>
+ <p className="text-white/60 text-xs">Your 3-month free trial includes all Base tier features. Choose a plan below to continue after your trial ends{trialEndsAt ? ` on ${trialEndsAt.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}` : ''}.</p>
+ </div>
+ </div>
+ )}
+
+ {userVenue.featured ? (
+ <div className="relative overflow-hidden rounded-2xl border border-amber-500/40 bg-gradient-to-br from-amber-900/40 via-orange-900/30 to-yellow-900/20">
+ <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+ <div className="p-5">
+ <div className="flex items-center gap-3 mb-3">
+ <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/30">
+ <Star className="w-6 h-6 text-white fill-white" />
+ </div>
+ <div>
+ <h2 className="text-xl font-black text-white">Featured Venue</h2>
+ <p className="text-amber-300 text-xs font-bold">Your venue is currently featured!</p>
+ </div>
+ </div>
+ <div className="grid grid-cols-2 gap-3 mt-4">
+ <div className="bg-black/20 rounded-xl p-3 border border-amber-500/20">
+ <TrendingUp className="w-5 h-5 text-amber-400 mb-1" />
+ <p className="text-white font-bold text-sm">Priority Search</p>
+ <p className="text-white/50 text-xs">You appear first in results</p>
+ </div>
+ <div className="bg-black/20 rounded-xl p-3 border border-amber-500/20">
+ <Award className="w-5 h-5 text-amber-400 mb-1" />
+ <p className="text-white font-bold text-sm">Featured Badge</p>
+ <p className="text-white/50 text-xs">Stand out from other venues</p>
+ </div>
+ <div className="bg-black/20 rounded-xl p-3 border border-amber-500/20">
+ <Flame className="w-5 h-5 text-amber-400 mb-1" />
+ <p className="text-white font-bold text-sm">Trending Boost</p>
+ <p className="text-white/50 text-xs">Boosted in trending feed</p>
+ </div>
+ <div className="bg-black/20 rounded-xl p-3 border border-amber-500/20">
+ <BarChart3 className="w-5 h-5 text-amber-400 mb-1" />
+ <p className="text-white font-bold text-sm">Enhanced Stats</p>
+ <p className="text-white/50 text-xs">Detailed analytics access</p>
+ </div>
+ </div>
+ <button
+ onClick={async () => { try { const d = await api.stripe.portal(); if (d?.url) window.location.href = d.url; } catch(e) { console.error(e); } }}
+ className="w-full mt-4 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-sm transition-all"
+ >
+ Manage Subscription
+ </button>
+ </div>
+ </div>
+ ) : userVenue.subscribed ? (
+ <div className="relative overflow-hidden rounded-2xl border border-blue-500/40 bg-gradient-to-br from-blue-900/40 via-[#151A22] to-blue-900/20">
+ <div className="p-5">
+ <div className="flex items-center gap-3 mb-3">
+ <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+ <Building2 className="w-6 h-6 text-white" />
+ </div>
+ <div>
+ <h2 className="text-xl font-black text-white">Base Venue Plan</h2>
+ <p className="text-blue-300 text-xs font-bold">$29.99/month - Active</p>
+ </div>
+ </div>
+ <p className="text-white/60 text-xs mb-4">You're on the Base plan. Upgrade to Featured for priority placement and more visibility.</p>
+ <div className="flex gap-3">
+ <button
+ onClick={async () => { try { const d = await api.stripe.portal(); if (d?.url) window.location.href = d.url; } catch(e) { console.error(e); } }}
+ className="flex-1 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-sm transition-all"
+ >
+ Manage Subscription
+ </button>
+ <button
+ onClick={async () => {
+ try {
+ let products = await api.stripe.products();
+ let featuredProduct = products.find(p => p.metadata?.tier === 'featured_venue');
+ if (!featuredProduct || featuredProduct.prices.length === 0) {
+ await new Promise(r => setTimeout(r, 2000));
+ products = await api.stripe.products();
+ featuredProduct = products.find(p => p.metadata?.tier === 'featured_venue');
+ }
+ if (featuredProduct && featuredProduct.prices.length > 0) {
+ const result = await api.stripe.checkout(featuredProduct.prices[0].id);
+ if (result?.url) window.location.href = result.url;
+ } else { showToast('Plans are loading. Please wait a moment and try again.', 'error'); }
+ } catch(e) { console.error(e); showToast('Something went wrong. Please try again.', 'error'); }
+ }}
+ className="flex-1 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black rounded-xl text-sm transition-all"
+ style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}
+ >
+ Upgrade to Featured
+ </button>
+ </div>
+ </div>
+ </div>
+ ) : null}
+
+ {!userVenue.featured && (
+ <div className="space-y-4">
+ <h3 className="text-white font-black text-lg" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>CHOOSE YOUR PLAN</h3>
+
+ <div className="rounded-2xl border border-blue-500/40 bg-gradient-to-r from-blue-900/20 via-[#151A22] to-blue-900/20">
+ <div className="p-5">
+ <div className="flex items-center justify-between mb-3">
+ <div>
+ <p className="text-blue-300 text-xs font-bold uppercase tracking-wider">Base Venue</p>
+ <div className="flex items-baseline gap-1 mt-1">
+ <span className="text-3xl font-black text-white">$29</span>
+ <span className="text-lg text-white">.99</span>
+ <span className="text-[#A0A4AB] text-sm">/month</span>
+ </div>
+ <p className="text-emerald-400 text-[11px] font-bold mt-1">3 months FREE trial</p>
+ </div>
+ <div className="w-14 h-14 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+ <Building2 className="w-7 h-7 text-white" />
+ </div>
+ </div>
+ <ul className="space-y-2 mb-4">
+ {['Listed on platform', 'Create watch parties', 'Post deals & specials', 'QR code check-ins', 'Basic analytics'].map((f, i) => (
+ <li key={i} className="flex items-center gap-2 text-white/70 text-xs"><CheckCircle className="w-4 h-4 text-blue-400 flex-shrink-0" />{f}</li>
+ ))}
+ </ul>
+ {!userVenue.subscribed && (
+ <button
+ onClick={async () => {
+ try {
+ let products = await api.stripe.products();
+ let baseProduct = products.find(p => p.metadata?.tier === 'venue');
+ if (!baseProduct || baseProduct.prices.length === 0) {
+ await new Promise(r => setTimeout(r, 2000));
+ products = await api.stripe.products();
+ baseProduct = products.find(p => p.metadata?.tier === 'venue');
+ }
+ if (baseProduct && baseProduct.prices.length > 0) {
+ const result = await api.stripe.checkout(baseProduct.prices[0].id);
+ if (result?.url) window.location.href = result.url;
+ } else { showToast('Plans are loading. Please wait a moment and try again.', 'error'); }
+ } catch(e) { console.error(e); showToast('Something went wrong. Please try again.', 'error'); }
+ }}
+ className="w-full py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white font-black rounded-xl text-sm transition-all shadow-lg shadow-blue-500/20"
+ style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}
+ >
+ {trialActive ? 'SELECT BASE PLAN' : 'SUBSCRIBE TO BASE'}
+ </button>
+ )}
+ </div>
+ </div>
+
+ <div className="relative overflow-hidden rounded-2xl border-2 border-amber-500/60 bg-gradient-to-r from-amber-900/30 via-orange-900/20 to-amber-900/30">
+ <div className="absolute top-2 right-2 px-2 py-0.5 bg-amber-500 text-black text-[10px] font-black rounded-full uppercase">Most Popular</div>
+ <div className="p-5">
+ <div className="flex items-center justify-between mb-3">
+ <div>
+ <p className="text-amber-300 text-xs font-bold uppercase tracking-wider">Featured Venue</p>
+ <div className="flex items-baseline gap-1 mt-1">
+ <span className="text-3xl font-black text-white">$49</span>
+ <span className="text-lg text-white">.99</span>
+ <span className="text-[#A0A4AB] text-sm">/month</span>
+ </div>
+ <p className="text-emerald-400 text-[11px] font-bold mt-1">3 months FREE trial</p>
+ </div>
+ <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/30">
+ <Star className="w-7 h-7 text-white fill-white" />
+ </div>
+ </div>
+ <ul className="space-y-2 mb-4">
+ {['Everything in Base, plus:', 'Priority search placement', 'Featured badge on profile', 'Trending feed boost', 'Fan notifications', 'Enhanced analytics', 'Promoted parties'].map((f, i) => (
+ <li key={i} className={`flex items-center gap-2 text-xs ${i === 0 ? 'text-amber-300 font-bold' : 'text-white/70'}`}>{i > 0 && <CheckCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />}{f}</li>
+ ))}
+ </ul>
+ <button
+ onClick={async () => {
+ try {
+ let products = await api.stripe.products();
+ let featuredProduct = products.find(p => p.metadata?.tier === 'featured_venue');
+ if (!featuredProduct || featuredProduct.prices.length === 0) {
+ await new Promise(r => setTimeout(r, 2000));
+ products = await api.stripe.products();
+ featuredProduct = products.find(p => p.metadata?.tier === 'featured_venue');
+ }
+ if (featuredProduct && featuredProduct.prices.length > 0) {
+ const result = await api.stripe.checkout(featuredProduct.prices[0].id);
+ if (result?.url) window.location.href = result.url;
+ } else { showToast('Plans are loading. Please wait a moment and try again.', 'error'); }
+ } catch(e) { console.error(e); showToast('Something went wrong. Please try again.', 'error'); }
+ }}
+ className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black rounded-xl text-sm transition-all shadow-lg shadow-amber-500/20"
+ style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}
+ >
+ {trialActive ? 'SELECT FEATURED PLAN' : 'UPGRADE TO FEATURED'}
+ </button>
+ </div>
+ </div>
+
+ <div className="rounded-2xl border border-[#222A36] bg-[#151A22] p-4">
+ <h3 className="text-white font-bold text-sm mb-3">Plan Comparison</h3>
+ <div className="space-y-2">
+ {[
+ { feature: 'Listed on platform', base: true, featured: true },
+ { feature: 'Create watch parties', base: true, featured: true },
+ { feature: 'Post deals & specials', base: true, featured: true },
+ { feature: 'QR code check-ins', base: true, featured: true },
+ { feature: 'Basic analytics', base: true, featured: true },
+ { feature: 'Priority search placement', base: false, featured: true },
+ { feature: 'Featured badge', base: false, featured: true },
+ { feature: 'Trending feed boost', base: false, featured: true },
+ { feature: 'Fan notifications', base: false, featured: true },
+ { feature: 'Enhanced analytics', base: false, featured: true },
+ { feature: 'Promoted parties', base: false, featured: true },
+ ].map((row, i) => (
+ <div key={i} className="flex items-center justify-between py-1.5 border-b border-[#222A36] last:border-0">
+ <span className="text-white/70 text-xs">{row.feature}</span>
+ <div className="flex items-center gap-6">
+ <span className="text-xs w-16 text-center">{row.base ? <CheckCircle className="w-4 h-4 text-blue-400 mx-auto" /> : <X className="w-4 h-4 text-[#333] mx-auto" />}</span>
+ <span className="text-xs w-16 text-center"><CheckCircle className="w-4 h-4 text-amber-400 mx-auto" /></span>
+ </div>
+ </div>
+ ))}
+ <div className="flex items-center justify-between pt-2">
+ <span className="text-white/40 text-[10px]"></span>
+ <div className="flex items-center gap-6">
+ <span className="text-[10px] text-blue-300 w-16 text-center font-bold">$29.99/mo</span>
+ <span className="text-[10px] text-amber-300 w-16 text-center font-bold">$49.99/mo</span>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ )}
+ </div>
+ )}
+
+ {hubTab === 'promotions' && (
+ <div className="space-y-4">
+ <div>
+ <h2 className="text-xl font-black text-white">Promote Your Watch Parties</h2>
+ <p className="text-sm text-[#A0A4AB]">Create a watch party first, then promote it to attract more fans</p>
+ </div>
+
+ {!showNewPromo && (() => {
+ const myParties = parties.filter(p => (p.creatorId === user?.id || p.hostId === user?.id) && new Date(p.date || p.gameTime) >= new Date());
+ return (
+ <div className="space-y-4">
+ {myParties.length > 0 ? (
+ <div className="bg-[#151A22] p-5 rounded-2xl border border-green-500/20 space-y-3">
+ <h3 className="text-lg font-bold text-white flex items-center gap-2"><Calendar className="w-5 h-5 text-green-400" /> Your Watch Parties</h3>
+ <p className="text-xs text-[#A0A4AB]">Promote a party you've created to let fans know about your specials</p>
+ <div className="space-y-2">
+ {myParties.map(p => {
+ const partyDate = p.date || p.gameTime;
+ const partyTitle = p.title || `${p.homeTeam || p.supportedTeam || ''} Watch Party`;
+ const alreadyPromoted = promotions.some(pr => pr.title === partyTitle || (pr.home_team === p.homeTeam && pr.game_date && new Date(pr.game_date).toDateString() === new Date(partyDate).toDateString()));
+ return (
+ <div key={p.id} className="flex items-center justify-between bg-[#0F1115] rounded-xl p-3 border border-[#222A36] hover:border-green-500/30 transition-colors">
+ <div className="flex-1 min-w-0">
+ <div className="flex items-center gap-2 flex-wrap">
+ <span className="text-white font-bold text-sm truncate">{partyTitle}</span>
+ {p.sport && <span className="px-1.5 py-0.5 bg-[#1E90FF]/20 text-[#1E90FF] text-[10px] font-bold rounded-full">{p.sport}</span>}
+ </div>
+ <div className="flex items-center gap-3 mt-1 text-xs text-[#A0A4AB]">
+ {partyDate && <span>{new Date(partyDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>}
+ {(p.venueName || p.location) && <span className="truncate">{p.venueName || p.location}</span>}
+ {p.homeTeam && p.awayTeam && <span>{p.awayTeam} @ {p.homeTeam}</span>}
+ </div>
+ </div>
+ {alreadyPromoted ? (
+ <span className="px-3 py-1.5 bg-green-500/10 text-green-400 text-xs font-bold rounded-lg border border-green-500/20 flex-shrink-0">Promoted</span>
+ ) : (
+ <button onClick={() => {
+ setPromoForm({ title: partyTitle, sport: p.sport || '', gameDate: partyDate ? new Date(partyDate).toISOString().slice(0, 16) : '', homeTeam: p.homeTeam || '', awayTeam: p.awayTeam || '', description: p.notes || p.description || '', specials: '' });
+ setShowNewPromo(true);
+ }} className="px-3 py-1.5 bg-green-500 text-white text-xs font-bold rounded-lg hover:bg-green-600 transition-colors flex-shrink-0 flex items-center gap-1">
+ <Megaphone className="w-3 h-3" /> Promote
+ </button>
+ )}
+ </div>
+ );
+ })}
+ </div>
+ </div>
+ ) : (
+ <div className="bg-[#151A22] p-8 rounded-2xl border border-[#222A36] text-center">
+ <div className="text-4xl mb-3">🎉</div>
+ <h3 className="text-lg font-bold text-white mb-2">Create a Watch Party First</h3>
+ <p className="text-[#A0A4AB] text-sm mb-4">To promote a game at your venue, you need to create a watch party for it first. Then you can add specials and boost visibility.</p>
+ <button onClick={() => setCurrentScreen('games')} className="primary-btn create-btn px-5 py-2.5 text-white font-bold rounded-xl text-sm inline-flex items-center gap-2">
+ <Plus className="w-4 h-4 btn-icon" /> Browse Games & Create Party
+ </button>
+ </div>
+ )}
+ </div>
+ );
+ })()}
+
+ {showNewPromo && (
+ <div className="bg-[#151A22] p-5 rounded-2xl border-2 border-green-500/30 space-y-4">
+ <h3 className="text-lg font-bold text-white">Create Game Promotion</h3>
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+ <div className="sm:col-span-2">
+ <label className="block text-xs text-[#A0A4AB] mb-1">Promotion Title *</label>
+ <input value={promoForm.title} onChange={e => setPromoForm({...promoForm, title: e.target.value})} placeholder="e.g. Monday Night Football Watch Party!" className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm focus:ring-2 focus:ring-green-500" />
+ </div>
+ <div>
+ <label className="block text-xs text-[#A0A4AB] mb-1">Sport</label>
+ <select value={promoForm.sport} onChange={e => setPromoForm({...promoForm, sport: e.target.value})} className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm">
+ <option value="">Select sport...</option>
+ {SPORTS_LIST.map(s => <option key={s} value={s}>{s}</option>)}
+ </select>
+ </div>
+ <div>
+ <label className="block text-xs text-[#A0A4AB] mb-1">Game Date & Time</label>
+ <input type="datetime-local" value={promoForm.gameDate} onChange={e => setPromoForm({...promoForm, gameDate: e.target.value})} className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm" />
+ </div>
+ <div>
+ <label className="block text-xs text-[#A0A4AB] mb-1">Home Team</label>
+ <input value={promoForm.homeTeam} onChange={e => setPromoForm({...promoForm, homeTeam: e.target.value})} placeholder="e.g. Miami Heat" className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm" />
+ </div>
+ <div>
+ <label className="block text-xs text-[#A0A4AB] mb-1">Away Team</label>
+ <input value={promoForm.awayTeam} onChange={e => setPromoForm({...promoForm, awayTeam: e.target.value})} placeholder="e.g. LA Lakers" className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm" />
+ </div>
+ <div className="sm:col-span-2">
+ <label className="block text-xs text-[#A0A4AB] mb-1">Description</label>
+ <textarea value={promoForm.description} onChange={e => setPromoForm({...promoForm, description: e.target.value})} placeholder="Tell fans what to expect..." rows={2} className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm resize-none" />
+ </div>
+ <div className="sm:col-span-2">
+ <label className="block text-xs text-[#A0A4AB] mb-1">Game Day Specials</label>
+ <input value={promoForm.specials} onChange={e => setPromoForm({...promoForm, specials: e.target.value})} placeholder="e.g. $5 pitchers, half-price wings during the game" className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm" />
+ </div>
+ </div>
+ <div className="flex gap-2">
+ <button onClick={savePromotion} disabled={saving} className="px-5 py-2.5 bg-green-500 text-white font-bold rounded-xl text-sm hover:bg-green-600 disabled:opacity-50">{saving ? 'Saving...' : 'Create Promotion'}</button>
+ <button onClick={() => setShowNewPromo(false)} className="px-5 py-2.5 bg-[#222A36] text-[#A0A4AB] font-bold rounded-xl text-sm hover:text-white">Cancel</button>
+ </div>
+ </div>
+ )}
+
+ {loadingHub ? (
+ <div className="text-center py-8"><div className="animate-spin w-8 h-8 border-2 border-green-400 border-t-transparent rounded-full mx-auto" /></div>
+ ) : promotions.length === 0 && !showNewPromo ? (
+ <div className="bg-[#151A22] p-8 rounded-2xl border border-[#222A36] text-center">
+ <div className="text-4xl mb-3">📢</div>
+ <h3 className="text-lg font-bold text-white mb-2">No Active Promotions</h3>
+ <p className="text-[#A0A4AB] text-sm mb-4">Create a watch party first, then come back here to promote it with specials and deals!</p>
+ <button onClick={() => setCurrentScreen('games')} className="primary-btn create-btn px-5 py-2.5 text-white font-bold rounded-xl text-sm inline-flex items-center gap-2">
+ <Plus className="w-4 h-4 btn-icon" /> Browse Games & Create Party
+ </button>
+ </div>
+ ) : (
+ <div className="space-y-3">
+ {promotions.map(promo => (
+ <div key={promo.id} className="bg-[#151A22] p-4 rounded-2xl border border-[#222A36] hover:border-green-500/30 transition-colors">
+ <div className="flex items-start justify-between gap-3">
+ <div className="flex-1 min-w-0">
+ <div className="flex items-center gap-2 mb-1 flex-wrap">
+ <h3 className="text-white font-bold">{promo.title}</h3>
+ {promo.sport && <span className="px-2 py-0.5 bg-[#1E90FF]/20 text-[#1E90FF] text-xs font-bold rounded-full">{promo.sport}</span>}
+ <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${promo.status === 'active' ? 'bg-green-500/20 text-green-300' : 'bg-gray-500/20 text-gray-400'}`}>{promo.status}</span>
+ </div>
+ {(promo.home_team || promo.away_team) && <p className="text-sm text-white/80 mb-1">{promo.away_team} @ {promo.home_team}</p>}
+ {promo.game_date && <p className="text-xs text-[#A0A4AB] mb-1">Game: {new Date(promo.game_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</p>}
+ {promo.description && <p className="text-sm text-[#A0A4AB]">{promo.description}</p>}
+ {promo.specials && <p className="text-sm text-amber-300 mt-1">🏷️ {promo.specials}</p>}
+ </div>
+ <button onClick={() => deletePromotion(promo.id)} className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors flex-shrink-0"><Trash2 className="w-4 h-4" /></button>
+ </div>
+ </div>
+ ))}
+ </div>
+ )}
+ </div>
+ )}
+
+ {hubTab === 'deals' && (
+ <div className="space-y-4">
+ <div className="flex items-center justify-between">
+ <div>
+ <h2 className="text-xl font-black text-white">Deals & Specials</h2>
+ <p className="text-sm text-[#A0A4AB]">Create exclusive offers that fans see when browsing your venue</p>
+ </div>
+ <button onClick={() => setShowNewDeal(true)} className="px-4 py-2 bg-amber-500 text-white font-bold rounded-xl text-sm hover:bg-amber-600 transition-colors flex items-center gap-1.5">
+ <Plus className="w-4 h-4" /> New Deal
+ </button>
+ </div>
+
+ {showNewDeal && (
+ <div className="bg-[#151A22] p-5 rounded-2xl border-2 border-amber-500/30 space-y-4">
+ <h3 className="text-lg font-bold text-white">Create a Deal</h3>
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+ <div className="sm:col-span-2">
+ <label className="block text-xs text-[#A0A4AB] mb-1">Deal Title *</label>
+ <input value={dealForm.title} onChange={e => setDealForm({...dealForm, title: e.target.value})} placeholder="e.g. Happy Hour: Half-Price Wings" className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm focus:ring-2 focus:ring-amber-500" />
+ </div>
+ <div>
+ <label className="block text-xs text-[#A0A4AB] mb-1">Deal Type</label>
+ <select value={dealForm.dealType} onChange={e => setDealForm({...dealForm, dealType: e.target.value})} className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm">
+ <option value="special">Game Day Special</option>
+ <option value="happy_hour">Happy Hour</option>
+ <option value="food">Food Deal</option>
+ <option value="drink">Drink Deal</option>
+ <option value="exclusive">Exclusive Offer</option>
+ <option value="group">Group Discount</option>
+ </select>
+ </div>
+ <div>
+ <label className="block text-xs text-[#A0A4AB] mb-1">Valid Until (optional)</label>
+ <input type="date" value={dealForm.validUntil} onChange={e => setDealForm({...dealForm, validUntil: e.target.value})} className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm" />
+ </div>
+ <div className="sm:col-span-2">
+ <label className="block text-xs text-[#A0A4AB] mb-1">Description *</label>
+ <textarea value={dealForm.description} onChange={e => setDealForm({...dealForm, description: e.target.value})} placeholder="Describe the deal..." rows={2} className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm resize-none" />
+ </div>
+ <div className="sm:col-span-2">
+ <label className="block text-xs text-[#A0A4AB] mb-1">Terms & Conditions (optional)</label>
+ <input value={dealForm.terms} onChange={e => setDealForm({...dealForm, terms: e.target.value})} placeholder="e.g. Valid for dine-in only, min 2 people" className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm" />
+ </div>
+ <div className="sm:col-span-2 flex items-center gap-3">
+ <label className="flex items-center gap-2 cursor-pointer">
+ <input type="checkbox" checked={dealForm.recurring} onChange={e => setDealForm({...dealForm, recurring: e.target.checked})} className="w-4 h-4 rounded" />
+ <span className="text-white text-sm">Recurring deal (e.g. every game day)</span>
+ </label>
+ </div>
+ </div>
+ <div className="flex gap-2">
+ <button onClick={saveDeal} disabled={saving} className="px-5 py-2.5 bg-amber-500 text-white font-bold rounded-xl text-sm hover:bg-amber-600 disabled:opacity-50">{saving ? 'Saving...' : 'Create Deal'}</button>
+ <button onClick={() => setShowNewDeal(false)} className="px-5 py-2.5 bg-[#222A36] text-[#A0A4AB] font-bold rounded-xl text-sm hover:text-white">Cancel</button>
+ </div>
+ </div>
+ )}
+
+ {loadingHub ? (
+ <div className="text-center py-8"><div className="animate-spin w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full mx-auto" /></div>
+ ) : deals.length === 0 && !showNewDeal ? (
+ <div className="bg-[#151A22] p-8 rounded-2xl border border-[#222A36] text-center">
+ <div className="text-4xl mb-3">🏷️</div>
+ <h3 className="text-lg font-bold text-white mb-2">No Deals Yet</h3>
+ <p className="text-[#A0A4AB] text-sm mb-4">Create exclusive deals and specials to attract more fans to your venue!</p>
+ <button onClick={() => setShowNewDeal(true)} className="px-5 py-2.5 bg-amber-500 text-white font-bold rounded-xl text-sm">Create First Deal</button>
+ </div>
+ ) : (
+ <div className="space-y-3">
+ {deals.map(deal => {
+ const typeLabels = { special: 'Game Day Special', happy_hour: 'Happy Hour', food: 'Food Deal', drink: 'Drink Deal', exclusive: 'Exclusive', group: 'Group Discount' };
+ const typeColors = { special: 'bg-amber-500/20 text-amber-300', happy_hour: 'bg-purple-500/20 text-purple-300', food: 'bg-orange-500/20 text-orange-300', drink: 'bg-cyan-500/20 text-cyan-300', exclusive: 'bg-pink-500/20 text-pink-300', group: 'bg-green-500/20 text-green-300' };
+ return (
+ <div key={deal.id} className={`bg-[#151A22] p-4 rounded-2xl border transition-colors ${deal.active ? 'border-[#222A36] hover:border-amber-500/30' : 'border-red-500/20 opacity-60'}`}>
+ <div className="flex items-start justify-between gap-3">
+ <div className="flex-1 min-w-0">
+ <div className="flex items-center gap-2 mb-1 flex-wrap">
+ <h3 className="text-white font-bold">{deal.title}</h3>
+ <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${typeColors[deal.deal_type] || typeColors.special}`}>{typeLabels[deal.deal_type] || deal.deal_type}</span>
+ {!deal.active && <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-red-500/20 text-red-300">Paused</span>}
+ {deal.recurring && <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-blue-500/20 text-blue-300">Recurring</span>}
+ </div>
+ <p className="text-sm text-[#A0A4AB]">{deal.description}</p>
+ {deal.terms && <p className="text-xs text-[#A0A4AB]/70 mt-1">Terms: {deal.terms}</p>}
+ {deal.valid_until && <p className="text-xs text-[#A0A4AB]/70 mt-1">Valid until {new Date(deal.valid_until).toLocaleDateString()}</p>}
+ </div>
+ <div className="flex items-center gap-1 flex-shrink-0">
+ <button onClick={() => toggleDealActive(deal)} className={`p-2 rounded-lg transition-colors ${deal.active ? 'text-amber-400 hover:bg-amber-500/20' : 'text-green-400 hover:bg-green-500/20'}`} title={deal.active ? 'Pause deal' : 'Activate deal'}>
+ {deal.active ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+ </button>
+ <button onClick={() => deleteDeal(deal.id)} className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
+ </div>
+ </div>
+ </div>
+ );
+ })}
+ </div>
+ )}
+ </div>
+ )}
+ </div>
+ </div>
+ );
+}
+
+
 const HuddleUpApp = () => {
  const [currentScreen, setCurrentScreenRaw] = useState('welcome');
  const screenHistoryRef = useRef([]);
@@ -10382,1252 +11630,7 @@ Become a Sponsor →
  </div>
  );
 
- const VenueHubScreen = () => {
- const [hubTab, setHubTab] = useState('dashboard');
- const [promotions, setPromotions] = useState([]);
- const [deals, setDeals] = useState([]);
- const [loadingHub, setLoadingHub] = useState(true);
- const [showNewPromo, setShowNewPromo] = useState(false);
- const [showNewDeal, setShowNewDeal] = useState(false);
- const [promoForm, setPromoForm] = useState({ title: '', description: '', sport: '', homeTeam: '', awayTeam: '', specials: '', gameDate: '', expiresAt: '' });
- const [dealForm, setDealForm] = useState({ title: '', description: '', dealType: 'special', validUntil: '', terms: '', recurring: false, recurringDays: '' });
- const [saving, setSaving] = useState(false);
- const [editingVenue, setEditingVenue] = useState(false);
- const [venueEditName, setVenueEditName] = useState('');
- const [venueEditAddress, setVenueEditAddress] = useState('');
- const [venueEditCity, setVenueEditCity] = useState('');
- const [venueEditType, setVenueEditType] = useState('');
- const [venueEditPhone, setVenueEditPhone] = useState('');
- const [venueEditWebsite, setVenueEditWebsite] = useState('');
- const [venueEditCapacity, setVenueEditCapacity] = useState('');
- const [venueEditDescription, setVenueEditDescription] = useState('');
- const [savingVenue, setSavingVenue] = useState(false);
- const [uploadingLogo, setUploadingLogo] = useState(false);
- const [uploadingPicture, setUploadingPicture] = useState(false);
- const venueFileInputRef = useRef(null);
- const venueUploadTypeRef = useRef('logo');
 
- const VenueAnalyticsDashboard = () => {
- const startEditing = () => {
- setVenueEditName(userVenue.name || '');
- setVenueEditAddress(userVenue.address || '');
- setVenueEditCity(userVenue.city || '');
- setVenueEditType(userVenue.type || '');
- setVenueEditPhone(userVenue.phone || '');
- setVenueEditWebsite(userVenue.website || '');
- setVenueEditCapacity(userVenue.capacity ? String(userVenue.capacity) : '');
- setVenueEditDescription(userVenue.description || '');
- setEditingVenue(true);
- };
-
- const handleVenueImageUpload = (imageType) => {
- venueUploadTypeRef.current = imageType;
- if (!venueFileInputRef.current) {
- const inp = document.createElement('input');
- inp.type = 'file';
- inp.accept = 'image/*';
- inp.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;pointer-events:none;';
- document.body.appendChild(inp);
- venueFileInputRef.current = inp;
- venueFileInputRef.current.addEventListener('change', async (e) => {
- const file = e.target.files?.[0];
- if (!file) return;
- const currentType = venueUploadTypeRef.current;
- const fileType = file.type || 'image/jpeg';
- if (!fileType.startsWith('image/')) {
- showToast('Please select an image file', 'error');
- venueFileInputRef.current.value = '';
- return;
- }
- if (file.size > 5 * 1024 * 1024) {
- showToast('Image must be under 5MB', 'error');
- venueFileInputRef.current.value = '';
- return;
- }
- const setter = currentType === 'logo' ? setUploadingLogo : setUploadingPicture;
- setter(true);
- try {
- const fileBuffer = await file.arrayBuffer();
- const uploadRes = await fetch('/api/uploads/venue-image/upload', {
- method: 'POST',
- headers: { 'Content-Type': fileType, 'x-file-content-type': fileType, 'x-image-type': currentType },
- credentials: 'include',
- body: fileBuffer,
- });
- if (!uploadRes.ok) {
- const errData = await uploadRes.json().catch(() => ({}));
- throw new Error(errData.error || 'Upload failed');
- }
- const { objectPath } = await uploadRes.json();
- await api.venues.updateMine({ [currentType]: objectPath });
- await loadVenues();
- showToast('Image uploaded successfully!', 'success');
- } catch (err) {
- showToast('Failed to upload image: ' + err.message, 'error');
- }
- setter(false);
- venueFileInputRef.current.value = '';
- });
- }
- venueFileInputRef.current.value = '';
- venueFileInputRef.current.click();
- };
-
- const saveVenueDetails = async () => {
- setSavingVenue(true);
- try {
- await api.venues.updateMine({
- name: venueEditName,
- address: venueEditAddress,
- city: venueEditCity,
- type: venueEditType,
- phone: venueEditPhone,
- website: venueEditWebsite,
- capacity: venueEditCapacity ? parseInt(venueEditCapacity) : null,
- description: venueEditDescription
- });
- await loadVenues();
- setEditingVenue(false);
- } catch (error) {
- showToast(error.message, 'error');
- }
- setSavingVenue(false);
- };
-
- if (!userVenue) {
- return (
- <div className="min-h-screen pt-[60px] bg-[#0F1115] flex items-center justify-center p-4">
- <div className="text-center">
- <Building2 className="w-16 h-16 text-gray-600 mx-auto mb-4" />
- <h2 className="text-2xl font-bold text-white mb-2">No Venue Found</h2>
- <p className="text-[#A0A4AB] mb-6">You don't have a claimed venue yet.</p>
- <button
- onClick={() => setCurrentScreen('claimVenue')}
- className="px-6 py-3 bg-[#1E90FF] text-white font-bold rounded-xl"
- >
- Claim Your Venue
- </button>
- </div>
- </div>
- );
- }
-
- // Calculate analytics
- const venueParties = parties.filter(p => p.venueId === userVenue.id);
- const totalAttendees = venueParties.reduce((sum, party) => sum + party.attendees.length, 0);
- const upcomingParties = venueParties.filter(party => {
- const game = games.find(g => g.id === party.gameId);
- return game && new Date(game.startTime) > new Date();
- });
- 
- // Sport breakdown
- const sportBreakdown = {};
- venueParties.forEach(party => {
- const game = games.find(g => g.id === party.gameId);
- if (game) {
- sportBreakdown[game.sport] = (sportBreakdown[game.sport] || 0) + 1;
- }
- });
-
- // Recent parties
- const recentParties = venueParties
- .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
- .slice(0, 5);
-
- return (
- <div className="space-y-6">
- {/* Venue Header */}
- <div className="bg-[#151A22] p-8 rounded-2xl border border-[#222A36] shadow-xl">
- {!editingVenue ? (
- <>
- {userVenue.picture && (
- <div className="mb-6 -mt-2 -mx-2 rounded-xl overflow-hidden">
- <img src={`/api/uploads/serve/${userVenue.picture.replace('/objects/', '')}`} alt={userVenue.name} className="w-full h-48 object-cover" />
- </div>
- )}
- <div className="flex items-start gap-3 mb-3">
- {userVenue.logo && (
- <img src={`/api/uploads/serve/${userVenue.logo.replace('/objects/', '')}`} alt="Logo" className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover border border-[#222A36] flex-shrink-0" />
- )}
- <div className="flex-1 min-w-0">
- <h1 className="text-2xl sm:text-4xl font-black text-white mb-1 break-words" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
- {userVenue.name}
- </h1>
- </div>
- </div>
- <div className="flex flex-wrap items-center gap-2 mb-3">
- <div className="px-3 py-1 bg-[#1E90FF]/20 border border-[#1E90FF]/30 rounded-lg">
- <span className="text-xs text-[#A0A4AB]">Plan: </span>
- <span className="text-sm font-black text-[#1E90FF]">{userVenue.featured ? 'FEATURED' : 'FREE'}</span>
- </div>
- <button
- onClick={startEditing}
- className="flex items-center gap-2 px-3 py-1.5 bg-[#151A22] text-white rounded-lg hover:bg-[#222A36] transition-all text-sm font-bold border border-[#222A36]"
- >
- <Settings className="w-4 h-4" />
- Edit Details
- </button>
- </div>
- <div className="space-y-1">
- <p className="text-[#A0A4AB] text-sm"><AddressLink address={userVenue.address} /></p>
- {userVenue.city && <p className="text-[#A0A4AB] text-sm">{userVenue.city}</p>}
- <p className="text-sm text-[#A0A4AB]/70">{userVenue.type}</p>
- <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm text-[#A0A4AB]">
- {userVenue.phone && <span>Phone: {userVenue.phone}</span>}
- {userVenue.website && <span className="break-all">Web: {userVenue.website}</span>}
- {userVenue.capacity && <span>Seats: {userVenue.capacity}</span>}
- </div>
- {userVenue.description && (
- <p className="text-[#A0A4AB] text-sm mt-2 italic">"{userVenue.description}"</p>
- )}
- </div>
- </>
- ) : (
- <div className="space-y-4">
- <div className="flex items-center justify-between mb-2">
- <h2 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
- EDIT VENUE DETAILS
- </h2>
- <button
- onClick={() => setEditingVenue(false)}
- className="text-[#A0A4AB] hover:text-white transition-colors text-sm"
- >
- Cancel
- </button>
- </div>
-
- <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
- <div>
- <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Business Name *</label>
- <DebouncedInput type="text" value={venueEditName} onChange={setVenueEditName} delay={150}
- className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
- />
- </div>
- <div>
- <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Business Type</label>
- <select value={venueEditType} onChange={(e) => setVenueEditType(e.target.value)}
- className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
- >
- <option value="Sports Bar" className="bg-[#151A22] text-white">Sports Bar</option>
- <option value="Restaurant & Bar" className="bg-[#151A22] text-white">Restaurant & Bar</option>
- <option value="Brewery/Taproom" className="bg-[#151A22] text-white">Brewery/Taproom</option>
- <option value="Entertainment Venue" className="bg-[#151A22] text-white">Entertainment Venue</option>
- <option value="Other" className="bg-[#151A22] text-white">Other</option>
- </select>
- </div>
- <div>
- <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Full Address *</label>
- <DebouncedInput type="text" value={venueEditAddress} onChange={setVenueEditAddress} delay={150}
- placeholder="123 Main St, Suite #110"
- className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
- />
- </div>
- <div>
- <label className="block text-sm font-medium text-[#A0A4AB] mb-1">City, State</label>
- <DebouncedInput type="text" value={venueEditCity} onChange={setVenueEditCity} delay={150}
- placeholder="e.g., Fort Lauderdale, FL"
- className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
- />
- </div>
- <div>
- <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Phone Number</label>
- <DebouncedInput type="tel" value={venueEditPhone} onChange={setVenueEditPhone} delay={150}
- placeholder="(555) 123-4567"
- className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
- />
- </div>
- <div>
- <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Website</label>
- <DebouncedInput type="text" value={venueEditWebsite} onChange={setVenueEditWebsite} delay={150}
- placeholder="yourwebsite.com"
- className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
- />
- </div>
- <div>
- <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Seating Capacity</label>
- <DebouncedInput type="number" value={venueEditCapacity} onChange={setVenueEditCapacity} delay={150}
- placeholder="e.g., 150"
- className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
- />
- </div>
- </div>
-
- <div>
- <label className="block text-sm font-medium text-[#A0A4AB] mb-1">Venue Description & Special Features</label>
- <DebouncedTextarea value={venueEditDescription} onChange={setVenueEditDescription}
- rows={3}
- delay={150}
- placeholder="Tell fans what makes your venue great! e.g., 20 big screens, outdoor patio, game day drink specials, private party rooms..."
- className="w-full px-4 py-3 bg-[#151A22] border border-[#222A36] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
- />
- </div>
-
- <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
- <div>
- <label className="block text-sm font-medium text-[#A0A4AB] mb-2">Venue Logo</label>
- <div className="flex items-center gap-4">
- {userVenue.logo ? (
- <img src={`/api/uploads/serve/${userVenue.logo.replace('/objects/', '')}`} alt="Logo" className="w-16 h-16 rounded-xl object-cover border border-[#222A36]" />
- ) : (
- <div className="w-16 h-16 rounded-xl bg-[#151A22] border border-[#222A36] flex items-center justify-center text-[#A0A4AB]/70">
- <Building2 className="w-6 h-6" />
- </div>
- )}
- <button type="button" disabled={uploadingLogo}
- onClick={() => handleVenueImageUpload('logo')}
- className={`px-4 py-2 rounded-xl text-sm font-bold cursor-pointer transition-all ${uploadingLogo ? 'bg-gray-500 text-[#A0A4AB]' : 'bg-[#1E90FF]/20 text-[#1E90FF] hover:bg-[#1E90FF]/30 border border-[#1E90FF]/30'}`}>
- {uploadingLogo ? 'Uploading...' : 'Upload Logo'}
- </button>
- </div>
- <p className="text-xs text-[#A0A4AB]/70 mt-1">Square image works best (e.g., 200x200)</p>
- </div>
- <div>
- <label className="block text-sm font-medium text-[#A0A4AB] mb-2">Venue Photo</label>
- <div className="flex items-center gap-4">
- {userVenue.picture ? (
- <img src={`/api/uploads/serve/${userVenue.picture.replace('/objects/', '')}`} alt="Venue" className="w-24 h-16 rounded-xl object-cover border border-[#222A36]" />
- ) : (
- <div className="w-24 h-16 rounded-xl bg-[#151A22] border border-[#222A36] flex items-center justify-center text-[#A0A4AB]/70">
- <Camera className="w-6 h-6" />
- </div>
- )}
- <button type="button" disabled={uploadingPicture}
- onClick={() => handleVenueImageUpload('picture')}
- className={`px-4 py-2 rounded-xl text-sm font-bold cursor-pointer transition-all ${uploadingPicture ? 'bg-gray-500 text-[#A0A4AB]' : 'bg-[#1E90FF]/20 text-[#1E90FF] hover:bg-[#1E90FF]/30 border border-[#1E90FF]/30'}`}>
- {uploadingPicture ? 'Uploading...' : 'Upload Photo'}
- </button>
- </div>
- <p className="text-xs text-[#A0A4AB]/70 mt-1">Show fans what your venue looks like</p>
- </div>
- </div>
-
- <div className="flex gap-3 pt-2">
- <button
- onClick={saveVenueDetails}
- disabled={savingVenue || !venueEditName || !venueEditAddress}
- className={`flex-1 py-3 font-bold rounded-xl transition-all ${
- savingVenue || !venueEditName || !venueEditAddress
- ? 'bg-gray-500 text-[#A0A4AB] cursor-not-allowed'
- : 'bg-[#1E90FF] text-white hover:opacity-90'
- }`}
- >
- {savingVenue ? 'Saving...' : 'Save Changes'}
- </button>
- <button
- onClick={() => setEditingVenue(false)}
- className="px-6 py-3 bg-[#151A22] text-[#A0A4AB] font-bold rounded-xl hover:bg-[#222A36] transition-all"
- >
- Cancel
- </button>
- </div>
- </div>
- )}
- </div>
-
- {/* Upgrade CTA - only show if not featured */}
- {!userVenue.featured && (
- <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 p-6 rounded-2xl">
- <div className="flex items-start justify-between">
- <div className="flex-1">
- <h3 className="text-xl font-black text-white mb-2">Upgrade to Featured</h3>
- <p className="text-[#A0A4AB] text-sm mb-4">
- Get 3x more visibility! Featured venues appear first in party creation and get priority placement in search results.
- </p>
- <ul className="space-y-2 text-sm text-[#A0A4AB] mb-4">
- <li>✓ ⭐ Featured badge on all your parties</li>
- <li>✓ Top of venue selection dropdown</li>
- <li>✓ Priority in search results</li>
- <li>✓ Advanced analytics & insights</li>
- </ul>
- <div className="text-2xl font-black text-white mb-1">
- $49.99<span className="text-sm text-[#A0A4AB]">/month</span>
- </div>
- <p className="text-emerald-400 text-xs font-bold mb-4">3 months FREE — enter payment info now, first charge after 90 days</p>
- </div>
- <button
- onClick={async () => {
- try {
- let products = await api.stripe.products();
- let featuredProduct = products.find(p => p.metadata?.tier === 'featured_venue');
- if (!featuredProduct || featuredProduct.prices.length === 0) {
- await new Promise(r => setTimeout(r, 2000));
- products = await api.stripe.products();
- featuredProduct = products.find(p => p.metadata?.tier === 'featured_venue');
- }
- if (featuredProduct && featuredProduct.prices.length > 0) {
- const result = await api.stripe.checkout(featuredProduct.prices[0].id);
- if (result?.url) window.location.href = result.url;
- } else { showToast('Plans are loading. Please wait a moment and try again.', 'error'); }
- } catch(e) { console.error(e); showToast('Something went wrong. Please try again.', 'error'); }
- }}
- className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-xl hover:shadow-purple-500/50 transition-all"
- >
- UPGRADE NOW
- </button>
- </div>
- </div>
- )}
-
- {/* Key Metrics */}
- <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
- <div className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36]">
- <div className="flex items-center gap-3 mb-2">
- <div className="p-2 bg-[#1E90FF]/20 rounded-lg">
- <Users className="w-5 h-5 text-[#1E90FF]" />
- </div>
- <div className="text-sm text-[#A0A4AB]">Total Reach</div>
- </div>
- <div className="text-3xl font-black text-white">{totalAttendees}</div>
- <div className="text-xs text-[#A0A4AB]/70 mt-1">People found you</div>
- </div>
-
- <div className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36]">
- <div className="flex items-center gap-3 mb-2">
- <div className="p-2 bg-purple-500/20 rounded-lg">
- <Calendar className="w-5 h-5 text-purple-400" />
- </div>
- <div className="text-sm text-[#A0A4AB]">Total Parties</div>
- </div>
- <div className="text-3xl font-black text-white">{venueParties.length}</div>
- <div className="text-xs text-[#A0A4AB]/70 mt-1">All time</div>
- </div>
-
- <div className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36]">
- <div className="flex items-center gap-3 mb-2">
- <div className="p-2 bg-green-500/20 rounded-lg">
- <Trophy className="w-5 h-5 text-green-400" />
- </div>
- <div className="text-sm text-[#A0A4AB]">Upcoming</div>
- </div>
- <div className="text-3xl font-black text-white">{upcomingParties.length}</div>
- <div className="text-xs text-[#A0A4AB]/70 mt-1">Next 7 days</div>
- </div>
-
- <div className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36]">
- <div className="flex items-center gap-3 mb-2">
- <div className="p-2 bg-yellow-500/20 rounded-lg">
- <BarChart3 className="w-5 h-5 text-yellow-400" />
- </div>
- <div className="text-sm text-[#A0A4AB]">Avg Party Size</div>
- </div>
- <div className="text-3xl font-black text-white">
- {venueParties.length > 0 ? Math.round(totalAttendees / venueParties.length) : 0}
- </div>
- <div className="text-xs text-[#A0A4AB]/70 mt-1">People per party</div>
- </div>
- </div>
-
- {/* Sport Breakdown */}
- <div className="bg-[#151A22] p-8 rounded-2xl border border-[#222A36]">
- <h2 className="text-2xl font-black text-white mb-6" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
- <BarChart3 className="inline w-6 h-6 mr-2 text-[#1E90FF]" />
- Sport Breakdown
- </h2>
- 
- {Object.keys(sportBreakdown).length === 0 ? (
- <div className="text-center py-8">
- <p className="text-white font-bold text-sm mb-1">No watch parties yet</p>
- <p className="text-[#A0A4AB] text-xs">We're in soft launch — parties will show up as fans start hosting at your venue.</p>
- </div>
- ) : (
- <div className="space-y-4">
- {Object.entries(sportBreakdown)
- .sort((a, b) => b[1] - a[1])
- .map(([sport, count]) => {
- const percentage = Math.round((count / venueParties.length) * 100);
- return (
- <div key={sport}>
- <div className="flex items-center justify-between mb-2">
- <span className="text-white font-bold">{sport}</span>
- <span className="text-[#A0A4AB] text-sm">{count} parties ({percentage}%)</span>
- </div>
- <div className="h-3 bg-[#151A22] rounded-full overflow-hidden">
- <div 
- className="h-full bg-[#1E90FF] rounded-full transition-all duration-500"
- style={{ width: `${percentage}%` }}
- />
- </div>
- </div>
- );
- })}
- </div>
- )}
- </div>
-
- {/* Recent Parties */}
- <div className="bg-[#151A22] p-8 rounded-2xl border border-[#222A36]">
- <h2 className="text-2xl font-black text-white mb-6" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
- Recent Watch Parties
- </h2>
- 
- {recentParties.length === 0 ? (
- <div className="text-center py-8">
- <p className="text-white font-bold text-sm mb-1">No watch parties yet</p>
- <p className="text-[#A0A4AB] text-xs">We're in soft launch — people will start hosting at your venue soon!</p>
- </div>
- ) : (
- <div className="space-y-3">
- {recentParties.map(party => {
- const game = games.find(g => g.id === party.gameId);
- if (!game) return null;
- 
- return (
- <div
- key={party.id}
- className="bg-[#151A22] p-5 rounded-xl border border-[#222A36] flex items-center justify-between"
- >
- <div className="flex-1">
- <div className="flex items-center gap-2 mb-1">
- <span className="px-2 py-1 bg-[#1E90FF]/20 text-[#1E90FF] text-xs font-bold rounded-full">
- {game.sport}
- </span>
- <span className="text-white font-bold">
- {game.homeTeam} vs {game.awayTeam}
- </span>
- </div>
- <div className="text-sm text-[#A0A4AB]">
- Hosted by {party.hostName} • {party.attendees.length} attendees
- </div>
- </div>
- <div className="flex flex-col items-end gap-1">
- <div className="text-sm text-[#A0A4AB]/70">
- {new Date(party.createdAt).toLocaleDateString()}
- </div>
- <button onClick={(e) => { e.stopPropagation(); openShareMenu(party); }} className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 transition-colors">
- <Share2 className="w-3 h-3" /> Share
- </button>
- </div>
- </div>
- );
- })}
- </div>
- )}
- </div>
-
- {/* Promote & Share Section */}
- <div className="bg-gradient-to-br from-emerald-500/10 to-cyan-500/10 border-2 border-emerald-500/30 p-6 rounded-2xl space-y-5">
- <h2 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
- <Share2 className="inline w-6 h-6 mr-2 text-emerald-400" />
- PROMOTE YOUR VENUE
- </h2>
- <p className="text-[#A0A4AB] text-sm">Share your venue with fans and drive more watch parties to your business.</p>
-
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
- <button
- onClick={async () => {
- const shareUrl = window.location.origin;
- const text = `Watch the game at ${userVenue.name}! Find watch parties and join the crew on Huddle Up.`;
- if (navigator.share) {
- try { await navigator.share({ title: userVenue.name + ' on Huddle Up', text, url: shareUrl }); } catch (e) { console.error('Share venue error:', e); }
- } else {
- try {
- await navigator.clipboard.writeText(`${text} ${shareUrl}`);
- setShowShareToast(true);
- setTimeout(() => setShowShareToast(false), 2000);
- } catch (e) { console.error('Copy venue share link error:', e); }
- }
- }}
- className="flex items-center justify-center gap-3 py-4 bg-gradient-to-r from-emerald-500 to-green-500 text-white font-bold rounded-xl hover:shadow-emerald-500/50 transition-all text-sm"
- >
- <Share2 className="w-5 h-5" />
- Share Your Venue
- </button>
-
- <button
- onClick={shareApp}
- className="flex items-center justify-center gap-3 py-4 bg-[#1E90FF] text-white font-bold rounded-xl hover:opacity-90 transition-all text-sm"
- >
- <Users className="w-5 h-5" />
- Invite Fans to Huddle Up
- </button>
-
- <button
- onClick={async () => {
- const shareUrl = window.location.origin;
- const text = `🏈 Watch parties happening at ${userVenue.name}! Download Huddle Up to find your crew and join the fun.`;
- try {
- await navigator.clipboard.writeText(`${text} ${shareUrl}`);
- setShowShareToast(true);
- setTimeout(() => setShowShareToast(false), 2000);
- } catch (e) { console.error('Copy venue promo link error:', e); }
- }}
- className="flex items-center justify-center gap-3 py-4 bg-[#151A22] text-white font-bold rounded-xl hover:bg-[#222A36] transition-all border border-[#222A36] text-sm"
- >
- <span className="text-lg">📋</span>
- Copy Social Media Post
- </button>
-
- <button
- onClick={() => setCurrentScreen('games')}
- className="flex items-center justify-center gap-3 py-4 bg-[#151A22] text-white font-bold rounded-xl hover:bg-[#222A36] transition-all border border-[#222A36] text-sm"
- >
- <Calendar className="w-5 h-5" />
- Create a Watch Party
- </button>
- </div>
-
- <div className="bg-[#151A22] border border-[#222A36] rounded-xl p-4 space-y-2">
- <p className="text-white font-bold text-sm">Quick promo ideas:</p>
- <ul className="space-y-1.5 text-xs text-[#A0A4AB]">
- <li>• Post your Huddle Up link on Instagram, Facebook, and X</li>
- <li>• Add a QR code or table tent: "Find tonight's watch party on Huddle Up!"</li>
- <li>• Text your regulars the link before big game days</li>
- <li>• Offer a game day special and mention it in your party description</li>
- </ul>
- </div>
- </div>
-
- <VenueQrSection userVenue={userVenue} showToast={showToast} />
-
- {/* Tips for Venues */}
- <div className="bg-gradient-to-br from-cyan-500/10 to-[#1E90FF]/10 border border-[#1E90FF]/30 p-6 rounded-2xl">
- <h3 className="text-lg font-black text-white mb-4">Tips to Get More Watch Parties</h3>
- <ul className="space-y-2 text-sm text-[#A0A4AB]">
- <li>• Promote your Huddle Up presence on social media and in-store</li>
- <li>• Offer specials during big games to attract more groups</li>
- <li>• Encourage hosts to leave notes about your venue's amenities</li>
- <li>• Consider upgrading to Featured to appear first in searches</li>
- </ul>
- </div>
- </div>
- );
- };
-
-
-
-
- useEffect(() => {
- if (userVenue) {
- Promise.all([
- api.venueHub.getPromotions().catch(() => []),
- api.venueHub.getDeals().catch(() => [])
- ]).then(([p, d]) => { setPromotions(p); setDeals(d); setLoadingHub(false); });
- } else { setLoadingHub(false); }
- }, [userVenue]);
-
- if (!userVenue) {
- return (
- <div className="min-h-screen pt-[60px] bg-[#0F1115] flex items-center justify-center p-4">
- <div className="text-center">
- <Building2 className="w-16 h-16 text-gray-600 mx-auto mb-4" />
- <h2 className="text-2xl font-bold text-white mb-2">No Venue Found</h2>
- <p className="text-[#A0A4AB] mb-6">You don't have a claimed venue yet.</p>
- <button onClick={() => setCurrentScreen('claimVenue')} className="px-6 py-3 bg-[#1E90FF] text-white font-bold rounded-xl">Claim Your Venue</button>
- </div>
- </div>
- );
- }
-
- const savePromotion = async () => {
- if (!promoForm.title) return showToast('Title is required', 'error');
- setSaving(true);
- try {
- const newPromo = await api.venueHub.createPromotion(promoForm);
- setPromotions([newPromo, ...promotions]);
- setShowNewPromo(false);
- setPromoForm({ title: '', description: '', sport: '', homeTeam: '', awayTeam: '', specials: '', gameDate: '', expiresAt: '' });
- } catch (err) { showToast(err.message, 'error'); }
- setSaving(false);
- };
-
- const saveDeal = async () => {
- if (!dealForm.title || !dealForm.description) return showToast('Title and description are required', 'error');
- setSaving(true);
- try {
- const newDeal = await api.venueHub.createDeal(dealForm);
- setDeals([newDeal, ...deals]);
- setShowNewDeal(false);
- setDealForm({ title: '', description: '', dealType: 'special', validUntil: '', terms: '', recurring: false, recurringDays: '' });
- } catch (err) { showToast(err.message, 'error'); }
- setSaving(false);
- };
-
- const deletePromotion = async (id) => {
- if (!confirm('Delete this promotion?')) return;
- try { await api.venueHub.deletePromotion(id); setPromotions(promotions.filter(p => p.id !== id)); } catch (err) { showToast(err.message, 'error'); }
- };
-
- const deleteDeal = async (id) => {
- if (!confirm('Delete this deal?')) return;
- try { await api.venueHub.deleteDeal(id); setDeals(deals.filter(d => d.id !== id)); } catch (err) { showToast(err.message, 'error'); }
- };
-
- const toggleDealActive = async (deal) => {
- try {
- const updated = await api.venueHub.updateDeal(deal.id, { active: !deal.active });
- setDeals(deals.map(d => d.id === deal.id ? updated : d));
- } catch (err) { showToast(err.message, 'error'); }
- };
-
- const SPORTS_LIST = ['NFL', 'NBA', 'MLB', 'NHL', 'MLS', 'Premier League', 'La Liga', 'Champions League', 'College Football', 'College Basketball', 'UFC/MMA', 'Boxing', 'NASCAR', 'F1', 'Tennis', 'Golf'];
-
- const trialActive = userVenue.onTrial;
- const trialEndsAt = userVenue.venueTrialEndsAt ? new Date(userVenue.venueTrialEndsAt) : null;
- const trialDaysLeft = trialEndsAt ? Math.max(0, Math.ceil((trialEndsAt - new Date()) / (1000 * 60 * 60 * 24))) : 0;
-
- const tabs = [
- { id: 'dashboard', label: 'Dashboard', icon: '📊' },
- { id: 'featured', label: 'Plans & Pricing', icon: '⭐' },
- { id: 'promotions', label: 'Promote Games', icon: '📢' },
- { id: 'deals', label: 'Deals & Specials', icon: '🏷️' },
- ];
-
- return (
- <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115]">
- <div className="sticky top-[60px] z-10 bg-[#0F1115] border-b border-[#222A36]">
- <div className="max-w-4xl mx-auto px-4 py-3">
- <div className="flex items-center justify-between mb-3">
- <button onClick={goBack} className="flex items-center gap-2 text-[#A0A4AB] hover:text-white transition-colors">
- <ArrowLeft className="w-5 h-5" /> Back
- </button>
- <div className="flex items-center gap-2">
- {userVenue.featured && <span className="px-2 py-1 bg-amber-500/20 text-amber-300 text-xs font-bold rounded-full border border-amber-500/30 flex items-center gap-1"><Star className="w-3 h-3 fill-amber-300" /> Featured</span>}
- {userVenue.verified && <span className="px-2 py-1 bg-green-500/20 text-green-300 text-xs font-bold rounded-full border border-green-500/30 flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Verified</span>}
- </div>
- </div>
- <div className="flex items-center gap-3 mb-3">
- {userVenue.logo && <img src={`/api/uploads/serve/${userVenue.logo.replace('/objects/', '')}`} alt="Logo" className="w-10 h-10 rounded-xl object-cover border border-[#222A36]" />}
- <div>
- <h1 className="text-xl font-black text-white">{userVenue.name}</h1>
- <p className="text-xs text-[#A0A4AB]">Venue Hub</p>
- </div>
- </div>
- <div className="flex gap-1 overflow-x-auto scrollbar-hide">
- {tabs.map(tab => (
- <button key={tab.id} onClick={() => setHubTab(tab.id)} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${hubTab === tab.id ? 'bg-green-500/20 text-green-300 border border-green-500/30' : 'text-[#A0A4AB] hover:bg-[#222A36]'}`}>
- <span>{tab.icon}</span> {tab.label}
- </button>
- ))}
- </div>
- </div>
- </div>
-
- <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
- {hubTab === 'dashboard' && trialActive && (
- <div className="relative overflow-hidden rounded-2xl border border-blue-500/40 bg-gradient-to-r from-blue-900/60 via-indigo-900/50 to-blue-900/40 mb-2">
- <div className="p-4">
- <div className="flex items-center gap-2 mb-2">
- <div className="w-8 h-8 bg-blue-500/30 rounded-lg flex items-center justify-center"><Gift className="w-4 h-4 text-blue-300" /></div>
- <div>
- <h3 className="text-white font-black text-sm">FREE TRIAL ACTIVE</h3>
- <p className="text-blue-200 text-[10px]">{trialDaysLeft} days remaining</p>
- </div>
- </div>
- <p className="text-white/60 text-xs mb-2">You're on a free 3-month trial. All Base tier features are available. Choose a plan before your trial ends to keep your venue listed.</p>
- <button onClick={() => setHubTab('featured')} className="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 font-bold rounded-xl text-xs border border-blue-500/30 transition-all">
- View Plans & Pricing
- </button>
- </div>
- </div>
- )}
- {hubTab === 'dashboard' && (
- <div className="relative overflow-hidden rounded-2xl border border-green-500/40 bg-gradient-to-r from-green-900/60 via-emerald-900/50 to-teal-900/40 mb-2">
- <div className="p-4">
- <h3 className="text-white font-black text-base leading-tight mb-1" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>
- SHARE YOUR VENUE WITH FANS
- </h3>
- <p className="text-white/60 text-xs mb-3">Get your venue set up so fans can find watch parties at your location!</p>
- <div className="grid grid-cols-3 gap-2 text-center">
- <div className="bg-black/20 rounded-xl p-2">
- <Camera className="w-4 h-4 text-green-300 mx-auto mb-1" />
- <p className="text-white text-[10px] font-bold">Add Photos</p>
- </div>
- <div className="bg-black/20 rounded-xl p-2">
- <Megaphone className="w-4 h-4 text-green-300 mx-auto mb-1" />
- <p className="text-white text-[10px] font-bold">Create Promos</p>
- </div>
- <div className="bg-black/20 rounded-xl p-2">
- <DollarSign className="w-4 h-4 text-green-300 mx-auto mb-1" />
- <p className="text-white text-[10px] font-bold">Set Up Deals</p>
- </div>
- </div>
- </div>
- </div>
- )}
- {hubTab === 'dashboard' && VenueAnalyticsDashboard()}
-
- {hubTab === 'featured' && (
- <div className="space-y-4">
- {trialActive && (
- <div className="relative overflow-hidden rounded-2xl border border-blue-500/40 bg-gradient-to-r from-blue-900/40 via-indigo-900/30 to-blue-900/40">
- <div className="p-4">
- <div className="flex items-center gap-2 mb-2">
- <Gift className="w-5 h-5 text-blue-300" />
- <h3 className="text-white font-black text-sm">FREE TRIAL - {trialDaysLeft} DAYS LEFT</h3>
- </div>
- <p className="text-white/60 text-xs">Your 3-month free trial includes all Base tier features. Choose a plan below to continue after your trial ends{trialEndsAt ? ` on ${trialEndsAt.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}` : ''}.</p>
- </div>
- </div>
- )}
-
- {userVenue.featured ? (
- <div className="relative overflow-hidden rounded-2xl border border-amber-500/40 bg-gradient-to-br from-amber-900/40 via-orange-900/30 to-yellow-900/20">
- <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full -translate-y-1/2 translate-x-1/2" />
- <div className="p-5">
- <div className="flex items-center gap-3 mb-3">
- <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/30">
- <Star className="w-6 h-6 text-white fill-white" />
- </div>
- <div>
- <h2 className="text-xl font-black text-white">Featured Venue</h2>
- <p className="text-amber-300 text-xs font-bold">Your venue is currently featured!</p>
- </div>
- </div>
- <div className="grid grid-cols-2 gap-3 mt-4">
- <div className="bg-black/20 rounded-xl p-3 border border-amber-500/20">
- <TrendingUp className="w-5 h-5 text-amber-400 mb-1" />
- <p className="text-white font-bold text-sm">Priority Search</p>
- <p className="text-white/50 text-xs">You appear first in results</p>
- </div>
- <div className="bg-black/20 rounded-xl p-3 border border-amber-500/20">
- <Award className="w-5 h-5 text-amber-400 mb-1" />
- <p className="text-white font-bold text-sm">Featured Badge</p>
- <p className="text-white/50 text-xs">Stand out from other venues</p>
- </div>
- <div className="bg-black/20 rounded-xl p-3 border border-amber-500/20">
- <Flame className="w-5 h-5 text-amber-400 mb-1" />
- <p className="text-white font-bold text-sm">Trending Boost</p>
- <p className="text-white/50 text-xs">Boosted in trending feed</p>
- </div>
- <div className="bg-black/20 rounded-xl p-3 border border-amber-500/20">
- <BarChart3 className="w-5 h-5 text-amber-400 mb-1" />
- <p className="text-white font-bold text-sm">Enhanced Stats</p>
- <p className="text-white/50 text-xs">Detailed analytics access</p>
- </div>
- </div>
- <button
- onClick={async () => { try { const d = await api.stripe.portal(); if (d?.url) window.location.href = d.url; } catch(e) { console.error(e); } }}
- className="w-full mt-4 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-sm transition-all"
- >
- Manage Subscription
- </button>
- </div>
- </div>
- ) : userVenue.subscribed ? (
- <div className="relative overflow-hidden rounded-2xl border border-blue-500/40 bg-gradient-to-br from-blue-900/40 via-[#151A22] to-blue-900/20">
- <div className="p-5">
- <div className="flex items-center gap-3 mb-3">
- <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
- <Building2 className="w-6 h-6 text-white" />
- </div>
- <div>
- <h2 className="text-xl font-black text-white">Base Venue Plan</h2>
- <p className="text-blue-300 text-xs font-bold">$29.99/month - Active</p>
- </div>
- </div>
- <p className="text-white/60 text-xs mb-4">You're on the Base plan. Upgrade to Featured for priority placement and more visibility.</p>
- <div className="flex gap-3">
- <button
- onClick={async () => { try { const d = await api.stripe.portal(); if (d?.url) window.location.href = d.url; } catch(e) { console.error(e); } }}
- className="flex-1 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-sm transition-all"
- >
- Manage Subscription
- </button>
- <button
- onClick={async () => {
- try {
- let products = await api.stripe.products();
- let featuredProduct = products.find(p => p.metadata?.tier === 'featured_venue');
- if (!featuredProduct || featuredProduct.prices.length === 0) {
- await new Promise(r => setTimeout(r, 2000));
- products = await api.stripe.products();
- featuredProduct = products.find(p => p.metadata?.tier === 'featured_venue');
- }
- if (featuredProduct && featuredProduct.prices.length > 0) {
- const result = await api.stripe.checkout(featuredProduct.prices[0].id);
- if (result?.url) window.location.href = result.url;
- } else { showToast('Plans are loading. Please wait a moment and try again.', 'error'); }
- } catch(e) { console.error(e); showToast('Something went wrong. Please try again.', 'error'); }
- }}
- className="flex-1 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black rounded-xl text-sm transition-all"
- style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}
- >
- Upgrade to Featured
- </button>
- </div>
- </div>
- </div>
- ) : null}
-
- {!userVenue.featured && (
- <div className="space-y-4">
- <h3 className="text-white font-black text-lg" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>CHOOSE YOUR PLAN</h3>
-
- <div className="rounded-2xl border border-blue-500/40 bg-gradient-to-r from-blue-900/20 via-[#151A22] to-blue-900/20">
- <div className="p-5">
- <div className="flex items-center justify-between mb-3">
- <div>
- <p className="text-blue-300 text-xs font-bold uppercase tracking-wider">Base Venue</p>
- <div className="flex items-baseline gap-1 mt-1">
- <span className="text-3xl font-black text-white">$29</span>
- <span className="text-lg text-white">.99</span>
- <span className="text-[#A0A4AB] text-sm">/month</span>
- </div>
- <p className="text-emerald-400 text-[11px] font-bold mt-1">3 months FREE trial</p>
- </div>
- <div className="w-14 h-14 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
- <Building2 className="w-7 h-7 text-white" />
- </div>
- </div>
- <ul className="space-y-2 mb-4">
- {['Listed on platform', 'Create watch parties', 'Post deals & specials', 'QR code check-ins', 'Basic analytics'].map((f, i) => (
- <li key={i} className="flex items-center gap-2 text-white/70 text-xs"><CheckCircle className="w-4 h-4 text-blue-400 flex-shrink-0" />{f}</li>
- ))}
- </ul>
- {!userVenue.subscribed && (
- <button
- onClick={async () => {
- try {
- let products = await api.stripe.products();
- let baseProduct = products.find(p => p.metadata?.tier === 'venue');
- if (!baseProduct || baseProduct.prices.length === 0) {
- await new Promise(r => setTimeout(r, 2000));
- products = await api.stripe.products();
- baseProduct = products.find(p => p.metadata?.tier === 'venue');
- }
- if (baseProduct && baseProduct.prices.length > 0) {
- const result = await api.stripe.checkout(baseProduct.prices[0].id);
- if (result?.url) window.location.href = result.url;
- } else { showToast('Plans are loading. Please wait a moment and try again.', 'error'); }
- } catch(e) { console.error(e); showToast('Something went wrong. Please try again.', 'error'); }
- }}
- className="w-full py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white font-black rounded-xl text-sm transition-all shadow-lg shadow-blue-500/20"
- style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}
- >
- {trialActive ? 'SELECT BASE PLAN' : 'SUBSCRIBE TO BASE'}
- </button>
- )}
- </div>
- </div>
-
- <div className="relative overflow-hidden rounded-2xl border-2 border-amber-500/60 bg-gradient-to-r from-amber-900/30 via-orange-900/20 to-amber-900/30">
- <div className="absolute top-2 right-2 px-2 py-0.5 bg-amber-500 text-black text-[10px] font-black rounded-full uppercase">Most Popular</div>
- <div className="p-5">
- <div className="flex items-center justify-between mb-3">
- <div>
- <p className="text-amber-300 text-xs font-bold uppercase tracking-wider">Featured Venue</p>
- <div className="flex items-baseline gap-1 mt-1">
- <span className="text-3xl font-black text-white">$49</span>
- <span className="text-lg text-white">.99</span>
- <span className="text-[#A0A4AB] text-sm">/month</span>
- </div>
- <p className="text-emerald-400 text-[11px] font-bold mt-1">3 months FREE trial</p>
- </div>
- <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/30">
- <Star className="w-7 h-7 text-white fill-white" />
- </div>
- </div>
- <ul className="space-y-2 mb-4">
- {['Everything in Base, plus:', 'Priority search placement', 'Featured badge on profile', 'Trending feed boost', 'Fan notifications', 'Enhanced analytics', 'Promoted parties'].map((f, i) => (
- <li key={i} className={`flex items-center gap-2 text-xs ${i === 0 ? 'text-amber-300 font-bold' : 'text-white/70'}`}>{i > 0 && <CheckCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />}{f}</li>
- ))}
- </ul>
- <button
- onClick={async () => {
- try {
- let products = await api.stripe.products();
- let featuredProduct = products.find(p => p.metadata?.tier === 'featured_venue');
- if (!featuredProduct || featuredProduct.prices.length === 0) {
- await new Promise(r => setTimeout(r, 2000));
- products = await api.stripe.products();
- featuredProduct = products.find(p => p.metadata?.tier === 'featured_venue');
- }
- if (featuredProduct && featuredProduct.prices.length > 0) {
- const result = await api.stripe.checkout(featuredProduct.prices[0].id);
- if (result?.url) window.location.href = result.url;
- } else { showToast('Plans are loading. Please wait a moment and try again.', 'error'); }
- } catch(e) { console.error(e); showToast('Something went wrong. Please try again.', 'error'); }
- }}
- className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black rounded-xl text-sm transition-all shadow-lg shadow-amber-500/20"
- style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}
- >
- {trialActive ? 'SELECT FEATURED PLAN' : 'UPGRADE TO FEATURED'}
- </button>
- </div>
- </div>
-
- <div className="rounded-2xl border border-[#222A36] bg-[#151A22] p-4">
- <h3 className="text-white font-bold text-sm mb-3">Plan Comparison</h3>
- <div className="space-y-2">
- {[
- { feature: 'Listed on platform', base: true, featured: true },
- { feature: 'Create watch parties', base: true, featured: true },
- { feature: 'Post deals & specials', base: true, featured: true },
- { feature: 'QR code check-ins', base: true, featured: true },
- { feature: 'Basic analytics', base: true, featured: true },
- { feature: 'Priority search placement', base: false, featured: true },
- { feature: 'Featured badge', base: false, featured: true },
- { feature: 'Trending feed boost', base: false, featured: true },
- { feature: 'Fan notifications', base: false, featured: true },
- { feature: 'Enhanced analytics', base: false, featured: true },
- { feature: 'Promoted parties', base: false, featured: true },
- ].map((row, i) => (
- <div key={i} className="flex items-center justify-between py-1.5 border-b border-[#222A36] last:border-0">
- <span className="text-white/70 text-xs">{row.feature}</span>
- <div className="flex items-center gap-6">
- <span className="text-xs w-16 text-center">{row.base ? <CheckCircle className="w-4 h-4 text-blue-400 mx-auto" /> : <X className="w-4 h-4 text-[#333] mx-auto" />}</span>
- <span className="text-xs w-16 text-center"><CheckCircle className="w-4 h-4 text-amber-400 mx-auto" /></span>
- </div>
- </div>
- ))}
- <div className="flex items-center justify-between pt-2">
- <span className="text-white/40 text-[10px]"></span>
- <div className="flex items-center gap-6">
- <span className="text-[10px] text-blue-300 w-16 text-center font-bold">$29.99/mo</span>
- <span className="text-[10px] text-amber-300 w-16 text-center font-bold">$49.99/mo</span>
- </div>
- </div>
- </div>
- </div>
- </div>
- )}
- </div>
- )}
-
- {hubTab === 'promotions' && (
- <div className="space-y-4">
- <div>
- <h2 className="text-xl font-black text-white">Promote Your Watch Parties</h2>
- <p className="text-sm text-[#A0A4AB]">Create a watch party first, then promote it to attract more fans</p>
- </div>
-
- {!showNewPromo && (() => {
- const myParties = parties.filter(p => (p.creatorId === user?.id || p.hostId === user?.id) && new Date(p.date || p.gameTime) >= new Date());
- return (
- <div className="space-y-4">
- {myParties.length > 0 ? (
- <div className="bg-[#151A22] p-5 rounded-2xl border border-green-500/20 space-y-3">
- <h3 className="text-lg font-bold text-white flex items-center gap-2"><Calendar className="w-5 h-5 text-green-400" /> Your Watch Parties</h3>
- <p className="text-xs text-[#A0A4AB]">Promote a party you've created to let fans know about your specials</p>
- <div className="space-y-2">
- {myParties.map(p => {
- const partyDate = p.date || p.gameTime;
- const partyTitle = p.title || `${p.homeTeam || p.supportedTeam || ''} Watch Party`;
- const alreadyPromoted = promotions.some(pr => pr.title === partyTitle || (pr.home_team === p.homeTeam && pr.game_date && new Date(pr.game_date).toDateString() === new Date(partyDate).toDateString()));
- return (
- <div key={p.id} className="flex items-center justify-between bg-[#0F1115] rounded-xl p-3 border border-[#222A36] hover:border-green-500/30 transition-colors">
- <div className="flex-1 min-w-0">
- <div className="flex items-center gap-2 flex-wrap">
- <span className="text-white font-bold text-sm truncate">{partyTitle}</span>
- {p.sport && <span className="px-1.5 py-0.5 bg-[#1E90FF]/20 text-[#1E90FF] text-[10px] font-bold rounded-full">{p.sport}</span>}
- </div>
- <div className="flex items-center gap-3 mt-1 text-xs text-[#A0A4AB]">
- {partyDate && <span>{new Date(partyDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>}
- {(p.venueName || p.location) && <span className="truncate">{p.venueName || p.location}</span>}
- {p.homeTeam && p.awayTeam && <span>{p.awayTeam} @ {p.homeTeam}</span>}
- </div>
- </div>
- {alreadyPromoted ? (
- <span className="px-3 py-1.5 bg-green-500/10 text-green-400 text-xs font-bold rounded-lg border border-green-500/20 flex-shrink-0">Promoted</span>
- ) : (
- <button onClick={() => {
- setPromoForm({ title: partyTitle, sport: p.sport || '', gameDate: partyDate ? new Date(partyDate).toISOString().slice(0, 16) : '', homeTeam: p.homeTeam || '', awayTeam: p.awayTeam || '', description: p.notes || p.description || '', specials: '' });
- setShowNewPromo(true);
- }} className="px-3 py-1.5 bg-green-500 text-white text-xs font-bold rounded-lg hover:bg-green-600 transition-colors flex-shrink-0 flex items-center gap-1">
- <Megaphone className="w-3 h-3" /> Promote
- </button>
- )}
- </div>
- );
- })}
- </div>
- </div>
- ) : (
- <div className="bg-[#151A22] p-8 rounded-2xl border border-[#222A36] text-center">
- <div className="text-4xl mb-3">🎉</div>
- <h3 className="text-lg font-bold text-white mb-2">Create a Watch Party First</h3>
- <p className="text-[#A0A4AB] text-sm mb-4">To promote a game at your venue, you need to create a watch party for it first. Then you can add specials and boost visibility.</p>
- <button onClick={() => setCurrentScreen('games')} className="primary-btn create-btn px-5 py-2.5 text-white font-bold rounded-xl text-sm inline-flex items-center gap-2">
- <Plus className="w-4 h-4 btn-icon" /> Browse Games & Create Party
- </button>
- </div>
- )}
- </div>
- );
- })()}
-
- {showNewPromo && (
- <div className="bg-[#151A22] p-5 rounded-2xl border-2 border-green-500/30 space-y-4">
- <h3 className="text-lg font-bold text-white">Create Game Promotion</h3>
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
- <div className="sm:col-span-2">
- <label className="block text-xs text-[#A0A4AB] mb-1">Promotion Title *</label>
- <input value={promoForm.title} onChange={e => setPromoForm({...promoForm, title: e.target.value})} placeholder="e.g. Monday Night Football Watch Party!" className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm focus:ring-2 focus:ring-green-500" />
- </div>
- <div>
- <label className="block text-xs text-[#A0A4AB] mb-1">Sport</label>
- <select value={promoForm.sport} onChange={e => setPromoForm({...promoForm, sport: e.target.value})} className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm">
- <option value="">Select sport...</option>
- {SPORTS_LIST.map(s => <option key={s} value={s}>{s}</option>)}
- </select>
- </div>
- <div>
- <label className="block text-xs text-[#A0A4AB] mb-1">Game Date & Time</label>
- <input type="datetime-local" value={promoForm.gameDate} onChange={e => setPromoForm({...promoForm, gameDate: e.target.value})} className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm" />
- </div>
- <div>
- <label className="block text-xs text-[#A0A4AB] mb-1">Home Team</label>
- <input value={promoForm.homeTeam} onChange={e => setPromoForm({...promoForm, homeTeam: e.target.value})} placeholder="e.g. Miami Heat" className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm" />
- </div>
- <div>
- <label className="block text-xs text-[#A0A4AB] mb-1">Away Team</label>
- <input value={promoForm.awayTeam} onChange={e => setPromoForm({...promoForm, awayTeam: e.target.value})} placeholder="e.g. LA Lakers" className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm" />
- </div>
- <div className="sm:col-span-2">
- <label className="block text-xs text-[#A0A4AB] mb-1">Description</label>
- <textarea value={promoForm.description} onChange={e => setPromoForm({...promoForm, description: e.target.value})} placeholder="Tell fans what to expect..." rows={2} className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm resize-none" />
- </div>
- <div className="sm:col-span-2">
- <label className="block text-xs text-[#A0A4AB] mb-1">Game Day Specials</label>
- <input value={promoForm.specials} onChange={e => setPromoForm({...promoForm, specials: e.target.value})} placeholder="e.g. $5 pitchers, half-price wings during the game" className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm" />
- </div>
- </div>
- <div className="flex gap-2">
- <button onClick={savePromotion} disabled={saving} className="px-5 py-2.5 bg-green-500 text-white font-bold rounded-xl text-sm hover:bg-green-600 disabled:opacity-50">{saving ? 'Saving...' : 'Create Promotion'}</button>
- <button onClick={() => setShowNewPromo(false)} className="px-5 py-2.5 bg-[#222A36] text-[#A0A4AB] font-bold rounded-xl text-sm hover:text-white">Cancel</button>
- </div>
- </div>
- )}
-
- {loadingHub ? (
- <div className="text-center py-8"><div className="animate-spin w-8 h-8 border-2 border-green-400 border-t-transparent rounded-full mx-auto" /></div>
- ) : promotions.length === 0 && !showNewPromo ? (
- <div className="bg-[#151A22] p-8 rounded-2xl border border-[#222A36] text-center">
- <div className="text-4xl mb-3">📢</div>
- <h3 className="text-lg font-bold text-white mb-2">No Active Promotions</h3>
- <p className="text-[#A0A4AB] text-sm mb-4">Create a watch party first, then come back here to promote it with specials and deals!</p>
- <button onClick={() => setCurrentScreen('games')} className="primary-btn create-btn px-5 py-2.5 text-white font-bold rounded-xl text-sm inline-flex items-center gap-2">
- <Plus className="w-4 h-4 btn-icon" /> Browse Games & Create Party
- </button>
- </div>
- ) : (
- <div className="space-y-3">
- {promotions.map(promo => (
- <div key={promo.id} className="bg-[#151A22] p-4 rounded-2xl border border-[#222A36] hover:border-green-500/30 transition-colors">
- <div className="flex items-start justify-between gap-3">
- <div className="flex-1 min-w-0">
- <div className="flex items-center gap-2 mb-1 flex-wrap">
- <h3 className="text-white font-bold">{promo.title}</h3>
- {promo.sport && <span className="px-2 py-0.5 bg-[#1E90FF]/20 text-[#1E90FF] text-xs font-bold rounded-full">{promo.sport}</span>}
- <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${promo.status === 'active' ? 'bg-green-500/20 text-green-300' : 'bg-gray-500/20 text-gray-400'}`}>{promo.status}</span>
- </div>
- {(promo.home_team || promo.away_team) && <p className="text-sm text-white/80 mb-1">{promo.away_team} @ {promo.home_team}</p>}
- {promo.game_date && <p className="text-xs text-[#A0A4AB] mb-1">Game: {new Date(promo.game_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</p>}
- {promo.description && <p className="text-sm text-[#A0A4AB]">{promo.description}</p>}
- {promo.specials && <p className="text-sm text-amber-300 mt-1">🏷️ {promo.specials}</p>}
- </div>
- <button onClick={() => deletePromotion(promo.id)} className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors flex-shrink-0"><Trash2 className="w-4 h-4" /></button>
- </div>
- </div>
- ))}
- </div>
- )}
- </div>
- )}
-
- {hubTab === 'deals' && (
- <div className="space-y-4">
- <div className="flex items-center justify-between">
- <div>
- <h2 className="text-xl font-black text-white">Deals & Specials</h2>
- <p className="text-sm text-[#A0A4AB]">Create exclusive offers that fans see when browsing your venue</p>
- </div>
- <button onClick={() => setShowNewDeal(true)} className="px-4 py-2 bg-amber-500 text-white font-bold rounded-xl text-sm hover:bg-amber-600 transition-colors flex items-center gap-1.5">
- <Plus className="w-4 h-4" /> New Deal
- </button>
- </div>
-
- {showNewDeal && (
- <div className="bg-[#151A22] p-5 rounded-2xl border-2 border-amber-500/30 space-y-4">
- <h3 className="text-lg font-bold text-white">Create a Deal</h3>
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
- <div className="sm:col-span-2">
- <label className="block text-xs text-[#A0A4AB] mb-1">Deal Title *</label>
- <input value={dealForm.title} onChange={e => setDealForm({...dealForm, title: e.target.value})} placeholder="e.g. Happy Hour: Half-Price Wings" className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm focus:ring-2 focus:ring-amber-500" />
- </div>
- <div>
- <label className="block text-xs text-[#A0A4AB] mb-1">Deal Type</label>
- <select value={dealForm.dealType} onChange={e => setDealForm({...dealForm, dealType: e.target.value})} className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm">
- <option value="special">Game Day Special</option>
- <option value="happy_hour">Happy Hour</option>
- <option value="food">Food Deal</option>
- <option value="drink">Drink Deal</option>
- <option value="exclusive">Exclusive Offer</option>
- <option value="group">Group Discount</option>
- </select>
- </div>
- <div>
- <label className="block text-xs text-[#A0A4AB] mb-1">Valid Until (optional)</label>
- <input type="date" value={dealForm.validUntil} onChange={e => setDealForm({...dealForm, validUntil: e.target.value})} className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm" />
- </div>
- <div className="sm:col-span-2">
- <label className="block text-xs text-[#A0A4AB] mb-1">Description *</label>
- <textarea value={dealForm.description} onChange={e => setDealForm({...dealForm, description: e.target.value})} placeholder="Describe the deal..." rows={2} className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm resize-none" />
- </div>
- <div className="sm:col-span-2">
- <label className="block text-xs text-[#A0A4AB] mb-1">Terms & Conditions (optional)</label>
- <input value={dealForm.terms} onChange={e => setDealForm({...dealForm, terms: e.target.value})} placeholder="e.g. Valid for dine-in only, min 2 people" className="w-full px-3 py-2.5 bg-[#0F1115] border border-[#222A36] rounded-xl text-white text-sm" />
- </div>
- <div className="sm:col-span-2 flex items-center gap-3">
- <label className="flex items-center gap-2 cursor-pointer">
- <input type="checkbox" checked={dealForm.recurring} onChange={e => setDealForm({...dealForm, recurring: e.target.checked})} className="w-4 h-4 rounded" />
- <span className="text-white text-sm">Recurring deal (e.g. every game day)</span>
- </label>
- </div>
- </div>
- <div className="flex gap-2">
- <button onClick={saveDeal} disabled={saving} className="px-5 py-2.5 bg-amber-500 text-white font-bold rounded-xl text-sm hover:bg-amber-600 disabled:opacity-50">{saving ? 'Saving...' : 'Create Deal'}</button>
- <button onClick={() => setShowNewDeal(false)} className="px-5 py-2.5 bg-[#222A36] text-[#A0A4AB] font-bold rounded-xl text-sm hover:text-white">Cancel</button>
- </div>
- </div>
- )}
-
- {loadingHub ? (
- <div className="text-center py-8"><div className="animate-spin w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full mx-auto" /></div>
- ) : deals.length === 0 && !showNewDeal ? (
- <div className="bg-[#151A22] p-8 rounded-2xl border border-[#222A36] text-center">
- <div className="text-4xl mb-3">🏷️</div>
- <h3 className="text-lg font-bold text-white mb-2">No Deals Yet</h3>
- <p className="text-[#A0A4AB] text-sm mb-4">Create exclusive deals and specials to attract more fans to your venue!</p>
- <button onClick={() => setShowNewDeal(true)} className="px-5 py-2.5 bg-amber-500 text-white font-bold rounded-xl text-sm">Create First Deal</button>
- </div>
- ) : (
- <div className="space-y-3">
- {deals.map(deal => {
- const typeLabels = { special: 'Game Day Special', happy_hour: 'Happy Hour', food: 'Food Deal', drink: 'Drink Deal', exclusive: 'Exclusive', group: 'Group Discount' };
- const typeColors = { special: 'bg-amber-500/20 text-amber-300', happy_hour: 'bg-purple-500/20 text-purple-300', food: 'bg-orange-500/20 text-orange-300', drink: 'bg-cyan-500/20 text-cyan-300', exclusive: 'bg-pink-500/20 text-pink-300', group: 'bg-green-500/20 text-green-300' };
- return (
- <div key={deal.id} className={`bg-[#151A22] p-4 rounded-2xl border transition-colors ${deal.active ? 'border-[#222A36] hover:border-amber-500/30' : 'border-red-500/20 opacity-60'}`}>
- <div className="flex items-start justify-between gap-3">
- <div className="flex-1 min-w-0">
- <div className="flex items-center gap-2 mb-1 flex-wrap">
- <h3 className="text-white font-bold">{deal.title}</h3>
- <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${typeColors[deal.deal_type] || typeColors.special}`}>{typeLabels[deal.deal_type] || deal.deal_type}</span>
- {!deal.active && <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-red-500/20 text-red-300">Paused</span>}
- {deal.recurring && <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-blue-500/20 text-blue-300">Recurring</span>}
- </div>
- <p className="text-sm text-[#A0A4AB]">{deal.description}</p>
- {deal.terms && <p className="text-xs text-[#A0A4AB]/70 mt-1">Terms: {deal.terms}</p>}
- {deal.valid_until && <p className="text-xs text-[#A0A4AB]/70 mt-1">Valid until {new Date(deal.valid_until).toLocaleDateString()}</p>}
- </div>
- <div className="flex items-center gap-1 flex-shrink-0">
- <button onClick={() => toggleDealActive(deal)} className={`p-2 rounded-lg transition-colors ${deal.active ? 'text-amber-400 hover:bg-amber-500/20' : 'text-green-400 hover:bg-green-500/20'}`} title={deal.active ? 'Pause deal' : 'Activate deal'}>
- {deal.active ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
- </button>
- <button onClick={() => deleteDeal(deal.id)} className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
- </div>
- </div>
- </div>
- );
- })}
- </div>
- )}
- </div>
- )}
- </div>
- </div>
- );
- };
 
  const BrowsePartiesScreen = () => {
  const [bpSearch, setBpSearch] = useState('');
@@ -16827,7 +16830,7 @@ Become a Sponsor →
  {currentScreen === 'createParty' && createPartyScreenJSX()}
  {currentScreen === 'claimVenue' && claimVenueScreenJSX()}
  {currentScreen === 'admin' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}>{AdminPanelScreen()}</ScreenErrorBoundary>}
- {currentScreen === 'venueDashboard' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><VenueHubScreen /></ScreenErrorBoundary>}
+ {currentScreen === 'venueDashboard' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><VenueHubScreen userVenue={userVenue} parties={parties} games={games} setCurrentScreen={setCurrentScreen} showToast={showToast} loadVenues={loadVenues} /></ScreenErrorBoundary>}
  {currentScreen === 'sponsorDashboard' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><SponsorDashboard /></ScreenErrorBoundary>}
  {currentScreen === 'myParties' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><MyPartiesScreen /></ScreenErrorBoundary>}
  {currentScreen === 'notificationSettings' && <ScreenErrorBoundary onReset={() => setCurrentScreen('profile')}><NotificationSettingsScreen /></ScreenErrorBoundary>}
