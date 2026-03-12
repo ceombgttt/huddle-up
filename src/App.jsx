@@ -12568,6 +12568,10 @@ Become a Sponsor →
  const [deletingPartyId, setDeletingPartyId] = useState(null);
  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
  const [leavingPartyId, setLeavingPartyId] = useState(null);
+ useEffect(() => {
+ window.scrollTo(0, 0);
+ if (mainContainerRef.current) mainContainerRef.current.scrollTop = 0;
+ }, []);
  const myParties = parties.filter(party => userParties.includes(party.id));
  const hostedParties = myParties.filter(party => party.hostEmail === user.email);
  const joinedParties = myParties.filter(party => party.hostEmail !== user.email);
