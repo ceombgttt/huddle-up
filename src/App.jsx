@@ -8301,8 +8301,14 @@ Become a Sponsor →
  </div>
 
  <div className="max-w-4xl mx-auto px-4 py-2 space-y-4">
- <div className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36] shadow-xl">
- <div className="flex items-center justify-end mb-3">
+ <div className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36] shadow-xl relative overflow-hidden">
+ {SPORT_BG[selectedGame.sport] && (
+ <>
+ <img src={SPORT_BG[selectedGame.sport]} alt="" className="absolute inset-0 w-full h-full object-cover opacity-[0.40]" />
+ <div className="absolute inset-0 bg-gradient-to-b from-[#0F1115]/62 via-[#151A22]/52 to-[#0F1115]/68" />
+ </>
+ )}
+ <div className="relative z-10 flex items-center justify-end mb-3">
  {user && (
  <button
  onClick={() => toggleWatchGame(selectedGame)}
@@ -8320,7 +8326,7 @@ Become a Sponsor →
  )}
  </div>
  
- <div className="text-center mb-6">
+ <div className="relative z-10 text-center mb-6">
  {selectedGame.gameStatus === 'live' || selectedGame.gameStatus === 'final' ? (
  <>
  <div className="flex items-center justify-center gap-4 mb-4">
@@ -12412,10 +12418,16 @@ Become a Sponsor →
  return (
  <div
  key={party.id}
- className="bg-[#151A22] rounded-2xl border border-[#222A36] overflow-hidden cursor-pointer hover:border-[#1E90FF]/40 transition-all"
+ className="bg-[#151A22] rounded-2xl border border-[#222A36] overflow-hidden cursor-pointer hover:border-[#1E90FF]/40 transition-all relative"
  onClick={() => { const g = games.find(g => g.id === party.gameId) || { id: party.gameId || party.id, sport: party.sport, homeTeam: party.homeTeam || '?', awayTeam: party.awayTeam || '?', startTime: party.gameTime, venue: party.venueName || '' }; setSelectedGame(g); setCurrentScreen('gameDetail'); }}
  >
- <div className="p-5">
+ {SPORT_BG[party.sport] && (
+ <>
+ <img src={SPORT_BG[party.sport]} alt="" className="absolute inset-0 w-full h-full object-cover opacity-[0.38]" />
+ <div className="absolute inset-0 bg-gradient-to-b from-[#0F1115]/62 via-[#151A22]/52 to-[#0F1115]/68" />
+ </>
+ )}
+ <div className="relative z-10 p-5">
  <div className="flex items-center justify-between mb-4">
  <span className="px-3 py-1 bg-yellow-500/20 text-yellow-300 text-xs font-black rounded-full border border-yellow-500/30 uppercase tracking-wider">Host</span>
  <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
@@ -12493,10 +12505,16 @@ Become a Sponsor →
  return (
  <div
  key={party.id}
- className="bg-[#151A22] rounded-2xl border border-[#222A36] overflow-hidden cursor-pointer hover:border-[#1E90FF]/40 transition-all"
+ className="bg-[#151A22] rounded-2xl border border-[#222A36] overflow-hidden cursor-pointer hover:border-[#1E90FF]/40 transition-all relative"
  onClick={() => { const g = games.find(g => g.id === party.gameId) || { id: party.gameId || party.id, sport: party.sport, homeTeam: party.homeTeam || '?', awayTeam: party.awayTeam || '?', startTime: party.gameTime, venue: party.venueName || '' }; setSelectedGame(g); setCurrentScreen('gameDetail'); }}
  >
- <div className="p-5">
+ {SPORT_BG[party.sport] && (
+ <>
+ <img src={SPORT_BG[party.sport]} alt="" className="absolute inset-0 w-full h-full object-cover opacity-[0.38]" />
+ <div className="absolute inset-0 bg-gradient-to-b from-[#0F1115]/62 via-[#151A22]/52 to-[#0F1115]/68" />
+ </>
+ )}
+ <div className="relative z-10 p-5">
  <div className="flex items-center justify-between mb-4">
  <span className="text-[#A0A4AB] text-xs">Hosted by <span className="text-white font-semibold">{party.hostName}</span></span>
  <button onClick={(e) => { e.stopPropagation(); handleLeaveParty(party.id); }} disabled={leavingPartyId === party.id} className="px-4 py-2 bg-red-500/20 text-red-300 text-xs font-bold rounded-lg border border-red-500/30 hover:bg-red-500/30 transition-all disabled:opacity-50 active:scale-95">
