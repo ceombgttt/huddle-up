@@ -3640,12 +3640,7 @@ const qrScannerRef = useRef(null);
  const hotInterval = setInterval(loadHotParties, 5 * 60 * 1000);
  const lcInterval = setInterval(loadLastChanceParties, 3 * 60 * 1000);
 
- if (!localStorage.getItem('huddle_prelaunch_seen')) {
-   setTimeout(() => {
-     setShowPrelaunchModal(true);
-     localStorage.setItem('huddle_prelaunch_seen', '1');
-   }, 2000);
- }
+
 
  const params = new URLSearchParams(window.location.search);
  if (params.get('checkout') === 'success') {
@@ -3892,6 +3887,12 @@ const qrScannerRef = useRef(null);
  setupPushNotifications();
  api.push.watchedGames().then(ids => setWatchedGames(ids || [])).catch(e => console.error('Load watched games error:', e));
  api.push.getPreferences().then(prefs => setNotifPrefs(prefs)).catch(e => console.error('Load notification prefs error:', e));
+ if (!localStorage.getItem('huddle_prelaunch_seen')) {
+   setTimeout(() => {
+     setShowPrelaunchModal(true);
+     localStorage.setItem('huddle_prelaunch_seen', '1');
+   }, 1500);
+ }
  const visits = parseInt(localStorage.getItem('hu_visit_count') || '0') + 1;
  localStorage.setItem('hu_visit_count', String(visits));
  if (visits >= 3 && typeof Notification !== 'undefined' && Notification.permission === 'default') {
@@ -17212,35 +17213,9 @@ Become a Sponsor →
   </div>
 )}
 {currentScreen === 'welcome' && <WelcomeScreen />}
- {currentScreen === 'login' && (
- <div>
- {venueSignupInfo && (
- <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-[#1E90FF]/90 to-purple-600/90 backdrop-blur-sm px-4 py-3 flex items-center gap-3 shadow-lg">
- <QrCode className="w-5 h-5 text-white flex-shrink-0" />
- <div className="flex-1 min-w-0">
- <p className="text-white text-sm font-bold truncate">Connect to {venueSignupInfo.name}</p>
- <p className="text-white/70 text-xs">Log in to instantly link your account</p>
- </div>
- </div>
- )}
- {loginScreenJSX}
- </div>
- )}
+ {currentScreen === 'login' && loginScreenJSX}
  {currentScreen === 'signupType' && signupTypeScreenJSX}
- {currentScreen === 'signup' && (
- <div>
- {venueSignupInfo && (
- <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-[#1E90FF]/90 to-purple-600/90 backdrop-blur-sm px-4 py-3 flex items-center gap-3 shadow-lg">
- <QrCode className="w-5 h-5 text-white flex-shrink-0" />
- <div className="flex-1 min-w-0">
- <p className="text-white text-sm font-bold truncate">Connect to {venueSignupInfo.name}</p>
- <p className="text-white/70 text-xs">Create an account to get party invites from this venue</p>
- </div>
- </div>
- )}
- {signUpScreenJSX}
- </div>
- )}
+ {currentScreen === 'signup' && signUpScreenJSX}
  {currentScreen === 'forgotPassword' && forgotPasswordScreenJSX}
  {currentScreen === 'games' && gamesScreenJSX()}
  {currentScreen === 'gameDetail' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><GameDetailScreen /></ScreenErrorBoundary>}
