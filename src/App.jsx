@@ -4954,6 +4954,12 @@ const qrScannerRef = useRef(null);
  };
 
  const filteredGames = games.filter(game => {
+ if (game.gameStatus === 'final') return false;
+ if (game.gameStatus !== 'live') {
+   const gameTime = new Date(game.startTime);
+   const cutoff = new Date(Date.now() - 4 * 60 * 60 * 1000);
+   if (gameTime < cutoff) return false;
+ }
  const matchesSport = selectedSports.length === 0 || selectedSports.includes(game.sport);
  const term = searchTerm.toLowerCase().trim();
  const matchesSearch = term === '' || 
