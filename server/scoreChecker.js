@@ -23,7 +23,7 @@ async function fetchAllScores() {
   const scores = {};
   for (const [sport, url] of Object.entries(ESPN_ENDPOINTS)) {
     try {
-      const res = await fetch(url);
+      const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
       const data = await res.json();
       if (data.events) {
         for (const event of data.events) {

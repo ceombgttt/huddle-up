@@ -62,7 +62,7 @@ router.post('/resend', requireAuth, async (req, res) => {
   try {
     const { friendId } = req.body;
     if (!friendId) return res.status(400).json({ error: 'Friend ID is required' });
-    if (parseInt(friendId) === req.session.userId) return res.status(400).json({ error: 'Cannot send request to yourself' });
+    if (friendId === req.session.userId) return res.status(400).json({ error: 'Cannot send request to yourself' });
 
     const existing = await pool.query(
       `SELECT id, status, user_id, friend_id FROM friendships

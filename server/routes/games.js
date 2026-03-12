@@ -164,7 +164,7 @@ async function fetchAllGamesInternal() {
       if (WEEKLY_SPORTS.has(sport)) {
         const response = await fetch(`${url}?dates=${weeklyRange}`, {
           headers: { 'Accept': 'application/json' },
-          signal: AbortSignal.timeout(6000),
+          signal: AbortSignal.timeout(12000),
         });
         if (!response.ok) return [];
         const data = await response.json();
@@ -173,7 +173,7 @@ async function fetchAllGamesInternal() {
 
       const response = await fetch(`${url}?dates=${dailyRange}`, {
         headers: { 'Accept': 'application/json' },
-        signal: AbortSignal.timeout(6000),
+        signal: AbortSignal.timeout(12000),
       });
       if (!response.ok) return [];
       const data = await response.json();
