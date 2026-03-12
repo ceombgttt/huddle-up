@@ -1,0 +1,1057 @@
+# VENUE QR CODE SIGNUP - INSTANT CONNECTION SYSTEM
+
+**Venues create QR codes → Users scan → Instant "friends" → Direct party invites!** 🎯
+
+---
+
+## 🎯 WHAT THIS DOES:
+
+1. **Venue generates unique QR code** for their location
+2. **User scans QR code** on their phone
+3. **User signs up** (or links if already registered)
+4. **INSTANT CONNECTION** - User becomes venue's "contact"
+5. **Venue can now:**
+   - See user in their contacts list
+   - Invite user to parties instantly
+   - Send direct notifications
+   - Build customer database
+
+---
+
+## 🗄️ DATABASE CHANGES:
+
+```sql
+-- NEW TABLE: Venue Contacts (Venue's connected users)
+CREATE TABLE venue_contacts (
+  id UUID PRIMARY KEY,
+  venue_id UUID REFERENCES venues(id),
+  user_id UUID REFERENCES users(id),
+  connected_at TIMESTAMP DEFAULT NOW(),
+  signup_source VARCHAR(50) DEFAULT 'qr_code',  -- 'qr_code', 'manual', 'check_in'
+  last_visit TIMESTAMP,
+  total_visits INTEGER DEFAULT 0,
+  favorite BOOLEAN DEFAULT FALSE,
+  notes TEXT,
+  
+  UNIQUE(venue_id, user_id)  -- Prevent duplicates
+);
+
+-- UPDATE USERS TABLE: Add referral code
+ALTER TABLE users ADD COLUMN referred_by_venue_id UUID REFERENCES venues(id);
+ALTER TABLE users ADD COLUMN signup_qr_code VARCHAR(255);  -- Which QR they scanned
+
+-- UPDATE VENUES TABLE: Add QR code
+ALTER TABLE venues ADD COLUMN signup_qr_code VARCHAR(255) UNIQUE;  -- Unique code per venue
+ALTER TABLE venues ADD COLUMN qr_code_enabled BOOLEAN DEFAULT TRUE;
+ALTER TABLE venues ADD COLUMN total_signups_via_qr INTEGER DEFAULT 0;
+
+-- INDEX for fast lookups
+CREATE INDEX idx_venue_contacts_venue ON venue_contacts(venue_id);
+CREATE INDEX idx_venue_contacts_user ON venue_contacts(user_id);
+CREATE INDEX idx_users_signup_qr ON users(signup_qr_code);
+```
+
+---
+
+## 📝 MODELS:
+
+### **File: backend/models/VenueContact.js**
+
+```javascript
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+
+const venueContactSchema = new Schema({
+  venueId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Venue',
+    required: true
+  },
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  connectedAt: {
+    type: Date,
+    default: Date.now
+  },
+  signupSource: {
+    type: String,
+    enum: ['qr_code', 'manual', 'check_in'],
+    default: 'qr_code'
+  },
+  lastVisit: Date,
+  totalVisits: {
+    type: Number,
+    default: 0
+  },
+  favorite: {
+    type: Boolean,
+    default: false
+  },
+  notes: String
+});
+
+// Compound index to prevent duplicates
+venueContactSchema.index({ venueId: 1, userId: 1 }, { unique: true });
+
+module.exports = mongoose.model('VenueContact', venueContactSchema);
+```
+
+### **Update: backend/models/Venue.js**
+
+```javascript
+const venueSchema = new Schema({
+  // ... existing fields ...
+  
+  // QR CODE SYSTEM
+  signupQrCode: {
+    type: String,
+    unique: true,
+    sparse: true  // Allows null values
+  },
+  qrCodeEnabled: {
+    type: Boolean,
+    default: true
+  },
+  totalSignupsViaQr: {
+    type: Number,
+    default: 0
+  }
+});
+```
+
+### **Update: backend/models/User.js**
+
+```javascript
+const userSchema = new Schema({
+  // ... existing fields ...
+  
+  // VENUE REFERRAL
+  referredByVenueId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Venue',
+    default: null
+  },
+  signupQrCode: {
+    type: String,
+    default: null
+  }
+});
+```
+
+---
+
+## 🔐 BACKEND API ENDPOINTS:
+
+### **File: backend/routes/venueContacts.js**
+
+```javascript
+const express = require('express');
+const router = express.Router();
+const VenueContact = require('../models/VenueContact');
+const Venue = require('../models/Venue');
+const User = require('../models/User');
+const { authMiddleware, requireVenueOwner } = require('../middleware/auth');
+const crypto = require('crypto');
+
+// ============================================================
+// VENUE GENERATES QR CODE
+// ============================================================
+
+router.post('/venues/:venueId/generate-qr-code', 
+  authMiddleware, 
+  requireVenueOwner, 
+  async (req, res) => {
+    try {
+      const { venueId } = req.params;
+      
+      // Check if venue already has QR code
+      const venue = await Venue.findById(venueId);
+      if (venue.signupQrCode) {
+        return res.json({
+          qrCode: venue.signupQrCode,
+          qrUrl: `${process.env.APP_URL}/signup?venue=${venue.signupQrCode}`,
+          message: 'QR code already exists'
+        });
+      }
+      
+      // Generate unique code
+      const qrCode = crypto.randomBytes(16).toString('hex');
+      
+      // Update venue
+      venue.signupQrCode = qrCode;
+      venue.qrCodeEnabled = true;
+      await venue.save();
+      
+      res.json({
+        qrCode: qrCode,
+        qrUrl: `${process.env.APP_URL}/signup?venue=${qrCode}`,
+        message: 'QR code generated successfully'
+      });
+      
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+);
+
+// ============================================================
+// GET VENUE QR CODE INFO
+// ============================================================
+
+router.get('/venues/:venueId/qr-code', 
+  authMiddleware, 
+  requireVenueOwner, 
+  async (req, res) => {
+    try {
+      const venue = await Venue.findById(req.params.venueId)
+        .select('signupQrCode qrCodeEnabled totalSignupsViaQr name');
+      
+      if (!venue.signupQrCode) {
+        return res.status(404).json({ error: 'No QR code generated yet' });
+      }
+      
+      res.json({
+        qrCode: venue.signupQrCode,
+        qrUrl: `${process.env.APP_URL}/signup?venue=${venue.signupQrCode}`,
+        enabled: venue.qrCodeEnabled,
+        totalSignups: venue.totalSignupsViaQr,
+        venueName: venue.name
+      });
+      
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+);
+
+// ============================================================
+// VERIFY QR CODE (User scans and sees venue info)
+// ============================================================
+
+router.get('/verify-qr/:qrCode', async (req, res) => {
+  try {
+    const { qrCode } = req.params;
+    
+    const venue = await Venue.findOne({ signupQrCode: qrCode })
+      .select('name address city logo images category');
+    
+    if (!venue) {
+      return res.status(404).json({ error: 'Invalid QR code' });
+    }
+    
+    if (!venue.qrCodeEnabled) {
+      return res.status(400).json({ error: 'QR code is disabled' });
+    }
+    
+    res.json({
+      venue: {
+        id: venue._id,
+        name: venue.name,
+        address: venue.address,
+        city: venue.city,
+        logo: venue.logo,
+        image: venue.images?.[0],
+        category: venue.category
+      },
+      message: `Sign up and connect with ${venue.name}!`
+    });
+    
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================================
+// USER SIGNS UP VIA QR CODE
+// ============================================================
+
+router.post('/signup-via-qr', async (req, res) => {
+  try {
+    const { qrCode, email, password, name, ...userData } = req.body;
+    
+    // Verify QR code and get venue
+    const venue = await Venue.findOne({ signupQrCode: qrCode });
+    if (!venue) {
+      return res.status(404).json({ error: 'Invalid QR code' });
+    }
+    
+    // Check if user already exists
+    let user = await User.findOne({ email });
+    
+    if (user) {
+      // User exists - just create connection
+      // Check if connection already exists
+      const existingConnection = await VenueContact.findOne({
+        venueId: venue._id,
+        userId: user._id
+      });
+      
+      if (existingConnection) {
+        return res.json({
+          message: 'Already connected to this venue',
+          user: user,
+          venue: venue,
+          alreadyConnected: true
+        });
+      }
+      
+      // Create connection
+      await VenueContact.create({
+        venueId: venue._id,
+        userId: user._id,
+        signupSource: 'qr_code'
+      });
+      
+      return res.json({
+        message: `Connected to ${venue.name}!`,
+        user: user,
+        venue: venue,
+        newConnection: true
+      });
+    }
+    
+    // Create new user
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    user = await User.create({
+      email,
+      password: hashedPassword,
+      name,
+      referredByVenueId: venue._id,
+      signupQrCode: qrCode,
+      role: 'FAN',
+      ...userData
+    });
+    
+    // Create venue contact connection
+    await VenueContact.create({
+      venueId: venue._id,
+      userId: user._id,
+      signupSource: 'qr_code'
+    });
+    
+    // Increment venue signup count
+    venue.totalSignupsViaQr += 1;
+    await venue.save();
+    
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: user._id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+    
+    res.json({
+      message: `Welcome! You're now connected with ${venue.name}`,
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        role: user.role
+      },
+      venue: {
+        id: venue._id,
+        name: venue.name
+      },
+      newUser: true
+    });
+    
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================================
+// LINK EXISTING USER TO VENUE VIA QR
+// ============================================================
+
+router.post('/link-to-venue', authMiddleware, async (req, res) => {
+  try {
+    const { qrCode } = req.body;
+    const userId = req.user.id;
+    
+    // Verify QR code
+    const venue = await Venue.findOne({ signupQrCode: qrCode });
+    if (!venue) {
+      return res.status(404).json({ error: 'Invalid QR code' });
+    }
+    
+    // Check if already connected
+    const existing = await VenueContact.findOne({
+      venueId: venue._id,
+      userId: userId
+    });
+    
+    if (existing) {
+      return res.json({
+        message: 'Already connected!',
+        alreadyConnected: true
+      });
+    }
+    
+    // Create connection
+    await VenueContact.create({
+      venueId: venue._id,
+      userId: userId,
+      signupSource: 'qr_code'
+    });
+    
+    // Update user if they don't have a referred venue yet
+    const user = await User.findById(userId);
+    if (!user.referredByVenueId) {
+      user.referredByVenueId = venue._id;
+      user.signupQrCode = qrCode;
+      await user.save();
+    }
+    
+    // Increment venue count
+    venue.totalSignupsViaQr += 1;
+    await venue.save();
+    
+    res.json({
+      message: `Connected to ${venue.name}!`,
+      venue: {
+        id: venue._id,
+        name: venue.name,
+        address: venue.address
+      },
+      newConnection: true
+    });
+    
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================================
+// VENUE: GET ALL CONTACTS (Their "Friends")
+// ============================================================
+
+router.get('/venues/:venueId/contacts', 
+  authMiddleware, 
+  requireVenueOwner, 
+  async (req, res) => {
+    try {
+      const { venueId } = req.params;
+      const { search, sortBy = 'recent' } = req.query;
+      
+      let query = { venueId };
+      
+      // Build query
+      const contacts = await VenueContact.find(query)
+        .populate('userId', 'name email profilePhoto favoriteTeams')
+        .sort(sortBy === 'visits' ? '-totalVisits' : '-connectedAt');
+      
+      // Filter by search if provided
+      let results = contacts;
+      if (search) {
+        results = contacts.filter(c => 
+          c.userId.name.toLowerCase().includes(search.toLowerCase()) ||
+          c.userId.email.toLowerCase().includes(search.toLowerCase())
+        );
+      }
+      
+      res.json({
+        total: results.length,
+        contacts: results.map(c => ({
+          id: c._id,
+          user: {
+            id: c.userId._id,
+            name: c.userId.name,
+            email: c.userId.email,
+            photo: c.userId.profilePhoto,
+            favoriteTeams: c.userId.favoriteTeams
+          },
+          connectedAt: c.connectedAt,
+          lastVisit: c.lastVisit,
+          totalVisits: c.totalVisits,
+          favorite: c.favorite,
+          signupSource: c.signupSource
+        }))
+      });
+      
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+);
+
+// ============================================================
+// VENUE: INVITE CONTACTS TO PARTY
+// ============================================================
+
+router.post('/venues/:venueId/invite-contacts', 
+  authMiddleware, 
+  requireVenueOwner, 
+  async (req, res) => {
+    try {
+      const { venueId } = req.params;
+      const { partyId, contactIds, message } = req.body;
+      
+      // Get party details
+      const party = await Party.findById(partyId);
+      if (!party) {
+        return res.status(404).json({ error: 'Party not found' });
+      }
+      
+      // Get contacts
+      const contacts = await VenueContact.find({
+        venueId,
+        _id: { $in: contactIds }
+      }).populate('userId');
+      
+      // Send notifications to each contact
+      const invites = await Promise.all(
+        contacts.map(async (contact) => {
+          // Create notification
+          await Notification.create({
+            userId: contact.userId._id,
+            type: 'party_invite',
+            title: 'Party Invitation',
+            message: message || `${party.venueName} invited you to watch ${party.gameTitle}!`,
+            data: {
+              partyId: party._id,
+              venueId: venueId
+            }
+          });
+          
+          // Send push notification if user has enabled
+          // ... push notification logic ...
+          
+          return {
+            userId: contact.userId._id,
+            userName: contact.userId.name,
+            sent: true
+          };
+        })
+      );
+      
+      res.json({
+        message: `Invites sent to ${invites.length} contacts`,
+        invites
+      });
+      
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+);
+
+// ============================================================
+// VENUE: MARK CONTACT AS FAVORITE
+// ============================================================
+
+router.patch('/venues/:venueId/contacts/:contactId/favorite', 
+  authMiddleware, 
+  requireVenueOwner, 
+  async (req, res) => {
+    try {
+      const { contactId } = req.params;
+      const { favorite } = req.body;
+      
+      const contact = await VenueContact.findByIdAndUpdate(
+        contactId,
+        { favorite },
+        { new: true }
+      ).populate('userId', 'name email');
+      
+      res.json({
+        message: favorite ? 'Added to favorites' : 'Removed from favorites',
+        contact
+      });
+      
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+);
+
+module.exports = router;
+```
+
+---
+
+## 🎨 FRONTEND COMPONENTS:
+
+### **File: src/pages/VenueQRCodeGenerator.jsx**
+
+```jsx
+import React, { useState, useEffect } from 'react';
+import QRCode from 'qrcode.react';
+import './VenueQRCodeGenerator.css';
+
+function VenueQRCodeGenerator({ venueId }) {
+  const [qrData, setQrData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadQRCode();
+  }, [venueId]);
+
+  const loadQRCode = async () => {
+    try {
+      const response = await fetch(`/api/venues/${venueId}/qr-code`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      
+      if (response.status === 404) {
+        // No QR code yet - generate one
+        await generateQRCode();
+        return;
+      }
+      
+      const data = await response.json();
+      setQrData(data);
+    } catch (error) {
+      console.error('Error loading QR code:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateQRCode = async () => {
+    try {
+      const response = await fetch(`/api/venues/${venueId}/generate-qr-code`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      const data = await response.json();
+      setQrData(data);
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+    }
+  };
+
+  const downloadQR = () => {
+    const canvas = document.getElementById('venue-qr-code');
+    const url = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.download = `${qrData.venueName}-signup-qr.png`;
+    link.href = url;
+    link.click();
+  };
+
+  const printQR = () => {
+    window.print();
+  };
+
+  if (loading) {
+    return <div className="loading">Loading QR code...</div>;
+  }
+
+  return (
+    <div className="qr-code-generator">
+      <div className="qr-header">
+        <h2>Sign Up QR Code</h2>
+        <p>Customers scan this to sign up and connect with your venue!</p>
+      </div>
+
+      <div className="qr-display">
+        <div className="qr-container">
+          <QRCode
+            id="venue-qr-code"
+            value={qrData.qrUrl}
+            size={300}
+            level="H"
+            includeMargin={true}
+          />
+        </div>
+
+        <div className="qr-info">
+          <h3>{qrData.venueName || 'Your Venue'}</h3>
+          <p className="qr-instruction">
+            Scan to sign up & connect!
+          </p>
+          <div className="qr-stats">
+            <div className="stat">
+              <span className="stat-value">{qrData.totalSignups || 0}</span>
+              <span className="stat-label">Sign-ups via QR</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="qr-actions">
+        <button onClick={downloadQR} className="btn-download">
+          📥 Download QR Code
+        </button>
+        <button onClick={printQR} className="btn-print">
+          🖨️ Print QR Code
+        </button>
+        <button onClick={() => navigator.clipboard.writeText(qrData.qrUrl)} className="btn-copy">
+          📋 Copy Link
+        </button>
+      </div>
+
+      <div className="qr-usage">
+        <h3>How to use:</h3>
+        <ol>
+          <li>Download or print this QR code</li>
+          <li>Display it at your venue (bar, tables, entrance)</li>
+          <li>Customers scan with their phone camera</li>
+          <li>They sign up and automatically connect to you</li>
+          <li>You can now invite them to parties instantly!</li>
+        </ol>
+      </div>
+
+      <div className="qr-url">
+        <p>Direct URL:</p>
+        <code>{qrData.qrUrl}</code>
+      </div>
+    </div>
+  );
+}
+
+export default VenueQRCodeGenerator;
+```
+
+---
+
+### **File: src/pages/QRSignup.jsx** (User scans QR and sees this)
+
+```jsx
+import React, { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import './QRSignup.css';
+
+function QRSignup() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const qrCode = searchParams.get('venue');
+  
+  const [venueInfo, setVenueInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
+
+  useEffect(() => {
+    if (qrCode) {
+      verifyQRCode();
+    }
+  }, [qrCode]);
+
+  const verifyQRCode = async () => {
+    try {
+      const response = await fetch(`/api/verify-qr/${qrCode}`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        setVenueInfo(data.venue);
+      } else {
+        alert('Invalid QR code');
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('Error verifying QR:', error);
+      alert('Error verifying QR code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    
+    if (formData.password !== formData.confirmPassword) {
+      alert('Passwords do not match');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/signup-via-qr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          qrCode,
+          ...formData
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Save token
+        localStorage.setItem('token', data.token);
+        
+        // Show success message
+        alert(`Welcome! You're now connected with ${venueInfo.name}`);
+        
+        // Redirect to home
+        navigate('/');
+      } else {
+        alert(data.error || 'Signup failed');
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+      alert('Error during signup');
+    }
+  };
+
+  if (loading) {
+    return <div className="loading">Verifying QR code...</div>;
+  }
+
+  if (!venueInfo) {
+    return <div className="error">Invalid QR code</div>;
+  }
+
+  return (
+    <div className="qr-signup-page">
+      {/* VENUE INFO */}
+      <div className="venue-card">
+        {venueInfo.image && (
+          <img src={venueInfo.image} alt={venueInfo.name} className="venue-image" />
+        )}
+        <div className="venue-details">
+          <h2>{venueInfo.name}</h2>
+          <p className="venue-address">{venueInfo.address}</p>
+          <p className="venue-category">{venueInfo.category}</p>
+        </div>
+      </div>
+
+      {/* SIGNUP FORM */}
+      <div className="signup-form-container">
+        <h3>Sign up & Connect!</h3>
+        <p className="signup-subtitle">
+          Get instant invites to watch parties at {venueInfo.name}
+        </p>
+
+        <form onSubmit={handleSignup} className="signup-form">
+          <input
+            type="text"
+            placeholder="Your Name"
+            value={formData.name}
+            onChange={(e) => setFormData({...formData, name: e.target.value})}
+            required
+          />
+
+          <input
+            type="email"
+            placeholder="Email"
+            value={formData.email}
+            onChange={(e) => setFormData({...formData, email: e.target.value})}
+            required
+          />
+
+          <input
+            type="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={(e) => setFormData({...formData, password: e.target.value})}
+            required
+          />
+
+          <input
+            type="password"
+            placeholder="Confirm Password"
+            value={formData.confirmPassword}
+            onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+            required
+          />
+
+          <button type="submit" className="btn-signup">
+            Sign Up & Connect
+          </button>
+        </form>
+
+        <p className="already-member">
+          Already have an account? <a href="/login">Log in</a>
+        </p>
+      </div>
+
+      {/* BENEFITS */}
+      <div className="benefits">
+        <h3>What you'll get:</h3>
+        <ul>
+          <li>✅ Direct party invites from {venueInfo.name}</li>
+          <li>✅ Exclusive deals and promotions</li>
+          <li>✅ Find other sports fans</li>
+          <li>✅ Never miss a game</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+export default QRSignup;
+```
+
+---
+
+### **File: src/pages/VenueContacts.jsx** (Venue sees their contacts)
+
+```jsx
+import React, { useState, useEffect } from 'react';
+import './VenueContacts.css';
+
+function VenueContacts({ venueId }) {
+  const [contacts, setContacts] = useState([]);
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadContacts();
+  }, [venueId]);
+
+  const loadContacts = async () => {
+    try {
+      const response = await fetch(`/api/venues/${venueId}/contacts`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      const data = await response.json();
+      setContacts(data.contacts);
+    } catch (error) {
+      console.error('Error loading contacts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const inviteToParty = async (contactIds, partyId) => {
+    try {
+      const response = await fetch(`/api/venues/${venueId}/invite-contacts`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          partyId,
+          contactIds,
+          message: 'Join us for the game!'
+        })
+      });
+
+      if (response.ok) {
+        alert('Invites sent!');
+      }
+    } catch (error) {
+      console.error('Error sending invites:', error);
+    }
+  };
+
+  const filteredContacts = contacts.filter(c =>
+    c.user.name.toLowerCase().includes(search.toLowerCase()) ||
+    c.user.email.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="venue-contacts">
+      <div className="contacts-header">
+        <h2>Your Contacts</h2>
+        <p>{contacts.length} connected customers</p>
+      </div>
+
+      <div className="contacts-search">
+        <input
+          type="text"
+          placeholder="Search contacts..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
+
+      <div className="contacts-list">
+        {filteredContacts.map(contact => (
+          <div key={contact.id} className="contact-card">
+            <img
+              src={contact.user.photo || '/default-avatar.png'}
+              alt={contact.user.name}
+              className="contact-photo"
+            />
+            
+            <div className="contact-info">
+              <h3>{contact.user.name}</h3>
+              <p className="contact-email">{contact.user.email}</p>
+              <p className="contact-meta">
+                Connected {new Date(contact.connectedAt).toLocaleDateString()}
+              </p>
+              {contact.totalVisits > 0 && (
+                <p className="contact-visits">{contact.totalVisits} visits</p>
+              )}
+            </div>
+
+            <button
+              className="btn-invite"
+              onClick={() => {/* Show party selector */}}
+            >
+              Invite to Party
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {filteredContacts.length === 0 && (
+        <div className="no-contacts">
+          <p>No contacts yet. Share your QR code to get started!</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default VenueContacts;
+```
+
+---
+
+## 🎯 COMPLETE FLOW:
+
+### **Step 1: Venue generates QR code**
+```
+Venue Dashboard → QR Code Tab → Generate QR
+```
+
+### **Step 2: Venue displays QR**
+```
+Print QR → Post at bar, tables, entrance
+```
+
+### **Step 3: User scans QR**
+```
+Phone camera → Scan QR → Opens signup page
+```
+
+### **Step 4: User signs up**
+```
+Fill form → Sign up → AUTO-CONNECTED to venue!
+```
+
+### **Step 5: Venue invites user**
+```
+Venue Hub → Contacts → Select users → Invite to Party
+```
+
+---
+
+## ✅ RESULT:
+
+**Venues get:**
+- ✅ Customer database automatically
+- ✅ Direct line to customers
+- ✅ Instant party invitations
+- ✅ Build loyalty
+- ✅ Track signups
+
+**Users get:**
+- ✅ Direct invites from favorite venues
+- ✅ Never miss parties
+- ✅ Exclusive deals
+- ✅ Easy signup
+
+---
+
+**PASTE INTO REPLIT NOW!**
+
+**This creates a direct connection between venues and customers!** 🎯✨
+
+**Game changer for venue growth!** 🚀
+

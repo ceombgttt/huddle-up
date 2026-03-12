@@ -339,4 +339,13 @@ export const api = {
     unreadCount: () => request('/dm/unread-count'),
     latestUnread: () => request('/dm/latest-unread'),
   },
+  venueContacts: {
+    generateSignupQr: () => request('/venue-contacts/signup-qr/generate', { method: 'POST' }),
+    getSignupQr: () => request('/venue-contacts/signup-qr'),
+    verifyCode: (code) => request(`/venue-contacts/verify/${code}`),
+    link: (code) => request('/venue-contacts/link', { method: 'POST', body: JSON.stringify({ code }) }),
+    getContacts: (sort) => request(`/venue-contacts/contacts${sort ? '?sort=' + sort : ''}`),
+    invite: (contactIds, partyId, message) => request('/venue-contacts/invite', { method: 'POST', body: JSON.stringify({ contactIds, partyId, message }) }),
+    toggleFavorite: (id, favorite) => request(`/venue-contacts/${id}/favorite`, { method: 'PATCH', body: JSON.stringify({ favorite }) }),
+  },
 };

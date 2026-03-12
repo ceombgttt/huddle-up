@@ -635,6 +635,27 @@ export async function initDB() {
         created_at TIMESTAMPTZ DEFAULT NOW(),
         UNIQUE(venue_id, user_id)
       );
+
+      CREATE TABLE IF NOT EXISTS venue_contacts (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        venue_id UUID REFERENCES venues(id) ON DELETE CASCADE,
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        connected_at TIMESTAMPTZ DEFAULT NOW(),
+        signup_source VARCHAR(50) DEFAULT 'qr_code',
+        last_visit TIMESTAMPTZ,
+        total_visits INTEGER DEFAULT 0,
+        favorite BOOLEAN DEFAULT FALSE,
+        notes TEXT,
+        UNIQUE(venue_id, user_id)
+      );
+    `);
+
+    await client.query(`
+      ALTER TABLE venues ADD COLUMN IF NOT EXISTS signup_qr_code TEXT UNIQUE;
+      ALTER TABLE venues ADD COLUMN IF NOT EXISTS qr_code_enabled BOOLEAN DEFAULT TRUE;
+      ALTER TABLE venues ADD COLUMN IF NOT EXISTS total_signups_via_qr INTEGER DEFAULT 0;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by_venue_id UUID REFERENCES venues(id);
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS signup_qr_code TEXT;
     `);
 
     console.log('Database initialized successfully');

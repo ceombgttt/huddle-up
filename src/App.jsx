@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, ChevronUp, Megaphone, MessageCircle, Gift, Award, Clock, Zap, Crown, Copy, Shield, ChevronRight, Info, Flame, TrendingUp, Menu, ScanLine, Download, Smartphone, Target, Lock, Home, HelpCircle } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, ChevronUp, Megaphone, MessageCircle, Gift, Award, Clock, Zap, Crown, Copy, Shield, ChevronRight, Info, Flame, TrendingUp, Menu, ScanLine, Download, Smartphone, Target, Lock, Home, HelpCircle, QrCode } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import confetti from 'canvas-confetti';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
@@ -1415,6 +1415,14 @@ function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast
  const [uploadingPicture, setUploadingPicture] = useState(false);
  const venueFileInputRef = useRef(null);
  const venueUploadTypeRef = useRef('logo');
+ const [signupQrData, setSignupQrData] = useState(null);
+ const [generatingSignupQr, setGeneratingSignupQr] = useState(false);
+ const [contacts, setContacts] = useState([]);
+ const [loadingContacts, setLoadingContacts] = useState(false);
+ const [contactSearch, setContactSearch] = useState('');
+ const [selectedContactIds, setSelectedContactIds] = useState([]);
+ const [showInviteModal, setShowInviteModal] = useState(false);
+ const [invitingSending, setInvitingSending] = useState(false);
 
  const VenueAnalyticsDashboard = () => {
  const startEditing = () => {
@@ -2012,6 +2020,17 @@ function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast
  } else { setLoadingHub(false); }
  }, [userVenue]);
 
+ useEffect(() => {
+ if (hubTab === 'signupQr' && !signupQrData) {
+ setGeneratingSignupQr(true);
+ api.venueContacts.getSignupQr().then(d => setSignupQrData(d)).catch(e => console.error('Load signup QR error:', e)).finally(() => setGeneratingSignupQr(false));
+ }
+ if (hubTab === 'contacts') {
+ setLoadingContacts(true);
+ api.venueContacts.getContacts().then(d => setContacts(d.contacts || [])).catch(e => console.error('Load contacts error:', e)).finally(() => setLoadingContacts(false));
+ }
+ }, [hubTab]);
+
  if (!userVenue) {
  return (
  <div className="min-h-screen pt-[60px] bg-[#0F1115] flex items-center justify-center p-4">
@@ -2077,6 +2096,8 @@ function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast
  { id: 'featured', label: 'Plans & Pricing', icon: '⭐' },
  { id: 'promotions', label: 'Promote Games', icon: '📢' },
  { id: 'deals', label: 'Deals & Specials', icon: '🏷️' },
+ { id: 'signupQr', label: 'Signup QR', icon: '🔗' },
+ { id: 'contacts', label: 'Contacts', icon: '👥' },
  ];
 
  return (
@@ -2631,6 +2652,184 @@ function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast
  )}
  </div>
  )}
+
+ {hubTab === 'signupQr' && (
+ <div className="space-y-4">
+ <div className="bg-gradient-to-br from-[#1E90FF]/10 to-purple-500/10 border-2 border-[#1E90FF]/30 p-6 rounded-2xl">
+ <div className="flex items-center gap-3 mb-4">
+ <div className="w-10 h-10 bg-[#1E90FF]/20 rounded-xl flex items-center justify-center"><QrCode className="w-5 h-5 text-[#1E90FF]" /></div>
+ <div>
+ <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>CUSTOMER SIGNUP QR CODE</h2>
+ <p className="text-xs text-[#A0A4AB]">Customers scan → sign up → instantly connected to you</p>
+ </div>
+ </div>
+ {generatingSignupQr ? (
+ <div className="flex items-center justify-center py-8"><Loader2 className="w-8 h-8 text-[#1E90FF] animate-spin" /></div>
+ ) : signupQrData?.hasQr ? (
+ <div className="space-y-4">
+ <div className="flex items-center justify-center">
+ <div className="bg-white p-4 rounded-2xl shadow-lg shadow-[#1E90FF]/20">
+ <img src={signupQrData.qrDataUrl} alt="Signup QR Code" className="w-48 h-48 object-contain" />
+ </div>
+ </div>
+ <div className="grid grid-cols-3 gap-2 text-center">
+ <div className="bg-[#0F1115] rounded-xl p-3 border border-[#222A36]">
+ <p className="text-2xl font-black text-[#1E90FF]">{signupQrData.totalSignups || 0}</p>
+ <p className="text-xs text-[#A0A4AB]">Signups</p>
+ </div>
+ <div className="bg-[#0F1115] rounded-xl p-3 border border-[#222A36]">
+ <p className="text-2xl font-black text-white">{contacts.length || '—'}</p>
+ <p className="text-xs text-[#A0A4AB]">Contacts</p>
+ </div>
+ <div className="bg-[#0F1115] rounded-xl p-3 border border-[#222A36]">
+ <p className="text-2xl font-black text-emerald-400">∞</p>
+ <p className="text-xs text-[#A0A4AB]">Free</p>
+ </div>
+ </div>
+ <div className="grid grid-cols-2 gap-2">
+ <button onClick={() => { const a = document.createElement('a'); a.download = `${userVenue.name.replace(/\s+/g,'_')}_signup_qr.png`; a.href = signupQrData.qrDataUrl; a.click(); }} className="flex items-center justify-center gap-2 py-3 bg-[#1E90FF] text-white font-bold rounded-xl hover:bg-[#1a7fd4] transition-all text-sm">
+ <Download className="w-4 h-4" /> Download QR
+ </button>
+ <button onClick={async () => { try { await navigator.clipboard.writeText(signupQrData.signupUrl); showToast('Signup link copied!', 'success'); } catch (e) { console.error(e); } }} className="flex items-center justify-center gap-2 py-3 bg-[#151A22] text-white font-bold rounded-xl hover:bg-[#222A36] transition-all border border-[#222A36] text-sm">
+ <Copy className="w-4 h-4" /> Copy Link
+ </button>
+ </div>
+ <div className="bg-[#0F1115] rounded-xl p-3 border border-[#222A36]">
+ <p className="text-xs text-[#A0A4AB] break-all">{signupQrData.signupUrl}</p>
+ </div>
+ <button onClick={async () => { setGeneratingSignupQr(true); try { const d = await api.venueContacts.generateSignupQr(); setSignupQrData({ hasQr: true, ...d }); showToast('New QR code generated!', 'success'); } catch (e) { showToast('Failed to generate QR', 'error'); } setGeneratingSignupQr(false); }} className="w-full py-2 text-xs text-[#A0A4AB] hover:text-white transition-colors">
+ ↻ Regenerate QR Code
+ </button>
+ </div>
+ ) : (
+ <div className="text-center space-y-4 py-4">
+ <div className="w-20 h-20 bg-[#0F1115] rounded-2xl flex items-center justify-center mx-auto border border-[#222A36]">
+ <QrCode className="w-10 h-10 text-[#A0A4AB]" />
+ </div>
+ <div>
+ <p className="text-white font-bold mb-1">No Signup QR Yet</p>
+ <p className="text-sm text-[#A0A4AB]">Generate a QR code customers can scan to instantly connect with your venue.</p>
+ </div>
+ <button onClick={async () => { setGeneratingSignupQr(true); try { const d = await api.venueContacts.generateSignupQr(); setSignupQrData({ hasQr: true, ...d }); showToast('Signup QR code generated!', 'success'); } catch (e) { showToast('Failed to generate QR code', 'error'); } setGeneratingSignupQr(false); }} disabled={generatingSignupQr} className="px-6 py-3 bg-[#1E90FF] text-white font-bold rounded-xl hover:bg-[#1a7fd4] transition-all disabled:opacity-50 flex items-center gap-2 mx-auto">
+ {generatingSignupQr ? <Loader2 className="w-4 h-4 animate-spin" /> : <QrCode className="w-4 h-4" />} Generate Signup QR
+ </button>
+ </div>
+ )}
+ </div>
+ <div className="bg-[#151A22] border border-[#222A36] rounded-2xl p-5">
+ <h3 className="text-white font-black mb-3 flex items-center gap-2"><span>📋</span> How It Works</h3>
+ <ol className="space-y-2 text-sm text-[#A0A4AB]">
+ <li className="flex items-start gap-2"><span className="text-[#1E90FF] font-bold mt-0.5">1</span> Print or display the QR code at your bar, tables, or entrance</li>
+ <li className="flex items-start gap-2"><span className="text-[#1E90FF] font-bold mt-0.5">2</span> Customers scan with their phone camera</li>
+ <li className="flex items-start gap-2"><span className="text-[#1E90FF] font-bold mt-0.5">3</span> They sign up for Huddle Up and instantly connect to your venue</li>
+ <li className="flex items-start gap-2"><span className="text-[#1E90FF] font-bold mt-0.5">4</span> They appear in your Contacts tab — invite them to parties anytime!</li>
+ </ol>
+ </div>
+ </div>
+ )}
+
+ {hubTab === 'contacts' && (() => {
+ const filteredContacts = contacts.filter(c =>
+ !contactSearch || c.user.name.toLowerCase().includes(contactSearch.toLowerCase()) || c.user.email.toLowerCase().includes(contactSearch.toLowerCase())
+ );
+ const handleSendInvites = async (partyId) => {
+ if (!selectedContactIds.length) return showToast('Select at least one contact', 'error');
+ setInvitingSending(true);
+ try {
+ const result = await api.venueContacts.invite(selectedContactIds, partyId, '');
+ showToast(result.message || 'Invites sent!', 'success');
+ setSelectedContactIds([]);
+ setShowInviteModal(false);
+ } catch (e) { showToast(e.message || 'Failed to send invites', 'error'); }
+ setInvitingSending(false);
+ };
+ return (
+ <div className="space-y-4">
+ <div className="flex items-center justify-between">
+ <div>
+ <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>YOUR CONTACTS ({filteredContacts.length})</h2>
+ <p className="text-xs text-[#A0A4AB]">Customers connected via your Signup QR</p>
+ </div>
+ {selectedContactIds.length > 0 && (
+ <button onClick={() => setShowInviteModal(true)} className="px-4 py-2 bg-[#1E90FF] text-white text-sm font-bold rounded-xl hover:bg-[#1a7fd4] transition-all flex items-center gap-2">
+ <Bell className="w-4 h-4" /> Invite {selectedContactIds.length}
+ </button>
+ )}
+ </div>
+ <div className="relative">
+ <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0A4AB]" />
+ <input value={contactSearch} onChange={e => setContactSearch(e.target.value)} placeholder="Search contacts..." className="w-full pl-10 pr-4 py-3 bg-[#151A22] text-white rounded-xl border border-[#222A36] focus:border-[#1E90FF] focus:outline-none text-sm" />
+ </div>
+ {loadingContacts ? (
+ <div className="flex justify-center py-8"><Loader2 className="w-8 h-8 text-[#1E90FF] animate-spin" /></div>
+ ) : filteredContacts.length === 0 ? (
+ <div className="text-center py-12 bg-[#151A22] rounded-2xl border border-[#222A36]">
+ <Users className="w-12 h-12 text-[#A0A4AB] mx-auto mb-3" />
+ <p className="text-white font-bold mb-1">{contactSearch ? 'No contacts found' : 'No contacts yet'}</p>
+ <p className="text-sm text-[#A0A4AB]">{contactSearch ? 'Try a different search' : 'Share your Signup QR code to start building your customer list!'}</p>
+ {!contactSearch && <button onClick={() => setHubTab('signupQr')} className="mt-4 px-4 py-2 bg-[#1E90FF] text-white text-sm font-bold rounded-xl hover:bg-[#1a7fd4] transition-all">Get Signup QR</button>}
+ </div>
+ ) : (
+ <div className="space-y-2">
+ {selectedContactIds.length > 0 && (
+ <div className="flex items-center gap-2 p-3 bg-[#1E90FF]/10 border border-[#1E90FF]/30 rounded-xl text-sm text-[#1E90FF]">
+ <CheckCircle className="w-4 h-4" />
+ <span className="font-bold">{selectedContactIds.length} selected</span>
+ <button onClick={() => setSelectedContactIds([])} className="ml-auto text-xs text-[#A0A4AB] hover:text-white">Clear</button>
+ </div>
+ )}
+ {filteredContacts.map(contact => (
+ <div key={contact.id} onClick={() => setSelectedContactIds(prev => prev.includes(contact.id) ? prev.filter(i => i !== contact.id) : [...prev, contact.id])} className={`bg-[#151A22] rounded-xl border transition-all cursor-pointer p-4 flex items-center gap-3 ${selectedContactIds.includes(contact.id) ? 'border-[#1E90FF]/60 bg-[#1E90FF]/5' : 'border-[#222A36] hover:border-[#1E90FF]/30'}`}>
+ <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${selectedContactIds.includes(contact.id) ? 'bg-[#1E90FF] border-[#1E90FF]' : 'border-[#444]'}`}>
+ {selectedContactIds.includes(contact.id) && <CheckCircle className="w-3 h-3 text-white" />}
+ </div>
+ {contact.user.photo ? (
+ <img src={`/api/uploads/serve/${contact.user.photo.replace('/objects/','')}`} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-[#222A36]" />
+ ) : (
+ <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1E90FF]/30 to-purple-500/30 flex items-center justify-center flex-shrink-0 border border-[#222A36]">
+ <span className="text-white font-bold text-sm">{(contact.user.name || '?')[0].toUpperCase()}</span>
+ </div>
+ )}
+ <div className="flex-1 min-w-0">
+ <p className="text-white font-semibold text-sm truncate">{contact.user.name}</p>
+ <p className="text-[#A0A4AB] text-xs truncate">{contact.user.email}</p>
+ <p className="text-[#A0A4AB] text-xs">{contact.user.city ? `📍 ${contact.user.city} · ` : ''}{contact.signupSource === 'qr_code' ? '🔗 QR Signup' : '✅ Connected'} · {new Date(contact.connectedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+ </div>
+ <button onClick={async e => { e.stopPropagation(); try { await api.venueContacts.toggleFavorite(contact.id, !contact.favorite); setContacts(prev => prev.map(c => c.id === contact.id ? { ...c, favorite: !c.favorite } : c)); } catch (err) { console.error(err); } }} className={`p-2 rounded-lg transition-colors flex-shrink-0 ${contact.favorite ? 'text-amber-400 bg-amber-500/10' : 'text-[#444] hover:text-amber-400'}`}>
+ <Star className={`w-4 h-4 ${contact.favorite ? 'fill-amber-400' : ''}`} />
+ </button>
+ </div>
+ ))}
+ </div>
+ )}
+ {showInviteModal && (
+ <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/70 p-4" onClick={() => setShowInviteModal(false)}>
+ <div className="bg-[#151A22] rounded-2xl border border-[#222A36] p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+ <h3 className="text-lg font-black text-white mb-2">Invite to a Party</h3>
+ <p className="text-sm text-[#A0A4AB] mb-4">Select a party to invite {selectedContactIds.length} contact{selectedContactIds.length !== 1 ? 's' : ''} to:</p>
+ {parties.filter(p => p.venueId === userVenue.id || p.venueName === userVenue.name).length === 0 ? (
+ <div className="text-center py-6">
+ <p className="text-[#A0A4AB] text-sm mb-3">No active parties at your venue</p>
+ <button onClick={() => { setShowInviteModal(false); setCurrentScreen('games'); }} className="px-4 py-2 bg-[#1E90FF] text-white font-bold rounded-xl text-sm">Create a Party</button>
+ </div>
+ ) : (
+ <div className="space-y-2 max-h-60 overflow-y-auto">
+ {parties.filter(p => p.venueId === userVenue.id || p.venueName === userVenue.name).map(p => (
+ <button key={p.id} onClick={() => handleSendInvites(p.id)} disabled={invitingSending} className="w-full text-left p-3 bg-[#0F1115] rounded-xl border border-[#222A36] hover:border-[#1E90FF]/40 transition-all">
+ <p className="text-white text-sm font-semibold">{p.homeTeam} vs {p.awayTeam}</p>
+ <p className="text-[#A0A4AB] text-xs">{p.sport} · {p.venueName}</p>
+ </button>
+ ))}
+ </div>
+ )}
+ <button onClick={() => setShowInviteModal(false)} className="w-full mt-3 py-2 text-[#A0A4AB] text-sm hover:text-white transition-colors">Cancel</button>
+ </div>
+ </div>
+ )}
+ </div>
+ );
+ })()}
+
  </div>
  </div>
  );
@@ -2824,6 +3023,8 @@ const [adminRaffleImageUploading, setAdminRaffleImageUploading] = useState(false
  const [deepLinkPartyId, setDeepLinkPartyId] = useState(null);
  const [influencerDashboardToken, setInfluencerDashboardToken] = useState(null);
  const [initialInfluencerCode, setInitialInfluencerCode] = useState('');
+ const [pendingVenueSignupCode, setPendingVenueSignupCode] = useState(null);
+ const [venueSignupInfo, setVenueSignupInfo] = useState(null);
  const [adminQrModal, setAdminQrModal] = useState(null);
  const [editPartyModal, setEditPartyModal] = useState(null);
  const [editPartyForm, setEditPartyForm] = useState({ venueName: '', streetAddress: '', city: '', state: '', notes: '', maxSize: '', gameTime: '' });
@@ -3472,6 +3673,16 @@ const qrScannerRef = useRef(null);
  setCurrentScreen('signup');
  window.history.replaceState({}, '', window.location.pathname);
  }
+
+ const venueSignupCode = new URLSearchParams(window.location.search).get('venueSignup');
+ if (venueSignupCode) {
+ setPendingVenueSignupCode(venueSignupCode);
+ window.history.replaceState({}, '', window.location.pathname);
+ api.venueContacts.verifyCode(venueSignupCode).then(data => {
+ setVenueSignupInfo(data.venue);
+ }).catch(() => {});
+ }
+
  return () => { clearInterval(hotInterval); clearInterval(lcInterval); };
  }, []);
 
@@ -3483,6 +3694,19 @@ const qrScannerRef = useRef(null);
  return () => clearInterval(friendPoll);
  }
  }, [user?.id]);
+
+ useEffect(() => {
+ if (!pendingVenueSignupCode || !user) return;
+ api.venueContacts.link(pendingVenueSignupCode).then(result => {
+ if (result.alreadyConnected) {
+ showToast(`Already connected to ${result.venueName}!`, 'info');
+ } else if (result.connected) {
+ showToast(`Connected to ${result.venueName}! They can now invite you to watch parties.`, 'success');
+ }
+ setPendingVenueSignupCode(null);
+ setVenueSignupInfo(null);
+ }).catch(e => { console.error('Auto-link venue error:', e); setPendingVenueSignupCode(null); });
+ }, [user?.id, pendingVenueSignupCode]);
 
  useEffect(() => {
  if (!deepLinkPartyId || !user) return;
@@ -16917,9 +17141,35 @@ Become a Sponsor →
   </div>
 )}
 {currentScreen === 'welcome' && <WelcomeScreen />}
- {currentScreen === 'login' && loginScreenJSX}
+ {currentScreen === 'login' && (
+ <div>
+ {venueSignupInfo && (
+ <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-[#1E90FF]/90 to-purple-600/90 backdrop-blur-sm px-4 py-3 flex items-center gap-3 shadow-lg">
+ <QrCode className="w-5 h-5 text-white flex-shrink-0" />
+ <div className="flex-1 min-w-0">
+ <p className="text-white text-sm font-bold truncate">Connect to {venueSignupInfo.name}</p>
+ <p className="text-white/70 text-xs">Log in to instantly link your account</p>
+ </div>
+ </div>
+ )}
+ {loginScreenJSX}
+ </div>
+ )}
  {currentScreen === 'signupType' && signupTypeScreenJSX}
- {currentScreen === 'signup' && signUpScreenJSX}
+ {currentScreen === 'signup' && (
+ <div>
+ {venueSignupInfo && (
+ <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-[#1E90FF]/90 to-purple-600/90 backdrop-blur-sm px-4 py-3 flex items-center gap-3 shadow-lg">
+ <QrCode className="w-5 h-5 text-white flex-shrink-0" />
+ <div className="flex-1 min-w-0">
+ <p className="text-white text-sm font-bold truncate">Connect to {venueSignupInfo.name}</p>
+ <p className="text-white/70 text-xs">Create an account to get party invites from this venue</p>
+ </div>
+ </div>
+ )}
+ {signUpScreenJSX}
+ </div>
+ )}
  {currentScreen === 'forgotPassword' && forgotPasswordScreenJSX}
  {currentScreen === 'games' && gamesScreenJSX()}
  {currentScreen === 'gameDetail' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><GameDetailScreen /></ScreenErrorBoundary>}

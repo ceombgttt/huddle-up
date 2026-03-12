@@ -36,6 +36,7 @@ import affiliateRoutes from './routes/affiliates.js';
 import venueHubRoutes from './routes/venueHub.js';
 import dmRoutes from './routes/dm.js';
 import predictionRoutes from './routes/predictions.js';
+import venueContactsRoutes from './routes/venueContacts.js';
 import { startScoreChecker } from './scoreChecker.js';
 import { WebhookHandlers } from './stripe/webhookHandlers.js';
 import { initStripe } from './stripe/init.js';
@@ -126,6 +127,7 @@ app.use('/api/affiliates', affiliateRoutes);
 app.use('/api/venue-hub', venueHubRoutes);
 app.use('/api/dm', dmRoutes);
 app.use('/api/predictions', predictionRoutes);
+app.use('/api/venue-contacts', venueContactsRoutes);
 
 import { seedDemoData, clearDemoData, getSeedStats } from './seed.js';
 
