@@ -7933,9 +7933,15 @@ const qrScannerRef = useRef(null);
  setCurrentScreen('gameDetail');
  window.scrollTo(0, 0);
  }}
- className={`flex-shrink-0 w-[300px] bg-[#151A22] p-5 rounded-2xl border border-[#222A36] hover:border-[#1E90FF]/50 cursor-pointer active:scale-[0.98] transition-all duration-200 sport-card-glow ${game.gameStatus === 'live' ? 'sport-card-live' : ''}`}
+ className={`flex-shrink-0 w-[300px] relative overflow-hidden bg-[#151A22] p-5 rounded-2xl border border-[#222A36] hover:border-[#1E90FF]/50 cursor-pointer active:scale-[0.98] transition-all duration-200 sport-card-glow ${game.gameStatus === 'live' ? 'sport-card-live' : ''}`}
  >
- <div className="flex items-center justify-between mb-2">
+ {SPORT_BG[game.sport] && (
+ <>
+ <img src={SPORT_BG[game.sport]} alt="" className="absolute inset-0 w-full h-full object-cover opacity-[0.18]" style={{ filter: 'blur(1px)' }} />
+ <div className="absolute inset-0 bg-gradient-to-b from-[#0F1115]/80 via-[#151A22]/75 to-[#0F1115]/88" />
+ </>
+ )}
+ <div className="relative z-10 flex items-center justify-between mb-2">
  <span className="px-2.5 py-1 bg-[#1E90FF]/20 text-[#1E90FF] text-xs font-bold rounded-full border border-[#1E90FF]/30">
  {game.sport}
  </span>
@@ -7971,7 +7977,7 @@ const qrScannerRef = useRef(null);
  </div>
  </div>
 
- <div className="text-center mb-3">
+ <div className="relative z-10 text-center mb-3">
  {game.gameStatus === 'live' || game.gameStatus === 'final' ? (
  <div>
  <div className="flex items-center justify-center gap-2 mb-2">
