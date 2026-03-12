@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, ChevronUp, Megaphone, MessageCircle, Gift, Award, Clock, Zap, Crown, Copy, Shield, ChevronRight, Info, Flame, TrendingUp, Menu, ScanLine, Download, Smartphone, Target, Lock, Home, HelpCircle, QrCode } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import confetti from 'canvas-confetti';
