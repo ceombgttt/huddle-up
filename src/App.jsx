@@ -7937,8 +7937,8 @@ const qrScannerRef = useRef(null);
  >
  {SPORT_BG[game.sport] && (
  <>
- <img src={SPORT_BG[game.sport]} alt="" className="absolute inset-0 w-full h-full object-cover opacity-[0.18]" style={{ filter: 'blur(1px)' }} />
- <div className="absolute inset-0 bg-gradient-to-b from-[#0F1115]/80 via-[#151A22]/75 to-[#0F1115]/88" />
+ <img src={SPORT_BG[game.sport]} alt="" className="absolute inset-0 w-full h-full object-cover opacity-[0.45]" />
+ <div className="absolute inset-0 bg-gradient-to-b from-[#0F1115]/55 via-[#151A22]/50 to-[#0F1115]/65" />
  </>
  )}
  <div className="relative z-10 flex items-center justify-between mb-2">
