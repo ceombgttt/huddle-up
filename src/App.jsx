@@ -17204,10 +17204,10 @@ Become a Sponsor →
  </div>
  )}
 
- {!authChecked && (
-  <div className="fixed inset-0 bg-[#0F1115] z-[250] flex items-center justify-center transition-opacity duration-300">
-    <div className="flex flex-col items-center gap-3">
-      <img src="/huddle-up-logo.png" alt="Huddle Up" className="w-16 h-16 animate-pulse" onError={e => { e.target.style.display='none'; }} />
+ {(!authChecked || (user && !initialDataLoaded)) && (
+  <div className="fixed inset-0 bg-[#0F1115] z-[250] flex items-center justify-center">
+    <div className="flex flex-col items-center gap-4">
+      <img src="/huddle-up-shield.png" alt="Huddle Up" className="w-20 h-20" onError={e => { e.target.style.display='none'; }} />
       <div className="w-8 h-8 border-2 border-[#1E90FF] border-t-transparent rounded-full animate-spin" />
     </div>
   </div>
