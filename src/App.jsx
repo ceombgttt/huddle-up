@@ -17991,30 +17991,30 @@ Become a Sponsor →
 </div>
 <Download className="w-5 h-5 ml-auto text-gray-300" />
 </button>
-<a href={urls.google} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 w-full py-3 px-4 rounded-xl font-bold text-white transition-all hover:opacity-90 border border-[#222A36]" style={{ backgroundColor: '#1a73e8' }}>
+<button onClick={() => { window.open(urls.google, '_blank', 'noopener,noreferrer'); setShowCalendarMenu(false); }} className="flex items-center gap-3 w-full py-3 px-4 rounded-xl font-bold text-white transition-all hover:opacity-90 border border-[#222A36]" style={{ backgroundColor: '#1a73e8' }}>
 <span className="text-2xl">📆</span>
 <div className="text-left">
 <div className="text-sm font-bold">Google Calendar</div>
 <div className="text-xs text-blue-200">Opens in new tab</div>
 </div>
 <ChevronRight className="w-5 h-5 ml-auto text-blue-200" />
-</a>
-<a href={urls.outlook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 w-full py-3 px-4 rounded-xl font-bold text-white transition-all hover:opacity-90 border border-[#222A36]" style={{ backgroundColor: '#0078d4' }}>
+</button>
+<button onClick={() => { window.open(urls.outlook, '_blank', 'noopener,noreferrer'); setShowCalendarMenu(false); }} className="flex items-center gap-3 w-full py-3 px-4 rounded-xl font-bold text-white transition-all hover:opacity-90 border border-[#222A36]" style={{ backgroundColor: '#0078d4' }}>
 <span className="text-2xl">📧</span>
 <div className="text-left">
 <div className="text-sm font-bold">Outlook Calendar</div>
 <div className="text-xs text-blue-200">Opens in new tab</div>
 </div>
 <ChevronRight className="w-5 h-5 ml-auto text-blue-200" />
-</a>
-<a href={urls.yahoo} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 w-full py-3 px-4 rounded-xl font-bold text-white transition-all hover:opacity-90 border border-[#222A36]" style={{ backgroundColor: '#720e9e' }}>
+</button>
+<button onClick={() => { window.open(urls.yahoo, '_blank', 'noopener,noreferrer'); setShowCalendarMenu(false); }} className="flex items-center gap-3 w-full py-3 px-4 rounded-xl font-bold text-white transition-all hover:opacity-90 border border-[#222A36]" style={{ backgroundColor: '#720e9e' }}>
 <span className="text-2xl">📅</span>
 <div className="text-left">
 <div className="text-sm font-bold">Yahoo Calendar</div>
 <div className="text-xs text-purple-200">Opens in new tab</div>
 </div>
 <ChevronRight className="w-5 h-5 ml-auto text-purple-200" />
-</a>
+</button>
 </div>
 </div>
 </div>
