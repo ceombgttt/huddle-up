@@ -1,0 +1,694 @@
+# SPORT CARDS & GAME CARDS WITH CUSTOM BACKGROUNDS
+
+**Complete code for Replit - just drop your images in and they'll work!** 🎨
+
+---
+
+## 🎯 PASTE THIS INTO REPLIT:
+
+```
+CREATE SPORT FILTER CARDS + GAME CARDS WITH BACKGROUNDS
+
+Your images are ready to be dropped into Replit!
+
+═══════════════════════════════════════════════════
+
+STEP 1: CREATE IMAGE FOLDER STRUCTURE
+
+In Replit, create this folder:
+public/images/sports/
+
+Then upload your sport background images with these exact names:
+- basketball.jpg (or .png)
+- football.jpg
+- soccer.jpg
+- baseball.jpg
+- hockey.jpg
+- tennis.jpg
+- golf.jpg
+- mma.jpg
+- nascar.jpg
+- (any other sports you have)
+
+═══════════════════════════════════════════════════
+
+STEP 2: SPORT FILTER CARDS COMPONENT
+
+File: src/components/SportFilterCards.jsx
+
+import React from 'react';
+import './SportFilterCards.css';
+
+const SPORTS = [
+  { id: 'nfl', name: 'Football', image: '/images/sports/football.jpg', emoji: '🏈' },
+  { id: 'nba', name: 'Basketball', image: '/images/sports/basketball.jpg', emoji: '🏀' },
+  { id: 'mlb', name: 'Baseball', image: '/images/sports/baseball.jpg', emoji: '⚾' },
+  { id: 'nhl', name: 'Hockey', image: '/images/sports/hockey.jpg', emoji: '🏒' },
+  { id: 'soccer', name: 'Soccer', image: '/images/sports/soccer.jpg', emoji: '⚽' },
+  { id: 'tennis', name: 'Tennis', image: '/images/sports/tennis.jpg', emoji: '🎾' },
+  { id: 'golf', name: 'Golf', image: '/images/sports/golf.jpg', emoji: '⛳' },
+  { id: 'mma', name: 'MMA', image: '/images/sports/mma.jpg', emoji: '🥊' },
+  { id: 'nascar', name: 'NASCAR', image: '/images/sports/nascar.jpg', emoji: '🏎️' }
+];
+
+function SportFilterCards({ selectedSport, onSelectSport }) {
+  return (
+    <div className="sport-filters">
+      <h2 className="filter-title">CHOOSE YOUR SPORT</h2>
+      
+      <div className="sport-cards-grid">
+        {SPORTS.map(sport => (
+          <div
+            key={sport.id}
+            className={`sport-card ${selectedSport === sport.id ? 'active' : ''}`}
+            onClick={() => onSelectSport(sport.id)}
+          >
+            {/* Background Image */}
+            <div 
+              className="sport-card-bg"
+              style={{ backgroundImage: `url(${sport.image})` }}
+            />
+            
+            {/* Dark Overlay for readability */}
+            <div className="sport-card-overlay" />
+            
+            {/* Content */}
+            <div className="sport-card-content">
+              <span className="sport-emoji">{sport.emoji}</span>
+              <span className="sport-name">{sport.name}</span>
+            </div>
+            
+            {/* Active indicator */}
+            {selectedSport === sport.id && (
+              <div className="sport-card-active-ring" />
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default SportFilterCards;
+
+═══════════════════════════════════════════════════
+
+STEP 3: SPORT FILTER CARDS CSS
+
+File: src/components/SportFilterCards.css
+
+.sport-filters {
+  padding: 20px;
+  background: #0f1115;
+}
+
+.filter-title {
+  font-size: 16px;
+  font-weight: 900;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0 0 16px 0;
+  text-align: center;
+}
+
+/* Grid Layout */
+.sport-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .sport-cards-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .sport-cards-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+/* Individual Sport Card */
+.sport-card {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.sport-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.sport-card:active {
+  transform: scale(0.95);
+}
+
+/* Background Image */
+.sport-card-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  transition: transform 0.3s ease;
+}
+
+.sport-card:hover .sport-card-bg {
+  transform: scale(1.1);
+}
+
+/* Dark Overlay for Text Readability */
+.sport-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.3) 0%,
+    rgba(0, 0, 0, 0.7) 100%
+  );
+  transition: background 0.3s ease;
+}
+
+.sport-card:hover .sport-card-overlay {
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.2) 0%,
+    rgba(0, 0, 0, 0.6) 100%
+  );
+}
+
+/* Content Layer */
+.sport-card-content {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+}
+
+.sport-emoji {
+  font-size: 32px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+.sport-name {
+  font-size: 14px;
+  font-weight: 900;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+  text-align: center;
+}
+
+/* Active State */
+.sport-card.active {
+  box-shadow: 0 0 0 3px #1E90FF;
+}
+
+.sport-card-active-ring {
+  position: absolute;
+  inset: 0;
+  border: 3px solid #1E90FF;
+  border-radius: 16px;
+  z-index: 3;
+  pointer-events: none;
+  animation: pulse-ring 2s infinite;
+}
+
+@keyframes pulse-ring {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(30, 144, 255, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(30, 144, 255, 0);
+  }
+}
+
+/* Active Card Overlay Adjustment */
+.sport-card.active .sport-card-overlay {
+  background: linear-gradient(
+    180deg,
+    rgba(30, 144, 255, 0.3) 0%,
+    rgba(0, 0, 0, 0.7) 100%
+  );
+}
+
+═══════════════════════════════════════════════════
+
+STEP 4: GAME CARD WITH BACKGROUND
+
+File: src/components/GameCard.jsx
+
+import React from 'react';
+import './GameCard.css';
+
+function GameCard({ game, onClick }) {
+  // Get sport background image
+  const getSportBackground = (sport) => {
+    const sportMap = {
+      'NBA': 'basketball',
+      'NFL': 'football',
+      'MLB': 'baseball',
+      'NHL': 'hockey',
+      'MLS': 'soccer',
+      'EPL': 'soccer',
+      'Champions League': 'soccer',
+      'Tennis': 'tennis',
+      'Golf': 'golf',
+      'MMA': 'mma',
+      'NASCAR': 'nascar'
+    };
+    
+    const sportKey = sportMap[game.sport] || 'basketball';
+    return `/images/sports/${sportKey}.jpg`;
+  };
+
+  return (
+    <div className="game-card" onClick={onClick}>
+      {/* Background Image (subtle) */}
+      <div 
+        className="game-card-bg"
+        style={{ backgroundImage: `url(${getSportBackground(game.sport)})` }}
+      />
+      
+      {/* Overlay for readability */}
+      <div className="game-card-overlay" />
+      
+      {/* Content */}
+      <div className="game-card-content">
+        {/* Header */}
+        <div className="game-card-header">
+          <span className="sport-badge">{game.sport}</span>
+          {game.isLive && <span className="live-badge">🔴 LIVE</span>}
+        </div>
+        
+        {/* Game Title */}
+        <h3 className="game-title">
+          {game.homeTeam} vs {game.awayTeam}
+        </h3>
+        
+        {/* Venue */}
+        <p className="venue-name">
+          📍 {game.venueName}
+        </p>
+        
+        {/* Time & Attendees */}
+        <div className="game-card-footer">
+          <span className="game-time">{game.time}</span>
+          <span className="attendees">{game.attendees}👤 going</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default GameCard;
+
+═══════════════════════════════════════════════════
+
+STEP 5: GAME CARD CSS
+
+File: src/components/GameCard.css
+
+.game-card {
+  position: relative;
+  background: #1a1d29;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 12px 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.game-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.game-card:active {
+  transform: scale(0.98);
+}
+
+/* Background Image (VERY SUBTLE - only 15% opacity) */
+.game-card-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.15; /* SUBTLE - adjust 0.1 to 0.3 as needed */
+  filter: blur(2px); /* Slight blur for better text readability */
+  transition: all 0.3s ease;
+}
+
+.game-card:hover .game-card-bg {
+  opacity: 0.2;
+  transform: scale(1.05);
+}
+
+/* Gradient Overlay for Text Readability */
+.game-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(26, 29, 41, 0.85) 0%,
+    rgba(15, 17, 21, 0.9) 100%
+  );
+  pointer-events: none;
+}
+
+/* Content Layer */
+.game-card-content {
+  position: relative;
+  z-index: 2;
+  padding: 20px;
+}
+
+/* Header */
+.game-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.sport-badge {
+  background: rgba(30, 144, 255, 0.2);
+  color: #1E90FF;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.live-badge {
+  background: #ff4757;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 900;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Game Title */
+.game-title {
+  font-size: 22px;
+  font-weight: 900;
+  color: white;
+  margin: 0 0 12px 0;
+  line-height: 1.3;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Venue Name */
+.venue-name {
+  font-size: 16px;
+  color: #1E90FF;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+}
+
+/* Footer */
+.game-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.game-time {
+  font-size: 14px;
+  color: #aaa;
+}
+
+.attendees {
+  font-size: 14px;
+  color: #10B981;
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .game-card {
+    margin: 12px;
+  }
+  
+  .game-title {
+    font-size: 20px;
+  }
+}
+
+═══════════════════════════════════════════════════
+
+STEP 6: USAGE IN YOUR APP
+
+Example usage in Browse page or Home page:
+
+File: src/pages/Browse.jsx
+
+import React, { useState } from 'react';
+import SportFilterCards from '../components/SportFilterCards';
+import GameCard from '../components/GameCard';
+
+function Browse() {
+  const [selectedSport, setSelectedSport] = useState(null);
+  const [games, setGames] = useState([
+    {
+      id: 1,
+      sport: 'NBA',
+      homeTeam: 'Heat',
+      awayTeam: 'Lakers',
+      venueName: 'Jones Sports Bar',
+      time: 'Thu 7:00 PM',
+      attendees: 23,
+      isLive: true
+    },
+    {
+      id: 2,
+      sport: 'NFL',
+      homeTeam: 'Dolphins',
+      awayTeam: 'Patriots',
+      venueName: 'Blue Buzz Tavern',
+      time: 'Sun 1:00 PM',
+      attendees: 31,
+      isLive: false
+    }
+    // ... more games
+  ]);
+
+  return (
+    <div className="browse-page">
+      {/* Sport Filter Cards */}
+      <SportFilterCards 
+        selectedSport={selectedSport}
+        onSelectSport={setSelectedSport}
+      />
+      
+      {/* Games List */}
+      <div className="games-section">
+        <h2>HAPPENING TODAY</h2>
+        {games.map(game => (
+          <GameCard 
+            key={game.id}
+            game={game}
+            onClick={() => navigate(`/party/${game.id}`)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default Browse;
+
+═══════════════════════════════════════════════════
+
+STEP 7: OPACITY CONTROLS (Fine-tune readability)
+
+If your backgrounds are too bright or too dark, adjust these values:
+
+In GameCard.css:
+
+/* Make background MORE visible (20-30%) */
+.game-card-bg {
+  opacity: 0.25; /* Change from 0.15 to 0.25 */
+}
+
+/* Make background LESS visible (5-10%) */
+.game-card-bg {
+  opacity: 0.08; /* Change from 0.15 to 0.08 */
+}
+
+/* Adjust gradient overlay darkness */
+.game-card-overlay {
+  background: linear-gradient(
+    135deg,
+    rgba(26, 29, 41, 0.9) 0%,  /* Darker = more opaque */
+    rgba(15, 17, 21, 0.95) 100%
+  );
+}
+
+═══════════════════════════════════════════════════
+
+STEP 8: IMAGE OPTIMIZATION (Optional)
+
+For best performance, optimize your images:
+
+Recommended sizes:
+- Sport background images: 800x800px
+- Format: JPG (smaller file size)
+- Compression: 70-80% quality
+- Total size per image: < 200KB
+
+You can use:
+- https://squoosh.app (free online tool)
+- Photoshop "Save for Web"
+- ImageOptim (Mac)
+
+═══════════════════════════════════════════════════
+
+STEP 9: FALLBACK FOR MISSING IMAGES
+
+Add this to handle missing sport images:
+
+In SportFilterCards.jsx, add error handling:
+
+<div 
+  className="sport-card-bg"
+  style={{ 
+    backgroundImage: `url(${sport.image})`,
+    backgroundColor: '#1a1d29' // Fallback color
+  }}
+  onError={(e) => {
+    // If image fails to load, use solid color
+    e.target.style.backgroundImage = 'none';
+    e.target.style.backgroundColor = '#2a2d39';
+  }}
+/>
+
+═══════════════════════════════════════════════════
+
+FOLDER STRUCTURE:
+
+Your project should look like:
+
+public/
+  images/
+    sports/
+      basketball.jpg  ← Your image here
+      football.jpg    ← Your image here
+      soccer.jpg      ← Your image here
+      baseball.jpg    ← Your image here
+      hockey.jpg      ← Your image here
+      tennis.jpg      ← Your image here
+      golf.jpg        ← Your image here
+      mma.jpg         ← Your image here
+      nascar.jpg      ← Your image here
+
+src/
+  components/
+    SportFilterCards.jsx
+    SportFilterCards.css
+    GameCard.jsx
+    GameCard.css
+  pages/
+    Browse.jsx
+
+═══════════════════════════════════════════════════
+
+TESTING CHECKLIST:
+
+After uploading your images:
+
+✅ Sport filter cards show backgrounds
+✅ Clicking sport card highlights it
+✅ Game cards show subtle sport backgrounds
+✅ Text is easy to read on all backgrounds
+✅ Hover effects work smoothly
+✅ Responsive on mobile and desktop
+✅ Images load fast
+
+If backgrounds are too bright/dark:
+→ Adjust opacity in Step 7
+
+═══════════════════════════════════════════════════
+
+RESULT:
+
+BEFORE:
+- Simple emoji sport filters (🏀⚽🏈)
+- Plain game cards
+
+AFTER:
+- Beautiful image-based sport filter cards ✅
+- Game cards with subtle sport-themed backgrounds ✅
+- Professional, modern look ✅
+- Easy to read text ✅
+- Smooth animations ✅
+
+Your images will make this look AMAZING! 🎨✨
+```
+
+---
+
+## 🎯 WHAT TO DO NOW:
+
+1. **Copy the code above** → Paste into Replit
+2. **Upload your sport images** → `public/images/sports/` folder
+3. **Name them exactly**:
+   - basketball.jpg
+   - football.jpg
+   - soccer.jpg
+   - etc.
+4. **Test!** → Should work immediately!
+
+---
+
+## 🎨 CUSTOMIZATION:
+
+**If backgrounds are too visible:**
+```css
+.game-card-bg {
+  opacity: 0.08; /* Lower = more subtle */
+}
+```
+
+**If backgrounds are too subtle:**
+```css
+.game-card-bg {
+  opacity: 0.25; /* Higher = more visible */
+}
+```
+
+**Perfect sweet spot: 0.12 - 0.18** ✨
+
+---
+
+**READY TO PASTE AND DROP YOUR IMAGES!** 🚀
+
+Your cool images will make this look INCREDIBLE! 🎨
+

@@ -10,6 +10,19 @@ import adNBA from '@assets/20260304_2335_Image_Generation_remix_01kjy4dgpvf3p83b
 import adNHL from '@assets/20260304_2342_Huddle_Up_Sports_Banner_remix_01kjy4tqf6fj3bwgpk_1772686251669.png';
 import adMLB from '@assets/20260304_2331_Sports_Bar_Excitement_remix_01kjy46em3em9ss98wh8_1772686251670.png';
 import adMain from '@assets/20260304_2344_Image_Generation_remix_01kjy4zcxhfyrremqej8jp2mv_1772686251665.png';
+import sportBgNBA from '@assets/nba_1773279536657.png';
+import sportBgNFL from '@assets/nfl_1773279536656.png';
+import sportBgMLB from '@assets/mlb_1773279536655.png';
+import sportBgNHL from '@assets/nhl_1773279536656.png';
+import sportBgSoccer from '@assets/soccer_1773279536657.png';
+import sportBgChampions from '@assets/championsleague_1773279536655.png';
+import sportBgFIFAWC from '@assets/fifworldcup_1773279536652.png';
+import sportBgTennis from '@assets/tenis_1773279536655.png';
+import sportBgRugby from '@assets/rugby_1773279536655.png';
+import sportBgCricket from '@assets/cricket_1773279536654.png';
+import sportBgBoxing from '@assets/boxing_1773279536656.png';
+import sportBgUFC from '@assets/ufc_&_mma_1773279536656.png';
+import sportBgF1 from '@assets/f1_1773279536656.png';
 
 class ScreenErrorBoundary extends React.Component {
   constructor(props) {
@@ -230,6 +243,28 @@ const SPORT_ICONS = {
  'UFC': '🥊',
  'Boxing': '🥊',
  'FIFA World Cup': '🏆⚽',
+};
+
+const SPORT_BG = {
+ 'All': sportBgChampions,
+ 'NFL': sportBgNFL,
+ 'NBA': sportBgNBA,
+ 'MLB': sportBgMLB,
+ 'NHL': sportBgNHL,
+ 'College Football': sportBgNFL,
+ 'College Basketball': sportBgNBA,
+ 'Premier League': sportBgChampions,
+ 'La Liga': sportBgSoccer,
+ 'Liga MX': sportBgSoccer,
+ 'Champions League': sportBgChampions,
+ 'MLS': sportBgSoccer,
+ 'FIFA World Cup': sportBgFIFAWC,
+ 'Formula 1': sportBgF1,
+ 'Tennis': sportBgTennis,
+ 'Rugby': sportBgRugby,
+ 'Cricket': sportBgCricket,
+ 'UFC': sportBgUFC,
+ 'Boxing': sportBgBoxing,
 };
 
 // Teams database for favorite team selection
@@ -7801,19 +7836,34 @@ const qrScannerRef = useRef(null);
  <button
  key={sport}
  onClick={() => { if (sport === 'All') { setSelectedSports([]); } else { setSelectedSports(prev => prev.includes(sport) ? prev.filter(s => s !== sport) : [...prev, sport]); } }}
- className={`flex flex-col items-center justify-center min-w-[60px] px-2 py-2 rounded-[10px] font-bold transition-all active:scale-[0.98] ${
+ className={`relative flex-shrink-0 w-[72px] h-[72px] rounded-[12px] overflow-hidden transition-all active:scale-[0.96] ${
  (sport === 'All' && selectedSports.length === 0) || (sport !== 'All' && selectedSports.includes(sport))
- ? 'bg-[#1E90FF] text-white shadow-sm shadow-[#1E90FF]/30 sport-pill-active'
+ ? 'ring-2 ring-[#1E90FF] ring-offset-1 ring-offset-[#0F1115] shadow-lg shadow-[#1E90FF]/40'
  : isLive
- ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 sport-pill-live'
+ ? 'ring-2 ring-red-500 ring-offset-1 ring-offset-[#0F1115]'
  : !activeSports.has(sport) && sport !== 'All'
- ? 'bg-[#151A22]/50 text-[#A0A4AB]/50'
- : 'bg-[#151A22] text-[#A0A4AB] hover:bg-[#222A36]'
+ ? 'opacity-40'
+ : ''
  }`}
+ style={{ cursor: 'pointer' }}
  >
- <span className="text-lg leading-none">{SPORT_ICONS[sport] || '🏅'}</span>
- <span className="text-[11px] font-semibold leading-tight mt-[6px] text-center whitespace-nowrap">{({'College Football':'NCAAF','College Basketball':'NCAA BB','Champions League':'CHL','Premier League':'EPL','Formula 1':'F1'})[sport] || sport}</span>
- {isLive && sport !== 'All' && <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse mt-0.5" />}
+ {SPORT_BG[sport] ? (
+ <img src={SPORT_BG[sport]} alt={sport} className="absolute inset-0 w-full h-full object-cover" />
+ ) : (
+ <div className="absolute inset-0 bg-[#151A22]" />
+ )}
+ <div className={`absolute inset-0 ${
+ (sport === 'All' && selectedSports.length === 0) || (sport !== 'All' && selectedSports.includes(sport))
+ ? 'bg-gradient-to-b from-[#1E90FF]/30 to-black/70'
+ : isLive
+ ? 'bg-gradient-to-b from-red-900/40 to-black/75'
+ : 'bg-gradient-to-b from-black/20 to-black/75'
+ }`} />
+ <div className="relative z-10 h-full flex flex-col items-center justify-center gap-0.5 px-1">
+ <span className="text-xl leading-none drop-shadow-md">{SPORT_ICONS[sport] || '🏅'}</span>
+ <span className="text-[10px] font-black text-white text-center leading-tight" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>{({'College Football':'NCAAF','College Basketball':'NCAA BB','Champions League':'UCL','Premier League':'EPL','Formula 1':'F1','FIFA World Cup':'FIFA WC'})[sport] || sport}</span>
+ {isLive && sport !== 'All' && <span className="w-1.5 h-1.5 bg-red-400 rounded-full animate-pulse" />}
+ </div>
  </button>
  );
  });
