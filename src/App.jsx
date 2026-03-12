@@ -7757,7 +7757,7 @@ const qrScannerRef = useRef(null);
 ))}
  {dateFilter !== 'All' && (
    <span className="inline-flex items-center gap-1 px-3 py-1 bg-purple-500/20 text-purple-300 text-xs font-bold rounded-full border border-purple-500/30">
-     <Calendar className="w-3 h-3" /> {dateFilter}
+     <Calendar className="w-4 h-4" /> {dateFilter}
      <button onClick={() => setDateFilter('All')} className="ml-1 hover:text-white transition-colors"><X className="w-3 h-3" /></button>
    </span>
  )}
@@ -7844,7 +7844,7 @@ const qrScannerRef = useRef(null);
  <div>
  <div className="flex items-center gap-2">
  <span className="text-lg">👇</span>
- <span className="text-white font-black text-base uppercase tracking-wide" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>Tap Any Game to Start a Watch Party</span>
+ <span className="text-white font-black text-xl uppercase tracking-wide" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>Tap Any Game to Start a Watch Party</span>
  </div>
  <span className="text-[#A0A4AB] text-xs">({filteredGames.length} {filteredGames.length === 1 ? 'game' : 'games'})</span>
  </div>
@@ -7897,23 +7897,23 @@ const qrScannerRef = useRef(null);
  )}
  <button
  onClick={(e) => { e.stopPropagation(); loadGames(); }}
- className="p-1 rounded-full text-[#A0A4AB]/50 hover:text-[#1E90FF] transition-all active:rotate-180"
+ className="p-1.5 rounded-full text-[#A0A4AB]/50 hover:text-[#1E90FF] transition-all active:rotate-180"
  title="Refresh scores"
  >
- <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+ <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
  <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
  </svg>
  </button>
  {user && (
  <button
  onClick={(e) => { e.stopPropagation(); toggleWatchGame(game); }}
- className={`p-1 rounded-full transition-all ${
+ className={`p-1.5 rounded-full transition-all ${
  watchedGames.includes(game.id)
  ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/40'
  : 'text-[#A0A4AB]/50 hover:text-yellow-400'
  }`}
  >
- <svg className="w-3.5 h-3.5" fill={watchedGames.includes(game.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+ <svg className="w-5 h-5" fill={watchedGames.includes(game.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
  </svg>
  </button>
@@ -7956,9 +7956,9 @@ const qrScannerRef = useRef(null);
  </div>
  </div>
  )}
- <div className="flex flex-col items-center gap-0.5 text-[#A0A4AB] text-sm mt-1">
+ <div className="flex flex-col items-center gap-0.5 text-[#A0A4AB] text-base mt-1">
  <div className="flex items-center gap-1">
- <Calendar className="w-3 h-3" />
+ <Calendar className="w-4 h-4" />
  {formatDateTime(game.startTime)}
  </div>
  {game.broadcast && (
