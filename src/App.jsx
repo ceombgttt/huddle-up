@@ -2836,6 +2836,30 @@ function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast
 }
 
 
+const CountdownTimer = React.memo(({ targetDate, color, label }) => {
+  const [tick, setTick] = React.useState(Date.now());
+  React.useEffect(() => {
+    const id = setInterval(() => setTick(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const diff = targetDate - tick;
+  if (diff <= 0) return <p className={`text-[10px] font-bold text-center uppercase tracking-wide ${color}`}>{label}</p>;
+  const days = Math.floor(diff / 86400000);
+  const hrs = Math.floor((diff % 86400000) / 3600000);
+  const mins = Math.floor((diff % 3600000) / 60000);
+  const secs = Math.floor((diff % 60000) / 1000);
+  return (
+    <div className="grid grid-cols-4 gap-1.5 mb-2">
+      {[{v: days, l: 'DAYS'}, {v: hrs, l: 'HRS'}, {v: mins, l: 'MIN'}, {v: secs, l: 'SEC'}].map(({v, l}) => (
+        <div key={l} className="text-center bg-black/30 rounded-lg py-1.5 border border-white/10">
+          <div className="text-white font-black text-lg leading-none" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{String(v).padStart(2, '0')}</div>
+          <div className={`text-[9px] font-bold mt-0.5 ${color}`}>{l}</div>
+        </div>
+      ))}
+    </div>
+  );
+});
+
 const HuddleUpApp = () => {
  const [currentScreen, setCurrentScreenRaw] = useState('welcome');
  const screenHistoryRef = useRef([]);
@@ -2921,9 +2945,7 @@ const HuddleUpApp = () => {
      return () => clearTimeout(timer);
    }
  }, [user, showPrelaunchModal, showOnboarding]);
- const [wcTick, setWcTick] = useState(Date.now());
- useEffect(() => { if (currentScreen !== 'games') return; const id = setInterval(() => setWcTick(Date.now()), 1000); return () => clearInterval(id); }, [currentScreen]);
-useEffect(() => { window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; if (mainContainerRef.current) mainContainerRef.current.scrollTop = 0; requestAnimationFrame(() => { window.scrollTo(0, 0); if (mainContainerRef.current) mainContainerRef.current.scrollTop = 0; }); }, [currentScreen]);
+ useEffect(() => { window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; if (mainContainerRef.current) mainContainerRef.current.scrollTop = 0; requestAnimationFrame(() => { window.scrollTo(0, 0); if (mainContainerRef.current) mainContainerRef.current.scrollTop = 0; }); }, [currentScreen]);
 useEffect(() => { if (currentScreen === 'nearbyParties') setCurrentScreen('browseParties'); }, [currentScreen]);
 useEffect(() => { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; }, []);
 useEffect(() => { if (user) { window.scrollTo(0, 0); } }, [user]);
@@ -3616,7 +3638,7 @@ const qrScannerRef = useRef(null);
    detectUserLocation();
  });
  const hotInterval = setInterval(loadHotParties, 5 * 60 * 1000);
- const lcInterval = setInterval(loadLastChanceParties, 60 * 1000);
+ const lcInterval = setInterval(loadLastChanceParties, 3 * 60 * 1000);
 
  if (!localStorage.getItem('huddle_prelaunch_seen')) {
    setTimeout(() => {
@@ -3690,7 +3712,7 @@ const qrScannerRef = useRef(null);
  if (user) {
  loadFriends();
  loadDmUnread();
- const friendPoll = setInterval(() => { loadFriends(); loadDmUnread(); }, 30000);
+ const friendPoll = setInterval(() => { loadFriends(); loadDmUnread(); }, 60000);
  return () => clearInterval(friendPoll);
  }
  }, [user?.id]);
@@ -4953,7 +4975,7 @@ const qrScannerRef = useRef(null);
  }
  };
 
- const filteredGames = games.filter(game => {
+ const filteredGames = useMemo(() => games.filter(game => {
  if (game.gameStatus === 'final') return false;
  if (game.gameStatus !== 'live') {
    const gameTime = new Date(game.startTime);
@@ -5020,7 +5042,7 @@ const qrScannerRef = useRef(null);
    if (aHasParties !== bHasParties) return bHasParties - aHasParties;
    if (aHasParties && bHasParties) return bAttendees - aAttendees;
    return 0;
- });
+ }), [games, selectedSports, searchTerm, myTeamsOnly, dateFilter, sortOption, parties]);
  const hasActiveFilters = dateFilter !== 'All' || sortOption !== 'Soonest' || selectedSports.length > 0 || searchTerm.trim() !== '';
 
  const isCityMatch = (partyCity) => {
@@ -8458,30 +8480,8 @@ Become a Sponsor →
 {(() => {
  const wcStart = new Date('2026-06-11T19:00:00Z');
  const cccStart = new Date('2026-04-22T20:00:00Z');
- const now = wcTick;
- const wcDiff = wcStart.getTime() - now;
- const cccDiff = cccStart.getTime() - now;
- const toUnits = (diff) => {
-   const d = Math.max(0, diff);
-   return {
-     days: Math.floor(d / 86400000),
-     hrs: Math.floor((d % 86400000) / 3600000),
-     mins: Math.floor((d % 3600000) / 60000),
-     secs: Math.floor((d % 60000) / 1000),
-   };
- };
- const wc = toUnits(wcDiff);
- const ccc = toUnits(cccDiff);
- const Countdown = ({ units, color }) => (
-   <div className="grid grid-cols-4 gap-1.5 mb-2">
-     {[{v: units.days, l: 'DAYS'}, {v: units.hrs, l: 'HRS'}, {v: units.mins, l: 'MIN'}, {v: units.secs, l: 'SEC'}].map(({v, l}) => (
-       <div key={l} className="text-center bg-black/30 rounded-lg py-1.5 border border-white/10">
-         <div className="text-white font-black text-lg leading-none" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>{String(v).padStart(2, '0')}</div>
-         <div className={`text-[9px] font-bold mt-0.5 ${color}`}>{l}</div>
-       </div>
-     ))}
-   </div>
- );
+ const wcFuture = wcStart.getTime() > Date.now();
+ const cccFuture = cccStart.getTime() > Date.now();
  return (
    <div className="max-w-4xl mx-auto px-4 pb-2">
      <div className="glow-divider-amber mb-[15px]" />
@@ -8495,7 +8495,7 @@ Become a Sponsor →
        <div className="flex gap-4 w-max pb-1">
 
          {/* FIFA World Cup 2026 */}
-         {wcDiff > 0 && (
+         {wcFuture && (
          <div
            onClick={() => { setSelectedSports(['FIFA World Cup']); setCurrentScreen('games'); window.scrollTo(0,0); }}
            className="flex-shrink-0 w-72 relative overflow-hidden rounded-2xl border border-emerald-500/40 cursor-pointer hover:border-emerald-400/60 transition-all active:scale-[0.99]"
@@ -8517,7 +8517,7 @@ Become a Sponsor →
                  <img src="https://flagcdn.com/w40/ca.png" alt="" className="w-5 h-3.5 object-cover rounded-sm opacity-70" onError={(e) => { e.target.onerror=null; e.target.style.display='none'; }} />
                </div>
              </div>
-             <Countdown units={wc} color="text-emerald-300/60" />
+             <CountdownTimer targetDate={wcStart.getTime()} color="text-emerald-300/60" label="Tournament Underway" />
              <p className="text-emerald-200/50 text-[10px] text-center font-semibold">Tap to see matches & create watch parties</p>
            </div>
          </div>
@@ -8542,9 +8542,9 @@ Become a Sponsor →
                </div>
                <span className="text-2xl">⚽</span>
              </div>
-             {cccDiff > 0 ? (
+             {cccFuture ? (
                <>
-                 <Countdown units={ccc} color="text-orange-300/60" />
+                 <CountdownTimer targetDate={cccStart.getTime()} color="text-orange-300/60" label="Tournament Underway" />
                  <p className="text-orange-200/50 text-[10px] text-center font-semibold">Tap to see matches & create watch parties</p>
                </>
              ) : (

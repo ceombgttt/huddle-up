@@ -585,6 +585,15 @@ export async function initDB() {
 
       CREATE INDEX IF NOT EXISTS idx_parties_trending ON parties(is_trending, hot_score DESC);
       CREATE INDEX IF NOT EXISTS idx_venues_location ON venues(latitude, longitude);
+      CREATE INDEX IF NOT EXISTS idx_parties_host_id ON parties(host_id);
+      CREATE INDEX IF NOT EXISTS idx_parties_game_id ON parties(game_id);
+      CREATE INDEX IF NOT EXISTS idx_parties_game_time ON parties(game_time);
+      CREATE INDEX IF NOT EXISTS idx_parties_last_chance ON parties(game_time) WHERE game_time IS NOT NULL;
+      CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+      CREATE INDEX IF NOT EXISTS idx_venues_claimed_by ON venues(claimed_by) WHERE claimed_by IS NOT NULL;
+      CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_party_attendees_party ON party_attendees(party_id);
+      CREATE INDEX IF NOT EXISTS idx_party_attendees_user ON party_attendees(user_id);
     `);
 
     await client.query(`
