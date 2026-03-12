@@ -261,13 +261,13 @@ export const api = {
     createHighlight: (partyId, data) => request(`/trending/highlights/${partyId}`, { method: 'POST', body: JSON.stringify(data) }),
   },
   tickets: {
-    setup: (partyId, data) => request(`/tickets/parties/${partyId}/tickets/setup`, { method: 'POST', body: JSON.stringify(data) }),
-    getInfo: (partyId) => request(`/tickets/parties/${partyId}/tickets`),
-    purchase: (partyId) => request(`/tickets/parties/${partyId}/tickets/purchase`, { method: 'POST' }),
+    setup: (partyId, data) => request(`/tickets/${partyId}/tickets/setup`, { method: 'POST', body: JSON.stringify(data) }),
+    getInfo: (partyId) => request(`/tickets/${partyId}/tickets`),
+    purchase: (partyId) => request(`/tickets/${partyId}/tickets/purchase`, { method: 'POST' }),
     myTickets: () => request('/tickets/my-tickets'),
-    promote: (partyId, data) => request(`/tickets/parties/${partyId}/promote`, { method: 'POST', body: JSON.stringify(data) }),
+    promote: (partyId, data) => request(`/tickets/${partyId}/promote`, { method: 'POST', body: JSON.stringify(data) }),
     promoted: () => request('/tickets/promoted'),
-    cancelPromotion: (partyId) => request(`/tickets/parties/${partyId}/promote`, { method: 'DELETE' }),
+    cancelPromotion: (partyId) => request(`/tickets/${partyId}/promote`, { method: 'DELETE' }),
   },
   alerts: {
     getPreferences: () => request('/alerts/preferences'),
@@ -346,6 +346,6 @@ export const api = {
     link: (code) => request('/venue-contacts/link', { method: 'POST', body: JSON.stringify({ code }) }),
     getContacts: (sort) => request(`/venue-contacts/contacts${sort ? '?sort=' + sort : ''}`),
     invite: (contactIds, partyId, message) => request('/venue-contacts/invite', { method: 'POST', body: JSON.stringify({ contactIds, partyId, message }) }),
-    toggleFavorite: (id, favorite) => request(`/venue-contacts/${id}/favorite`, { method: 'PATCH', body: JSON.stringify({ favorite }) }),
+    toggleFavorite: (id, favorite) => request(`/venue-contacts/contacts/${id}/favorite`, { method: 'PATCH', body: JSON.stringify({ favorite }) }),
   },
 };
