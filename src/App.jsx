@@ -1533,20 +1533,29 @@ function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast
  }
 
  // Calculate analytics
- const venueParties = parties.filter(p => p.venueId === userVenue.id);
- const totalAttendees = venueParties.reduce((sum, party) => sum + party.attendees.length, 0);
+ const venueParties = parties.filter(p =>
+   p.venueName?.trim().toLowerCase() === userVenue.name?.trim().toLowerCase()
+ );
+ const totalAttendees = venueParties.reduce((sum, party) => sum + (party.attendees?.length || 0), 0);
+
  const upcomingParties = venueParties.filter(party => {
- const game = games.find(g => g.id === party.gameId);
- return game && new Date(game.startTime) > new Date();
+   // Try ESPN cache first
+   const game = games.find(g => g.id === party.gameId);
+   if (game) return new Date(game.startTime) > new Date();
+   // Fall back to ISO gameTime if available
+   if (party.gameTime && /^\d{4}-\d{2}-\d{2}/.test(party.gameTime)) {
+     return new Date(party.gameTime) > new Date();
+   }
+   // Fall back to createdAt — treat as upcoming if created within last 48h
+   return party.createdAt && (new Date() - new Date(party.createdAt)) < 48 * 60 * 60 * 1000;
  });
- 
- // Sport breakdown
+
+ // Sport breakdown — use party.sport directly, no ESPN cache needed
  const sportBreakdown = {};
  venueParties.forEach(party => {
- const game = games.find(g => g.id === party.gameId);
- if (game) {
- sportBreakdown[game.sport] = (sportBreakdown[game.sport] || 0) + 1;
- }
+   if (party.sport) {
+     sportBreakdown[party.sport] = (sportBreakdown[party.sport] || 0) + 1;
+   }
  });
 
  // Recent parties
@@ -1889,29 +1898,31 @@ function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast
  <div className="space-y-3">
  {recentParties.map(party => {
  const game = games.find(g => g.id === party.gameId);
- if (!game) return null;
- 
+ const displaySport = game?.sport || party.sport || 'Watch Party';
+ const displayHome = game?.homeTeam || party.homeTeam || party.title || 'Party';
+ const displayAway = game?.awayTeam || party.awayTeam || '';
+
  return (
  <div
  key={party.id}
  className="bg-[#151A22] p-5 rounded-xl border border-[#222A36] flex items-center justify-between"
  >
  <div className="flex-1">
- <div className="flex items-center gap-2 mb-1">
+ <div className="flex items-center gap-2 mb-1 flex-wrap">
  <span className="px-2 py-1 bg-[#1E90FF]/20 text-[#1E90FF] text-xs font-bold rounded-full">
- {game.sport}
+ {displaySport}
  </span>
- <span className="text-white font-bold">
- {game.homeTeam} vs {game.awayTeam}
+ <span className="text-white font-bold text-sm">
+ {displayHome}{displayAway ? ` vs ${displayAway}` : ''}
  </span>
  </div>
  <div className="text-sm text-[#A0A4AB]">
- Hosted by {party.hostName} • {party.attendees.length} attendees
+ Hosted by {party.hostName || 'Unknown'} • {party.attendees?.length || 0} attendees
  </div>
  </div>
  <div className="flex flex-col items-end gap-1">
  <div className="text-sm text-[#A0A4AB]/70">
- {new Date(party.createdAt).toLocaleDateString()}
+ {party.createdAt ? new Date(party.createdAt).toLocaleDateString() : ''}
  </div>
  <button onClick={async (e) => { e.stopPropagation(); const url = `${window.location.origin}?party=${party.id}`; if (navigator.share) { try { await navigator.share({ title: party.title || 'Watch Party', text: `Join me at ${party.venueName || 'this watch party'}!`, url }); } catch (err) { console.error(err); } } else { try { await navigator.clipboard.writeText(url); showToast('Link copied!', 'success'); } catch (err) { console.error(err); } } }} className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 transition-colors">
  <Share2 className="w-3 h-3" /> Share
@@ -2822,14 +2833,14 @@ function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast
  <div className="bg-[#151A22] rounded-2xl border border-[#222A36] p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
  <h3 className="text-lg font-black text-white mb-2">Invite to a Party</h3>
  <p className="text-sm text-[#A0A4AB] mb-4">Select a party to invite {selectedContactIds.length} contact{selectedContactIds.length !== 1 ? 's' : ''} to:</p>
- {parties.filter(p => p.venueId === userVenue.id || p.venueName === userVenue.name).length === 0 ? (
+ {parties.filter(p => p.venueName?.trim().toLowerCase() === userVenue.name?.trim().toLowerCase()).length === 0 ? (
  <div className="text-center py-6">
  <p className="text-[#A0A4AB] text-sm mb-3">No active parties at your venue</p>
  <button onClick={() => { setShowInviteModal(false); setCurrentScreen('games'); }} className="px-4 py-2 bg-[#1E90FF] text-white font-bold rounded-xl text-sm">Create a Party</button>
  </div>
  ) : (
  <div className="space-y-2 max-h-60 overflow-y-auto">
- {parties.filter(p => p.venueId === userVenue.id || p.venueName === userVenue.name).map(p => (
+ {parties.filter(p => p.venueName?.trim().toLowerCase() === userVenue.name?.trim().toLowerCase()).map(p => (
  <button key={p.id} onClick={() => handleSendInvites(p.id)} disabled={invitingSending} className="w-full text-left p-3 bg-[#0F1115] rounded-xl border border-[#222A36] hover:border-[#1E90FF]/40 transition-all">
  <p className="text-white text-sm font-semibold">{p.homeTeam} vs {p.awayTeam}</p>
  <p className="text-[#A0A4AB] text-xs">{p.sport} · {p.venueName}</p>
