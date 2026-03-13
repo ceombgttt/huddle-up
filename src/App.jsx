@@ -107,60 +107,60 @@ function QrScannerInit({ isOpen, onResult, scannerRef, onError }) {
 // Sample games data for different sports
 const SAMPLE_GAMES = [
  // NFL
- { id: 'nfl1', sport: 'NFL', homeTeam: 'Kansas City Chiefs', awayTeam: 'Buffalo Bills', startTime: '2026-02-16T18:00:00', venue: 'Arrowhead Stadium' },
- { id: 'nfl2', sport: 'NFL', homeTeam: 'San Francisco 49ers', awayTeam: 'Dallas Cowboys', startTime: '2026-02-16T20:30:00', venue: "Levi's Stadium" },
- { id: 'nfl3', sport: 'NFL', homeTeam: 'Green Bay Packers', awayTeam: 'Chicago Bears', startTime: '2026-02-17T13:00:00', venue: 'Lambeau Field' },
+ { id: 'nfl1', sport: 'NFL', homeTeam: 'Kansas City Chiefs', awayTeam: 'Buffalo Bills', startTime: '2026-09-10T20:20:00Z', venue: 'Arrowhead Stadium' },
+ { id: 'nfl2', sport: 'NFL', homeTeam: 'San Francisco 49ers', awayTeam: 'Dallas Cowboys', startTime: '2026-09-13T17:00:00Z', venue: "Levi's Stadium" },
+ { id: 'nfl3', sport: 'NFL', homeTeam: 'Green Bay Packers', awayTeam: 'Chicago Bears', startTime: '2026-09-13T13:00:00Z', venue: 'Lambeau Field' },
  
  // NBA
- { id: 'nba1', sport: 'NBA', homeTeam: 'Miami Heat', awayTeam: 'Boston Celtics', startTime: '2026-02-16T19:30:00', venue: 'FTX Arena' },
- { id: 'nba2', sport: 'NBA', homeTeam: 'LA Lakers', awayTeam: 'Golden State Warriors', startTime: '2026-02-16T22:00:00', venue: 'Crypto.com Arena' },
- { id: 'nba3', sport: 'NBA', homeTeam: 'Milwaukee Bucks', awayTeam: 'Philadelphia 76ers', startTime: '2026-02-17T20:00:00', venue: 'Fiserv Forum' },
+ { id: 'nba1', sport: 'NBA', homeTeam: 'Miami Heat', awayTeam: 'Boston Celtics', startTime: '2026-04-15T23:30:00Z', venue: 'FTX Arena' },
+ { id: 'nba2', sport: 'NBA', homeTeam: 'LA Lakers', awayTeam: 'Golden State Warriors', startTime: '2026-04-16T02:00:00Z', venue: 'Crypto.com Arena' },
+ { id: 'nba3', sport: 'NBA', homeTeam: 'Milwaukee Bucks', awayTeam: 'Philadelphia 76ers', startTime: '2026-04-16T00:00:00Z', venue: 'Fiserv Forum' },
  
  // MLB
- { id: 'mlb1', sport: 'MLB', homeTeam: 'New York Yankees', awayTeam: 'Boston Red Sox', startTime: '2026-04-15T19:05:00', venue: 'Yankee Stadium' },
- { id: 'mlb2', sport: 'MLB', homeTeam: 'LA Dodgers', awayTeam: 'San Francisco Giants', startTime: '2026-04-15T22:10:00', venue: 'Dodger Stadium' },
- { id: 'mlb3', sport: 'MLB', homeTeam: 'Chicago Cubs', awayTeam: 'St. Louis Cardinals', startTime: '2026-04-16T14:20:00', venue: 'Wrigley Field' },
+ { id: 'mlb1', sport: 'MLB', homeTeam: 'New York Yankees', awayTeam: 'Boston Red Sox', startTime: '2026-04-15T23:05:00Z', venue: 'Yankee Stadium' },
+ { id: 'mlb2', sport: 'MLB', homeTeam: 'LA Dodgers', awayTeam: 'San Francisco Giants', startTime: '2026-04-16T02:10:00Z', venue: 'Dodger Stadium' },
+ { id: 'mlb3', sport: 'MLB', homeTeam: 'Chicago Cubs', awayTeam: 'St. Louis Cardinals', startTime: '2026-04-16T18:20:00Z', venue: 'Wrigley Field' },
  
  // NHL
- { id: 'nhl1', sport: 'NHL', homeTeam: 'Toronto Maple Leafs', awayTeam: 'Montreal Canadiens', startTime: '2026-02-16T19:00:00', venue: 'Scotiabank Arena' },
- { id: 'nhl2', sport: 'NHL', homeTeam: 'Boston Bruins', awayTeam: 'New York Rangers', startTime: '2026-02-17T18:00:00', venue: 'TD Garden' },
- { id: 'nhl3', sport: 'NHL', homeTeam: 'Colorado Avalanche', awayTeam: 'Vegas Golden Knights', startTime: '2026-02-17T21:00:00', venue: 'Ball Arena' },
+ { id: 'nhl1', sport: 'NHL', homeTeam: 'Toronto Maple Leafs', awayTeam: 'Montreal Canadiens', startTime: '2026-04-15T23:00:00Z', venue: 'Scotiabank Arena' },
+ { id: 'nhl2', sport: 'NHL', homeTeam: 'Boston Bruins', awayTeam: 'New York Rangers', startTime: '2026-04-16T22:00:00Z', venue: 'TD Garden' },
+ { id: 'nhl3', sport: 'NHL', homeTeam: 'Colorado Avalanche', awayTeam: 'Vegas Golden Knights', startTime: '2026-04-17T01:00:00Z', venue: 'Ball Arena' },
  
  // College Football
- { id: 'cfb1', sport: 'College Football', homeTeam: 'Alabama Crimson Tide', awayTeam: 'Georgia Bulldogs', startTime: '2026-09-12T15:30:00', venue: 'Bryant-Denny Stadium' },
- { id: 'cfb2', sport: 'College Football', homeTeam: 'Ohio State Buckeyes', awayTeam: 'Michigan Wolverines', startTime: '2026-11-28T12:00:00', venue: 'Ohio Stadium' },
- { id: 'cfb3', sport: 'College Football', homeTeam: 'USC Trojans', awayTeam: 'Notre Dame Fighting Irish', startTime: '2026-10-17T19:30:00', venue: 'LA Memorial Coliseum' },
+ { id: 'cfb1', sport: 'College Football', homeTeam: 'Alabama Crimson Tide', awayTeam: 'Georgia Bulldogs', startTime: '2026-09-12T19:30:00Z', venue: 'Bryant-Denny Stadium' },
+ { id: 'cfb2', sport: 'College Football', homeTeam: 'Ohio State Buckeyes', awayTeam: 'Michigan Wolverines', startTime: '2026-11-28T17:00:00Z', venue: 'Ohio Stadium' },
+ { id: 'cfb3', sport: 'College Football', homeTeam: 'USC Trojans', awayTeam: 'Notre Dame Fighting Irish', startTime: '2026-10-17T23:30:00Z', venue: 'LA Memorial Coliseum' },
  
  // College Basketball
- { id: 'cbb1', sport: 'College Basketball', homeTeam: 'Duke Blue Devils', awayTeam: 'North Carolina Tar Heels', startTime: '2026-02-18T21:00:00', venue: 'Cameron Indoor Stadium' },
- { id: 'cbb2', sport: 'College Basketball', homeTeam: 'Kansas Jayhawks', awayTeam: 'Kentucky Wildcats', startTime: '2026-02-20T20:00:00', venue: 'Allen Fieldhouse' },
- { id: 'cbb3', sport: 'College Basketball', homeTeam: 'UConn Huskies', awayTeam: 'Villanova Wildcats', startTime: '2026-02-22T14:00:00', venue: 'Gampel Pavilion' },
+ { id: 'cbb1', sport: 'College Basketball', homeTeam: 'Duke Blue Devils', awayTeam: 'North Carolina Tar Heels', startTime: '2026-03-19T01:00:00Z', venue: 'Cameron Indoor Stadium' },
+ { id: 'cbb2', sport: 'College Basketball', homeTeam: 'Kansas Jayhawks', awayTeam: 'Kentucky Wildcats', startTime: '2026-03-20T00:00:00Z', venue: 'Allen Fieldhouse' },
+ { id: 'cbb3', sport: 'College Basketball', homeTeam: 'UConn Huskies', awayTeam: 'Villanova Wildcats', startTime: '2026-03-21T18:00:00Z', venue: 'Gampel Pavilion' },
  
  // Premier League
- { id: 'epl1', sport: 'Premier League', homeTeam: 'Manchester United', awayTeam: 'Liverpool', startTime: '2026-02-16T12:30:00', venue: 'Old Trafford' },
- { id: 'epl2', sport: 'Premier League', homeTeam: 'Arsenal', awayTeam: 'Chelsea', startTime: '2026-02-16T15:00:00', venue: 'Emirates Stadium' },
- { id: 'epl3', sport: 'Premier League', homeTeam: 'Manchester City', awayTeam: 'Tottenham', startTime: '2026-02-17T16:30:00', venue: 'Etihad Stadium' },
+ { id: 'epl1', sport: 'Premier League', homeTeam: 'Manchester United', awayTeam: 'Liverpool', startTime: '2026-04-18T16:30:00Z', venue: 'Old Trafford' },
+ { id: 'epl2', sport: 'Premier League', homeTeam: 'Arsenal', awayTeam: 'Chelsea', startTime: '2026-04-18T19:00:00Z', venue: 'Emirates Stadium' },
+ { id: 'epl3', sport: 'Premier League', homeTeam: 'Manchester City', awayTeam: 'Tottenham', startTime: '2026-04-19T20:30:00Z', venue: 'Etihad Stadium' },
  
  // Liga MX
- { id: 'mx1', sport: 'Liga MX', homeTeam: 'Club América', awayTeam: 'Chivas Guadalajara', startTime: '2026-02-16T20:00:00', venue: 'Estadio Azteca' },
- { id: 'mx2', sport: 'Liga MX', homeTeam: 'Cruz Azul', awayTeam: 'Pumas UNAM', startTime: '2026-02-17T18:00:00', venue: 'Estadio Azul' },
+ { id: 'mx1', sport: 'Liga MX', homeTeam: 'Club América', awayTeam: 'Chivas Guadalajara', startTime: '2026-04-18T00:00:00Z', venue: 'Estadio Azteca' },
+ { id: 'mx2', sport: 'Liga MX', homeTeam: 'Cruz Azul', awayTeam: 'Pumas UNAM', startTime: '2026-04-18T22:00:00Z', venue: 'Estadio Azul' },
 
  // La Liga
- { id: 'lla1', sport: 'La Liga', homeTeam: 'Real Madrid', awayTeam: 'Barcelona', startTime: '2026-03-01T16:00:00', venue: 'Santiago Bernabéu' },
- { id: 'lla2', sport: 'La Liga', homeTeam: 'Atletico Madrid', awayTeam: 'Sevilla', startTime: '2026-03-08T14:00:00', venue: 'Metropolitano Stadium' },
+ { id: 'lla1', sport: 'La Liga', homeTeam: 'Real Madrid', awayTeam: 'Barcelona', startTime: '2026-04-18T20:00:00Z', venue: 'Santiago Bernabéu' },
+ { id: 'lla2', sport: 'La Liga', homeTeam: 'Atletico Madrid', awayTeam: 'Sevilla', startTime: '2026-04-19T18:00:00Z', venue: 'Metropolitano Stadium' },
 
  // Champions League
- { id: 'ucl1', sport: 'Champions League', homeTeam: 'Real Madrid', awayTeam: 'Manchester City', startTime: '2026-02-18T15:00:00', venue: 'Santiago Bernabéu' },
- { id: 'ucl2', sport: 'Champions League', homeTeam: 'Bayern Munich', awayTeam: 'PSG', startTime: '2026-02-19T15:00:00', venue: 'Allianz Arena' },
- { id: 'ucl3', sport: 'Champions League', homeTeam: 'Arsenal', awayTeam: 'Inter Milan', startTime: '2026-03-11T15:00:00', venue: 'Emirates Stadium' },
+ { id: 'ucl1', sport: 'Champions League', homeTeam: 'Real Madrid', awayTeam: 'Manchester City', startTime: '2026-04-21T19:00:00Z', venue: 'Santiago Bernabéu' },
+ { id: 'ucl2', sport: 'Champions League', homeTeam: 'Bayern Munich', awayTeam: 'PSG', startTime: '2026-04-22T19:00:00Z', venue: 'Allianz Arena' },
+ { id: 'ucl3', sport: 'Champions League', homeTeam: 'Arsenal', awayTeam: 'Inter Milan', startTime: '2026-04-23T19:00:00Z', venue: 'Emirates Stadium' },
  
  // MLS
- { id: 'mls1', sport: 'MLS', homeTeam: 'LA Galaxy', awayTeam: 'LAFC', startTime: '2026-02-16T22:30:00', venue: 'Dignity Health Sports Park' },
- { id: 'mls2', sport: 'MLS', homeTeam: 'Seattle Sounders', awayTeam: 'Portland Timbers', startTime: '2026-02-17T19:00:00', venue: 'Lumen Field' },
+ { id: 'mls1', sport: 'MLS', homeTeam: 'LA Galaxy', awayTeam: 'LAFC', startTime: '2026-04-18T02:30:00Z', venue: 'Dignity Health Sports Park' },
+ { id: 'mls2', sport: 'MLS', homeTeam: 'Seattle Sounders', awayTeam: 'Portland Timbers', startTime: '2026-04-19T23:00:00Z', venue: 'Lumen Field' },
  
  // UFC
- { id: 'ufc1', sport: 'UFC', homeTeam: 'UFC 314', awayTeam: 'Main Card', startTime: '2026-02-22T22:00:00', venue: 'T-Mobile Arena, Las Vegas' },
- { id: 'ufc2', sport: 'UFC', homeTeam: 'UFC Fight Night', awayTeam: 'Prelims & Main Card', startTime: '2026-02-28T19:00:00', venue: 'UFC APEX, Las Vegas' },
+ { id: 'ufc1', sport: 'UFC', homeTeam: 'UFC 315', awayTeam: 'Main Card', startTime: '2026-05-10T02:00:00Z', venue: 'T-Mobile Arena, Las Vegas' },
+ { id: 'ufc2', sport: 'UFC', homeTeam: 'UFC Fight Night', awayTeam: 'Prelims & Main Card', startTime: '2026-05-16T23:00:00Z', venue: 'UFC APEX, Las Vegas' },
  
  // Boxing
  { id: 'box1', sport: 'Boxing', homeTeam: 'Sebastian Fundora', awayTeam: 'Keith Thurman', startTime: '2026-03-28T21:00:00', venue: 'Las Vegas', eventTitle: 'WBC Jr. Middleweight Title' },
@@ -5276,7 +5276,9 @@ const qrScannerRef = useRef(null);
  };
 
  const formatDateTime = (dateString) => {
+ if (!dateString) return 'Date TBD';
  const date = new Date(dateString);
+ if (isNaN(date.getTime())) return 'Date TBD';
  return date.toLocaleString('en-US', {
  weekday: 'short',
  month: 'short',
