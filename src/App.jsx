@@ -7150,12 +7150,37 @@ const qrScannerRef = useRef(null);
  </div>
  );
 
- const WelcomeScreen = () => (
+ const WelcomeScreen = () => {
+   const goal = 250000;
+   const pct = Math.min(100, Math.round((launchDisplayCount / goal) * 100));
+   return (
  <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: 'radial-gradient(ellipse at center, #161A22 0%, #0F1115 70%)' }}>
- <div className="w-full text-center flex-1 flex flex-col items-center justify-center" style={{ gap: '48px', maxWidth: '720px' }}>
+ <div className="w-full text-center flex-1 flex flex-col items-center justify-center" style={{ gap: '36px', maxWidth: '720px' }}>
  <div className="space-y-6">
  <img src="/huddle-up-logo.png" alt="Huddle Up - Find Your Crew. Watch The Game!" className="mx-auto" style={{ width: '716px' }} />
  </div>
+
+ {/* USER COUNT PROGRESS BAR */}
+ <div className="w-full max-w-md mx-auto rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #0d1a2e 0%, #111827 100%)', border: '1px solid rgba(30,144,255,0.3)', padding: '18px 20px' }}>
+   <div className="flex items-center justify-between mb-2">
+     <div className="flex items-center gap-2">
+       <span className="text-base">🚀</span>
+       <span className="text-white font-bold text-sm">Fans Already Signed Up</span>
+     </div>
+     <span className="text-[#FFD700] font-black text-sm">{launchDisplayCount.toLocaleString()}+</span>
+   </div>
+   <div className="w-full rounded-full overflow-hidden" style={{ height: '10px', background: 'rgba(255,255,255,0.08)' }}>
+     <div
+       className="h-full rounded-full transition-all duration-1000"
+       style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #1E90FF 0%, #FFD700 100%)', boxShadow: '0 0 8px rgba(30,144,255,0.6)' }}
+     />
+   </div>
+   <div className="flex items-center justify-between mt-2">
+     <span className="text-[#A0A4AB] text-xs">Growing daily in South Florida</span>
+     <span className="text-[#A0A4AB] text-xs">Goal: {goal.toLocaleString()}</span>
+   </div>
+ </div>
+
  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%', maxWidth: '448px' }}>
  <button
  onClick={() => setCurrentScreen('login')}
@@ -7175,7 +7200,8 @@ const qrScannerRef = useRef(null);
  </div>
  <CopyrightFooter />
  </div>
- );
+   );
+ };
 
  const signupTypeScreenJSX = (
  <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: 'radial-gradient(ellipse at center, #161A22 0%, #0F1115 70%)' }}>
@@ -7916,23 +7942,53 @@ const qrScannerRef = useRef(null);
  <div className="max-w-4xl mx-auto px-4">
 
 {/* LAUNCH COUNTER BANNER */}
-{!launchCounterDismissed && (
-<div className="mb-3 relative overflow-hidden rounded-xl" style={{ background: 'linear-gradient(135deg, #0F1115 0%, #1a2540 50%, #0F1115 100%)', border: '1px solid rgba(30,144,255,0.35)' }}>
-  <button onClick={() => { setLaunchCounterDismissed(true); localStorage.setItem('launch_counter_dismissed', '1'); }} className="absolute top-2 right-2 text-white/40 hover:text-white/80 z-10 p-1">
-    <X className="w-3.5 h-3.5" />
-  </button>
-  <div className="p-3 flex items-center gap-3">
-    <div className="text-lg flex-shrink-0">🚀</div>
-    <div className="flex-1 min-w-0">
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-white font-bold text-sm">Official Launch:</span>
-        <span className="text-[#FFD700] font-black text-sm">{launchCountdown}</span>
+{(() => {
+  const goal = 250000;
+  const pct = Math.min(100, Math.round((launchDisplayCount / goal) * 100));
+  return (
+<div className="mb-3 relative overflow-hidden rounded-xl" style={{ background: 'linear-gradient(135deg, #0d1a2e 0%, #111827 100%)', border: '1px solid rgba(30,144,255,0.35)' }}>
+  {launchCounterDismissed && (
+    <button onClick={() => { setLaunchCounterDismissed(false); localStorage.removeItem('launch_counter_dismissed'); }} className="absolute top-2 right-2 text-white/30 hover:text-white/60 z-10 p-1 text-[10px]">show</button>
+  )}
+  {!launchCounterDismissed && (
+    <button onClick={() => { setLaunchCounterDismissed(true); localStorage.setItem('launch_counter_dismissed', '1'); }} className="absolute top-2 right-2 text-white/20 hover:text-white/50 z-10 p-1">
+      <X className="w-3 h-3" />
+    </button>
+  )}
+  {!launchCounterDismissed ? (
+  <div className="p-3 pt-3 pb-3">
+    <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center gap-2">
+        <span className="text-base">🚀</span>
+        <span className="text-white font-bold text-sm">Fans Already Signed Up</span>
       </div>
-      <p className="text-white/60 text-xs mt-0.5"><span className="text-[#FFD700] font-bold">{launchDisplayCount.toLocaleString()}+</span> fans ready to watch</p>
+      <span className="text-[#FFD700] font-black text-sm mr-5">{launchDisplayCount.toLocaleString()}+</span>
+    </div>
+    <div className="w-full rounded-full overflow-hidden" style={{ height: '8px', background: 'rgba(255,255,255,0.08)' }}>
+      <div
+        className="h-full rounded-full"
+        style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #1E90FF 0%, #FFD700 100%)', boxShadow: '0 0 6px rgba(30,144,255,0.5)' }}
+      />
+    </div>
+    <div className="flex items-center justify-between mt-1.5">
+      <span className="text-white/40 text-[11px]">Official Launch: <span className="text-[#FFD700] font-bold">{launchCountdown}</span></span>
+      <span className="text-white/30 text-[11px]">Goal: {goal.toLocaleString()}</span>
     </div>
   </div>
+  ) : (
+  <div className="p-2 flex items-center gap-2">
+    <span className="text-sm">🚀</span>
+    <div className="flex-1 min-w-0">
+      <div className="w-full rounded-full overflow-hidden" style={{ height: '5px', background: 'rgba(255,255,255,0.08)' }}>
+        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #1E90FF 0%, #FFD700 100%)' }} />
+      </div>
+    </div>
+    <span className="text-[#FFD700] font-black text-xs flex-shrink-0">{launchDisplayCount.toLocaleString()}+</span>
+  </div>
+  )}
 </div>
-)}
+  );
+})()}
 
 {/* SOFT LAUNCH BANNER */}
 {!softLaunchDismissed && (
