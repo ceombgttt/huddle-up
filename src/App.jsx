@@ -13756,6 +13756,58 @@ Become a Sponsor →
  </button>
  </div>
 
+ {/* LOG OUT */}
+ <button
+ onClick={handleLogout}
+ className="w-full flex items-center justify-center gap-2 py-4 bg-red-500/10 text-red-400 font-bold rounded-2xl border border-red-500/20 hover:bg-red-500/20 transition-colors"
+ >
+ <LogOut className="w-5 h-5" />
+ Log Out
+ </button>
+
+ {/* DANGER ZONE */}
+ <div className="rounded-2xl border border-red-900/40 bg-red-950/20 p-4">
+   <p className="text-red-400 font-bold text-sm mb-1">⚠️ Danger Zone</p>
+   <p className="text-[#A0A4AB] text-xs mb-3">Permanently delete your account and all your data. This cannot be undone.</p>
+   {!showDeleteAccountConfirm ? (
+     <button
+       onClick={() => setShowDeleteAccountConfirm(true)}
+       className="w-full py-3 text-red-400 font-bold text-sm rounded-xl border border-red-500/30 hover:bg-red-500/10 transition-colors"
+     >
+       Delete My Account
+     </button>
+   ) : (
+     <div className="space-y-2">
+       <p className="text-white font-bold text-sm text-center">Are you absolutely sure?</p>
+       <p className="text-[#A0A4AB] text-xs text-center">Your parties, points, and profile will be permanently removed.</p>
+       <div className="grid grid-cols-2 gap-2 mt-2">
+         <button
+           onClick={() => setShowDeleteAccountConfirm(false)}
+           className="py-2.5 text-[#A0A4AB] font-bold text-sm rounded-xl border border-[#222A36] hover:bg-[#222A36] transition-colors"
+         >
+           Cancel
+         </button>
+         <button
+           onClick={async () => {
+             try {
+               await api.users.deleteAccount();
+               setUser(null);
+               setCurrentScreen('welcome');
+               setShowDeleteAccountConfirm(false);
+             } catch (e) {
+               showToast('Failed to delete account: ' + e.message, 'error');
+               setShowDeleteAccountConfirm(false);
+             }
+           }}
+           className="py-2.5 text-white font-bold text-sm rounded-xl bg-red-600 hover:bg-red-700 transition-colors"
+         >
+           Yes, Delete
+         </button>
+       </div>
+     </div>
+   )}
+ </div>
+
  <div>
  <h2 className="text-2xl font-black text-white mb-4" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
  My Watch Parties
@@ -13996,57 +14048,6 @@ Become a Sponsor →
  </button>
  </div>
  )}
- </div>
-
- <button
- onClick={handleLogout}
- className="w-full flex items-center justify-center gap-2 py-4 bg-red-500/10 text-red-400 font-bold rounded-2xl border border-red-500/20 hover:bg-red-500/20 transition-colors"
- >
- <LogOut className="w-5 h-5" />
- Log Out
- </button>
-
- {/* DELETE ACCOUNT */}
- <div className="rounded-2xl border border-red-900/40 bg-red-950/20 p-4">
-   <p className="text-red-400 font-bold text-sm mb-1">Danger Zone</p>
-   <p className="text-[#A0A4AB] text-xs mb-3">Permanently delete your account and all your data. This cannot be undone.</p>
-   {!showDeleteAccountConfirm ? (
-     <button
-       onClick={() => setShowDeleteAccountConfirm(true)}
-       className="w-full py-3 text-red-400 font-bold text-sm rounded-xl border border-red-500/30 hover:bg-red-500/10 transition-colors"
-     >
-       Delete My Account
-     </button>
-   ) : (
-     <div className="space-y-2">
-       <p className="text-white font-bold text-sm text-center">Are you absolutely sure?</p>
-       <p className="text-[#A0A4AB] text-xs text-center">Your parties, points, and profile will be permanently removed.</p>
-       <div className="grid grid-cols-2 gap-2 mt-2">
-         <button
-           onClick={() => setShowDeleteAccountConfirm(false)}
-           className="py-2.5 text-[#A0A4AB] font-bold text-sm rounded-xl border border-[#222A36] hover:bg-[#222A36] transition-colors"
-         >
-           Cancel
-         </button>
-         <button
-           onClick={async () => {
-             try {
-               await api.users.deleteAccount();
-               setUser(null);
-               setCurrentScreen('welcome');
-               setShowDeleteAccountConfirm(false);
-             } catch (e) {
-               showToast('Failed to delete account: ' + e.message, 'error');
-               setShowDeleteAccountConfirm(false);
-             }
-           }}
-           className="py-2.5 text-white font-bold text-sm rounded-xl bg-red-600 hover:bg-red-700 transition-colors"
-         >
-           Yes, Delete
-         </button>
-       </div>
-     </div>
-   )}
  </div>
 
  </div>
