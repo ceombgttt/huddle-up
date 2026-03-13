@@ -1391,7 +1391,7 @@ const AddressLink = ({ address, className = '' }) => (
   >{address}</a>
 );
 
-function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast, loadVenues, goBack, user }) {
+function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast, loadVenues, goBack, user, openDmChat }) {
  const [hubTab, setHubTab] = useState('dashboard');
  const [promotions, setPromotions] = useState([]);
  const [deals, setDeals] = useState([]);
@@ -1423,6 +1423,9 @@ function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast
  const [selectedContactIds, setSelectedContactIds] = useState([]);
  const [showInviteModal, setShowInviteModal] = useState(false);
  const [invitingSending, setInvitingSending] = useState(false);
+ const [showBroadcastModal, setShowBroadcastModal] = useState(false);
+ const [broadcastMessage, setBroadcastMessage] = useState('');
+ const [broadcastSending, setBroadcastSending] = useState(false);
 
  const VenueAnalyticsDashboard = () => {
  const startEditing = () => {
@@ -2751,9 +2754,14 @@ function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast
  <p className="text-xs text-[#A0A4AB]">Customers connected via your Signup QR</p>
  </div>
  {selectedContactIds.length > 0 && (
- <button onClick={() => setShowInviteModal(true)} className="px-4 py-2 bg-[#1E90FF] text-white text-sm font-bold rounded-xl hover:bg-[#1a7fd4] transition-all flex items-center gap-2">
- <Bell className="w-4 h-4" /> Invite {selectedContactIds.length}
- </button>
+ <div className="flex items-center gap-2">
+   <button onClick={() => setShowBroadcastModal(true)} className="px-3 py-2 bg-purple-600 text-white text-sm font-bold rounded-xl hover:bg-purple-700 transition-all flex items-center gap-2">
+     <MessageCircle className="w-4 h-4" /> Message {selectedContactIds.length}
+   </button>
+   <button onClick={() => setShowInviteModal(true)} className="px-3 py-2 bg-[#1E90FF] text-white text-sm font-bold rounded-xl hover:bg-[#1a7fd4] transition-all flex items-center gap-2">
+     <Bell className="w-4 h-4" /> Invite {selectedContactIds.length}
+   </button>
+ </div>
  )}
  </div>
  <div className="relative">
@@ -2795,9 +2803,16 @@ function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast
  <p className="text-[#A0A4AB] text-xs truncate">{contact.user.email}</p>
  <p className="text-[#A0A4AB] text-xs">{contact.user.city ? `📍 ${contact.user.city} · ` : ''}{contact.signupSource === 'qr_code' ? '🔗 QR Signup' : '✅ Connected'} · {new Date(contact.connectedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
  </div>
- <button onClick={async e => { e.stopPropagation(); try { await api.venueContacts.toggleFavorite(contact.id, !contact.favorite); setContacts(prev => prev.map(c => c.id === contact.id ? { ...c, favorite: !c.favorite } : c)); } catch (err) { console.error(err); } }} className={`p-2 rounded-lg transition-colors flex-shrink-0 ${contact.favorite ? 'text-amber-400 bg-amber-500/10' : 'text-[#444] hover:text-amber-400'}`}>
- <Star className={`w-4 h-4 ${contact.favorite ? 'fill-amber-400' : ''}`} />
- </button>
+ <div className="flex items-center gap-1 flex-shrink-0">
+   {openDmChat && (
+   <button onClick={e => { e.stopPropagation(); openDmChat({ id: contact.user.id, name: contact.user.name, profilePicture: contact.user.photo }); }} className="p-2 rounded-lg text-[#1E90FF] hover:bg-[#1E90FF]/10 transition-colors" title="Message">
+     <MessageCircle className="w-4 h-4" />
+   </button>
+   )}
+   <button onClick={async e => { e.stopPropagation(); try { await api.venueContacts.toggleFavorite(contact.id, !contact.favorite); setContacts(prev => prev.map(c => c.id === contact.id ? { ...c, favorite: !c.favorite } : c)); } catch (err) { console.error(err); } }} className={`p-2 rounded-lg transition-colors ${contact.favorite ? 'text-amber-400 bg-amber-500/10' : 'text-[#444] hover:text-amber-400'}`}>
+   <Star className={`w-4 h-4 ${contact.favorite ? 'fill-amber-400' : ''}`} />
+   </button>
+ </div>
  </div>
  ))}
  </div>
@@ -2823,6 +2838,43 @@ function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast
  </div>
  )}
  <button onClick={() => setShowInviteModal(false)} className="w-full mt-3 py-2 text-[#A0A4AB] text-sm hover:text-white transition-colors">Cancel</button>
+ </div>
+ </div>
+ )}
+ {showBroadcastModal && (
+ <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/70 p-4" onClick={() => setShowBroadcastModal(false)}>
+ <div className="bg-[#151A22] rounded-2xl border border-[#222A36] p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+   <h3 className="text-lg font-black text-white mb-1">Message Fans</h3>
+   <p className="text-sm text-[#A0A4AB] mb-4">Send a direct message to {selectedContactIds.length} selected fan{selectedContactIds.length !== 1 ? 's' : ''}. They'll receive it in their DMs.</p>
+   <textarea
+     value={broadcastMessage}
+     onChange={e => setBroadcastMessage(e.target.value)}
+     placeholder="Type your message... (e.g. Happy Hour 4-7pm tonight! Come watch the game 🏈)"
+     rows={4}
+     maxLength={500}
+     className="w-full px-4 py-3 bg-[#0F1115] text-white rounded-xl border border-[#222A36] focus:border-purple-500 focus:outline-none text-sm resize-none mb-1"
+   />
+   <p className="text-right text-[#A0A4AB] text-xs mb-4">{broadcastMessage.length}/500</p>
+   <button
+     onClick={async () => {
+       if (!broadcastMessage.trim()) return showToast('Type a message first', 'error');
+       setBroadcastSending(true);
+       try {
+         const result = await api.venueContacts.broadcast(selectedContactIds, broadcastMessage.trim());
+         showToast(result.message || 'Messages sent!', 'success');
+         setBroadcastMessage('');
+         setSelectedContactIds([]);
+         setShowBroadcastModal(false);
+       } catch (e) { showToast(e.message || 'Failed to send messages', 'error'); }
+       setBroadcastSending(false);
+     }}
+     disabled={broadcastSending || !broadcastMessage.trim()}
+     className="w-full py-3 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+   >
+     {broadcastSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+     {broadcastSending ? 'Sending...' : `Send to ${selectedContactIds.length} Fan${selectedContactIds.length !== 1 ? 's' : ''}`}
+   </button>
+   <button onClick={() => setShowBroadcastModal(false)} className="w-full mt-2 py-2 text-[#A0A4AB] text-sm hover:text-white transition-colors">Cancel</button>
  </div>
  </div>
  )}
@@ -4153,6 +4205,25 @@ const qrScannerRef = useRef(null);
  if (requests.length > 0 && requests.length > prevRequestCountRef.current) {
    const count = requests.length;
    showToast(`You have ${count} pending friend ${count === 1 ? 'request' : 'requests'}! Tap Crew to accept.`, 'info');
+   try {
+     const ctx = new (window.AudioContext || window.webkitAudioContext)();
+     const playTone = (freq, startTime, duration) => {
+       const osc = ctx.createOscillator();
+       const gain = ctx.createGain();
+       osc.connect(gain);
+       gain.connect(ctx.destination);
+       osc.type = 'sine';
+       osc.frequency.value = freq;
+       gain.gain.setValueAtTime(0, startTime);
+       gain.gain.linearRampToValueAtTime(0.25, startTime + 0.02);
+       gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+       osc.start(startTime);
+       osc.stop(startTime + duration);
+     };
+     playTone(880, ctx.currentTime, 0.25);
+     playTone(1100, ctx.currentTime + 0.18, 0.3);
+     setTimeout(() => ctx.close(), 700);
+   } catch (_) {}
  }
  prevRequestCountRef.current = requests.length;
  } catch (e) {
@@ -17269,7 +17340,7 @@ Become a Sponsor →
  {currentScreen === 'createParty' && createPartyScreenJSX()}
  {currentScreen === 'claimVenue' && claimVenueScreenJSX()}
  {currentScreen === 'admin' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}>{AdminPanelScreen()}</ScreenErrorBoundary>}
- {currentScreen === 'venueDashboard' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><VenueHubScreen userVenue={userVenue} parties={parties} games={games} setCurrentScreen={setCurrentScreen} showToast={showToast} loadVenues={loadVenues} goBack={goBack} user={user} /></ScreenErrorBoundary>}
+ {currentScreen === 'venueDashboard' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><VenueHubScreen userVenue={userVenue} parties={parties} games={games} setCurrentScreen={setCurrentScreen} showToast={showToast} loadVenues={loadVenues} goBack={goBack} user={user} openDmChat={openDmChat} /></ScreenErrorBoundary>}
  {currentScreen === 'sponsorDashboard' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><SponsorDashboard /></ScreenErrorBoundary>}
  {currentScreen === 'myParties' && <ScreenErrorBoundary onReset={() => setCurrentScreen('games')}><MyPartiesScreen /></ScreenErrorBoundary>}
  {currentScreen === 'notificationSettings' && <ScreenErrorBoundary onReset={() => setCurrentScreen('profile')}><NotificationSettingsScreen /></ScreenErrorBoundary>}

@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import QRCode from 'qrcode';
 import pool from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
+import { sendPushToUser } from './push.js';
 
 const router = Router();
 
@@ -192,6 +193,51 @@ router.post('/invite', requireAuth, requireVenueOwner, async (req, res) => {
     res.json({ sent: inserted.length, message: `Invites sent to ${inserted.length} contact${inserted.length !== 1 ? 's' : ''}` });
   } catch (err) {
     console.error('Invite contacts error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/broadcast', requireAuth, requireVenueOwner, async (req, res) => {
+  try {
+    const { contactIds, message } = req.body;
+    if (!message?.trim()) return res.status(400).json({ error: 'Message is required' });
+    if (!contactIds?.length) return res.status(400).json({ error: 'Select at least one contact' });
+
+    const contacts = await pool.query(
+      'SELECT vc.user_id FROM venue_contacts vc WHERE vc.id = ANY($1::uuid[]) AND vc.venue_id = $2',
+      [contactIds, req.ownedVenue.id]
+    );
+
+    const sender = await pool.query('SELECT name, profile_picture FROM users WHERE id = $1', [req.session.userId]);
+    const senderName = sender.rows[0]?.name || req.ownedVenue.name;
+
+    let sent = 0;
+    for (const c of contacts.rows) {
+      try {
+        await pool.query(
+          'INSERT INTO direct_messages (sender_id, receiver_id, message) VALUES ($1, $2, $3)',
+          [req.session.userId, c.user_id, message.trim()]
+        );
+        await pool.query(
+          `INSERT INTO notifications (user_id, type, title, message)
+           VALUES ($1, 'dm', $2, $3)`,
+          [c.user_id, `Message from ${senderName}`, message.trim().substring(0, 100)]
+        );
+        sendPushToUser(c.user_id, {
+          title: `📍 ${req.ownedVenue.name}`,
+          body: message.trim().length > 100 ? message.trim().substring(0, 100) + '...' : message.trim(),
+          icon: '/pwa-icon-192.png',
+          badge: '/pwa-icon-192.png',
+          tag: `venue-msg-${req.ownedVenue.id}`,
+          data: { url: '/', type: 'dm', senderId: req.session.userId }
+        }, { urgency: 'normal' }).catch(() => {});
+        sent++;
+      } catch (e) { console.error('Broadcast DM error:', e); }
+    }
+
+    res.json({ sent, message: `Message sent to ${sent} fan${sent !== 1 ? 's' : ''}` });
+  } catch (err) {
+    console.error('Broadcast error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });

@@ -114,7 +114,7 @@ function isQuietHours() {
 
 export async function sendPushToUser(userId, payload, options = {}) {
   try {
-    const { prefType, skipQuietHours = false, critical = false } = options;
+    const { prefType, skipQuietHours = false, critical = false, urgency = 'normal' } = options;
 
     if (!critical && !skipQuietHours && isQuietHours()) return;
 
@@ -140,7 +140,7 @@ export async function sendPushToUser(userId, payload, options = {}) {
         keys: { p256dh: sub.p256dh, auth: sub.auth }
       };
       try {
-        await webpush.sendNotification(pushSubscription, JSON.stringify(payload));
+        await webpush.sendNotification(pushSubscription, JSON.stringify(payload), { urgency, TTL: 86400 });
         await pool.query(
           'UPDATE push_subscriptions SET daily_push_count = $1, last_push_date = CURRENT_DATE WHERE id = $2',
           [count + 1, sub.id]

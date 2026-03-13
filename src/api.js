@@ -346,6 +346,7 @@ export const api = {
     link: (code) => request('/venue-contacts/link', { method: 'POST', body: JSON.stringify({ code }) }),
     getContacts: (sort) => request(`/venue-contacts/contacts${sort ? '?sort=' + sort : ''}`),
     invite: (contactIds, partyId, message) => request('/venue-contacts/invite', { method: 'POST', body: JSON.stringify({ contactIds, partyId, message }) }),
+    broadcast: (contactIds, message) => request('/venue-contacts/broadcast', { method: 'POST', body: JSON.stringify({ contactIds, message }) }),
     toggleFavorite: (id, favorite) => request(`/venue-contacts/contacts/${id}/favorite`, { method: 'PATCH', body: JSON.stringify({ favorite }) }),
   },
 };
