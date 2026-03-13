@@ -3053,6 +3053,7 @@ const mainContainerRef = useRef(null);
  const [showInviteReminder, setShowInviteReminder] = useState(false);
  const inviteReminderShown = useRef(false);
  const [showProScreen, setShowProScreen] = useState(false);
+ const [showDeleteAccountConfirm, setShowDeleteAccountConfirm] = useState(false);
  const [myTeamsOnly, setMyTeamsOnly] = useState(false);
  const [dateFilter, setDateFilter] = useState('All');
  const [sortOption, setSortOption] = useState('Soonest');
@@ -3249,7 +3250,10 @@ const qrScannerRef = useRef(null);
  const [adminResolveGame, setAdminResolveGame] = useState(null);
 
  const generatePartyLink = (party) => {
- return `${window.location.origin}/party/${party.id}`;
+ const base = window.location.hostname.includes('localhost') || window.location.hostname.includes('replit')
+   ? window.location.origin
+   : 'https://huddleupusa.com';
+ return `${base}?party=${party.id}`;
  };
 
  const generateShareText = (party) => {
@@ -3261,7 +3265,7 @@ const qrScannerRef = useRef(null);
  return `${teams}\n${venue}\n${date}\n\nJoin the party on Huddle Up!\n${url}`;
  };
 
- const shareToSocial = (party, platform) => {
+ const shareToSocial = async (party, platform) => {
  const url = generatePartyLink(party);
  const text = generateShareText(party);
  const encodedUrl = encodeURIComponent(url);
@@ -3282,7 +3286,21 @@ const qrScannerRef = useRef(null);
  window.open(`https://wa.me/?text=${encodedText}%20${encodedUrl}`, '_blank');
  break;
  case 'instagram':
- window.open('https://www.instagram.com/', '_blank');
+ try {
+   if (navigator.clipboard && navigator.clipboard.writeText) {
+     await navigator.clipboard.writeText(`${text}\n${url}`);
+   } else {
+     const ta = document.createElement('textarea');
+     ta.value = `${text}\n${url}`;
+     document.body.appendChild(ta);
+     ta.select();
+     document.execCommand('copy');
+     document.body.removeChild(ta);
+   }
+   showToast('Link copied! Open Instagram and paste it in your post or story.', 'info');
+ } catch (err) {
+   showToast('Open Instagram and share this link: ' + url, 'info');
+ }
  break;
  case 'sms': {
  const smsBody = encodeURIComponent(text);
@@ -7025,7 +7043,7 @@ const qrScannerRef = useRef(null);
  <div>
  <h3 className="text-white font-bold text-lg mb-2">6. YOUR RIGHTS AND CHOICES</h3>
  <h4 className="text-orange-300 font-bold text-sm mb-2">6.1 Account Management</h4>
- <p className="text-[#A0A4AB] text-sm leading-relaxed">You can: update your profile information, change your password, delete your account (contact <a href="mailto:contact@huddleupus.com" className="text-[#1E90FF] hover:underline">contact@huddleupus.com</a>).</p>
+ <p className="text-[#A0A4AB] text-sm leading-relaxed">You can: update your profile information, change your password, or delete your account directly from your Profile page under the "Danger Zone" section.</p>
  <h4 className="text-orange-300 font-bold text-sm mb-2 mt-3">6.2 Communication Preferences</h4>
  <p className="text-[#A0A4AB] text-sm leading-relaxed">You can: opt out of marketing emails (click "unsubscribe"), disable push notifications in your device settings, manage notification preferences in Settings, contact us to opt out of all non-essential communications.</p>
  <h4 className="text-orange-300 font-bold text-sm mb-2 mt-3">6.3 Data Access and Portability</h4>
@@ -13987,6 +14005,49 @@ Become a Sponsor →
  <LogOut className="w-5 h-5" />
  Log Out
  </button>
+
+ {/* DELETE ACCOUNT */}
+ <div className="rounded-2xl border border-red-900/40 bg-red-950/20 p-4">
+   <p className="text-red-400 font-bold text-sm mb-1">Danger Zone</p>
+   <p className="text-[#A0A4AB] text-xs mb-3">Permanently delete your account and all your data. This cannot be undone.</p>
+   {!showDeleteAccountConfirm ? (
+     <button
+       onClick={() => setShowDeleteAccountConfirm(true)}
+       className="w-full py-3 text-red-400 font-bold text-sm rounded-xl border border-red-500/30 hover:bg-red-500/10 transition-colors"
+     >
+       Delete My Account
+     </button>
+   ) : (
+     <div className="space-y-2">
+       <p className="text-white font-bold text-sm text-center">Are you absolutely sure?</p>
+       <p className="text-[#A0A4AB] text-xs text-center">Your parties, points, and profile will be permanently removed.</p>
+       <div className="grid grid-cols-2 gap-2 mt-2">
+         <button
+           onClick={() => setShowDeleteAccountConfirm(false)}
+           className="py-2.5 text-[#A0A4AB] font-bold text-sm rounded-xl border border-[#222A36] hover:bg-[#222A36] transition-colors"
+         >
+           Cancel
+         </button>
+         <button
+           onClick={async () => {
+             try {
+               await api.users.deleteAccount();
+               setUser(null);
+               setCurrentScreen('welcome');
+               setShowDeleteAccountConfirm(false);
+             } catch (e) {
+               showToast('Failed to delete account: ' + e.message, 'error');
+               setShowDeleteAccountConfirm(false);
+             }
+           }}
+           className="py-2.5 text-white font-bold text-sm rounded-xl bg-red-600 hover:bg-red-700 transition-colors"
+         >
+           Yes, Delete
+         </button>
+       </div>
+     </div>
+   )}
+ </div>
 
  </div>
  </div>

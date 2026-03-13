@@ -88,6 +88,8 @@ export const api = {
     badge: () => request('/users/me/badge'),
     updateSmsSettings: (data) =>
       request('/users/me/sms-settings', { method: 'PUT', body: JSON.stringify(data) }),
+    deleteAccount: () =>
+      request('/users/me', { method: 'DELETE' }),
   },
   notifications: {
     list: () => request('/notifications'),

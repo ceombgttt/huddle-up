@@ -284,4 +284,40 @@ router.post('/onboarding-complete', requireAuth, async (req, res) => {
   }
 });
 
+router.delete('/me', requireAuth, async (req, res) => {
+  const userId = req.session.userId;
+  try {
+    // Delete in dependency order to respect FK constraints
+    const tables = [
+      'push_subscriptions', 'user_favorite_teams', 'user_points', 'points_history',
+      'prediction_streaks', 'predictions', 'party_attendees', 'reward_redemptions',
+      'score_watches', 'raffle_entries', 'notification_preferences', 'notifications',
+      'venue_follows', 'venue_checkins', 'photo_tags', 'party_reviews', 'venue_reviews',
+      'venue_contacts', 'party_invitations', 'party_highlights', 'party_photos',
+      'affiliate_referrals', 'ticket_purchases', 'fantasy_teams',
+    ];
+    for (const table of tables) {
+      await pool.query(`DELETE FROM ${table} WHERE user_id = $1`, [userId]).catch(() => {});
+    }
+    // Soft-anonymize messages so others' conversation history isn't broken
+    await pool.query(`UPDATE party_messages SET user_id = NULL, content = '[deleted]' WHERE user_id = $1`, [userId]).catch(() => {});
+    await pool.query(`UPDATE team_chat_messages SET user_id = NULL, content = '[deleted]' WHERE user_id = $1`, [userId]).catch(() => {});
+    await pool.query(`DELETE FROM direct_messages WHERE sender_id = $1 OR receiver_id = $1`, [userId]).catch(() => {});
+    await pool.query(`DELETE FROM friendships WHERE user_id = $1 OR friend_id = $1`, [userId]).catch(() => {});
+    await pool.query(`DELETE FROM party_fantasy_links WHERE linked_by = $1`, [userId]).catch(() => {});
+    await pool.query(`UPDATE parties SET host_id = NULL WHERE host_id = $1`, [userId]).catch(() => {});
+    await pool.query(`UPDATE venues SET claimed_by = NULL WHERE claimed_by = $1`, [userId]).catch(() => {});
+    await pool.query(`UPDATE referral_conversions SET referred_user_id = NULL WHERE referred_user_id = $1`, [userId]).catch(() => {});
+    await pool.query(`UPDATE referral_conversions SET referrer_user_id = NULL WHERE referrer_user_id = $1`, [userId]).catch(() => {});
+    // Delete the user record
+    await pool.query('DELETE FROM users WHERE id = $1', [userId]);
+    // Destroy session
+    req.session.destroy(() => {});
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Delete account error:', error);
+    res.status(500).json({ error: 'Failed to delete account' });
+  }
+});
+
 export default router;
