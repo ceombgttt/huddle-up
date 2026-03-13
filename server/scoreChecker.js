@@ -128,7 +128,10 @@ async function autoResolvePredictions() {
 
     const scores = cachedScores;
     for (const game of pending.rows) {
-      const scoreData = scores[game.game_id];
+      // Predictions store game_id with sport prefix (e.g. "nba_401810653")
+      // but cachedScores uses raw ESPN event IDs ("401810653") — strip prefix
+      const rawId = game.game_id.replace(/^[^_]+_/, '');
+      const scoreData = scores[rawId] || scores[game.game_id];
       if (!scoreData || scoreData.status !== 'Final') continue;
 
       const homeScore = parseInt(scoreData.homeScore) || 0;

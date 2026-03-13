@@ -13374,6 +13374,14 @@ Become a Sponsor →
  <div className="text-2xl font-black text-white">{friendsList.length}</div>
  <div className="text-[#A0A4AB] text-xs">Friends</div>
  </div>
+ <div className="w-px bg-[#222A36]" />
+ <div className="text-center cursor-pointer" onClick={() => setCurrentScreen('predictions')}>
+ <div className="text-2xl font-black text-emerald-400">{predictionStats?.total ?? 0}</div>
+ <div className="text-[#A0A4AB] text-xs">Predictions</div>
+ {predictionStats?.currentStreak > 0 && (
+ <div className="text-[9px] text-orange-400 font-bold mt-0.5">🔥 {predictionStats.currentStreak} streak</div>
+ )}
+ </div>
  </div>
  {(() => {
  const badge = getFanBadge(badgeStats.partiesAttended, badgeStats.partiesHosted);
