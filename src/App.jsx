@@ -6070,48 +6070,75 @@ const qrScannerRef = useRef(null);
 
  const WelcomePopup = () => {
  if (!showWelcomePopup) return null;
+ const handleStart = () => {
+   setShowWelcomePopup(false);
+   setShowOnboarding(true);
+   setOnboardingStep(0);
+   setUser(prev => prev ? ({ ...prev, onboardingCompleted: true }) : prev);
+   fetch('/api/users/onboarding-complete', { method: 'POST', credentials: 'include' }).catch(e => console.error('Onboarding complete error:', e));
+ };
  return (
- <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[70] flex items-center justify-center p-4 overflow-y-auto">
- <div className="rounded-2xl p-6 sm:p-8 w-[90%] max-w-[500px] shadow-2xl my-4" style={{ backgroundColor: '#0F1115', border: '2px solid rgba(30, 144, 255, 0.4)' }}>
- <div className="text-center mb-6">
- <div className="text-5xl mb-3">🎉</div>
- <h2 className="text-2xl sm:text-3xl font-black text-white mb-1" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '1px' }}>Welcome to Huddle Up!</h2>
- </div>
- <div className="mb-5 p-4 bg-gradient-to-br from-[#F5B400]/10 to-[#F5B400]/5 border border-[#F5B400]/30 rounded-xl text-center">
- <p className="text-white font-bold text-base sm:text-lg mb-1">You're one of the first 100 members</p>
- <p className="text-[#F5B400] text-sm font-semibold">to join during our soft launch!</p>
- </div>
- <div className="mb-5">
- <p className="text-[#A0A4AB] text-sm font-semibold mb-3">Here's what that means:</p>
- <div className="space-y-2">
- <div className="flex items-center gap-3 bg-[#151A22] rounded-xl px-4 py-3 border border-[#222A36]">
- <span className="text-green-400 text-lg font-bold flex-shrink-0">✓</span>
- <span className="text-white font-semibold text-sm">Lifetime Pro FREE</span>
- </div>
- <div className="flex items-center gap-3 bg-[#151A22] rounded-xl px-4 py-3 border border-[#222A36]">
- <span className="text-green-400 text-lg font-bold flex-shrink-0">✓</span>
- <span className="text-white font-semibold text-sm">Exclusive "Founder" badge</span>
- </div>
- <div className="flex items-center gap-3 bg-[#151A22] rounded-xl px-4 py-3 border border-[#222A36]">
- <span className="text-green-400 text-lg font-bold flex-shrink-0">✓</span>
- <span className="text-white font-semibold text-sm">Help shape our features</span>
- </div>
- </div>
- </div>
- <div className="mb-5 p-4 bg-[#151A22] rounded-xl border border-[#222A36]">
- <p className="text-[#A0A4AB] text-sm font-semibold mb-2">We're just getting started in Boca Raton, so you might see:</p>
- <div className="space-y-1.5 text-sm text-[#A0A4AB]">
- <p>• Some parties with few attendees</p>
- <p>• New features being added weekly</p>
- <p>• Bugs (please report them!)</p>
- </div>
- </div>
- <div className="mb-6 text-center">
- <p className="text-[#A0A4AB] text-sm">Your feedback matters! Message us anytime with suggestions.</p>
- </div>
- <button onClick={() => { setShowWelcomePopup(false); setShowOnboarding(true); setOnboardingStep(0); setUser(prev => prev ? ({ ...prev, onboardingCompleted: true }) : prev); fetch('/api/users/onboarding-complete', { method: 'POST', credentials: 'include' }).catch(e => console.error('Onboarding complete error:', e)); }} className="w-full py-3.5 text-white font-black transition-all text-lg hover:opacity-90 active:scale-[0.98]" style={{ backgroundColor: '#1E90FF', borderRadius: '14px' }}>
- Let's Go!
- </button>
+ <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[70] flex items-center justify-center p-4 overflow-y-auto">
+ <div className="rounded-3xl w-[92%] max-w-[480px] shadow-2xl my-4 overflow-hidden" style={{ backgroundColor: '#0F1115', border: '2px solid rgba(30,144,255,0.5)', boxShadow: '0 0 60px rgba(30,144,255,0.15)' }}>
+
+   {/* Hero header */}
+   <div className="relative px-6 pt-8 pb-6 text-center overflow-hidden" style={{ background: 'linear-gradient(180deg, #0d1a2e 0%, #0F1115 100%)' }}>
+     <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 50% 0%, #1E90FF 0%, transparent 70%)' }} />
+     <img src="/huddle-up-logo.png" alt="Huddle Up" className="h-14 mx-auto mb-4 relative z-10" />
+     <h1 className="text-white font-black leading-tight relative z-10" style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(28px, 7vw, 38px)', letterSpacing: '0.04em' }}>
+       WELCOME TO<br />
+       <span style={{ background: 'linear-gradient(90deg, #1E90FF, #FFD700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>HUDDLE UP USA</span>
+     </h1>
+     <p className="text-white/70 text-sm mt-2 relative z-10 leading-relaxed">
+       The app that helps you <span className="text-white font-semibold">find games</span>,{' '}
+       <span className="text-white font-semibold">find fans</span>, and{' '}
+       <span className="text-white font-semibold">make watch parties</span> —<br />
+       to enjoy every game with <span className="text-[#FFD700] font-bold">YOUR FELLOW FANS.</span>
+     </p>
+   </div>
+
+   {/* 3 value props */}
+   <div className="px-5 py-4 grid grid-cols-3 gap-2">
+     {[
+       { emoji: '🏟️', label: 'Find Games', sub: 'Live scores & schedules' },
+       { emoji: '🤝', label: 'Find Fans', sub: 'Connect with locals' },
+       { emoji: '🎉', label: 'Watch Parties', sub: 'Host or join near you' },
+     ].map(({ emoji, label, sub }) => (
+       <div key={label} className="bg-[#151A22] rounded-2xl p-3 text-center border border-[#222A36]">
+         <div className="text-2xl mb-1">{emoji}</div>
+         <div className="text-white font-bold text-xs leading-tight">{label}</div>
+         <div className="text-[#A0A4AB] text-[10px] mt-0.5 leading-tight">{sub}</div>
+       </div>
+     ))}
+   </div>
+
+   {/* Founder perks if applicable */}
+   {user?.isFounder ? (
+   <div className="mx-5 mb-4 p-3.5 rounded-2xl border text-center" style={{ background: 'linear-gradient(135deg, rgba(245,180,0,0.12) 0%, rgba(245,180,0,0.05) 100%)', borderColor: 'rgba(245,180,0,0.35)' }}>
+     <p className="text-[#FFD700] font-black text-sm mb-1">🏆 You're a Founding Member!</p>
+     <div className="flex items-center justify-center gap-4 text-xs text-white/70">
+       <span>✓ Lifetime Pro FREE</span>
+       <span>✓ Founder badge</span>
+       <span>✓ 3× points</span>
+     </div>
+   </div>
+   ) : (
+   <div className="mx-5 mb-4 p-3.5 rounded-2xl border text-center" style={{ background: 'rgba(30,144,255,0.06)', borderColor: 'rgba(30,144,255,0.2)' }}>
+     <p className="text-[#1E90FF] font-bold text-sm">🚀 You're in — let's get started!</p>
+     <p className="text-white/50 text-xs mt-0.5">Complete your profile to earn your first points</p>
+   </div>
+   )}
+
+   {/* CTA */}
+   <div className="px-5 pb-7">
+     <button
+       onClick={handleStart}
+       className="w-full py-4 text-white font-black text-xl tracking-wider transition-all hover:opacity-90 active:scale-[0.98]"
+       style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em', background: 'linear-gradient(135deg, #1E90FF 0%, #1565C0 100%)', borderRadius: '16px', boxShadow: '0 4px 24px rgba(30,144,255,0.4)' }}
+     >
+       LET'S GO! 🏈
+     </button>
+   </div>
  </div>
  </div>
  );
