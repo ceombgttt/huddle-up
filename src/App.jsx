@@ -8113,7 +8113,7 @@ const qrScannerRef = useRef(null);
  <div className="glow-divider my-[15px]" />
 
  <h2 id="find-your-sport" className="text-white font-bold text-2xl mb-[15px] uppercase tracking-[1px] section-header-glow" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em', scrollMarginTop: '108px' }}>FIND YOUR SPORT</h2>
- <div className="relative" data-tour-id="sports-scroller">
+ <div className="relative -mx-4" data-tour-id="sports-scroller">
  <div
  ref={sportsScrollRef}
  onScroll={() => {
@@ -8122,7 +8122,7 @@ const qrScannerRef = useRef(null);
  setShowSportsScrollArrow(el.scrollLeft + el.clientWidth < el.scrollWidth - 10);
  }
  }}
- className="flex gap-[12px] overflow-x-auto pb-3 scrollbar-hide"
+ className="flex gap-[12px] overflow-x-auto pb-3 scrollbar-hide px-4"
  >
  {(() => {
  const liveSports = new Set(games.filter(g => g.gameStatus === 'live').map(g => g.sport));
@@ -8167,6 +8167,7 @@ const qrScannerRef = useRef(null);
  );
  });
  })()}
+ <div className="flex-shrink-0 w-4" />
  </div>
  {showSportsScrollArrow && (
  <button
