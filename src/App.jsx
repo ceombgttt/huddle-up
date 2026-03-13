@@ -7208,21 +7208,41 @@ const qrScannerRef = useRef(null);
    </div>
  </div>
 
- <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%', maxWidth: '448px' }}>
- <button
- onClick={() => setCurrentScreen('login')}
- className="w-full py-4 text-white font-bold text-lg transition-colors duration-200 hover:opacity-90"
- style={{ backgroundColor: '#1E90FF', borderRadius: '12px' }}
- >
- LOG IN
- </button>
- <button
- onClick={() => setCurrentScreen('signupType')}
- className="w-full py-4 font-bold text-lg transition-colors duration-200 hover:opacity-80"
- style={{ backgroundColor: 'transparent', border: '2px solid #1E90FF', color: '#1E90FF', borderRadius: '12px' }}
- >
- SIGN UP
- </button>
+ {/* SEPARATE FAN / VENUE LANES */}
+ <div className="w-full max-w-md grid grid-cols-2 gap-3">
+   {/* Fan lane */}
+   <div className="rounded-2xl overflow-hidden border" style={{ background: 'linear-gradient(160deg, rgba(30,144,255,0.12) 0%, rgba(21,26,34,0.9) 100%)', borderColor: 'rgba(30,144,255,0.35)' }}>
+     <div className="px-4 pt-4 pb-3 text-center border-b" style={{ borderColor: 'rgba(30,144,255,0.2)' }}>
+       <div className="text-2xl mb-1">🏈</div>
+       <div className="text-white font-black text-sm" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em', fontSize: '16px' }}>SPORTS FAN</div>
+       <div className="text-[#A0A4AB] text-[11px] mt-0.5">Find parties & connect</div>
+     </div>
+     <div className="p-3 space-y-2">
+       <button onClick={() => { setLoginUserType('fan'); setCurrentScreen('login'); }} className="w-full py-2.5 text-white font-bold text-sm rounded-xl transition-all hover:opacity-90" style={{ backgroundColor: '#1E90FF' }}>
+         LOG IN
+       </button>
+       <button onClick={() => { setSignupUserType('fan'); setCurrentScreen('signup'); }} className="w-full py-2.5 font-bold text-sm rounded-xl transition-all hover:opacity-80" style={{ backgroundColor: 'transparent', border: '1.5px solid rgba(30,144,255,0.5)', color: '#1E90FF' }}>
+         SIGN UP
+       </button>
+     </div>
+   </div>
+
+   {/* Venue lane */}
+   <div className="rounded-2xl overflow-hidden border" style={{ background: 'linear-gradient(160deg, rgba(34,197,94,0.12) 0%, rgba(21,26,34,0.9) 100%)', borderColor: 'rgba(34,197,94,0.35)' }}>
+     <div className="px-4 pt-4 pb-3 text-center border-b" style={{ borderColor: 'rgba(34,197,94,0.2)' }}>
+       <div className="text-2xl mb-1">🏪</div>
+       <div className="text-white font-black text-sm" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em', fontSize: '16px' }}>VENUE OWNER</div>
+       <div className="text-[#A0A4AB] text-[11px] mt-0.5">Manage your venue</div>
+     </div>
+     <div className="p-3 space-y-2">
+       <button onClick={() => { setLoginUserType('venue'); setCurrentScreen('login'); }} className="w-full py-2.5 text-white font-bold text-sm rounded-xl transition-all hover:opacity-90" style={{ backgroundColor: '#22c55e' }}>
+         LOG IN
+       </button>
+       <button onClick={() => { setSignupUserType('venue'); api.venues.list().then(v => setSignupVenueList(v || [])).catch(e => console.error('Load venue list error:', e)); setCurrentScreen('signup'); }} className="w-full py-2.5 font-bold text-sm rounded-xl transition-all hover:opacity-80" style={{ backgroundColor: 'transparent', border: '1.5px solid rgba(34,197,94,0.5)', color: '#22c55e' }}>
+         REGISTER
+       </button>
+     </div>
+   </div>
  </div>
  </div>
  <CopyrightFooter />
@@ -7286,30 +7306,42 @@ const qrScannerRef = useRef(null);
  </div>
  );
 
+ const [loginUserType, setLoginUserType] = useState('fan');
  const [loginEmail, setLoginEmail] = useState('');
  const [loginPassword, setLoginPassword] = useState('');
  const [loginShowPassword, setLoginShowPassword] = useState(false);
  const [loginRememberMe, setLoginRememberMe] = useState(true);
 
+ const isVenueLogin = loginUserType === 'venue';
+ const loginAccent = isVenueLogin ? '#22c55e' : '#1E90FF';
+ const loginAccentBg = isVenueLogin ? 'rgba(34,197,94,0.08)' : 'rgba(30,144,255,0.08)';
+ const loginAccentBorder = isVenueLogin ? 'rgba(34,197,94,0.3)' : 'rgba(30,144,255,0.3)';
  const loginScreenJSX = (
  <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: 'radial-gradient(ellipse at center, #161A22 0%, #0F1115 70%)' }}>
- <div className="max-w-md w-full space-y-8 flex-1 flex flex-col justify-center">
+ <div className="max-w-md w-full space-y-6 flex-1 flex flex-col justify-center">
+
+ {/* Type badge */}
  <div className="text-center">
- <h2 className="text-4xl font-extrabold text-white mb-2" style={{ fontFamily: "'Inter', 'Montserrat', sans-serif" }}>
- WELCOME BACK
- </h2>
- <p style={{ color: '#A0A4AB' }}>Log in to find watch parties</p>
+   <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm mb-4" style={{ backgroundColor: loginAccentBg, border: `1px solid ${loginAccentBorder}`, color: loginAccent }}>
+     {isVenueLogin ? <><Building2 className="w-4 h-4" /> VENUE LOGIN</> : <><Users className="w-4 h-4" /> FAN LOGIN</>}
+   </div>
+   <h2 className="text-4xl font-extrabold text-white mb-1" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.04em' }}>
+     WELCOME BACK
+   </h2>
+   <p className="text-[#A0A4AB] text-sm">
+     {isVenueLogin ? 'Sign in to manage your venue & parties' : 'Log in to find watch parties near you'}
+   </p>
  </div>
- 
- <div className="p-8 space-y-6" style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)' }}>
+
+ <div className="p-8 space-y-5 rounded-2xl" style={{ backgroundColor: 'rgba(255,255,255,0.04)', border: `1px solid ${loginAccentBorder}` }}>
  <div>
  <label className="block text-sm font-medium mb-2" style={{ color: '#A0A4AB' }}>Email</label>
  <input
  type="email"
  value={loginEmail}
  onChange={(e) => setLoginEmail(e.target.value)}
- className="w-full px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2"
- style={{ backgroundColor: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '12px', focusRingColor: '#1E90FF' }}
+ className="w-full px-4 py-3 text-white placeholder-gray-500 focus:outline-none"
+ style={{ backgroundColor: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '12px' }}
  placeholder="your@email.com"
  />
  </div>
@@ -7321,7 +7353,7 @@ const qrScannerRef = useRef(null);
  type={loginShowPassword ? 'text' : 'password'}
  value={loginPassword}
  onChange={(e) => setLoginPassword(e.target.value)}
- className="w-full px-4 py-3 pr-12 text-white placeholder-gray-500 focus:outline-none focus:ring-2"
+ className="w-full px-4 py-3 pr-12 text-white placeholder-gray-500 focus:outline-none"
  style={{ backgroundColor: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '12px' }}
  placeholder="••••••••"
  />
@@ -7342,7 +7374,7 @@ const qrScannerRef = useRef(null);
  checked={loginRememberMe}
  onChange={(e) => setLoginRememberMe(e.target.checked)}
  className="w-4 h-4 rounded border-[#222A36] bg-[#151A22]"
- style={{ accentColor: '#1E90FF' }}
+ style={{ accentColor: loginAccent }}
  />
  <span className="text-sm" style={{ color: '#A0A4AB' }}>Remember me</span>
  </label>
@@ -7350,7 +7382,7 @@ const qrScannerRef = useRef(null);
  <button
  onClick={() => handleLogin(loginEmail, loginPassword, loginRememberMe)}
  className="w-full py-4 text-white font-bold text-lg transition-colors duration-200 hover:opacity-90"
- style={{ backgroundColor: '#1E90FF', borderRadius: '12px' }}
+ style={{ backgroundColor: loginAccent, borderRadius: '12px' }}
  >
  LOG IN
  </button>
@@ -7358,14 +7390,28 @@ const qrScannerRef = useRef(null);
  <button
  onClick={() => setCurrentScreen('forgotPassword')}
  className="w-full py-2 text-sm font-medium transition-colors hover:opacity-80"
- style={{ color: '#1E90FF' }}
+ style={{ color: loginAccent }}
  >
  Forgot your password?
  </button>
 
+ {/* Cross-link to the other account type */}
+ <div className="pt-1 border-t border-white/5 text-center">
+   <p className="text-[#A0A4AB] text-xs mb-2">
+     {isVenueLogin ? "Not a venue owner?" : "Are you a venue owner?"}
+   </p>
+   <button
+     onClick={() => setLoginUserType(isVenueLogin ? 'fan' : 'venue')}
+     className="text-sm font-semibold hover:opacity-80 transition-opacity"
+     style={{ color: isVenueLogin ? '#1E90FF' : '#22c55e' }}
+   >
+     {isVenueLogin ? '🏈 Switch to Fan Login' : '🏪 Switch to Venue Login'}
+   </button>
+ </div>
+
  <button
  onClick={() => setCurrentScreen('welcome')}
- className="w-full py-3 transition-colors"
+ className="w-full py-2 transition-colors text-sm"
  style={{ color: '#A0A4AB' }}
  >
  ← Back
@@ -7865,7 +7911,7 @@ const qrScannerRef = useRef(null);
  </button>
 
  <button
- onClick={() => setCurrentScreen('signupType')}
+ onClick={() => setCurrentScreen('welcome')}
  className="w-full py-3 text-[#A0A4AB] hover:text-white transition-colors"
  >
  &larr; Back
