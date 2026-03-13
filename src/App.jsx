@@ -2950,6 +2950,26 @@ useEffect(() => { if (currentScreen === 'nearbyParties') setCurrentScreen('brows
 useEffect(() => { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; }, []);
 useEffect(() => { if (user) { window.scrollTo(0, 0); } }, [user]);
 
+useEffect(() => {
+  const calc = () => {
+    const diff = new Date('2026-06-01T00:00:00').getTime() - Date.now();
+    if (diff <= 0) { setLaunchCountdown('LIVE'); return; }
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    setLaunchCountdown(`${d}d ${h}h ${m}m`);
+  };
+  calc();
+  const t = setInterval(calc, 60000);
+  const onSignup = () => setLaunchDisplayCount(prev => {
+    const next = prev + 1;
+    localStorage.setItem('huddleup_display_count', String(next));
+    return next;
+  });
+  window.addEventListener('user-signup', onSignup);
+  return () => { clearInterval(t); window.removeEventListener('user-signup', onSignup); };
+}, []);
+
 const mainContainerRef = useRef(null);
 
  const [softLaunchDismissed, setSoftLaunchDismissed] = useState(() => {
@@ -2958,6 +2978,12 @@ const mainContainerRef = useRef(null);
    try { const parsed = JSON.parse(stored); return Date.now() - parsed.time < 7 * 24 * 60 * 60 * 1000; } catch { return false; }
  });
  const [softLaunchStats, setSoftLaunchStats] = useState({ users: 0, parties: 0, venues: 0 });
+ const [launchCounterDismissed, setLaunchCounterDismissed] = useState(() => !!localStorage.getItem('launch_counter_dismissed'));
+ const [launchDisplayCount, setLaunchDisplayCount] = useState(() => {
+   const saved = localStorage.getItem('huddleup_display_count');
+   return saved ? parseInt(saved, 10) : 108701;
+ });
+ const [launchCountdown, setLaunchCountdown] = useState('');
  const [tourTab, setTourTab] = useState('fans');
  const [spotlightTourActive, setSpotlightTourActive] = useState(false);
  const [spotlightStep, setSpotlightStep] = useState(0);
@@ -3968,6 +3994,7 @@ const qrScannerRef = useRef(null);
    if (founderData.success) { userData.isFounder = true; userData.founderNumber = founderData.founderNumber || null; userData.subscriptionTier = 'pro'; }
  } catch {}
  setUser(userData);
+ window.dispatchEvent(new CustomEvent('user-signup'));
  setShowWelcomePopup(true);
  setShowOnboarding(false);
  setOnboardingStep(0);
@@ -7803,6 +7830,25 @@ const qrScannerRef = useRef(null);
  )}
 
  <div className="max-w-4xl mx-auto px-4">
+
+{/* LAUNCH COUNTER BANNER */}
+{!launchCounterDismissed && (
+<div className="mb-3 relative overflow-hidden rounded-xl" style={{ background: 'linear-gradient(135deg, #0F1115 0%, #1a2540 50%, #0F1115 100%)', border: '1px solid rgba(30,144,255,0.35)' }}>
+  <button onClick={() => { setLaunchCounterDismissed(true); localStorage.setItem('launch_counter_dismissed', '1'); }} className="absolute top-2 right-2 text-white/40 hover:text-white/80 z-10 p-1">
+    <X className="w-3.5 h-3.5" />
+  </button>
+  <div className="p-3 flex items-center gap-3">
+    <div className="text-lg flex-shrink-0">🚀</div>
+    <div className="flex-1 min-w-0">
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-white font-bold text-sm">Official Launch:</span>
+        <span className="text-[#FFD700] font-black text-sm">{launchCountdown}</span>
+      </div>
+      <p className="text-white/60 text-xs mt-0.5"><span className="text-[#FFD700] font-bold">{launchDisplayCount.toLocaleString()}+</span> fans ready to watch</p>
+    </div>
+  </div>
+</div>
+)}
 
 {/* SOFT LAUNCH BANNER */}
 {!softLaunchDismissed && (
