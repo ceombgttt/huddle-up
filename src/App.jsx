@@ -3043,8 +3043,14 @@ const mainContainerRef = useRef(null);
  const [softLaunchStats, setSoftLaunchStats] = useState({ users: 0, parties: 0, venues: 0 });
  const [launchCounterDismissed, setLaunchCounterDismissed] = useState(() => !!localStorage.getItem('launch_counter_dismissed'));
  const [launchDisplayCount, setLaunchDisplayCount] = useState(() => {
+   const BASE_COUNT = 108701;
+   const LAUNCH_DATE = new Date('2026-01-01T00:00:00');
+   const DAILY_GROWTH = 53;
+   const daysSinceLaunch = Math.max(0, Math.floor((Date.now() - LAUNCH_DATE.getTime()) / 86400000));
+   const calculated = BASE_COUNT + (DAILY_GROWTH * daysSinceLaunch);
    const saved = localStorage.getItem('huddleup_display_count');
-   return saved ? parseInt(saved, 10) : 108701;
+   const stored = saved ? parseInt(saved, 10) : 0;
+   return Math.max(calculated, stored);
  });
  const [launchCountdown, setLaunchCountdown] = useState('');
  const [tourTab, setTourTab] = useState('fans');
