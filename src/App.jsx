@@ -8042,34 +8042,32 @@ const qrScannerRef = useRef(null);
  <div className="max-w-4xl mx-auto px-4">
 
 {/* LAUNCH COUNTER BANNER */}
-{(() => {
+{!launchCounterDismissed && (() => {
   const goal = 1000000;
   const pct = Math.min(100, Math.round((launchDisplayCount / goal) * 100));
   return (
-{!launchCounterDismissed && (
-<div className="mb-3 rounded-xl" style={{ background: 'linear-gradient(135deg, #0d1a2e 0%, #111827 100%)', border: '1px solid rgba(30,144,255,0.35)' }}>
-  <div className="p-3">
-    <div className="flex items-center gap-2 mb-2">
-      <span className="text-base flex-shrink-0">🚀</span>
-      <span className="text-white font-bold text-sm flex-1 min-w-0 truncate">Fans Already Signed Up</span>
-      <span className="text-[#FFD700] font-black text-sm flex-shrink-0">{launchDisplayCount.toLocaleString()}+</span>
-      <button onClick={() => setLaunchCounterDismissed(true)} className="flex-shrink-0 text-white/20 hover:text-white/50 p-0.5">
-        <X className="w-3 h-3" />
-      </button>
-    </div>
-    <div className="w-full rounded-full overflow-hidden" style={{ height: '8px', background: 'rgba(255,255,255,0.08)' }}>
-      <div
-        className="h-full rounded-full"
-        style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #1E90FF 0%, #FFD700 100%)', boxShadow: '0 0 6px rgba(30,144,255,0.5)' }}
-      />
-    </div>
-    <div className="flex items-center justify-between mt-1.5">
-      <span className="text-white/40 text-[11px]">Official Launch: <span className="text-[#FFD700] font-bold">{launchCountdown}</span></span>
-      <span className="text-white/30 text-[11px]">Goal: {goal.toLocaleString()}</span>
+  <div className="mb-3 rounded-xl" style={{ background: 'linear-gradient(135deg, #0d1a2e 0%, #111827 100%)', border: '1px solid rgba(30,144,255,0.35)' }}>
+    <div className="p-3">
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-base flex-shrink-0">🚀</span>
+        <span className="text-white font-bold text-sm flex-1 min-w-0 truncate">Fans Already Signed Up</span>
+        <span className="text-[#FFD700] font-black text-sm flex-shrink-0">{launchDisplayCount.toLocaleString()}+</span>
+        <button onClick={() => setLaunchCounterDismissed(true)} className="flex-shrink-0 text-white/20 hover:text-white/50 p-0.5">
+          <X className="w-3 h-3" />
+        </button>
+      </div>
+      <div className="w-full rounded-full overflow-hidden" style={{ height: '8px', background: 'rgba(255,255,255,0.08)' }}>
+        <div
+          className="h-full rounded-full"
+          style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #1E90FF 0%, #FFD700 100%)', boxShadow: '0 0 6px rgba(30,144,255,0.5)' }}
+        />
+      </div>
+      <div className="flex items-center justify-between mt-1.5">
+        <span className="text-white/40 text-[11px]">Official Launch: <span className="text-[#FFD700] font-bold">{launchCountdown}</span></span>
+        <span className="text-white/30 text-[11px]">Goal: {goal.toLocaleString()}</span>
+      </div>
     </div>
   </div>
-</div>
-)}
   );
 })()}
 
