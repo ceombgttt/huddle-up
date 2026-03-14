@@ -1924,9 +1924,11 @@ function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast
  <div className="text-sm text-[#A0A4AB]/70">
  {party.createdAt ? new Date(party.createdAt).toLocaleDateString() : ''}
  </div>
+ {new Date(party.gameTime) >= new Date() && (
  <button onClick={async (e) => { e.stopPropagation(); const url = `${window.location.origin}?party=${party.id}`; if (navigator.share) { try { await navigator.share({ title: party.title || 'Watch Party', text: `Join me at ${party.venueName || 'this watch party'}!`, url }); } catch (err) { console.error(err); } } else { try { await navigator.clipboard.writeText(url); showToast('Link copied!', 'success'); } catch (err) { console.error(err); } } }} className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 transition-colors">
  <Share2 className="w-3 h-3" /> Share
  </button>
+ )}
  </div>
  </div>
  );
@@ -3788,6 +3790,11 @@ const qrScannerRef = useRef(null);
  const partyId = partyMatch[1];
  setDeepLinkPartyId(partyId);
  window.history.replaceState({}, '', '/');
+ }
+ const partyQueryId = new URLSearchParams(window.location.search).get('party');
+ if (partyQueryId) {
+ setDeepLinkPartyId(partyQueryId);
+ window.history.replaceState({}, '', window.location.pathname);
  }
 
  if (window.location.pathname === '/terms') {
@@ -8356,7 +8363,7 @@ const qrScannerRef = useRef(null);
  <button
  key={sport}
  onClick={() => { if (sport === 'All') { setSelectedSports([]); } else { setSelectedSports(prev => prev.includes(sport) ? prev.filter(s => s !== sport) : [...prev, sport]); } }}
- className={`relative flex-shrink-0 w-[72px] h-[72px] rounded-[12px] overflow-hidden transition-all active:scale-[0.96] ${
+ className={`relative flex-shrink-0 w-[84px] h-[84px] rounded-[14px] overflow-hidden transition-all active:scale-[0.96] ${
  (sport === 'All' && selectedSports.length === 0) || (sport !== 'All' && selectedSports.includes(sport))
  ? 'ring-2 ring-[#1E90FF] ring-offset-1 ring-offset-[#0F1115] shadow-lg shadow-[#1E90FF]/40'
  : isLive
@@ -8380,8 +8387,8 @@ const qrScannerRef = useRef(null);
  : 'bg-gradient-to-b from-black/20 to-black/75'
  }`} />
  <div className="relative z-10 h-full flex flex-col items-center justify-center gap-0.5 px-1">
- <span className="text-xl leading-none drop-shadow-md">{SPORT_ICONS[sport] || '🏅'}</span>
- <span className="text-[10px] font-black text-white text-center leading-tight" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>{({'College Football':'NCAAF','College Basketball':'NCAA BB','Champions League':'UCL','Premier League':'EPL','Formula 1':'F1','FIFA World Cup':'FIFA WC'})[sport] || sport}</span>
+ <span className="text-2xl leading-none drop-shadow-md">{SPORT_ICONS[sport] || '🏅'}</span>
+ <span className="text-[11px] font-black text-white text-center leading-tight" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>{({'College Football':'NCAAF','College Basketball':'NCAA BB','Champions League':'UCL','Premier League':'EPL','Formula 1':'F1','FIFA World Cup':'FIFA WC'})[sport] || sport}</span>
  {isLive && sport !== 'All' && <span className="w-1.5 h-1.5 bg-red-400 rounded-full animate-pulse" />}
  </div>
  </button>
