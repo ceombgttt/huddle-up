@@ -1917,7 +1917,7 @@ function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast
  </span>
  </div>
  <div className="text-sm text-[#A0A4AB]">
- Hosted by {party.hostName || 'Unknown'} • {party.attendees?.length || 0} attendees
+ Hosted by {party.venueName || party.hostName || 'Unknown'} • {party.attendees?.length || 0} attendees
  </div>
  </div>
  <div className="flex flex-col items-end gap-1">
@@ -6467,7 +6467,7 @@ const qrScannerRef = useRef(null);
              <div key={p.id} onClick={() => { setSelectedGame({ id: p.gameId, sport: p.sport, homeTeam: p.homeTeam, awayTeam: p.awayTeam, startTime: p.gameTime }); setCurrentScreen('gameDetail'); }} className="bg-[#1A1D23] rounded-xl p-4 border border-[#222A36] cursor-pointer hover:border-[#1E90FF]/40 transition-all">
                <div className="flex items-center justify-between mb-2">
                  <span className="text-xs font-bold text-[#1E90FF] bg-[#1E90FF]/10 px-2 py-0.5 rounded">{p.sport}</span>
-                 <span className="text-[#A0A4AB] text-xs">{new Date(p.gameTime).toLocaleDateString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
+                 <span className="text-[#A0A4AB] text-xs">{p.gameTime && !isNaN(new Date(p.gameTime)) ? new Date(p.gameTime).toLocaleDateString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'Date TBD'}</span>
                </div>
                <h3 className="text-white font-bold text-sm mb-1">{p.homeTeam} vs {p.awayTeam}</h3>
                {p.title && <p className="text-[#A0A4AB] text-xs mb-2">{p.title}</p>}
@@ -6476,7 +6476,7 @@ const qrScannerRef = useRef(null);
                    <Users className="w-3.5 h-3.5" />
                    <span>{p.attendeeCount} attending</span>
                  </div>
-                 <span className="text-[#A0A4AB] text-xs">Hosted by {p.hostName}</span>
+                 <span className="text-[#A0A4AB] text-xs">Hosted by {p.venueName || p.hostName}</span>
                </div>
              </div>
            ))}
@@ -8389,7 +8389,7 @@ const qrScannerRef = useRef(null);
  setShowSportsScrollArrow(el.scrollLeft + el.clientWidth < el.scrollWidth - 10);
  }
  }}
- className="flex gap-[12px] overflow-x-auto pb-3 scrollbar-hide px-4"
+ className="flex gap-[12px] overflow-x-auto pt-2 pb-3 scrollbar-hide px-4"
  >
  {(() => {
  const liveSports = new Set(games.filter(g => g.gameStatus === 'live').map(g => g.sport));
