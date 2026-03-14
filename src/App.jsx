@@ -18209,7 +18209,7 @@ Become a Sponsor →
 
 {user && !['welcome', 'login', 'signup', 'signupType', 'forgotPassword', 'dmChat', 'partyChat', 'gameDetail'].includes(currentScreen) && !(currentScreen === 'teamChats' && teamChatSelectedRoom) && (
 <div className="fixed bottom-0 left-0 right-0 z-[50] bg-[#151A22] border-t border-[#222A36]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-<div className="grid grid-cols-5 py-1.5 max-w-lg mx-auto">
+<div className="grid grid-cols-4 py-1.5 max-w-lg mx-auto">
 <button onClick={() => { setCurrentScreen('games'); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 py-1 transition-colors ${currentScreen === 'games' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
 <Home className="w-6 h-6" /><span className="text-[11px] font-bold">Home</span>
 </button>
@@ -18229,10 +18229,6 @@ Become a Sponsor →
 <Gift className="w-6 h-6" /><span className="text-[11px] font-bold">Rewards</span>
 </button>
 )}
-<button onClick={() => { setCurrentScreen('profile'); window.scrollTo(0,0); }} className={`flex flex-col items-center gap-1 py-1 transition-colors relative ${currentScreen === 'profile' ? 'text-[#1E90FF]' : 'text-white/50'}`}>
-<User className="w-6 h-6" /><span className="text-[11px] font-bold">Me</span>
-{totalAlerts > 0 && <span className="absolute top-0 right-[20%] bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{totalAlerts}</span>}
-</button>
 </div>
 </div>
 )}
