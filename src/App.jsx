@@ -4137,11 +4137,8 @@ const qrScannerRef = useRef(null);
  setShowOnboarding(false);
  setOnboardingStep(0);
  setShowSignupShare(true);
- if (userType === 'venue') {
- setCurrentScreen('venueDashboard');
- } else {
- setCurrentScreen('profile');
- }
+ setCurrentScreen('games');
+ if (mainContainerRef.current) mainContainerRef.current.scrollTop = 0;
  loadParties();
  loadVenues();
  loadVenueClaims();
@@ -4167,11 +4164,8 @@ const qrScannerRef = useRef(null);
  loadNotifications();
  loadBadgeStats();
  loadFriends();
- if (userData.userType === 'venue') {
- setCurrentScreen('venueDashboard');
- } else {
  setCurrentScreen('games');
- }
+ if (mainContainerRef.current) mainContainerRef.current.scrollTop = 0;
  launchIntroSplash();
  } catch (error) {
  showToast(error.message, 'error');
