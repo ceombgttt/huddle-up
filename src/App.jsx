@@ -2240,7 +2240,7 @@ function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast
  </div>
  </div>
  <button
- onClick={async () => { try { const d = await api.stripe.portal(); if (d?.url) window.location.href = d.url; } catch(e) { console.error(e); } }}
+ onClick={async (e) => { const btn = e.currentTarget; btn.disabled = true; btn.textContent = 'Opening…'; try { const d = await api.stripe.portal(); if (d?.url) { window.location.href = d.url; } else { showToast('Could not open billing portal. Please try again.', 'error'); btn.disabled = false; btn.textContent = 'Manage Subscription'; } } catch(err) { showToast(err.message || 'Could not open billing portal. Please try again.', 'error'); btn.disabled = false; btn.textContent = 'Manage Subscription'; } }}
  className="w-full mt-4 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-sm transition-all"
  >
  Manage Subscription
@@ -2262,7 +2262,7 @@ function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast
  <p className="text-white/60 text-xs mb-4">You're on the Base plan. Upgrade to Featured for priority placement and more visibility.</p>
  <div className="flex gap-3">
  <button
- onClick={async () => { try { const d = await api.stripe.portal(); if (d?.url) window.location.href = d.url; } catch(e) { console.error(e); } }}
+ onClick={async (e) => { const btn = e.currentTarget; btn.disabled = true; btn.textContent = 'Opening…'; try { const d = await api.stripe.portal(); if (d?.url) { window.location.href = d.url; } else { showToast('Could not open billing portal. Please try again.', 'error'); btn.disabled = false; btn.textContent = 'Manage Subscription'; } } catch(err) { showToast(err.message || 'Could not open billing portal. Please try again.', 'error'); btn.disabled = false; btn.textContent = 'Manage Subscription'; } }}
  className="flex-1 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-sm transition-all"
  >
  Manage Subscription
@@ -6009,7 +6009,7 @@ const qrScannerRef = useRef(null);
  </div>
  ))}
  </div>
- <button onClick={async () => { try { const d = await api.stripe.portal(); if (d?.url) window.location.href = d.url; } catch(e) { console.error(e); } }} className="w-full mt-4 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-sm transition-all">
+ <button onClick={async (e) => { const btn = e.currentTarget; btn.disabled = true; btn.textContent = 'Opening…'; try { const d = await api.stripe.portal(); if (d?.url) { window.location.href = d.url; } else { showToast('Could not open billing portal. Please try again.', 'error'); btn.disabled = false; btn.textContent = 'Manage Subscription'; } } catch(err) { showToast(err.message || 'Could not open billing portal. Please try again.', 'error'); btn.disabled = false; btn.textContent = 'Manage Subscription'; } }} className="w-full mt-4 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-sm transition-all">
  Manage Subscription
  </button>
  </div>

@@ -256,27 +256,37 @@ router.post('/portal', requireAuth, async (req, res) => {
   try {
     const userId = req.session.userId;
     const result = await pool.query(
-      'SELECT stripe_customer_id FROM users WHERE id = $1',
+      'SELECT id, email, name, stripe_customer_id FROM users WHERE id = $1',
       [userId]
     );
     const user = result.rows[0];
-    if (!user?.stripe_customer_id) {
-      return res.status(400).json({ error: 'No billing account found' });
-    }
+    if (!user) return res.status(404).json({ error: 'User not found' });
 
     const stripe = await getUncachableStripeClient();
     const host = req.get('host');
     const protocol = req.protocol;
 
+    let customerId = user.stripe_customer_id;
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: user.email,
+        name: user.name,
+        metadata: { userId: user.id },
+      });
+      customerId = customer.id;
+      await pool.query('UPDATE users SET stripe_customer_id = $1 WHERE id = $2', [customerId, userId]);
+    }
+
     const portalSession = await stripe.billingPortal.sessions.create({
-      customer: user.stripe_customer_id,
+      customer: customerId,
       return_url: `${protocol}://${host}/`,
     });
 
     res.json({ url: portalSession.url });
   } catch (error) {
     console.error('Portal error:', error);
-    res.status(500).json({ error: 'Could not open billing portal' });
+    const msg = error?.raw?.message || error?.message || 'Could not open billing portal';
+    res.status(500).json({ error: msg });
   }
 });
 
