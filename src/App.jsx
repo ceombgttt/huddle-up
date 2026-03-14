@@ -3011,6 +3011,7 @@ const HuddleUpApp = () => {
  useEffect(() => { window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; if (mainContainerRef.current) mainContainerRef.current.scrollTop = 0; requestAnimationFrame(() => { window.scrollTo(0, 0); if (mainContainerRef.current) mainContainerRef.current.scrollTop = 0; }); }, [currentScreen]);
 useEffect(() => { if (currentScreen === 'nearbyParties') setCurrentScreen('browseParties'); }, [currentScreen]);
 useEffect(() => { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; }, []);
+useEffect(() => { const t = setTimeout(() => { setLaunchCounterDismissed(true); }, 5000); return () => clearTimeout(t); }, []);
 useEffect(() => { if (user) { window.scrollTo(0, 0); } }, [user]);
 
 useEffect(() => {
@@ -8044,14 +8045,14 @@ const qrScannerRef = useRef(null);
   const goal = 250000;
   const pct = Math.min(100, Math.round((launchDisplayCount / goal) * 100));
   return (
+{!launchCounterDismissed && (
 <div className="mb-3 rounded-xl" style={{ background: 'linear-gradient(135deg, #0d1a2e 0%, #111827 100%)', border: '1px solid rgba(30,144,255,0.35)' }}>
-  {!launchCounterDismissed ? (
   <div className="p-3">
     <div className="flex items-center gap-2 mb-2">
       <span className="text-base flex-shrink-0">🚀</span>
       <span className="text-white font-bold text-sm flex-1 min-w-0 truncate">Fans Already Signed Up</span>
       <span className="text-[#FFD700] font-black text-sm flex-shrink-0">{launchDisplayCount.toLocaleString()}+</span>
-      <button onClick={() => { setLaunchCounterDismissed(true); localStorage.setItem('launch_counter_dismissed', '1'); }} className="flex-shrink-0 text-white/20 hover:text-white/50 p-0.5">
+      <button onClick={() => setLaunchCounterDismissed(true)} className="flex-shrink-0 text-white/20 hover:text-white/50 p-0.5">
         <X className="w-3 h-3" />
       </button>
     </div>
@@ -8066,19 +8067,8 @@ const qrScannerRef = useRef(null);
       <span className="text-white/30 text-[11px]">Goal: {goal.toLocaleString()}</span>
     </div>
   </div>
-  ) : (
-  <div className="p-2 flex items-center gap-2">
-    <span className="text-sm flex-shrink-0">🚀</span>
-    <div className="flex-1 min-w-0">
-      <div className="w-full rounded-full overflow-hidden" style={{ height: '5px', background: 'rgba(255,255,255,0.08)' }}>
-        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #1E90FF 0%, #FFD700 100%)' }} />
-      </div>
-    </div>
-    <span className="text-[#FFD700] font-black text-xs flex-shrink-0">{launchDisplayCount.toLocaleString()}+</span>
-    <button onClick={() => { setLaunchCounterDismissed(false); localStorage.removeItem('launch_counter_dismissed'); }} className="flex-shrink-0 text-white/20 hover:text-white/50 p-0.5 text-[10px]">▲</button>
-  </div>
-  )}
 </div>
+)}
   );
 })()}
 
