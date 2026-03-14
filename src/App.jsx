@@ -18057,10 +18057,12 @@ Become a Sponsor →
    const venuePartyLookup = {};
    upcomingParties.forEach(p => { if (p.venueName) { const k = p.venueName.toLowerCase(); if (!venuePartyLookup[k]) venuePartyLookup[k] = []; venuePartyLookup[k].push(p); } });
    const mapVenues = vList.filter(v => v.latitude && v.longitude);
+   const allMapVenues = allVerified.filter(v => v.latitude && v.longitude);
    const fvUserCenter = userCoords ? [userCoords.lat, userCoords.lng] : null;
-   const defaultCenter = fvUserCenter || (mapVenues.length > 0 ? [parseFloat(mapVenues[0].latitude), parseFloat(mapVenues[0].longitude)] : [26.1224, -80.1373]);
+   const defaultCenter = fvUserCenter || (allMapVenues.length > 0 ? [allMapVenues.reduce((s,v)=>s+parseFloat(v.latitude),0)/allMapVenues.length, allMapVenues.reduce((s,v)=>s+parseFloat(v.longitude),0)/allMapVenues.length] : [26.4224, -80.1073]);
    const FvMapRecenter = () => { const map = useMap(); React.useEffect(() => { if (fvUserCenter) map.setView(fvUserCenter, 13); }, []); return null; };
    const FvMapFlyTo = ({ coords }) => { const map = useMap(); React.useEffect(() => { if (coords) map.flyTo(coords, 13, { duration: 1.2 }); }, [coords ? coords[0] : null, coords ? coords[1] : null]); return null; };
+   const FvFitBounds = ({ venues }) => { const map = useMap(); React.useEffect(() => { if (!fvUserCenter && !findVenuesFlyTo && venues.length > 1) { const lats = venues.map(v => parseFloat(v.latitude)); const lngs = venues.map(v => parseFloat(v.longitude)); const bounds = [[Math.min(...lats)-0.01, Math.min(...lngs)-0.01],[Math.max(...lats)+0.01, Math.max(...lngs)+0.01]]; map.fitBounds(bounds, { padding: [30, 30] }); } }, [venues.length]); return null; };
    // Compute city centers and unique city list from venue data
    const cityDataMap = {};
    allVerified.forEach(v => { if (v.city && v.latitude && v.longitude) { if (!cityDataMap[v.city]) cityDataMap[v.city] = { lats: [], lngs: [] }; cityDataMap[v.city].lats.push(parseFloat(v.latitude)); cityDataMap[v.city].lngs.push(parseFloat(v.longitude)); } });
@@ -18072,17 +18074,24 @@ Become a Sponsor →
    return (
      <div style={{ position: 'fixed', top: '60px', left: 0, right: 0, bottom: '72px', display: 'flex', flexDirection: 'column', zIndex: 0 }}>
        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, touchAction: 'none' }}>
-         <MapContainer center={defaultCenter} zoom={fvUserCenter ? 13 : 12} style={{ height: '100%', width: '100%', touchAction: 'none' }} scrollWheelZoom={true} dragging={true} zoomControl={false} doubleClickZoom={true} touchZoom={true} keyboard={true} attributionControl={false}>
+         <MapContainer center={defaultCenter} zoom={fvUserCenter ? 13 : 10} style={{ height: '100%', width: '100%', touchAction: 'none' }} scrollWheelZoom={true} dragging={true} zoomControl={false} doubleClickZoom={true} touchZoom={true} keyboard={true} attributionControl={false}>
            <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
            <FvMapRecenter />
            <FvMapFlyTo coords={findVenuesFlyTo} />
+           <FvFitBounds venues={allMapVenues} />
            {mapVenues.map(v => {
              const vParties = venuePartyLookup[v.name?.toLowerCase()] || [];
              const hasLive = vParties.some(p => { const gt = new Date(p.gameTime); return gt <= now && gt >= new Date(now.getTime() - 4*60*60*1000); });
+             const hasParty = vParties.length > 0;
+             const markerHtml = hasLive
+               ? `<div style="background:#E53935;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;border:3px solid white;box-shadow:0 2px 10px rgba(0,0,0,0.4);cursor:pointer">🔴</div>`
+               : hasParty
+               ? `<div style="position:relative;width:38px;height:38px;cursor:pointer"><div style="background:#1E90FF;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;border:3px solid white;box-shadow:0 2px 12px rgba(30,144,255,0.5)">🍺</div><div style="position:absolute;top:-4px;right:-4px;background:#FFD700;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:10px;border:1.5px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.3)">🎉</div></div>`
+               : `<div style="background:#455A64;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;border:2.5px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);cursor:pointer">📍</div>`;
              return (
              <Marker key={v.id} position={[parseFloat(v.latitude), parseFloat(v.longitude)]}
-               icon={L.divIcon({ className: 'leaflet-custom-marker', html: `<div style="background:${hasLive ? '#E53935' : vParties.length > 0 ? '#1565C0' : '#455A64'};width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;border:3px solid white;box-shadow:0 2px 10px rgba(0,0,0,0.3);cursor:pointer">${hasLive ? '🔴' : vParties.length > 0 ? '🍺' : '📍'}</div>`, iconSize: [36, 36], iconAnchor: [18, 18] })}>
-               <Popup><div className="text-center"><strong>{v.name}</strong><br/><span style={{ fontSize: '11px', color: '#aaa' }}>{v.type || 'Sports Bar'}</span><br/>{vParties.length > 0 && <span style={{ fontSize: '12px', color: '#10B981', fontWeight: 'bold' }}>{vParties.length} {vParties.length === 1 ? 'party' : 'parties'}</span>}<br/><button onClick={() => { setSelectedVenueId(v.id); setCurrentScreen('venueDetail'); }} style={{ background: '#1E90FF', color: 'white', border: 'none', padding: '4px 12px', borderRadius: '6px', marginTop: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>View Venue</button></div></Popup>
+               icon={L.divIcon({ className: 'leaflet-custom-marker', html: markerHtml, iconSize: hasLive || hasParty ? [38, 38] : [32, 32], iconAnchor: hasLive || hasParty ? [19, 19] : [16, 16] })}>
+               <Popup><div className="text-center"><strong>{v.name}</strong><br/><span style={{ fontSize: '11px', color: '#aaa' }}>{v.type || 'Sports Bar'}</span>{hasParty && <><br/><span style={{ fontSize: '12px', color: '#1E90FF', fontWeight: 'bold' }}>🎉 {vParties.length} {vParties.length === 1 ? 'party' : 'parties'} upcoming</span></>}<br/><button onClick={() => { setSelectedVenueId(v.id); setCurrentScreen('venueDetail'); }} style={{ background: '#1E90FF', color: 'white', border: 'none', padding: '4px 12px', borderRadius: '6px', marginTop: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>View Venue</button></div></Popup>
              </Marker>
            );})}
          </MapContainer>
