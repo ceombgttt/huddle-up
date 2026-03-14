@@ -7204,74 +7204,75 @@ const qrScannerRef = useRef(null);
  );
 
  const WelcomeScreen = () => {
-   const goal = 250000;
+   const goal = 1000000;
    const pct = Math.min(100, Math.round((launchDisplayCount / goal) * 100));
    return (
- <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: 'radial-gradient(ellipse at center, #161A22 0%, #0F1115 70%)' }}>
- <div className="w-full text-center flex-1 flex flex-col items-center justify-center" style={{ gap: '36px', maxWidth: '720px' }}>
- <div className="space-y-6">
- <img src="/huddle-up-logo.png" alt="Huddle Up - Find Your Crew. Watch The Game!" className="mx-auto" style={{ width: '716px' }} />
- </div>
+ <div className="h-screen flex flex-col items-center justify-between px-5 py-4 overflow-hidden" style={{ background: 'radial-gradient(ellipse at center, #161A22 0%, #0F1115 70%)' }}>
+   {/* LOGO */}
+   <div className="flex-shrink-0 pt-2">
+     <img src="/huddle-up-logo.png" alt="Huddle Up" className="mx-auto w-full" style={{ maxWidth: '320px', maxHeight: '110px', objectFit: 'contain' }} />
+   </div>
 
- {/* USER COUNT PROGRESS BAR */}
- <div className="w-full max-w-md mx-auto rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #0d1a2e 0%, #111827 100%)', border: '1px solid rgba(30,144,255,0.3)', padding: '18px 20px' }}>
-   <div className="flex items-center justify-between mb-2">
-     <div className="flex items-center gap-2">
-       <span className="text-base">🚀</span>
-       <span className="text-white font-bold text-sm">Fans Already Signed Up</span>
+   {/* FAN COUNTER */}
+   <div className="w-full max-w-md mx-auto rounded-2xl flex-shrink-0" style={{ background: 'linear-gradient(135deg, #0d1a2e 0%, #111827 100%)', border: '1px solid rgba(30,144,255,0.3)', padding: '12px 16px' }}>
+     <div className="flex items-center justify-between mb-1.5">
+       <div className="flex items-center gap-2">
+         <span className="text-base">🚀</span>
+         <span className="text-white font-bold text-sm">Fans Already Signed Up</span>
+       </div>
+       <span className="text-[#FFD700] font-black text-sm">{launchDisplayCount.toLocaleString()}+</span>
      </div>
-     <span className="text-[#FFD700] font-black text-sm">{launchDisplayCount.toLocaleString()}+</span>
-   </div>
-   <div className="w-full rounded-full overflow-hidden" style={{ height: '10px', background: 'rgba(255,255,255,0.08)' }}>
-     <div
-       className="h-full rounded-full transition-all duration-1000"
-       style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #1E90FF 0%, #FFD700 100%)', boxShadow: '0 0 8px rgba(30,144,255,0.6)' }}
-     />
-   </div>
-   <div className="flex items-center justify-between mt-2">
-     <span className="text-[#A0A4AB] text-xs">Growing daily in South Florida</span>
-     <span className="text-[#A0A4AB] text-xs">Goal: {goal.toLocaleString()}</span>
-   </div>
- </div>
-
- {/* SEPARATE FAN / VENUE LANES */}
- <div className="w-full max-w-md grid grid-cols-2 gap-3">
-   {/* Fan lane */}
-   <div className="rounded-2xl overflow-hidden border" style={{ background: 'linear-gradient(160deg, rgba(30,144,255,0.12) 0%, rgba(21,26,34,0.9) 100%)', borderColor: 'rgba(30,144,255,0.35)' }}>
-     <div className="px-4 pt-4 pb-3 text-center border-b" style={{ borderColor: 'rgba(30,144,255,0.2)' }}>
-       <div className="text-2xl mb-1">🏈</div>
-       <div className="text-white font-black text-sm" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em', fontSize: '16px' }}>SPORTS FAN</div>
-       <div className="text-[#A0A4AB] text-[11px] mt-0.5">Find parties & connect</div>
+     <div className="w-full rounded-full overflow-hidden" style={{ height: '8px', background: 'rgba(255,255,255,0.08)' }}>
+       <div
+         className="h-full rounded-full transition-all duration-1000"
+         style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #1E90FF 0%, #FFD700 100%)', boxShadow: '0 0 8px rgba(30,144,255,0.6)' }}
+       />
      </div>
-     <div className="p-3 space-y-2">
-       <button onClick={() => { setLoginUserType('fan'); setCurrentScreen('login'); }} className="w-full py-2.5 text-white font-bold text-sm rounded-xl transition-all hover:opacity-90" style={{ backgroundColor: '#1E90FF' }}>
-         LOG IN
-       </button>
-       <button onClick={() => { setSignupUserType('fan'); setCurrentScreen('signup'); }} className="w-full py-2.5 font-bold text-sm rounded-xl transition-all hover:opacity-80" style={{ backgroundColor: 'transparent', border: '1.5px solid rgba(30,144,255,0.5)', color: '#1E90FF' }}>
-         SIGN UP
-       </button>
+     <div className="flex items-center justify-between mt-1.5">
+       <span className="text-[#A0A4AB] text-xs">Growing daily in South Florida</span>
+       <span className="text-[#A0A4AB] text-xs">Goal: {goal.toLocaleString()}</span>
      </div>
    </div>
 
-   {/* Venue lane */}
-   <div className="rounded-2xl overflow-hidden border" style={{ background: 'linear-gradient(160deg, rgba(34,197,94,0.12) 0%, rgba(21,26,34,0.9) 100%)', borderColor: 'rgba(34,197,94,0.35)' }}>
-     <div className="px-4 pt-4 pb-3 text-center border-b" style={{ borderColor: 'rgba(34,197,94,0.2)' }}>
-       <div className="text-2xl mb-1">🏪</div>
-       <div className="text-white font-black text-sm" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em', fontSize: '16px' }}>VENUE OWNER</div>
-       <div className="text-[#A0A4AB] text-[11px] mt-0.5">Manage your venue</div>
+   {/* SEPARATE FAN / VENUE LANES */}
+   <div className="w-full max-w-md grid grid-cols-2 gap-3 flex-shrink-0">
+     {/* Fan lane */}
+     <div className="rounded-2xl overflow-hidden border" style={{ background: 'linear-gradient(160deg, rgba(30,144,255,0.12) 0%, rgba(21,26,34,0.9) 100%)', borderColor: 'rgba(30,144,255,0.35)' }}>
+       <div className="px-3 pt-3 pb-2 text-center border-b" style={{ borderColor: 'rgba(30,144,255,0.2)' }}>
+         <div className="text-xl mb-0.5">🏈</div>
+         <div className="text-white font-black" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em', fontSize: '15px' }}>SPORTS FAN</div>
+         <div className="text-[#A0A4AB] text-[10px] mt-0.5">Find parties & connect</div>
+       </div>
+       <div className="p-2.5 space-y-2">
+         <button onClick={() => { setLoginUserType('fan'); setCurrentScreen('login'); }} className="w-full py-2.5 text-white font-bold text-sm rounded-xl transition-all hover:opacity-90" style={{ backgroundColor: '#1E90FF' }}>
+           LOG IN
+         </button>
+         <button onClick={() => { setSignupUserType('fan'); setCurrentScreen('signup'); }} className="w-full py-2 font-bold text-sm rounded-xl transition-all hover:opacity-80" style={{ backgroundColor: 'transparent', border: '1.5px solid rgba(30,144,255,0.5)', color: '#1E90FF' }}>
+           SIGN UP
+         </button>
+       </div>
      </div>
-     <div className="p-3 space-y-2">
-       <button onClick={() => { setLoginUserType('venue'); setCurrentScreen('login'); }} className="w-full py-2.5 text-white font-bold text-sm rounded-xl transition-all hover:opacity-90" style={{ backgroundColor: '#22c55e' }}>
-         LOG IN
-       </button>
-       <button onClick={() => { setSignupUserType('venue'); api.venues.list().then(v => setSignupVenueList(v || [])).catch(e => console.error('Load venue list error:', e)); setCurrentScreen('signup'); }} className="w-full py-2.5 font-bold text-sm rounded-xl transition-all hover:opacity-80" style={{ backgroundColor: 'transparent', border: '1.5px solid rgba(34,197,94,0.5)', color: '#22c55e' }}>
-         REGISTER
-       </button>
+
+     {/* Venue lane */}
+     <div className="rounded-2xl overflow-hidden border" style={{ background: 'linear-gradient(160deg, rgba(34,197,94,0.12) 0%, rgba(21,26,34,0.9) 100%)', borderColor: 'rgba(34,197,94,0.35)' }}>
+       <div className="px-3 pt-3 pb-2 text-center border-b" style={{ borderColor: 'rgba(34,197,94,0.2)' }}>
+         <div className="text-xl mb-0.5">🏪</div>
+         <div className="text-white font-black" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em', fontSize: '15px' }}>VENUE OWNER</div>
+         <div className="text-[#A0A4AB] text-[10px] mt-0.5">Manage your venue</div>
+       </div>
+       <div className="p-2.5 space-y-2">
+         <button onClick={() => { setLoginUserType('venue'); setCurrentScreen('login'); }} className="w-full py-2.5 text-white font-bold text-sm rounded-xl transition-all hover:opacity-90" style={{ backgroundColor: '#22c55e' }}>
+           LOG IN
+         </button>
+         <button onClick={() => { setSignupUserType('venue'); api.venues.list().then(v => setSignupVenueList(v || [])).catch(e => console.error('Load venue list error:', e)); setCurrentScreen('signup'); }} className="w-full py-2 font-bold text-sm rounded-xl transition-all hover:opacity-80" style={{ backgroundColor: 'transparent', border: '1.5px solid rgba(34,197,94,0.5)', color: '#22c55e' }}>
+           REGISTER
+         </button>
+       </div>
      </div>
    </div>
- </div>
- </div>
- <CopyrightFooter />
+
+   {/* FOOTER */}
+   <CopyrightFooter />
  </div>
    );
  };
@@ -8042,7 +8043,7 @@ const qrScannerRef = useRef(null);
 
 {/* LAUNCH COUNTER BANNER */}
 {(() => {
-  const goal = 250000;
+  const goal = 1000000;
   const pct = Math.min(100, Math.round((launchDisplayCount / goal) * 100));
   return (
 {!launchCounterDismissed && (
