@@ -7208,9 +7208,9 @@ const qrScannerRef = useRef(null);
    const pct = Math.min(100, Math.round((launchDisplayCount / goal) * 100));
    return (
  <div className="relative h-screen flex flex-col items-center justify-center px-5 py-4 overflow-hidden gap-5" style={{ background: 'radial-gradient(ellipse at center, #161A22 0%, #0F1115 70%)' }}>
-   {/* LOGO */}
-   <div className="flex-shrink-0">
-     <img src="/huddle-up-logo.png" alt="Huddle Up" className="mx-auto w-full" style={{ maxWidth: '420px', maxHeight: '160px', objectFit: 'contain' }} />
+   {/* LOGO — 1/3 of screen height */}
+   <div className="flex-shrink-0 w-full flex justify-center">
+     <img src="/huddle-up-logo.png" alt="Huddle Up" className="w-full" style={{ maxWidth: '500px', height: '33vh', objectFit: 'contain' }} />
    </div>
 
    {/* SEPARATE FAN / VENUE LANES */}
@@ -7271,10 +7271,8 @@ const qrScannerRef = useRef(null);
      </div>
    </div>
 
-   {/* FOOTER */}
-   <div className="absolute bottom-2 left-0 right-0">
-     <CopyrightFooter />
-   </div>
+   {/* FOOTER — close to fan counter */}
+   <CopyrightFooter />
  </div>
    );
  };
