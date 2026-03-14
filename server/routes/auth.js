@@ -48,7 +48,7 @@ router.post('/signup', async (req, res) => {
       `INSERT INTO users (email, password_hash, name, gender, date_of_birth, referred_by, subscription_tier, subscription_status, user_type) 
        VALUES ($1, $2, $3, $4, $5, $6, 'free', 'active', $7) 
        RETURNING id, email, name, gender, country, profile_picture, date_of_birth, is_admin, joined_at, notifications_enabled, phone_number, user_city, sms_notifications, subscription_tier, subscription_status, trial_ends_at, user_type`,
-      [email, passwordHash, name, gender || null, dateOfBirth || null, validReferral, validUserType]
+      [email, passwordHash, name, gender || 'prefer-not-to-say', dateOfBirth || null, validReferral, validUserType]
     );
 
     const user = result.rows[0];
