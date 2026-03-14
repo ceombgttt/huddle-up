@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, ChevronUp, Megaphone, MessageCircle, Gift, Award, Clock, Zap, Crown, Copy, Shield, ChevronRight, Info, Flame, TrendingUp, Menu, ScanLine, Download, Smartphone, Target, Lock, Home, HelpCircle, QrCode } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, ArrowLeft, LogOut, User, Trophy, Search, Filter, CheckCircle, Building2, BarChart3, Settings, Navigation, Star, Phone, Globe, Map, UserPlus, Bell, Send, Heart, X, Share2, Link, Check, Eye, EyeOff, Camera, Loader2, Pencil, DollarSign, Trash2, ChevronDown, ChevronUp, Megaphone, MessageCircle, Gift, Award, Clock, Zap, Crown, Copy, Shield, ChevronRight, Info, Flame, TrendingUp, Menu, ScanLine, Download, Smartphone, Target, Lock, Home, HelpCircle, QrCode, CreditCard } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import confetti from 'canvas-confetti';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
@@ -2205,6 +2205,7 @@ function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast
  )}
 
  {userVenue.featured ? (
+ <>
  <div className="relative overflow-hidden rounded-2xl border border-amber-500/40 bg-gradient-to-br from-amber-900/40 via-orange-900/30 to-yellow-900/20">
  <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full -translate-y-1/2 translate-x-1/2" />
  <div className="p-5">
@@ -2214,7 +2215,7 @@ function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast
  </div>
  <div>
  <h2 className="text-xl font-black text-white">Featured Venue</h2>
- <p className="text-amber-300 text-xs font-bold">Your venue is currently featured!</p>
+ <p className="text-amber-300 text-xs font-bold">{userVenue.subscribed ? 'Your venue is currently featured!' : 'Your venue has been featured!'}</p>
  </div>
  </div>
  <div className="grid grid-cols-2 gap-3 mt-4">
@@ -2247,6 +2248,40 @@ function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast
  </button>
  </div>
  </div>
+ {!userVenue.subscribed && (
+ <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-5 space-y-3">
+ <div className="flex items-center gap-2 mb-1">
+ <CreditCard className="w-5 h-5 text-amber-400" />
+ <h3 className="text-white font-black text-sm">Set Up Your Billing</h3>
+ </div>
+ <p className="text-[#A0A4AB] text-xs">Your venue is featured, but no payment method is on file. Subscribe to keep your listing active. First 90 days are FREE.</p>
+ <div className="flex flex-col gap-2">
+ <button onClick={async () => {
+   try {
+     let products = await api.stripe.products();
+     let p = products.find(x => x.metadata?.tier === 'featured_venue');
+     if (!p?.prices.length) { await new Promise(r => setTimeout(r, 1500)); products = await api.stripe.products(); p = products.find(x => x.metadata?.tier === 'featured_venue'); }
+     if (p?.prices.length) { const r = await api.stripe.checkout(p.prices[0].id); if (r?.url) window.location.href = r.url; else showToast('Could not start checkout.', 'error'); }
+     else showToast('Plans loading. Try again in a moment.', 'error');
+   } catch(e) { showToast(e.message || 'Something went wrong.', 'error'); }
+ }} className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-black font-black rounded-xl text-sm" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>
+ ADD CARD — FEATURED ($49.99/MO)
+ </button>
+ <button onClick={async () => {
+   try {
+     let products = await api.stripe.products();
+     let p = products.find(x => x.metadata?.tier === 'venue');
+     if (!p?.prices.length) { await new Promise(r => setTimeout(r, 1500)); products = await api.stripe.products(); p = products.find(x => x.metadata?.tier === 'venue'); }
+     if (p?.prices.length) { const r = await api.stripe.checkout(p.prices[0].id); if (r?.url) window.location.href = r.url; else showToast('Could not start checkout.', 'error'); }
+     else showToast('Plans loading. Try again in a moment.', 'error');
+   } catch(e) { showToast(e.message || 'Something went wrong.', 'error'); }
+ }} className="w-full py-2.5 bg-white/10 hover:bg-white/15 text-white font-bold rounded-xl text-sm">
+ Switch to Base ($29.99/mo)
+ </button>
+ </div>
+ </div>
+ )}
+ </>
  ) : userVenue.subscribed ? (
  <div className="relative overflow-hidden rounded-2xl border border-blue-500/40 bg-gradient-to-br from-blue-900/40 via-[#151A22] to-blue-900/20">
  <div className="p-5">
@@ -2436,7 +2471,10 @@ function VenueHubScreen({ userVenue, parties, games, setCurrentScreen, showToast
  </div>
 
  {!showNewPromo && (() => {
- const myParties = parties.filter(p => (p.creatorId === user?.id || p.hostId === user?.id) && new Date(p.date || p.gameTime) >= new Date());
+ const myParties = parties.filter(p =>
+   p.venueName?.trim().toLowerCase() === userVenue.name?.trim().toLowerCase() &&
+   new Date(p.gameTime || p.date) >= new Date()
+ );
  return (
  <div className="space-y-4">
  {myParties.length > 0 ? (
@@ -3242,6 +3280,7 @@ const qrScannerRef = useRef(null);
  const [fantasyLoading, setFantasyLoading] = useState(false);
 
  const [showShareMenu, setShowShareMenu] = useState(false);
+ const [venueGateLoading, setVenueGateLoading] = useState(null);
  const [shareParty, setShareParty] = useState(null);
  const [linkCopied, setLinkCopied] = useState(false);
  const [showCalendarMenu, setShowCalendarMenu] = useState(false);
@@ -17529,6 +17568,97 @@ Become a Sponsor →
      </button>
    </div>
  </div>
+ )}
+
+ {user?.userType === 'venue' && userVenue && !userVenue.subscribed && !userVenue.featured && !userVenue.onTrial && (
+  <div className="fixed inset-0 bg-[#0A0D11] z-[220] overflow-y-auto">
+    <div className="min-h-full flex flex-col items-center justify-start py-8 px-4">
+      <div className="flex items-center gap-3 mb-2">
+        <img src="/huddle-up-shield.png" alt="Huddle Up" className="w-12 h-12" onError={e => { e.target.style.display='none'; }} />
+        <div>
+          <p className="text-[#1E90FF] text-xs font-bold uppercase tracking-widest">Huddle Up</p>
+          <h1 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>WELCOME, {userVenue.name}!</h1>
+        </div>
+      </div>
+      <p className="text-[#A0A4AB] text-sm text-center mb-1">Choose a plan to activate your venue listing.</p>
+      <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 px-4 py-2 rounded-full mb-6">
+        <span className="text-emerald-400 text-sm font-black">🎉 First 90 days completely FREE</span>
+      </div>
+      <div className="w-full max-w-md space-y-4">
+        <div className="relative overflow-hidden rounded-2xl border border-blue-500/40 bg-gradient-to-br from-blue-900/30 via-[#151A22] to-blue-900/20 p-5">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-blue-300 text-xs font-bold uppercase tracking-wider">Base Venue</p>
+              <div className="flex items-baseline gap-1 mt-1">
+                <span className="text-3xl font-black text-white">$29</span>
+                <span className="text-lg text-white">.99</span>
+                <span className="text-[#A0A4AB] text-sm">/month</span>
+              </div>
+              <p className="text-emerald-400 text-[11px] font-bold mt-1">After 90-day free trial</p>
+            </div>
+            <div className="w-14 h-14 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+              <Building2 className="w-7 h-7 text-white" />
+            </div>
+          </div>
+          <ul className="space-y-1.5 mb-4">
+            {['Listed on platform', 'Create & promote watch parties', 'Post deals & specials', 'QR code check-ins', 'Basic analytics'].map((f, i) => (
+              <li key={i} className="flex items-center gap-2 text-white/70 text-xs"><CheckCircle className="w-4 h-4 text-blue-400 flex-shrink-0" />{f}</li>
+            ))}
+          </ul>
+          <button onClick={async () => {
+            setVenueGateLoading('venue');
+            try {
+              let products = await api.stripe.products();
+              let product = products.find(p => p.metadata?.tier === 'venue');
+              if (!product || product.prices.length === 0) { await new Promise(r => setTimeout(r, 2000)); products = await api.stripe.products(); product = products.find(p => p.metadata?.tier === 'venue'); }
+              if (product?.prices.length > 0) { const result = await api.stripe.checkout(product.prices[0].id); if (result?.url) window.location.href = result.url; else showToast('Could not start checkout. Please try again.', 'error'); }
+              else showToast('Plans are loading. Please wait and try again.', 'error');
+            } catch(e) { showToast(e.message || 'Something went wrong. Please try again.', 'error'); }
+            finally { setVenueGateLoading(null); }
+          }} disabled={!!venueGateLoading} className="w-full py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white font-black rounded-xl text-sm transition-all shadow-lg disabled:opacity-60" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>
+            {venueGateLoading === 'venue' ? 'REDIRECTING…' : 'START FREE TRIAL — BASE'}
+          </button>
+        </div>
+        <div className="relative overflow-hidden rounded-2xl border-2 border-amber-500/60 bg-gradient-to-br from-amber-900/30 via-orange-900/20 to-amber-900/30 p-5">
+          <div className="absolute top-2 right-2 px-2 py-0.5 bg-amber-500 text-black text-[10px] font-black rounded-full uppercase">Most Popular</div>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-amber-300 text-xs font-bold uppercase tracking-wider">Featured Venue</p>
+              <div className="flex items-baseline gap-1 mt-1">
+                <span className="text-3xl font-black text-white">$49</span>
+                <span className="text-lg text-white">.99</span>
+                <span className="text-[#A0A4AB] text-sm">/month</span>
+              </div>
+              <p className="text-emerald-400 text-[11px] font-bold mt-1">After 90-day free trial</p>
+            </div>
+            <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/30">
+              <Star className="w-7 h-7 text-white fill-white" />
+            </div>
+          </div>
+          <ul className="space-y-1.5 mb-4">
+            {['Everything in Base, plus:', 'Priority search placement', 'Featured badge on profile', 'Trending feed boost', 'Fan notifications', 'Enhanced analytics'].map((f, i) => (
+              <li key={i} className={`flex items-center gap-2 text-xs ${i === 0 ? 'text-amber-300 font-bold' : 'text-white/70'}`}>{i > 0 && <CheckCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />}{f}</li>
+            ))}
+          </ul>
+          <button onClick={async () => {
+            setVenueGateLoading('featured_venue');
+            try {
+              let products = await api.stripe.products();
+              let product = products.find(p => p.metadata?.tier === 'featured_venue');
+              if (!product || product.prices.length === 0) { await new Promise(r => setTimeout(r, 2000)); products = await api.stripe.products(); product = products.find(p => p.metadata?.tier === 'featured_venue'); }
+              if (product?.prices.length > 0) { const result = await api.stripe.checkout(product.prices[0].id); if (result?.url) window.location.href = result.url; else showToast('Could not start checkout. Please try again.', 'error'); }
+              else showToast('Plans are loading. Please wait and try again.', 'error');
+            } catch(e) { showToast(e.message || 'Something went wrong. Please try again.', 'error'); }
+            finally { setVenueGateLoading(null); }
+          }} disabled={!!venueGateLoading} className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black rounded-xl text-sm transition-all shadow-lg disabled:opacity-60" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}>
+            {venueGateLoading === 'featured_venue' ? 'REDIRECTING…' : 'START FREE TRIAL — FEATURED'}
+          </button>
+        </div>
+        <p className="text-[#A0A4AB]/60 text-[11px] text-center">No charge for 90 days. Cancel anytime. Card required to start trial.</p>
+        <button onClick={handleLogout} className="w-full py-2 text-[#A0A4AB] text-xs hover:text-white transition-colors">Log out</button>
+      </div>
+    </div>
+  </div>
  )}
 
  {(!authChecked || (user && !initialDataLoaded)) && (
