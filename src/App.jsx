@@ -8985,15 +8985,17 @@ Become a Sponsor →
  </div>
  </div>
 
+ </div>
+
  {user && selectedGame.gameStatus === 'scheduled' && (() => {
    const existingPred = gamePredictionCache[selectedGame.id] || myPredictions.find(p => p.game_id === selectedGame.id);
    const isLocked = new Date(selectedGame.startTime) <= new Date();
    return (
-   <div className="rounded-2xl p-4 mt-4" style={{ background: 'rgba(0,0,0,0.88)', border: '2px solid rgba(16,185,129,0.5)', boxShadow: '0 4px 24px rgba(0,0,0,0.7)' }}>
+   <div className="rounded-2xl p-4" style={{ background: '#060D14', border: '2px solid rgba(16,185,129,0.6)', boxShadow: '0 4px 24px rgba(0,0,0,0.8)' }}>
    <div className="flex items-center gap-2 mb-3">
-     <Target className="w-5 h-5 text-emerald-400" />
+     <Target className="w-5 h-5 text-emerald-400 flex-shrink-0" />
      <h3 className="text-lg font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>PREDICT THE WINNER</h3>
-     <span className="ml-auto text-xs text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded-full font-bold border border-emerald-500/30">+{predictionConfidence * 50} pts</span>
+     <span className="ml-auto text-xs text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded-full font-bold border border-emerald-500/30 flex-shrink-0">+{predictionConfidence * 50} pts</span>
    </div>
    {existingPred && existingPred.status === 'pending' && expandedPrediction !== selectedGame.id ? (
      <div className="text-center py-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
@@ -9032,29 +9034,38 @@ Become a Sponsor →
    ) : null}
    {(!existingPred || expandedPrediction === selectedGame.id) && !isLocked ? (
      <>
-     <p className="text-sm text-[#A0A4AB] text-center mb-2">Who will win?</p>
-     <div className="flex gap-3 mb-3">
+     <p className="text-sm text-[#A0A4AB] text-center mb-3">Who will win?</p>
+     <div className="flex gap-3 mb-4">
        <button onClick={() => submitPrediction(selectedGame, selectedGame.homeTeam, predictionConfidence)}
          disabled={predictionLoading}
-         className="flex-1 py-3 rounded-xl font-bold text-sm transition-all bg-[#151A22] border border-[#222A36] text-white hover:border-emerald-500/50 hover:bg-emerald-500/10 active:scale-95">
-         {selectedGame.homeLogo && <img src={selectedGame.homeLogo} alt="" className="w-8 h-8 object-contain mx-auto mb-1" />}
-         {selectedGame.homeTeam}
+         className="flex-1 py-4 rounded-xl font-bold text-sm transition-all active:scale-95"
+         style={{ background: '#0F1A28', border: '2px solid #222A36', color: 'white' }}
+         onMouseEnter={e => e.currentTarget.style.borderColor='rgba(16,185,129,0.6)'}
+         onMouseLeave={e => e.currentTarget.style.borderColor='#222A36'}>
+         {selectedGame.homeLogo && <img src={selectedGame.homeLogo} alt="" className="w-10 h-10 object-contain mx-auto mb-2" />}
+         <div className="font-bold">{selectedGame.homeTeam}</div>
        </button>
        <button onClick={() => submitPrediction(selectedGame, selectedGame.awayTeam, predictionConfidence)}
          disabled={predictionLoading}
-         className="flex-1 py-3 rounded-xl font-bold text-sm transition-all bg-[#151A22] border border-[#222A36] text-white hover:border-emerald-500/50 hover:bg-emerald-500/10 active:scale-95">
-         {selectedGame.awayLogo && <img src={selectedGame.awayLogo} alt="" className="w-8 h-8 object-contain mx-auto mb-1" />}
-         {selectedGame.awayTeam}
+         className="flex-1 py-4 rounded-xl font-bold text-sm transition-all active:scale-95"
+         style={{ background: '#0F1A28', border: '2px solid #222A36', color: 'white' }}
+         onMouseEnter={e => e.currentTarget.style.borderColor='rgba(16,185,129,0.6)'}
+         onMouseLeave={e => e.currentTarget.style.borderColor='#222A36'}>
+         {selectedGame.awayLogo && <img src={selectedGame.awayLogo} alt="" className="w-10 h-10 object-contain mx-auto mb-2" />}
+         <div className="font-bold">{selectedGame.awayTeam}</div>
        </button>
      </div>
-     <div className="mb-2">
-       <div className="flex justify-between text-xs text-[#A0A4AB] mb-1"><span>Confidence</span><span>{predictionConfidence}/10</span></div>
+     <div className="mb-3 bg-[#0F1A28] rounded-xl p-3">
+       <div className="flex justify-between text-sm text-white mb-2 font-semibold"><span>Confidence Level</span><span className="text-emerald-400 font-bold">{predictionConfidence}/10</span></div>
        <input type="range" min="1" max="10" value={predictionConfidence} onChange={e => setPredictionConfidence(parseInt(e.target.value))}
-         className="w-full h-2 rounded-full appearance-none cursor-pointer" style={{ background: `linear-gradient(to right, #10B981 0%, #F59E0B ${predictionConfidence * 10}%, #333 ${predictionConfidence * 10}%)` }} />
-       <div className="flex justify-between text-[10px] text-[#A0A4AB]/60 mt-1"><span>Safe bet</span><span>All in!</span></div>
+         className="w-full h-3 rounded-full appearance-none cursor-pointer" style={{ background: `linear-gradient(to right, #10B981 0%, #F59E0B ${predictionConfidence * 10}%, #1A2535 ${predictionConfidence * 10}%)` }} />
+       <div className="flex justify-between text-xs text-[#A0A4AB] mt-1.5"><span>Safe bet</span><span>All in!</span></div>
      </div>
-     <p className="text-xs text-[#A0A4AB] text-center">Win: <span className="text-emerald-400 font-bold">+{predictionConfidence * 50} points</span> | No penalty for wrong picks</p>
-     <p className="text-[10px] text-[#A0A4AB]/50 text-center mt-1">For entertainment only - points have no cash value</p>
+     <div className="text-center bg-emerald-500/10 rounded-xl py-3 border border-emerald-500/20">
+       <p className="text-emerald-400 font-bold">Tap a team to lock in your pick</p>
+       <p className="text-[#A0A4AB] text-xs mt-1">Win: +{predictionConfidence * 50} points · No penalty for wrong picks</p>
+     </div>
+     <p className="text-[10px] text-[#A0A4AB]/50 text-center mt-2">For entertainment only - points have no cash value</p>
      </>
    ) : isLocked && !existingPred ? (
      <p className="text-center text-[#A0A4AB] text-sm py-2">Predictions locked - game has started</p>
@@ -9062,7 +9073,6 @@ Become a Sponsor →
    </div>
    );
  })()}
- </div>
 
  <div>
  <div className="glow-divider mb-4" />
