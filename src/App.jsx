@@ -732,8 +732,9 @@ const EditProfileModal = ({ user, onClose, onSave }) => {
  };
 
  return (
- <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
- <div className="bg-[#151A22] rounded-2xl p-6 max-w-md w-full border border-[#222A36] shadow-2xl max-h-[90vh] overflow-y-auto overscroll-contain" onMouseDown={e => e.stopPropagation()}>
+ <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+ <div className="flex min-h-full items-start justify-center p-4 pt-6" onMouseDown={onClose}>
+ <div className="bg-[#151A22] rounded-2xl p-6 max-w-md w-full border border-[#222A36] shadow-2xl" onMouseDown={e => e.stopPropagation()}>
  <div className="flex items-center justify-between mb-6">
  <h2 className="text-2xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
  <Pencil className="inline w-5 h-5 mr-2 text-[#1E90FF]" />
@@ -842,6 +843,7 @@ const EditProfileModal = ({ user, onClose, onSave }) => {
  </button>
  </div>
  </form>
+ </div>
  </div>
  </div>
  );
@@ -2989,6 +2991,9 @@ const HuddleUpApp = () => {
      screenHistoryRef.current = history.slice(0, -1);
      setCurrentScreenRaw(prevScreen);
      setTimeout(() => { window.scrollTo(0, 0); if (mainContainerRef.current) mainContainerRef.current.scrollTop = 0; }, 0);
+   } else {
+     setCurrentScreenRaw('games');
+     setTimeout(() => { if (mainContainerRef.current) mainContainerRef.current.scrollTop = 0; }, 0);
    }
  }, []);
  const [user, setUser] = useState(null);
@@ -4805,10 +4810,12 @@ const qrScannerRef = useRef(null);
  await loadUserParties();
  loadNotifications();
  loadBadgeStats();
+ screenHistoryRef.current = [];
  setCurrentScreen('gameDetail');
+ showToast('🎉 Party created! Share the link with your crew.', 'success');
  if (newParty && newParty.id) {
  const shareData = { ...newParty, ...partyData, hostName: user.name };
- setTimeout(() => openShareMenu(shareData), 500);
+ setTimeout(() => openShareMenu(shareData), 800);
  }
  } catch (error) {
  showToast(error.message, 'error');
@@ -6147,8 +6154,9 @@ const qrScannerRef = useRef(null);
    fetch('/api/users/onboarding-complete', { method: 'POST', credentials: 'include' }).catch(e => console.error('Onboarding complete error:', e));
  };
  return (
- <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[70] flex items-center justify-center p-4 overflow-y-auto">
- <div className="rounded-3xl w-[92%] max-w-[480px] shadow-2xl my-4 overflow-hidden" style={{ backgroundColor: '#0F1115', border: '2px solid rgba(30,144,255,0.5)', boxShadow: '0 0 60px rgba(30,144,255,0.15)' }}>
+ <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[70] overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+ <div className="flex min-h-full items-start justify-center p-4 pt-6">
+ <div className="rounded-3xl w-[92%] max-w-[480px] shadow-2xl overflow-hidden" style={{ backgroundColor: '#0F1115', border: '2px solid rgba(30,144,255,0.5)', boxShadow: '0 0 60px rgba(30,144,255,0.15)' }}>
 
    {/* Hero header */}
    <div className="relative px-6 pt-8 pb-6 text-center overflow-hidden" style={{ background: 'linear-gradient(180deg, #0d1a2e 0%, #0F1115 100%)' }}>
@@ -6208,6 +6216,7 @@ const qrScannerRef = useRef(null);
        LET'S GO! 🏈
      </button>
    </div>
+ </div>
  </div>
  </div>
  );
@@ -8980,11 +8989,11 @@ Become a Sponsor →
    const existingPred = gamePredictionCache[selectedGame.id] || myPredictions.find(p => p.game_id === selectedGame.id);
    const isLocked = new Date(selectedGame.startTime) <= new Date();
    return (
-   <div className="bg-[#0D1117] border border-emerald-500/30 rounded-2xl p-4 mt-4">
+   <div className="rounded-2xl p-4 mt-4" style={{ background: 'rgba(0,0,0,0.88)', border: '2px solid rgba(16,185,129,0.5)', boxShadow: '0 4px 24px rgba(0,0,0,0.7)' }}>
    <div className="flex items-center gap-2 mb-3">
      <Target className="w-5 h-5 text-emerald-400" />
      <h3 className="text-lg font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>PREDICT THE WINNER</h3>
-     <span className="ml-auto text-xs text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">+{predictionConfidence * 50} pts</span>
+     <span className="ml-auto text-xs text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded-full font-bold border border-emerald-500/30">+{predictionConfidence * 50} pts</span>
    </div>
    {existingPred && existingPred.status === 'pending' && expandedPrediction !== selectedGame.id ? (
      <div className="text-center py-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
@@ -13372,8 +13381,12 @@ Become a Sponsor →
  <div className="min-h-screen pt-[60px] pb-[72px] bg-[#0F1115]">
  <div className="sticky top-[60px] z-30 bg-[#0F1115] border-b border-[#222A36]">
  <div className="max-w-4xl mx-auto px-4 py-3">
- <div className="flex items-center justify-center">
- <h1 className="text-white font-black text-lg" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>MY PROFILE</h1>
+ <div className="flex items-center gap-3">
+ <button onClick={goBack} className="flex items-center gap-1 text-[#A0A4AB] hover:text-white transition-colors">
+ <ArrowLeft className="w-5 h-5" />
+ </button>
+ <h1 className="text-white font-black text-lg flex-1 text-center" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>MY PROFILE</h1>
+ <div className="w-5" />
  </div>
  </div>
  </div>
@@ -13596,22 +13609,6 @@ Become a Sponsor →
  </div>
  </div>
 
- {!userVenue && user.userType !== 'venue' && (
- <div className="bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/30 rounded-2xl p-5">
- <div className="flex items-start gap-4">
- <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
- <Building2 className="w-6 h-6 text-emerald-400" />
- </div>
- <div className="flex-1 min-w-0">
- <h3 className="text-white font-bold text-sm">Own a bar or restaurant?</h3>
- <p className="text-[#A0A4AB] text-xs mt-1 leading-relaxed">Claim your venue to manage your listing, create watch parties, and attract more fans.</p>
- <button onClick={() => setCurrentScreen('claimVenue')} className="mt-3 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg transition-all active:scale-95">
- Claim Your Venue
- </button>
- </div>
- </div>
- </div>
- )}
 
  <div className="bg-[#151A22] rounded-2xl border border-[#222A36] shadow-xl overflow-hidden">
  <button onClick={() => { setCurrentScreen('invitations'); }} className="w-full flex items-center gap-3 px-5 py-4 hover:bg-white/5 transition-colors text-left border-b border-[#222A36]">
@@ -13620,7 +13617,7 @@ Become a Sponsor →
  {totalAlerts > 0 && <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{totalAlerts}</span>}
  <ChevronRight className="w-4 h-4 text-white/30" />
  </button>
- <button onClick={() => { setCurrentScreen('profile'); setTimeout(() => { const el = document.querySelector('[data-section="favorite-teams"]'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 100); }} className="w-full flex items-center gap-3 px-5 py-4 hover:bg-white/5 transition-colors text-left border-b border-[#222A36]">
+ <button onClick={() => { setTimeout(() => { const el = document.querySelector('[data-section="favorite-teams"]'); if (el && mainContainerRef.current) { mainContainerRef.current.scrollTo({ top: el.offsetTop - 120, behavior: 'smooth' }); } else if (el) { el.scrollIntoView({ behavior: 'smooth' }); } }, 50); }} className="w-full flex items-center gap-3 px-5 py-4 hover:bg-white/5 transition-colors text-left border-b border-[#222A36]">
  <Star className="w-5 h-5 text-amber-400" />
  <span className="text-white text-sm font-semibold flex-1">My Favorite Teams</span>
  {user?.favoriteTeams && Object.keys(user.favoriteTeams).length > 0 && <span className="text-amber-400 text-xs font-bold">{Object.keys(user.favoriteTeams).length}</span>}
@@ -13650,7 +13647,7 @@ Become a Sponsor →
  const selectedTeams = Object.entries(user.favoriteTeams || {});
  const unselectedSports = allSports.filter(s => !user.favoriteTeams?.[s]);
  return (
- <div className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36] shadow-xl">
+ <div data-section="favorite-teams" className="bg-[#151A22] p-6 rounded-2xl border border-[#222A36] shadow-xl">
  <h2 className="text-2xl font-black text-white mb-3" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
  MY FAVORITE TEAMS
  </h2>
@@ -15993,7 +15990,7 @@ Become a Sponsor →
  <div key={venue.id} onClick={() => { setSelectedVenueId(venue.id); setCurrentScreen('venueDetail'); }} className={`p-4 bg-[#151A22] rounded-xl border ${venue.featuredTier === 'featured' ? 'border-amber-500/40' : 'border-[#222A36]'} hover:border-amber-500/50 transition-colors cursor-pointer`}>
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-3">
- {venue.logo ? <img src={venue.logo} className="w-10 h-10 rounded-lg object-cover" alt="" /> : <Building2 className="w-10 h-10 text-[#A0A4AB] p-2 bg-[#222A36] rounded-lg" />}
+ {venue.logo ? <img src={`/api/uploads/serve/${venue.logo.replace('/objects/', '')}`} className="w-10 h-10 rounded-lg object-cover" alt="" onError={(e) => { e.target.onerror=null; e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }} /> : null}<Building2 className="w-10 h-10 text-[#A0A4AB] p-2 bg-[#222A36] rounded-lg" style={{ display: venue.logo ? 'none' : 'flex' }} />
  <div>
  <div className="flex items-center gap-2">
  <p className="text-white font-bold">{venue.name}</p>
@@ -18574,31 +18571,10 @@ Become a Sponsor →
 <p className="text-white font-bold text-sm">{shareParty.hostName}'s Party</p>
 <p className="text-[#A0A4AB] text-xs mt-1">{shareParty.venueName || shareParty.location}</p>
 </div>
-<div className="grid grid-cols-2 gap-3">
-{typeof navigator !== 'undefined' && navigator.share && (
-<button onClick={() => shareToSocial(shareParty, 'native')} className="flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white transition-all hover:opacity-90" style={{ backgroundColor: '#1E90FF' }}>
-<Share2 className="w-5 h-5" /> Share
+<button onClick={() => copyPartyLink(shareParty)} className="w-full flex items-center justify-center gap-2 py-4 rounded-xl font-bold text-lg transition-all" style={{ background: linkCopied ? '#10b981' : '#1E90FF', color: 'white', boxShadow: '0 4px 20px rgba(30,144,255,0.4)' }}>
+{linkCopied ? <><Check className="w-6 h-6" /> Link Copied!</> : <><Copy className="w-6 h-6" /> Copy Party Link</>}
 </button>
-)}
-<button onClick={() => shareToSocial(shareParty, 'twitter')} className="flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white transition-all hover:opacity-90" style={{ backgroundColor: '#1DA1F2' }}>
-<svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> X
-</button>
-<button onClick={() => shareToSocial(shareParty, 'facebook')} className="flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white transition-all hover:opacity-90" style={{ backgroundColor: '#1877F2' }}>
-<svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg> Facebook
-</button>
-<button onClick={() => shareToSocial(shareParty, 'whatsapp')} className="flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white transition-all hover:opacity-90" style={{ backgroundColor: '#25D366' }}>
-<svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> WhatsApp
-</button>
-<button onClick={() => shareToSocial(shareParty, 'sms')} className="flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white transition-all hover:opacity-90" style={{ backgroundColor: '#34C759' }}>
-<MessageCircle className="w-5 h-5" /> Text
-</button>
-<button onClick={() => shareToSocial(shareParty, 'instagram')} className="flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white transition-all hover:opacity-90" style={{ background: 'linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }}>
-<svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg> Instagram
-</button>
-</div>
-<button onClick={() => copyPartyLink(shareParty)} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold transition-all border border-[#222A36] hover:bg-[#222A36]" style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: linkCopied ? '#10b981' : '#A0A4AB' }}>
-{linkCopied ? <><Check className="w-5 h-5" /> Link Copied!</> : <><Copy className="w-5 h-5" /> Copy Link</>}
-</button>
+<p className="text-center text-[#A0A4AB] text-xs">Copy the link and share it anywhere — text, email, social media, or paste it directly.</p>
 </div>
 </div>
 )}
