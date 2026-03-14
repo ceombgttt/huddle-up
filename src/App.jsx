@@ -3080,6 +3080,7 @@ const [findPartiesSport, setFindPartiesSport] = useState('All');
 const [findVenuesSearch, setFindVenuesSearch] = useState('');
 const [findVenuesShowCity, setFindVenuesShowCity] = useState(false);
 const [findVenuesCityInput, setFindVenuesCityInput] = useState('');
+const [findVenuesFlyTo, setFindVenuesFlyTo] = useState(null);
  const [venues, setVenues] = useState(SAMPLE_VENUES);
  const [venueClaims, setVenueClaims] = useState([]);
  const [selectedVenue, setSelectedVenue] = useState(null);
@@ -17936,12 +17937,22 @@ Become a Sponsor →
    const fvUserCenter = userCoords ? [userCoords.lat, userCoords.lng] : null;
    const defaultCenter = fvUserCenter || (mapVenues.length > 0 ? [parseFloat(mapVenues[0].latitude), parseFloat(mapVenues[0].longitude)] : [26.1224, -80.1373]);
    const FvMapRecenter = () => { const map = useMap(); React.useEffect(() => { if (fvUserCenter) map.setView(fvUserCenter, 13); }, []); return null; };
+   const FvMapFlyTo = ({ coords }) => { const map = useMap(); React.useEffect(() => { if (coords) map.flyTo(coords, 13, { duration: 1.2 }); }, [coords ? coords[0] : null, coords ? coords[1] : null]); return null; };
+   // Compute city centers and unique city list from venue data
+   const cityDataMap = {};
+   allVerified.forEach(v => { if (v.city && v.latitude && v.longitude) { if (!cityDataMap[v.city]) cityDataMap[v.city] = { lats: [], lngs: [] }; cityDataMap[v.city].lats.push(parseFloat(v.latitude)); cityDataMap[v.city].lngs.push(parseFloat(v.longitude)); } });
+   const cityCenters = {};
+   Object.entries(cityDataMap).forEach(([city, { lats, lngs }]) => { cityCenters[city] = [lats.reduce((a, b) => a + b, 0) / lats.length, lngs.reduce((a, b) => a + b, 0) / lngs.length]; });
+   const allCityNames = Object.keys(cityCenters).sort();
+   const cityQuery = (findVenuesSearch || '').trim();
+   const citySuggestions = cityQuery.length >= 2 ? allCityNames.filter(c => c.toLowerCase().includes(cityQuery.toLowerCase())) : [];
    return (
      <div style={{ position: 'fixed', top: '60px', left: 0, right: 0, bottom: '72px', display: 'flex', flexDirection: 'column', zIndex: 0 }}>
        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, touchAction: 'none' }}>
          <MapContainer center={defaultCenter} zoom={fvUserCenter ? 13 : 12} style={{ height: '100%', width: '100%', touchAction: 'none' }} scrollWheelZoom={true} dragging={true} zoomControl={false} doubleClickZoom={true} touchZoom={true} keyboard={true} attributionControl={false}>
            <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
            <FvMapRecenter />
+           <FvMapFlyTo coords={findVenuesFlyTo} />
            {mapVenues.map(v => {
              const vParties = venuePartyLookup[v.name?.toLowerCase()] || [];
              const hasLive = vParties.some(p => { const gt = new Date(p.gameTime); return gt <= now && gt >= new Date(now.getTime() - 4*60*60*1000); });
@@ -17957,10 +17968,41 @@ Become a Sponsor →
          <div className="flex gap-2">
            <div className="flex-1 relative">
              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
-             <input type="text" value={findVenuesSearch} onChange={e => setFindVenuesSearch(e.target.value)} placeholder="Search venues, cities..." className="w-full pl-8 pr-8 py-2 rounded-full text-white text-xs font-bold placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]" style={{ background: '#1a1d28', boxShadow: '0 2px 12px rgba(0,0,0,0.5)' }} />
-             {findVenuesSearch && <button onClick={() => setFindVenuesSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"><X className="w-3.5 h-3.5" /></button>}
+             <input
+               type="text"
+               value={findVenuesSearch}
+               onChange={e => { setFindVenuesSearch(e.target.value); setFindVenuesFlyTo(null); }}
+               placeholder="Search venues or type a city..."
+               className="w-full pl-8 pr-8 py-2 rounded-full text-white text-xs font-bold placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
+               style={{ background: '#1a1d28', boxShadow: '0 2px 12px rgba(0,0,0,0.5)' }}
+             />
+             {findVenuesSearch && <button onClick={() => { setFindVenuesSearch(''); setFindVenuesFlyTo(null); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"><X className="w-3.5 h-3.5" /></button>}
+             {citySuggestions.length > 0 && (
+               <div className="absolute top-full left-0 right-0 mt-1.5 rounded-2xl overflow-hidden shadow-2xl" style={{ background: '#151A22', border: '1px solid rgba(30,144,255,0.4)', zIndex: 20 }}>
+                 {citySuggestions.map(city => {
+                   const count = cityDataMap[city]?.lats.length || 0;
+                   return (
+                     <button
+                       key={city}
+                       onMouseDown={e => e.preventDefault()}
+                       onClick={() => {
+                         setFindVenuesSearch(city);
+                         setFindVenuesFlyTo(cityCenters[city]);
+                       }}
+                       className="w-full flex items-center justify-between px-4 py-3 hover:bg-[#1E90FF]/10 active:bg-[#1E90FF]/20 transition-colors border-b border-[#222A36] last:border-b-0"
+                     >
+                       <div className="flex items-center gap-2.5">
+                         <MapPin className="w-4 h-4 text-[#1E90FF] flex-shrink-0" />
+                         <span className="text-white font-bold text-sm">{city}</span>
+                       </div>
+                       <span className="text-[#A0A4AB] text-xs">{count} {count === 1 ? 'venue' : 'venues'}</span>
+                     </button>
+                   );
+                 })}
+               </div>
+             )}
            </div>
-           <button onClick={() => { if (navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { const lat = pos.coords.latitude; const lng = pos.coords.longitude; fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`).then(r => r.json()).then(d => { const city = d.address?.city || d.address?.town || d.address?.village || 'Your Location'; setCurrentCity(`${city}, ${d.address?.state || ''}`); }).catch(() => setCurrentCity('Your Location')); }, () => { showToast('Please enable location access to use Near Me', 'error'); }); } else { showToast('Location is not supported by your browser', 'error'); } }} className="flex items-center gap-1.5 px-3 py-2 rounded-full font-bold text-white text-xs shadow-lg flex-shrink-0" style={{ background: 'linear-gradient(135deg, #1E90FF, #1873cc)', boxShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>
+           <button onClick={() => { if (navigator.geolocation) { navigator.geolocation.getCurrentPosition(pos => { const lat = pos.coords.latitude; const lng = pos.coords.longitude; setFindVenuesFlyTo([lat, lng]); fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`).then(r => r.json()).then(d => { const city = d.address?.city || d.address?.town || d.address?.village || 'Your Location'; setCurrentCity(`${city}, ${d.address?.state || ''}`); }).catch(() => setCurrentCity('Your Location')); }, () => { showToast('Please enable location access to use Near Me', 'error'); }); } else { showToast('Location is not supported by your browser', 'error'); } }} className="flex items-center gap-1.5 px-3 py-2 rounded-full font-bold text-white text-xs shadow-lg flex-shrink-0" style={{ background: 'linear-gradient(135deg, #1E90FF, #1873cc)', boxShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>
              <Navigation className="w-3.5 h-3.5" /> Near Me
            </button>
          </div>
