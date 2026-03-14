@@ -287,31 +287,45 @@ router.post('/onboarding-complete', requireAuth, async (req, res) => {
 router.delete('/me', requireAuth, async (req, res) => {
   const userId = req.session.userId;
   try {
-    // Delete in dependency order to respect FK constraints
-    const tables = [
+    const q = (sql, params) => pool.query(sql, params).catch(e => console.warn('Delete cleanup warn:', e.message));
+
+    // Tables with standard user_id column
+    const standardTables = [
       'push_subscriptions', 'user_favorite_teams', 'user_points', 'points_history',
       'prediction_streaks', 'predictions', 'party_attendees', 'reward_redemptions',
       'score_watches', 'raffle_entries', 'notification_preferences', 'notifications',
-      'venue_follows', 'venue_checkins', 'photo_tags', 'party_reviews', 'venue_reviews',
-      'venue_contacts', 'party_invitations', 'party_highlights', 'party_photos',
-      'affiliate_referrals', 'ticket_purchases', 'fantasy_teams',
+      'venue_follows', 'venue_checkins', 'party_reviews', 'venue_reviews',
+      'venue_contacts', 'party_highlights', 'party_photos',
+      'affiliate_referrals', 'ticket_purchases', 'fantasy_teams', 'sponsors',
     ];
-    for (const table of tables) {
-      await pool.query(`DELETE FROM ${table} WHERE user_id = $1`, [userId]).catch(() => {});
+    for (const table of standardTables) {
+      await q(`DELETE FROM ${table} WHERE user_id = $1`, [userId]);
     }
+
+    // Tables with non-standard FK column names
+    await q(`DELETE FROM photo_tags WHERE tagged_user_id = $1 OR tagged_by = $1`, [userId]);
+    await q(`DELETE FROM party_invitations WHERE from_user_id = $1 OR to_user_id = $1`, [userId]);
+    await q(`DELETE FROM team_chat_bans WHERE user_id = $1 OR banned_by = $1`, [userId]);
+    await q(`DELETE FROM venue_claims WHERE submitted_by = $1`, [userId]);
+    await q(`DELETE FROM direct_messages WHERE sender_id = $1 OR receiver_id = $1`, [userId]);
+    await q(`DELETE FROM friendships WHERE user_id = $1 OR friend_id = $1`, [userId]);
+    await q(`DELETE FROM party_fantasy_links WHERE linked_by = $1`, [userId]);
+
     // Soft-anonymize messages so others' conversation history isn't broken
-    await pool.query(`UPDATE party_messages SET user_id = NULL, content = '[deleted]' WHERE user_id = $1`, [userId]).catch(() => {});
-    await pool.query(`UPDATE team_chat_messages SET user_id = NULL, content = '[deleted]' WHERE user_id = $1`, [userId]).catch(() => {});
-    await pool.query(`DELETE FROM direct_messages WHERE sender_id = $1 OR receiver_id = $1`, [userId]).catch(() => {});
-    await pool.query(`DELETE FROM friendships WHERE user_id = $1 OR friend_id = $1`, [userId]).catch(() => {});
-    await pool.query(`DELETE FROM party_fantasy_links WHERE linked_by = $1`, [userId]).catch(() => {});
-    await pool.query(`UPDATE parties SET host_id = NULL WHERE host_id = $1`, [userId]).catch(() => {});
-    await pool.query(`UPDATE venues SET claimed_by = NULL WHERE claimed_by = $1`, [userId]).catch(() => {});
-    await pool.query(`UPDATE referral_conversions SET referred_user_id = NULL WHERE referred_user_id = $1`, [userId]).catch(() => {});
-    await pool.query(`UPDATE referral_conversions SET referrer_user_id = NULL WHERE referrer_user_id = $1`, [userId]).catch(() => {});
-    // Delete the user record
+    await q(`UPDATE party_messages SET user_id = NULL, content = '[deleted]' WHERE user_id = $1`, [userId]);
+    await q(`UPDATE team_chat_messages SET user_id = NULL, content = '[deleted]' WHERE user_id = $1`, [userId]);
+
+    // NULL-out references that shouldn't be hard-deleted
+    await q(`UPDATE parties SET host_id = NULL WHERE host_id = $1`, [userId]);
+    await q(`UPDATE venues SET claimed_by = NULL WHERE claimed_by = $1`, [userId]);
+    await q(`UPDATE fantasy_leagues SET commissioner_id = NULL WHERE commissioner_id = $1`, [userId]);
+    await q(`UPDATE raffles SET winner_id = NULL WHERE winner_id = $1`, [userId]);
+    await q(`UPDATE referral_conversions SET referred_user_id = NULL WHERE referred_user_id = $1`, [userId]);
+    await q(`UPDATE referral_conversions SET referrer_user_id = NULL WHERE referrer_user_id = $1`, [userId]);
+
+    // Finally delete the user record
     await pool.query('DELETE FROM users WHERE id = $1', [userId]);
-    // Destroy session
+
     req.session.destroy(() => {});
     res.json({ success: true });
   } catch (error) {
