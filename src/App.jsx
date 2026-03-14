@@ -8043,23 +8043,16 @@ const qrScannerRef = useRef(null);
   const goal = 250000;
   const pct = Math.min(100, Math.round((launchDisplayCount / goal) * 100));
   return (
-<div className="mb-3 relative overflow-hidden rounded-xl" style={{ background: 'linear-gradient(135deg, #0d1a2e 0%, #111827 100%)', border: '1px solid rgba(30,144,255,0.35)' }}>
-  {launchCounterDismissed && (
-    <button onClick={() => { setLaunchCounterDismissed(false); localStorage.removeItem('launch_counter_dismissed'); }} className="absolute top-2 right-2 text-white/30 hover:text-white/60 z-10 p-1 text-[10px]">show</button>
-  )}
-  {!launchCounterDismissed && (
-    <button onClick={() => { setLaunchCounterDismissed(true); localStorage.setItem('launch_counter_dismissed', '1'); }} className="absolute top-2 right-2 text-white/20 hover:text-white/50 z-10 p-1">
-      <X className="w-3 h-3" />
-    </button>
-  )}
+<div className="mb-3 rounded-xl" style={{ background: 'linear-gradient(135deg, #0d1a2e 0%, #111827 100%)', border: '1px solid rgba(30,144,255,0.35)' }}>
   {!launchCounterDismissed ? (
-  <div className="p-3 pt-3 pb-3">
-    <div className="flex items-center justify-between mb-2">
-      <div className="flex items-center gap-2">
-        <span className="text-base">🚀</span>
-        <span className="text-white font-bold text-sm">Fans Already Signed Up</span>
-      </div>
-      <span className="text-[#FFD700] font-black text-sm mr-5">{launchDisplayCount.toLocaleString()}+</span>
+  <div className="p-3">
+    <div className="flex items-center gap-2 mb-2">
+      <span className="text-base flex-shrink-0">🚀</span>
+      <span className="text-white font-bold text-sm flex-1 min-w-0 truncate">Fans Already Signed Up</span>
+      <span className="text-[#FFD700] font-black text-sm flex-shrink-0">{launchDisplayCount.toLocaleString()}+</span>
+      <button onClick={() => { setLaunchCounterDismissed(true); localStorage.setItem('launch_counter_dismissed', '1'); }} className="flex-shrink-0 text-white/20 hover:text-white/50 p-0.5">
+        <X className="w-3 h-3" />
+      </button>
     </div>
     <div className="w-full rounded-full overflow-hidden" style={{ height: '8px', background: 'rgba(255,255,255,0.08)' }}>
       <div
@@ -8074,13 +8067,14 @@ const qrScannerRef = useRef(null);
   </div>
   ) : (
   <div className="p-2 flex items-center gap-2">
-    <span className="text-sm">🚀</span>
+    <span className="text-sm flex-shrink-0">🚀</span>
     <div className="flex-1 min-w-0">
       <div className="w-full rounded-full overflow-hidden" style={{ height: '5px', background: 'rgba(255,255,255,0.08)' }}>
         <div className="h-full rounded-full" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #1E90FF 0%, #FFD700 100%)' }} />
       </div>
     </div>
     <span className="text-[#FFD700] font-black text-xs flex-shrink-0">{launchDisplayCount.toLocaleString()}+</span>
+    <button onClick={() => { setLaunchCounterDismissed(false); localStorage.removeItem('launch_counter_dismissed'); }} className="flex-shrink-0 text-white/20 hover:text-white/50 p-0.5 text-[10px]">▲</button>
   </div>
   )}
 </div>
