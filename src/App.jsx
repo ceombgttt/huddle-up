@@ -7213,27 +7213,6 @@ const qrScannerRef = useRef(null);
      <img src="/huddle-up-logo.png" alt="Huddle Up" className="mx-auto w-full" style={{ maxWidth: '320px', maxHeight: '110px', objectFit: 'contain' }} />
    </div>
 
-   {/* FAN COUNTER */}
-   <div className="w-full max-w-md mx-auto rounded-2xl flex-shrink-0" style={{ background: 'linear-gradient(135deg, #0d1a2e 0%, #111827 100%)', border: '1px solid rgba(30,144,255,0.3)', padding: '12px 16px' }}>
-     <div className="flex items-center justify-between mb-1.5">
-       <div className="flex items-center gap-2">
-         <span className="text-base">🚀</span>
-         <span className="text-white font-bold text-sm">Fans Already Signed Up</span>
-       </div>
-       <span className="text-[#FFD700] font-black text-sm">{launchDisplayCount.toLocaleString()}+</span>
-     </div>
-     <div className="w-full rounded-full overflow-hidden" style={{ height: '8px', background: 'rgba(255,255,255,0.08)' }}>
-       <div
-         className="h-full rounded-full transition-all duration-1000"
-         style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #1E90FF 0%, #FFD700 100%)', boxShadow: '0 0 8px rgba(30,144,255,0.6)' }}
-       />
-     </div>
-     <div className="flex items-center justify-between mt-1.5">
-       <span className="text-[#A0A4AB] text-xs">Growing daily in South Florida</span>
-       <span className="text-[#A0A4AB] text-xs">Goal: {goal.toLocaleString()}</span>
-     </div>
-   </div>
-
    {/* SEPARATE FAN / VENUE LANES */}
    <div className="w-full max-w-md grid grid-cols-2 gap-3 flex-shrink-0">
      {/* Fan lane */}
@@ -7268,6 +7247,27 @@ const qrScannerRef = useRef(null);
            REGISTER
          </button>
        </div>
+     </div>
+   </div>
+
+   {/* FAN COUNTER — below login */}
+   <div className="w-full max-w-md mx-auto rounded-2xl flex-shrink-0" style={{ background: 'linear-gradient(135deg, #0d1a2e 0%, #111827 100%)', border: '1px solid rgba(30,144,255,0.3)', padding: '12px 16px' }}>
+     <div className="flex items-center justify-between mb-1.5">
+       <div className="flex items-center gap-2">
+         <span className="text-base">🚀</span>
+         <span className="text-white font-bold text-sm">Fans Already Signed Up</span>
+       </div>
+       <span className="text-[#FFD700] font-black text-sm">{launchDisplayCount.toLocaleString()}+</span>
+     </div>
+     <div className="w-full rounded-full overflow-hidden" style={{ height: '8px', background: 'rgba(255,255,255,0.08)' }}>
+       <div
+         className="h-full rounded-full transition-all duration-1000"
+         style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #1E90FF 0%, #FFD700 100%)', boxShadow: '0 0 8px rgba(30,144,255,0.6)' }}
+       />
+     </div>
+     <div className="flex items-center justify-between mt-1.5">
+       <span className="text-[#A0A4AB] text-xs">Growing daily in South Florida</span>
+       <span className="text-[#A0A4AB] text-xs">Goal: {goal.toLocaleString()}</span>
      </div>
    </div>
 
