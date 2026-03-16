@@ -3057,7 +3057,6 @@ const HuddleUpApp = () => {
    }
  }, [user, showPrelaunchModal, showOnboarding]);
  useEffect(() => { window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; if (mainContainerRef.current) mainContainerRef.current.scrollTop = 0; requestAnimationFrame(() => { window.scrollTo(0, 0); if (mainContainerRef.current) mainContainerRef.current.scrollTop = 0; }); }, [currentScreen]);
-useEffect(() => { if (currentScreen === 'nearbyParties') setCurrentScreen('browseParties'); }, [currentScreen]);
 useEffect(() => { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; }, []);
 useEffect(() => { const t = setTimeout(() => { setLaunchCounterDismissed(true); }, 5000); return () => clearTimeout(t); }, []);
 useEffect(() => { if (user) { window.scrollTo(0, 0); } }, [user]);
@@ -3741,7 +3740,7 @@ const qrScannerRef = useRef(null);
  const activeSponsors = adminSponsors.filter(s => s.status === 'active');
 
  const formScreens = ['welcome', 'login', 'signup', 'forgotPassword', 'claimVenue', 'createParty'];
- const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', 'qrCheckin', 'myParties', 'myCrew', 'fanFinder', 'invitations', 'venueDashboard', 'sponsorDashboard', 'teamChats', 'trending', 'myTickets', 'alerts', 'userProfile', 'dmChat', 'partyChat', 'proUpgrade', 'venueDetail', 'inviteFriends', 'notificationSettings', 'nearbyParties', 'browseParties', 'findVenues', 'findParties', 'gameDetail', ...formScreens];
+ const pauseScreens = ['profile', 'rewards', 'fans', 'friends', 'notifications', 'admin', 'qrCheckin', 'myParties', 'myCrew', 'fanFinder', 'invitations', 'venueDashboard', 'sponsorDashboard', 'teamChats', 'trending', 'alerts', 'userProfile', 'dmChat', 'partyChat', 'proUpgrade', 'venueDetail', 'inviteFriends', 'notificationSettings', 'browseParties', 'findVenues', 'findParties', 'gameDetail', ...formScreens];
  const isFormScreen = formScreens.includes(currentScreen);
  const isPauseScreen = pauseScreens.includes(currentScreen);
 
@@ -12205,12 +12204,6 @@ Become a Sponsor →
  <p className="text-xs text-[#A0A4AB]/70 mt-2">
  ✓ Verified venues are legitimate businesses we've confirmed
  </p>
- <button
- onClick={() => setCurrentScreen('claimVenue')}
- className="text-[#1E90FF] text-sm hover:text-[#1E90FF]/80 mt-2"
- >
- Don't see your venue? Claim it here →
- </button>
  </div>
  ) : (
  <div>
@@ -15591,8 +15584,6 @@ Become a Sponsor →
  const [alertPrefs, setAlertPrefs] = useState({ teamAlerts: true, rivalryAlerts: true, suggestedParties: true, gameReminders: true });
  const [teamAlertsList, setTeamAlertsList] = useState([]);
  const [rivalryAlertsList, setRivalryAlertsList] = useState([]);
- const [myTicketsList, setMyTicketsList] = useState([]);
-
  const loadTeamChatRooms = async () => {
  try {
  setTeamChatLoading(true);
@@ -15707,13 +15698,6 @@ Become a Sponsor →
  setTeamAlertsList(teamA.alerts || []);
  setRivalryAlertsList(rivalryA.alerts || []);
  } catch (e) { console.error('Load alerts error:', e); }
- };
-
- const loadMyTickets = async () => {
- try {
- const data = await api.tickets.myTickets();
- setMyTicketsList(data.tickets || []);
- } catch (e) { console.error('Load my tickets error:', e); }
  };
 
  const renderTeamChatsScreen = () => {
@@ -16203,48 +16187,6 @@ Become a Sponsor →
  <p className="text-sm mt-1">Add favorite teams to get notified when they play!</p>
  </div>
  )}
- </div>
- </div>
- );
- };
-
- const renderMyTicketsScreen = () => {
- if (!myTicketsList.length) {
- loadMyTickets();
- }
-
- return (
- <div className="min-h-screen bg-[#0F1115] pt-[60px]">
- <div className="sticky top-[60px] z-30 bg-[#0F1115] border-b border-[#222A36] px-4 py-3">
- <div className="flex items-center gap-3">
- <button onClick={goBack} className="text-[#A0A4AB] hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
- <Award className="w-6 h-6 text-purple-400" />
- <h2 className="text-xl font-black text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>MY TICKETS</h2>
- </div>
- </div>
- <div className="p-4 max-w-2xl mx-auto space-y-4">
- {myTicketsList.length === 0 && (
- <div className="text-center py-12 text-[#A0A4AB]">
- <Award className="w-16 h-16 mx-auto mb-4 opacity-30" />
- <p className="text-lg font-bold mb-2">No Tickets Yet</p>
- <p className="text-sm">Purchase tickets to watch parties to see them here.</p>
- </div>
- )}
- {myTicketsList.map(ticket => (
- <div key={ticket.id} className="p-4 bg-[#151A22] rounded-xl border border-[#222A36]">
- <div className="flex items-start justify-between">
- <div>
- <p className="text-white font-bold">{ticket.partyName || ticket.party_name || 'Watch Party'}</p>
- <p className="text-sm text-[#A0A4AB]">{ticket.venueName || ticket.venue_name}</p>
- <p className="text-sm text-[#A0A4AB]">{new Date(ticket.gameDate || ticket.game_date || ticket.purchasedAt || ticket.purchased_at).toLocaleDateString()}</p>
- </div>
- <div className="text-right">
- <p className="text-lg font-bold text-purple-400">${((ticket.amountCents || ticket.amount_cents || 0) / 100).toFixed(2)}</p>
- <span className={`text-xs px-2 py-0.5 rounded-full ${ticket.status === 'completed' ? 'bg-green-500/20 text-green-300' : 'bg-gray-500/20 text-[#A0A4AB]'}`}>{ticket.status}</span>
- </div>
- </div>
- </div>
- ))}
  </div>
  </div>
  );
@@ -17818,7 +17760,6 @@ Become a Sponsor →
  {currentScreen === 'trending' && renderTrendingScreen()}
  {currentScreen === 'userProfile' && renderUserProfileScreen()}
  {currentScreen === 'alerts' && renderAlertsScreen()}
- {currentScreen === 'myTickets' && renderMyTicketsScreen()}
  {currentScreen === 'predictions' && PredictionsScreen()}
  {currentScreen === 'contactUs' && <ContactUsScreen />}
  {currentScreen === 'termsOfService' && <TermsOfServiceScreen />}
