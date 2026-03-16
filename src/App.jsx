@@ -13570,7 +13570,8 @@ Become a Sponsor →
  <div className="text-2xl font-black text-white">{friendsList.length}</div>
  <div className="text-[#A0A4AB] text-xs">Friends</div>
  </div>
- <div className="w-px bg-[#222A36]" />
+ {user?.userType !== 'venue' && <div className="w-px bg-[#222A36]" />}
+ {user?.userType !== 'venue' && (
  <div className="text-center cursor-pointer" onClick={() => setCurrentScreen('predictions')}>
  <div className="text-2xl font-black text-emerald-400">{predictionStats?.total ?? 0}</div>
  <div className="text-[#A0A4AB] text-xs">Predictions</div>
@@ -13578,6 +13579,7 @@ Become a Sponsor →
  <div className="text-[9px] text-orange-400 font-bold mt-0.5">🔥 {predictionStats.currentStreak} streak</div>
  )}
  </div>
+ )}
  </div>
  {(() => {
  const badge = getFanBadge(badgeStats.partiesAttended, badgeStats.partiesHosted);
@@ -17459,12 +17461,12 @@ Become a Sponsor →
 <button onClick={() => { setCurrentScreen('fanFinder'); if (currentCity && nearbyFans.length === 0) searchNearbyFans(currentCity); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1E90FF]/10 transition-colors text-left active:scale-[0.98]">
 <UserPlus className="w-5 h-5 text-[#1E90FF]" /><span className="text-white text-base font-semibold">Find Fans</span>
 </button>
-<button onClick={() => { setCurrentScreen('predictions'); loadPredictions(); loadPredictionLeaderboard(); window.scrollTo({ top: 0, behavior: 'instant' }); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-500/10 transition-colors text-left active:scale-[0.98]">
+{user?.userType !== 'venue' && (<button onClick={() => { setCurrentScreen('predictions'); loadPredictions(); loadPredictionLeaderboard(); window.scrollTo({ top: 0, behavior: 'instant' }); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-500/10 transition-colors text-left active:scale-[0.98]">
 <Target className="w-5 h-5 text-emerald-400" /><span className="text-white text-base font-semibold">Predictions</span>
-</button>
-<button onClick={() => { setCurrentScreen('fantasy'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-500/10 transition-colors text-left active:scale-[0.98]">
+</button>)}
+{user?.userType !== 'venue' && (<button onClick={() => { setCurrentScreen('fantasy'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-500/10 transition-colors text-left active:scale-[0.98]">
 <Trophy className="w-5 h-5 text-orange-400" /><span className="text-white text-base font-semibold">Fantasy</span>
-</button>
+</button>)}
 <button onClick={() => { setCurrentScreen('inviteFriends'); setHamburgerOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-500/10 transition-colors text-left active:scale-[0.98]">
 <UserPlus className="w-5 h-5 text-emerald-400" /><span className="text-white text-base font-semibold">Invite Friends</span>
 </button>
